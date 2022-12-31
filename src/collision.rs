@@ -67,27 +67,29 @@ fn display_collision_markers(
                         //  info!("dcm updated");
                         *transform = new_transform;
                     } else {
-                        let extents = if wall.horizontal {
-                            Vec2 {
-                                x: SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.5,
-                                y: SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
-                            }
+
+                        let (xr, yr) = if wall.horizontal {
+                            (SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125)
                         } else {
-                            Vec2 {
-                                x: SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
-                                y: SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.5,
-                            }
+                            (SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25)
                         };
+
+                        let points = vec![Vec2::new(-xr, -yr),Vec2::new(xr, -yr), Vec2::new(xr, yr),Vec2::new(-xr, yr) ];
 
                         //info!("dcm new");
                         let draw_mode = bevy_prototype_lyon::prelude::DrawMode::Fill(
                             bevy_prototype_lyon::prelude::FillMode::color(Color::RED),
                         );
                         commands.spawn(cm).insert(GeometryBuilder::build_as(
-                            &shapes::Rectangle {
-                                origin: RectangleOrigin::Center,
-                                extents,
+                            &shapes::RoundedPolygon{
+                                points,
+                                clockwise: true,
+                                radius: 5.0
                             },
+                            // &shapes::Rectangle {
+                            //     origin: RectangleOrigin::Center,
+                            //     extents,
+                            // },
                             draw_mode,
                             new_transform,
                         ));

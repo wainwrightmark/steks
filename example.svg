@@ -1,0 +1,9 @@
+<svg viewbox = "-180 -320 360 640" xmlns="http://www.w3.org/2000/svg">
+<rect width="360" height="640" x="-180" y="-320" fill="aliceblue"/>
+<g transform="scale(1,-1)">
+
+<g transform="translate(60.1,-157.0) rotate(0.0) scale(1.0 1.0)">
+<path fill = "#824A9ACC" stroke = "#7F7F7FFF" d=" M -15.652475 -51.42956 L 6.7082043 -51.42956 L 6.7082043 15.652475 L 29.068882 15.652475 L 29.068882 38.013157 L -15.652475 38.013157 Z" />
+</g>
+</g>
+</svg>

@@ -1,0 +1,123 @@
+<html>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta charset="utf-8" />
+    <title>steks</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="steks" />
+    <meta property="og:url" content="www.steks.net" />
+    <meta property="og:site_name" content="steks" />
+    <meta property="og:description" content="How will you build it?" />
+    <meta
+      property="og:image"
+      content="https://repository-images.githubusercontent.com/474112540/329ba0e2-fb72-4b6b-bded-8ef640769402"
+    />
+
+    <link data-trunk rel="copy-dir" href="assets" />
+    <link data-trunk rel="copy-dir" href="credits" />
+    <link data-trunk rel="copy-file" href="build/windows/icon.ico" />
+    <link rel="icon" href="icon.ico" />
+    <link data-trunk rel="inline" href="build/web/styles.css" />
+  </head>
+
+  <body>
+    <div id="spinner" class="lds-roller spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+    <div style="display: flex; flex-direction: column">
+
+      <canvas id="game" style="width: 0px; height: 0px;"></canvas>
+    </div>
+
+    <script>
+      let touch_added = false;
+      let touch_events = [];
+
+      let on_start = () =>{
+        var spinner = window.document.getElementById("spinner");
+        window.document.body.removeChild(spinner);
+      }
+
+      let has_touch = () => {
+        return !!("ontouchstart" in window);
+      };
+
+      let pop_touch_event = () => {
+        let e = touch_events.shift();
+        return e;
+      };
+
+      let request_fullscreen = () => {
+        var doc = window.document;
+        var docEl = doc.getElementById("game");
+
+        var requestFullScreen =
+          docEl.requestFullscreen ||
+          docEl.mozRequestFullScreen ||
+          docEl.webkitRequestFullScreen ||
+          docEl.msRequestFullscreen;
+        var cancelFullScreen =
+          doc.exitFullscreen ||
+          doc.mozCancelFullScreen ||
+          doc.webkitExitFullscreen ||
+          doc.msExitFullscreen;
+
+        if (
+          !doc.fullscreenElement &&
+          !doc.mozFullScreenElement &&
+          !doc.webkitFullscreenElement &&
+          !doc.msFullscreenElement
+        ) {
+          requestFullScreen.call(docEl, { navigationUI: "hide" });
+        } else {
+          cancelFullScreen.call(doc);
+        }
+
+        //let canvas = document.getElementById("game");
+        //canvas.requestFullscreen({ navigationUI: "hide" });
+      };
+
+      let enable_touch = () => {
+        if (has_touch() == true && touch_added == false) {
+          let canvas = document.getElementById("game");
+          canvas.addEventListener(
+            "touchstart",
+            (ev) => {
+              ev.preventDefault();
+              touch_events.push(ev);
+            },
+            { passive: false }
+          );
+          canvas.addEventListener(
+            "touchend",
+            (ev) => {
+              ev.preventDefault();
+              touch_events.push(ev);
+            },
+            { passive: false }
+          );
+          canvas.addEventListener(
+            "touchmove",
+            (ev) => {
+              ev.preventDefault();
+              touch_events.push(ev);
+            },
+            { passive: false }
+          );
+
+          touch_added = true;
+        }
+      };
+
+      let resize_canvas = (width, height) => {
+        let canvas = document.getElementById("game");
+        canvas.width = width * window.devicePixelRatio;
+        canvas.height = height * window.devicePixelRatio;
+        canvas.style = `width: ${width}; height: ${height}`;
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,112 @@
+[package]
+name = "steks"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.5"
+itertools = "0.10"
+bevy_prototype_lyon = {git="https://github.com/wainwrightmark/bevy_prototype_lyon"}
+bevy_rapier2d = {version = "0.19" }
+
+strum = { version = "0.24.1", features = ["derive"] }
+bevy_tweening = { version = "0.6.0", default-features = false, features = ["bevy_text"] }
+chrono = {version="0.4", features = ["serde", "wasmbind"]}
+bevy_pkv = "0.6.0"
+
+serde = { version = "1", features = ["derive"] }
+resvg = { version = "0.28.0", default-features = false, features = ["png"] }
+anyhow = "1.0.68"
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = { version = "0.3.58" }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4.31"
+web-sys = {version = "0.3", features = ['Window', 'TouchEvent', 'TouchList', 'Touch', 'Blob', 'BlobPropertyBag', 'Document', 'FileReader', 'Element', 'HtmlElement', 'HtmlCollection']}
+console_error_panic_hook = "0.1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+winit = { version = "0.27", features=["x11"]}
+
+[build-dependencies]
+embed-resource = "1.4"
+
+[workspace]
+resolver = "2" # Important! wgpu/Bevy needs this!
+
+[dev-dependencies]
+insta = "1.23"
+test-case = "2.2"
+bevy_rapier2d = { version = "0.19", features = [  "debug-render", "serde-serialize" ] }
+
+[profile.release]
+opt-level = 'z'
+lto = 'thin'
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies.bevy]
+version = "0.9"
+
+
+
+# Disable the default features if there are any that you do not want
+default-features = false
+features = [
+  # These are the default features:
+  # (keep whichever you like)
+
+  # Bevy functionality:
+#   "bevy_gilrs",         # Gamepad input support
+#   "bevy_audio",         # Builtin audio
+#   "filesystem_watcher", # Asset hot-reloading
+  "bevy_winit",         # Window management
+  "x11",                # Linux: Support X11 windowing system
+#   "render",             # Graphics Rendering
+
+  ## "render" actually just includes:
+  ## (feel free to use just a subset of these, instead of "render")
+  "bevy_render",        # Rendering framework core
+  "bevy_core_pipeline", # Higher-level rendering abstractions
+  "bevy_sprite",        # 2D (sprites) rendering
+#   "bevy_pbr",           # 3D (physically-based) rendering
+#   "bevy_gltf",          # GLTF 3D assets format support
+  "bevy_text",          # Text/font rendering
+  "bevy_ui",            # UI toolkit
+
+  # File formats:
+#   "png",
+#   "hdr",
+#   "vorbis",
+
+  # These are other features that may be of interest:
+  # (add any of these that you need)
+
+  # Bevy functionality:
+#   "wayland",              # Linux: Support Wayland windowing system
+#   "subpixel_glyph_atlas", # Subpixel antialiasing for text/fonts
+#   "serialize",            # Support for `serde` Serialize/Deserialize
+
+  # File formats:
+#   "bmp",
+#   "tga",
+#   "dds",
+#   "jpeg",
+#   "wav",
+#   "flac",
+#   "mp3",
+
+  # Development/Debug features:
+#   "dynamic",      # Dynamic linking for faster compile-times
+#   "trace",        # Enable tracing for performance measurement
+#   "trace_tracy",  # Tracing using `tracy`
+#   "trace_chrome", # Tracing using the Chrome format
+#   "wgpu_trace",   # WGPU/rendering tracing
+]

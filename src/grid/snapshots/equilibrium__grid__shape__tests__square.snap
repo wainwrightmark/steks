@@ -1,0 +1,22 @@
+---
+source: src/grid/shape.rs
+expression: outline
+---
+[
+    Qr {
+        x: 0,
+        y: 0,
+    },
+    Qr {
+        x: 1,
+        y: 0,
+    },
+    Qr {
+        x: 1,
+        y: 1,
+    },
+    Qr {
+        x: 0,
+        y: 1,
+    },
+]

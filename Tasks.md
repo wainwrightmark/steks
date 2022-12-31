@@ -1,0 +1,58 @@
+- [x] Make Dynamic / Kinematic Switch work
+
+- [x] Add static starting shape
+- [x] Make more shapes
+- [x] Colors
+- [x] Allow rotation
+- [x] Touch controls
+- [ ] Keyboard Controls
+- [ ] Gamepad Controls
+- [ ] Cursor icon https://github.com/bevyengine/bevy/blob/latest/examples/window/window_settings.rs
+
+- [x] Shape borders
+- [x] Padlock item
+- [x] Only drag one shape at once
+- [x] Good fullscreen mode
+- [x] Time speeds up to check for contracts
+- [x] Check for contacts instantly, only show timer when a contact is detected
+- [ ] Prevent shapes from getting stuck in each other
+- [x] Handle touch cancelled events
+- [x] Keyboard / mousewheel rotation should snap
+- [ ] Better tutorial
+- [ ] Tutorial text should not fade
+- [ ] Use icons instead of text in tutorial
+
+- [ ] Rounded Corners
+- [ ] Prettier countdown timer
+- [ ] Shapes should have rounded corners
+- [x] Prettier colors
+- [ ] Different print options
+- [x] Take a screenshot after finishing level
+- [ ] Infinite mode should remember where you got to
+- [x] Walls should change color when you collide
+- [x] Better flicking action
+- [ ] Undo button - goes back to just before the last piece you picked up
+- [x] Show buttons in challenge complete screen
+- [ ] Gallery Screen
+- [ ] Real share button
+- [x] Shared image should be smaller
+- [ ] Walls should move with the screen size
+- [ ] Achievements
+- [ ] Device Motion
+- [x] Better loading screen
+
+- [ ] Use heightfield instead of walls
+- [x] Win detection
+- [ ] Campaign mode
+- [x] Infinite mode 
+- [ ] Stats tracking
+- [ ] Speedrun mode
+- [ ] Multiple Levels
+- [ ] Joints
+- [ ] Motors
+- [ ] Add sensor outside main box to teleport boxes back in
+
+- [x] WASM deploy
+- [ ] Sounds
+- [ ] Logo, Icon, etc
+- [ ] Background and other sprites

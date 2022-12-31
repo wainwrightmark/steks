@@ -2,7 +2,7 @@ use super::{GameShapeBody, SHAPE_RADIUS};
 use bevy::prelude::{Transform, Vec2};
 use bevy_prototype_lyon::{
     prelude::{DrawMode, GeometryBuilder},
-    shapes::{Polygon, RoundedPolygon},
+    shapes::{ RoundedPolygon},
 };
 use bevy_rapier2d::prelude::Collider;
 

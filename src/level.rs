@@ -181,7 +181,7 @@ impl GameLevel {
             LevelType::Tutorial => match self.shapes {
                 1 => Some("place the shape".to_string()),
                 2 => Some("build a tower with all the shapes".to_string()),
-                3 => Some("move the locked shape fast to unlocked".to_string()),
+                3 => Some("move the locked shape fast\nto unlock".to_string()),
                 4 => {
                     if input_detector.is_touch {
                         Some("Rotate with your finger".to_string())

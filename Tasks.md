@@ -22,9 +22,9 @@
 - [ ] Tutorial text should not fade
 - [ ] Use icons instead of text in tutorial
 
-- [ ] Rounded Corners
+- [ ] Performance profiling
 - [ ] Prettier countdown timer
-- [ ] Shapes should have rounded corners
+- [x] Shapes should have rounded corners
 - [x] Prettier colors
 - [ ] Different print options
 - [x] Take a screenshot after finishing level

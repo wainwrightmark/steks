@@ -1,9 +1,9 @@
 use super::{GameShapeBody, SHAPE_RADIUS};
-use crate::grid::prelude::{PolyominoShape, Shape};
+use crate::{grid::prelude::{PolyominoShape, Shape}, PHYSICS_SCALE};
 use bevy::prelude::{Transform, Vec2};
 use bevy_prototype_lyon::{
     prelude::{DrawMode, GeometryBuilder},
-    shapes::{Polygon, RoundedPolygon},
+    shapes::{ RoundedPolygon},
 };
 use bevy_rapier2d::prelude::Collider;
 use itertools::Itertools;
@@ -34,11 +34,10 @@ impl<const S: usize> GameShapeBody for Shape<S> {
 
                 let x_len = (1 + max.x() - min.x()) as f32;
                 let y_len = (1 + max.y() - min.y()) as f32;
-
                 (
                     vect,
                     0.0,
-                    Collider::cuboid(u * x_len * 0.5, u * y_len * 0.5),
+                    Collider::round_cuboid((u * x_len * 0.5)- SHAPE_RADIUS, (u * y_len * 0.5) - SHAPE_RADIUS, SHAPE_RADIUS / PHYSICS_SCALE),
                 )
             })
             .collect_vec();

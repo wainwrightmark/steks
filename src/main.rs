@@ -11,6 +11,8 @@ use bevy_rapier2d::prelude::*;
 pub const WINDOW_WIDTH: f32 = 360f32;
 pub const WINDOW_HEIGHT: f32 = 640f32;
 pub const WALL_WIDTH: f32 = 360f32;
+
+pub const PHYSICS_SCALE: f32 = 64f32;
 mod camera;
 mod draggable;
 mod grid;
@@ -88,7 +90,7 @@ fn main() {
         .add_plugin(InputPlugin)
         .add_plugin(CameraPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
-            WINDOW_HEIGHT / 10.0,
+            PHYSICS_SCALE,
         ))
         .add_startup_system(setup)
         .add_plugin(DragPlugin)

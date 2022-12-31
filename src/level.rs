@@ -283,10 +283,19 @@ impl ChangeLevelEvent {
                 shapes: 1,
                 level_type: LevelType::Tutorial,
             },
-            ChangeLevelEvent::StartInfinite => GameLevel {
-                shapes: 5,
-                level_type: LevelType::Infinite,
-            },
+            ChangeLevelEvent::StartInfinite => {
+                if matches!(level.level_type, LevelType::ChallengeComplete(_)) {
+                    GameLevel {
+                        shapes: level.shapes + 1,
+                        level_type: LevelType::Infinite,
+                    }
+                } else {
+                    GameLevel {
+                        shapes: 5,
+                        level_type: LevelType::Infinite,
+                    }
+                }
+            }
             ChangeLevelEvent::StartChallenge => GameLevel {
                 shapes: CHALLENGE_SHAPES,
                 level_type: LevelType::Challenge,

@@ -106,20 +106,16 @@ fn main() {
             unfocused_mode: UpdateMode::ReactiveLowPower {
                 max_wait: Duration::from_secs(60),
             },
-        })
-        // .add_plugin(shadows::ShadowsPlugin{})
-        //.add_startup_system_to_stage(StartupStage::PostStartup, create_game)
-        ;
+        });
 
     #[cfg(target_arch = "wasm32")]
     builder.add_plugin(wasm::WASMPlugin);
 
     if cfg!(debug_assertions) {
         builder.add_plugin(RapierDebugRenderPlugin::default());
+        builder.add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
+        builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
-
-    //.add_plugin(FrameTimeDiagnosticsPlugin::default())
-    //.add_plugin(LogDiagnosticsPlugin::default());
     builder.run();
 }
 

@@ -20,6 +20,8 @@ mod saved_data;
 pub mod screenshots;
 mod color;
 use color::*;
+pub mod padlock;
+use padlock::*;
 
 use bevy_tweening::TweeningPlugin;
 use camera::*;
@@ -99,6 +101,7 @@ fn main() {
         .add_plugin(TweeningPlugin)
         .add_plugin(ScreenshotPlugin)
         .add_plugin(CollisionPlugin)
+        .add_plugin(PadlockPlugin)
         .insert_resource(PkvStore::new("Wainwrong", "steks"))
 
 

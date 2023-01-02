@@ -111,6 +111,7 @@ pub fn create_shape(
         .insert(GravityScale::default())
         .insert(Velocity::default())
         .insert(Dominance::default())
+        .insert(ColliderMassProperties::default())
         .insert(crate::Draggable::Free {})
         .with_children(|x| {
             x.spawn(bevy::render::view::visibility::RenderLayers::layer(

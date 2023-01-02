@@ -217,6 +217,7 @@ pub fn handle_drag_changes(
             &mut GravityScale,
             &mut Velocity,
             &mut Dominance,
+            &mut ColliderMassProperties,
             Option<&Children>,
         ),
         Changed<Draggable>,
@@ -231,6 +232,7 @@ pub fn handle_drag_changes(
         mut gravity_scale,
         mut velocity,
         mut dominance,
+        mut mass,
         children,
     ) in query.iter_mut()
     {
@@ -239,6 +241,7 @@ pub fn handle_drag_changes(
                 *locked_axes = LockedAxes::default();
                 *gravity_scale = GravityScale::default();
                 *dominance = Dominance::default();
+                *mass = Default::default();
             }
 
             Draggable::Locked => {
@@ -247,6 +250,7 @@ pub fn handle_drag_changes(
                 *gravity_scale = GravityScale(0.0);
                 *velocity = Velocity::zero();
                 *dominance = Dominance::group(10);
+                *mass = Default::default();
             }
             Draggable::Dragged(dragged) => {
                 if let Some(children) = children {
@@ -262,10 +266,12 @@ pub fn handle_drag_changes(
                     builder.insert(TouchDragged);
                 }
 
+
+                *mass = ColliderMassProperties::Density(0.05);
                 *locked_axes = LockedAxes::ROTATION_LOCKED;
                 *gravity_scale = GravityScale(0.0);
                 *velocity = Velocity::zero();
-                *dominance = Dominance::group(10);
+                *dominance = Dominance::default();
 
                 builder.insert(DesiredTranslation {
                     translation: transform.translation.truncate(),

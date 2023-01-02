@@ -21,6 +21,11 @@
 - [ ] Better tutorial
 - [ ] Tutorial text should not fade
 - [ ] Use icons instead of text in tutorial
+- [ ] Reduce mass of dragged object
+- [ ] Use 'wind' instead of side walls
+- [ ] Remove collision detection system
+- [ ] Change padlock system
+
 
 - [ ] Performance profiling
 - [ ] Prettier countdown timer

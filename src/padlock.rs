@@ -29,6 +29,10 @@ pub enum PadlockResource {
 
 impl PadlockResource
 {
+    pub fn is_invisible(&self)-> bool{
+        matches!(self, PadlockResource::Invisible)
+    }
+
     pub fn has_entity(&self, entity: Entity)-> bool{
         match self{
             PadlockResource::Invisible => false,

@@ -44,7 +44,7 @@ impl Plugin for DragPlugin {
 }
 
 pub const MAX_VELOCITY: f32 = 1000.0;
-pub const LOCK_VELOCITY: f32 = 50.0;
+// pub const LOCK_VELOCITY: f32 = 50.0;
 
 fn handle_rotate_events(
     mut ev_rotate: EventReader<RotateEvent>,
@@ -73,21 +73,22 @@ fn round_z(q: Quat, multiple: f32) -> Quat {
 
 pub fn drag_end(
     mut er_drag_end: EventReader<DragEndEvent>,
-    mut draggables: Query<(&mut Draggable, &Velocity)>,
+    padlock_resource: Res<PadlockResource>,
+    mut draggables: Query<(Entity, &mut Draggable)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ew_end_drag: EventWriter<DragEndedEvent>,
 ) {
     for event in er_drag_end.iter() {
         debug!("{:?}", event);
 
-        let any_locked = draggables.iter().any(|x| x.0.is_locked());
+        //let any_locked = draggables.iter().any(|x| x.0.is_locked());
 
-        for (mut draggable, velocity) in draggables
+        for (entity, mut draggable) in draggables
             .iter_mut()
-            .filter(|x| x.0.has_drag_source(event.drag_source))
+            .filter(|x| x.1.has_drag_source(event.drag_source))
         {
             if let Draggable::Dragged(_dragged) = draggable.as_ref() {
-                *draggable = if any_locked || velocity.linvel.length() > LOCK_VELOCITY {
+                *draggable = if !padlock_resource.has_entity(entity) {
                     Draggable::Free
                 } else {
                     Draggable::Locked
@@ -108,12 +109,31 @@ pub fn drag_end(
 
 pub fn translate_desired(
     time: Res<Time>,
-    mut query: Query<(&DesiredTranslation, &Transform, &mut Velocity)>,
+    mut query: Query<(Entity, &mut DesiredTranslation, &Transform, &mut Velocity)>,
+    mut padlock: ResMut<PadlockResource>,
 ) {
-    for (desired, transform, mut velocity) in query.iter_mut() {
+    const MIN_VELOCITY: f32 = 1.0;
+    const PAUSE_DURATION: Duration = Duration::from_millis(200);
+
+    for (entity, mut desired, transform, mut velocity) in query.iter_mut() {
         let delta_position = desired.translation - transform.translation.truncate();
         let vel = (delta_position / time.delta_seconds()).clamp_length_max(MAX_VELOCITY);
-        velocity.linvel = vel; // * SHAPE_SIZE * SHAPE_SIZE;
+
+        if vel.length() < MIN_VELOCITY {
+            velocity.linvel = Vec2::default(); //prevent drift and flickering
+            if padlock.is_invisible() {
+                if desired.last_update_time + PAUSE_DURATION > time.elapsed() {
+                    *padlock = PadlockResource::Unlocked(entity, transform.translation);
+                }
+            }
+        } else {
+            velocity.linvel = vel;
+            desired.last_update_time = time.elapsed();
+
+            if padlock.has_entity(entity) {
+                *padlock = PadlockResource::Invisible;
+            }
+        }
     }
 }
 
@@ -207,6 +227,7 @@ pub fn drag_start(
 
 pub fn handle_drag_changes(
     mut commands: Commands,
+    time: Res<Time>,
     mut query: Query<
         (
             Entity,
@@ -230,7 +251,7 @@ pub fn handle_drag_changes(
         mut gravity_scale,
         mut velocity,
         mut dominance,
-        mut mass
+        mut mass,
     ) in query.iter_mut()
     {
         match draggable {
@@ -270,6 +291,7 @@ pub fn handle_drag_changes(
 
                 builder.insert(DesiredTranslation {
                     translation: transform.translation.truncate(),
+                    last_update_time: time.elapsed()
                 });
             }
         }
@@ -305,9 +327,9 @@ impl Draggable {
     //     matches!(self, Draggable::Free)
     // }
 
-    pub fn is_locked(&self) -> bool {
-        matches!(self, Draggable::Locked)
-    }
+    // pub fn is_locked(&self) -> bool {
+    //     matches!(self, Draggable::Locked)
+    // }
 
     pub fn has_drag_source(&self, drag_source: DragSource) -> bool {
         let Draggable::Dragged(dragged) = self else {return  false;};
@@ -327,6 +349,7 @@ impl Draggable {
 #[derive(Component, Debug, Default)]
 pub struct DesiredTranslation {
     pub translation: Vec2,
+    pub last_update_time: Duration,
 }
 
 #[derive(Debug, Clone, PartialEq)]

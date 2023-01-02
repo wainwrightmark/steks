@@ -52,28 +52,67 @@ fn clear_padlock_on_level_change(
     }
 }
 
+const  SVG_DOC_SIZE :Vec2 = Vec2::new(512., 512.);
+
 fn control_padlock(
+    mut commands: Commands,
+
     padlock_resource: Res<PadlockResource>,
-    mut query: Query<(&mut Transform, &mut Visibility), With<Padlock>>,
+    mut query: Query<(Entity, &mut Visibility), With<Padlock>>,
 ) {
     if padlock_resource.is_changed() {
 
-        info!("Padlock changed");
+        //info!("Padlock changed");
         match padlock_resource.as_ref() {
             PadlockResource::Locked(_entity, translation) => {
-                for (mut transform, mut visibility) in query.iter_mut() {
+                for (e, mut visibility) in query.iter_mut() {
                     visibility.is_visible = true;
-                    transform.translation = translation.clone() + Vec3::Z;
+
+                    let transform = Transform {
+                        rotation: Default::default(), // parent_transform.rotation.conjugate(),
+                        scale: Vec3::new(0.05, 0.05, 1.),
+                        translation: translation.clone() + Vec3::Z
+                    };
+                    commands.entity(e)
+                    .insert(GeometryBuilder::build_as(
+                        &shapes::SvgPathShape {
+                            svg_path_string: CLOSED_PADLOCK_OUTLINE.to_owned(),
+                            svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
+                        },
+                        DrawMode::Fill(FillMode {
+                            options: FillOptions::DEFAULT,
+                            color: Color::BLACK,
+                        }),
+                        transform,
+                    ));
                 }
             }
             PadlockResource::Unlocked(_entity, translation) => {
-                for (mut transform, mut visibility) in query.iter_mut() {
+                for (e, mut visibility) in query.iter_mut() {
                     visibility.is_visible = true;
-                    transform.translation = translation.clone() + Vec3::Z;
+
+
+                    let transform = Transform {
+                        rotation: Default::default(), // parent_transform.rotation.conjugate(),
+                        scale: Vec3::new(0.05, 0.05, 1.),
+                        translation: translation.clone() + Vec3::Z
+                    };
+                    commands.entity(e)
+                    .insert(GeometryBuilder::build_as(
+                        &shapes::SvgPathShape {
+                            svg_path_string: OPEN_PADLOCK_OUTLINE.to_owned(),
+                            svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
+                        },
+                        DrawMode::Fill(FillMode {
+                            options: FillOptions::DEFAULT,
+                            color: Color::BLACK,
+                        }),
+                        transform,
+                    ));
                 }
             }
             PadlockResource::Invisible => {
-                for (_transform, mut visibility) in query.iter_mut() {
+                for (_e, mut visibility) in query.iter_mut() {
                     visibility.is_visible = false;
                 }
             }
@@ -82,7 +121,7 @@ fn control_padlock(
 }
 
 fn create_padlock(mut commands: Commands) {
-    let svg_doc_size = Vec2::new(512., 512.);
+
 
     let transform = Transform {
         rotation: Default::default(), // parent_transform.rotation.conjugate(),
@@ -93,7 +132,7 @@ fn create_padlock(mut commands: Commands) {
         .spawn(GeometryBuilder::build_as(
             &shapes::SvgPathShape {
                 svg_path_string: CLOSED_PADLOCK_OUTLINE.to_owned(),
-                svg_doc_size_in_px: svg_doc_size.to_owned(),
+                svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
             },
             DrawMode::Fill(FillMode {
                 options: FillOptions::DEFAULT,

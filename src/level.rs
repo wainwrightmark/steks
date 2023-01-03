@@ -30,8 +30,7 @@ pub fn handle_change_level(
 ) {
     if let Some(event) = change_level_events.iter().next() {
         for (e, _) in draggables.iter() {
-            // commands.entity(e).despawn_descendants();
-            commands.entity(e).despawn();
+            commands.entity(e).despawn_recursive();
         }
 
         current_level.0 = event.apply(&current_level.0, &mut pkv);

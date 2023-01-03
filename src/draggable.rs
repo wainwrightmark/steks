@@ -112,7 +112,7 @@ pub fn translate_desired(
     mut query: Query<(Entity, &mut DesiredTranslation, &Transform, &mut Velocity)>,
     mut padlock: ResMut<PadlockResource>,
 ) {
-    const MIN_VELOCITY: f32 = 1.0;
+    const MIN_VELOCITY: f32 = 100.0;
     const PAUSE_DURATION: Duration = Duration::from_millis(200);
 
     for (entity, mut desired, transform, mut velocity) in query.iter_mut() {
@@ -120,9 +120,12 @@ pub fn translate_desired(
         let vel = (delta_position / time.delta_seconds()).clamp_length_max(MAX_VELOCITY);
 
         if vel.length() < MIN_VELOCITY {
-            velocity.linvel = Vec2::default(); //prevent drift and flickering
+            velocity.linvel = vel;// Vec2::default(); //prevent drift and flickering
             if padlock.is_invisible() {
-                if desired.last_update_time + PAUSE_DURATION > time.elapsed() {
+                if desired.last_update_time + PAUSE_DURATION < time.elapsed() {
+                    //info!("lut: {:?}", desired.last_update_time);
+                    //info!("elapsed: {:?}", time.elapsed());
+
                     *padlock = PadlockResource::Unlocked(entity, transform.translation);
                 }
             }

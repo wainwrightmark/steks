@@ -1,5 +1,8 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
+use bevy_tweening::{Tween, EaseFunction, lens::TransformPositionLens};
 
 use crate::level::CurrentLevel;
 
@@ -9,9 +12,8 @@ impl Plugin for PadlockPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(create_padlock);
         app.init_resource::<PadlockResource>();
-        app
-        .add_system(clear_padlock_on_level_change)
-        .add_system_to_stage(CoreStage::PostUpdate, control_padlock);
+        app.add_system(clear_padlock_on_level_change)
+            .add_system_to_stage(CoreStage::PostUpdate, control_padlock);
     }
 }
 
@@ -24,17 +26,15 @@ pub enum PadlockResource {
     Invisible,
     Locked(Entity, Vec3),
     Unlocked(Entity, Vec3),
-    
 }
 
-impl PadlockResource
-{
-    pub fn is_invisible(&self)-> bool{
+impl PadlockResource {
+    pub fn is_invisible(&self) -> bool {
         matches!(self, PadlockResource::Invisible)
     }
 
-    pub fn has_entity(&self, entity: Entity)-> bool{
-        match self{
+    pub fn has_entity(&self, entity: Entity) -> bool {
+        match self {
             PadlockResource::Invisible => false,
             PadlockResource::Locked(e, _) => *e == entity,
             PadlockResource::Unlocked(e, _) => *e == entity,
@@ -45,14 +45,14 @@ impl PadlockResource
 fn clear_padlock_on_level_change(
     level: Res<CurrentLevel>,
     mut padlock_resource: ResMut<PadlockResource>,
-
-){
-    if level.is_changed(){
-        *padlock_resource  = PadlockResource::default();
+) {
+    if level.is_changed() {
+        *padlock_resource = PadlockResource::default();
     }
 }
 
-const  SVG_DOC_SIZE :Vec2 = Vec2::new(512., 512.);
+const SVG_DOC_SIZE: Vec2 = Vec2::new(512., 512.);
+const OPEN_PADLOCK_OFFSET: Vec3 = Vec2::new(50.0, 50.0).extend(0.0);
 
 fn control_padlock(
     mut commands: Commands,
@@ -61,20 +61,23 @@ fn control_padlock(
     mut query: Query<(Entity, &mut Visibility), With<Padlock>>,
 ) {
     if padlock_resource.is_changed() {
-
         //info!("Padlock changed");
         match padlock_resource.as_ref() {
             PadlockResource::Locked(_entity, translation) => {
                 for (e, mut visibility) in query.iter_mut() {
                     visibility.is_visible = true;
 
-                    let transform = Transform {
+                    let transform_to = Transform {
                         rotation: Default::default(), // parent_transform.rotation.conjugate(),
                         scale: Vec3::new(0.05, 0.05, 1.),
-                        translation: translation.clone() + Vec3::Z
+                        translation: translation.clone() + Vec3::Z,
                     };
-                    commands.entity(e)
-                    .insert(GeometryBuilder::build_as(
+
+                    let mut transform_from = transform_to;
+                    transform_from.translation += OPEN_PADLOCK_OFFSET;
+
+
+                    commands.entity(e).insert(GeometryBuilder::build_as(
                         &shapes::SvgPathShape {
                             svg_path_string: CLOSED_PADLOCK_OUTLINE.to_owned(),
                             svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
@@ -83,22 +86,29 @@ fn control_padlock(
                             options: FillOptions::DEFAULT,
                             color: Color::BLACK,
                         }),
-                        transform,
-                    ));
+                        transform_from,
+                    ))
+                    .insert(bevy_tweening::Animator::new(
+                        Tween::new(
+                            EaseFunction::QuadraticInOut,
+                            Duration::from_secs(1),
+                            TransformPositionLens {
+                                start: transform_from.translation,
+                                end: transform_to.translation,
+                            },
+                        )));
                 }
             }
             PadlockResource::Unlocked(_entity, translation) => {
                 for (e, mut visibility) in query.iter_mut() {
                     visibility.is_visible = true;
 
-
                     let transform = Transform {
                         rotation: Default::default(), // parent_transform.rotation.conjugate(),
                         scale: Vec3::new(0.05, 0.05, 1.),
-                        translation: translation.clone() + Vec3::Z
+                        translation: translation.clone() + Vec3::Z + OPEN_PADLOCK_OFFSET,
                     };
-                    commands.entity(e)
-                    .insert(GeometryBuilder::build_as(
+                    commands.entity(e).insert(GeometryBuilder::build_as(
                         &shapes::SvgPathShape {
                             svg_path_string: OPEN_PADLOCK_OUTLINE.to_owned(),
                             svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
@@ -121,8 +131,6 @@ fn control_padlock(
 }
 
 fn create_padlock(mut commands: Commands) {
-
-
     let transform = Transform {
         rotation: Default::default(), // parent_transform.rotation.conjugate(),
         scale: Vec3::new(0.05, 0.05, 1.),

@@ -152,8 +152,8 @@ pub fn drag_move(
             .iter_mut()
             .find(|d| d.0.has_drag_source(event.drag_source))
         {
-            let max_x: f32 = crate::WINDOW_WIDTH / 2.0; //You can't leave the game area
-            let max_y: f32 = crate::WINDOW_HEIGHT / 2.0;
+            let max_x: f32 = crate::MAX_WINDOW_WIDTH / 2.0; //You can't leave the game area
+            let max_y: f32 = crate::MAX_WINDOW_HEIGHT / 2.0;
 
             let min_x: f32 = -max_x;
             let min_y: f32 = -max_y;

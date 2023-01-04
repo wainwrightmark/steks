@@ -51,7 +51,7 @@ fn display_collision_markers(
                         wall_entity,
                         other_entity,
                         index,
-                        horizontal: wall.horizontal,
+                        horizontal: wall.horizontal(),
                     };
                     let mut new_transform = *wall_transform;
                     //new_transform.
@@ -68,7 +68,7 @@ fn display_collision_markers(
                         *transform = new_transform;
                     } else {
 
-                        let (xr, yr) = if wall.horizontal {
+                        let (xr, yr) = if wall.horizontal() {
                             (SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125)
                         } else {
                             (SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25)

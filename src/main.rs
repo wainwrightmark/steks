@@ -9,8 +9,10 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 pub const WINDOW_WIDTH: f32 = 360f32;
-pub const WINDOW_HEIGHT: f32 = 640f32;
-pub const WALL_WIDTH: f32 = 360f32;
+pub const MAX_WINDOW_WIDTH: f32 = 1080f32;
+pub const WINDOW_HEIGHT: f32 = 520f32;
+pub const MAX_WINDOW_HEIGHT: f32 = 1920f32;
+pub const WALL_WIDTH: f32 = 1920f32;
 
 pub const PHYSICS_SCALE: f32 = 64f32;
 mod camera;
@@ -67,10 +69,10 @@ fn main() {
             height: WINDOW_HEIGHT,
             resize_constraints: WindowResizeConstraints {
                 min_width: WINDOW_WIDTH,
-                max_width: f32::MAX,
+                max_width: MAX_WINDOW_WIDTH,
 
                 min_height: WINDOW_HEIGHT,
-                max_height: f32::MAX,
+                max_height: MAX_WINDOW_HEIGHT,
             },
             ..Default::default()
         },

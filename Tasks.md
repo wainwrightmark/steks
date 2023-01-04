@@ -22,7 +22,6 @@
 - [ ] Tutorial text should not fade
 - [ ] Use icons instead of text in tutorial
 - [x] Reduce mass of dragged object
-- [ ] Use 'wind' instead of side walls
 - [ ] Remove collision detection system
 - [x] Change padlock system
 - [ ] Use new logo and icon
@@ -42,12 +41,11 @@
 - [ ] Gallery Screen
 - [ ] Real share button
 - [x] Shared image should be smaller
-- [ ] Walls should move with the screen size
+- [x] Walls should move with the screen size
 - [ ] Achievements
 - [ ] Device Motion
 - [x] Better loading screen
 
-- [ ] Use heightfield instead of walls
 - [x] Win detection
 - [ ] Campaign mode
 - [x] Infinite mode 
@@ -56,9 +54,7 @@
 - [ ] Multiple Levels
 - [ ] Joints
 - [ ] Motors
-- [ ] Add sensor outside main box to teleport boxes back in
 
 - [x] WASM deploy
 - [ ] Sounds
 - [ ] Logo, Icon, etc
-- [ ] Background and other sprites

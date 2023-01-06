@@ -48,7 +48,7 @@ fn download_svg(mut events: EventReader<DownloadPngEvent>, saves: Res<SavedSvg>)
                     {
                         save_file(filename.into(), vec).expect("Could not save file");
                     }
-                    println!("{}", svg.svg)
+                    // println!("{}", svg.svg)
                 }
                 Err(err) => {
                     error!("{}", err)

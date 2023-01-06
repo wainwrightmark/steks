@@ -15,18 +15,22 @@
 - [x] Good fullscreen mode
 - [x] Time speeds up to check for contracts
 - [x] Check for contacts instantly, only show timer when a contact is detected
-- [ ] Prevent shapes from getting stuck in each other
+- [x] Prevent shapes from getting stuck in each other
 - [x] Handle touch cancelled events
 - [x] Keyboard / mousewheel rotation should snap
-- [ ] Better tutorial
-- [ ] Tutorial text should not fade
+- [x] Better tutorial
+- [x] Tutorial text should not fade
 - [ ] Use icons instead of text in tutorial
 - [x] Reduce mass of dragged object
 - [ ] Remove collision detection system
 - [x] Change padlock system
 - [ ] Use new logo and icon
-- [ ] Infinite mode should let you build upon previous shapes
+- [x] Infinite mode should let you build upon previous shapes
 - [ ] The bottom should be a pool of water!
+- [ ] Save Function
+- [ ] Share a seed
+- [ ] Automatically load last save / game
+- [ ] Should be able to drag a shape with stuff on it
 
 
 - [ ] Performance profiling

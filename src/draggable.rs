@@ -113,7 +113,7 @@ pub fn translate_desired(
     mut padlock: ResMut<PadlockResource>,
 ) {
     const MIN_VELOCITY: f32 = 100.0;
-    const PAUSE_DURATION: Duration = Duration::from_millis(200);
+    const PAUSE_DURATION: Duration = Duration::from_millis(100);
 
     for (entity, mut desired, transform, mut velocity) in query.iter_mut() {
         let delta_position = desired.translation - transform.translation.truncate();

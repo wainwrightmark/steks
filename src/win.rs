@@ -65,7 +65,9 @@ pub fn check_for_win(
                     let title = format!("steks infinite {}", seed);
                     screenshot_events.send(SaveSVGEvent { title });
                     spawn_shape_events.send(SpawnNewShapeEvent {
-                        seed: seed.wrapping_add(draggables.iter().len() as u64),
+                        fixed_shape: FixedShape::from_seed(
+                            seed.wrapping_add(draggables.iter().len() as u64),
+                        ),
                     });
 
                     return;

@@ -5,17 +5,17 @@ use itertools::Itertools;
 
 use crate::*;
 
-use rand::{rngs::StdRng, seq::SliceRandom, Rng};
+use rand::Rng;
 
 pub const SHAPE_SIZE: f32 = 50f32;
-pub const MAX_SHAPES: usize = 36;
+// pub const MAX_SHAPES: usize = 36;
 
-pub fn create_level_shapes(commands: &mut Commands, level: GameLevel) {
-    let mut position_rng = rand::thread_rng();
-
-    let mut positions = (0..MAX_SHAPES).collect_vec();
-    positions.shuffle(&mut position_rng);
-
+pub fn create_level_shapes(
+    // commands: &mut Commands,
+    level: GameLevel,
+    // rapier_context: Res<RapierContext>,
+    mut event_writer: EventWriter<SpawnNewShapeEvent>,
+) {
     let shapes: Vec<FixedShape> = match level {
         GameLevel::Tutorial {
             index: _,
@@ -24,83 +24,97 @@ pub fn create_level_shapes(commands: &mut Commands, level: GameLevel) {
         } => shapes,
         GameLevel::Infinite {
             starting_shapes,
-            seed,
-        } => {
-            let mut shapes: Vec<FixedShape> = vec![];
-            let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(seed);
-            for _ in 0..starting_shapes {
-                let shape = crate::game_shape::ALL_SHAPES
-                    .choose(&mut shape_rng)
-                    .unwrap();
-                shapes.push(FixedShape {
-                    shape,
-                    fixed_location: None,
-                    locked: false,
-                })
-            }
-            shapes
-        }
+                        seed,
+        } => (0..starting_shapes)
+            .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
+            .collect_vec(),
         GameLevel::Challenge => {
             let today = get_today_date();
-            let seed = (today.year().unsigned_abs() * 2000) + (today.month() * 100) + today.day();
-            let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(seed as u64);
-            let mut shapes: Vec<FixedShape> = vec![];
-            for _ in 0..GameLevel::CHALLENGE_SHAPES {
-                let shape = crate::game_shape::ALL_SHAPES
-                    .choose(&mut shape_rng)
-                    .unwrap();
-                shapes.push(FixedShape {
-                    shape,
-                    fixed_location: None,
-                    locked: false,
-                })
-            }
-            shapes
+            let seed =
+                ((today.year().unsigned_abs() * 2000) + (today.month() * 100) + today.day()) as u64;
+            (0..GameLevel::CHALLENGE_SHAPES)
+                .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
+                .collect_vec()
         }
         GameLevel::ChallengeComplete { streak: _ } => vec![],
     };
 
-    for (index, shape) in shapes.into_iter().enumerate() {
-        let (position, angle) = shape.fixed_location.unwrap_or_else(|| {
-            let i = positions[index];
-
-            let position = get_shape_spawn_position(i);
-            let angle = position_rng.gen_range(0f32..std::f32::consts::TAU);
-            (position, angle)
-        });
-
-        create_shape(commands, shape.shape, position, angle, shape.locked);
+    for fixed_shape in shapes {
+        event_writer.send(SpawnNewShapeEvent { fixed_shape })
     }
-}
-
-fn get_shape_spawn_position(i: usize) -> Vec2 {
-    const COLS: usize = 6;
-    let left = SHAPE_SIZE * (COLS as f32) / 2.;
-    let x = ((i % COLS) as f32) * SHAPE_SIZE - left;
-    let y = ((i / COLS) as f32) * SHAPE_SIZE;
-
-    Vec2::new(x, y)
 }
 
 pub struct SpawnNewShapeEvent {
-    pub seed: u64,
+    pub fixed_shape: FixedShape,
 }
 
-pub fn spawn_shapes(mut commands: Commands, mut events: EventReader<SpawnNewShapeEvent>) {
-    for event in events.iter() {
-        let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(event.seed as u64);
-        let shape = crate::game_shape::ALL_SHAPES
-            .choose(&mut shape_rng)
-            .unwrap();
+pub fn spawn_shapes(
+    mut commands: Commands,
+    mut events: EventReader<SpawnNewShapeEvent>,
+    rapier_context: Res<RapierContext>,
+    mut queue: Local<Vec<FixedShape>>,
+) {
+    queue.extend(events.iter().map(|x| x.fixed_shape));
 
-        create_shape(
-            &mut commands,
-            shape,
-            get_shape_spawn_position(0),
-            0.0,
-            false,
-        )
+    if let Some(fixed_shape) = queue.pop() {
+        let mut rng = rand::thread_rng();
+
+        place_and_create_shape(&mut commands, fixed_shape, &rapier_context, &mut rng);
     }
+}
+
+pub fn place_and_create_shape<RNG: Rng>(
+    commands: &mut Commands,
+    fixed_shape: FixedShape,
+    rapier_context: &Res<RapierContext>,
+    rng: &mut RNG,
+) {
+    let (position, angle) = fixed_shape.fixed_location.unwrap_or_else(|| {
+        let collider = fixed_shape.shape.body.to_collider_shape(SHAPE_SIZE);
+        let mut tries = 0;
+        loop {
+            let x = rng.gen_range(
+                ((WINDOW_WIDTH * -0.5) + SHAPE_SIZE)..((WINDOW_WIDTH * 0.5) + SHAPE_SIZE),
+            );
+            let y = rng.gen_range(
+                ((WINDOW_HEIGHT * -0.5) + SHAPE_SIZE)..((WINDOW_HEIGHT * 0.5) + SHAPE_SIZE),
+            );
+            let angle = rng.gen_range(0f32..std::f32::consts::TAU);
+            let pos = Vec2 { x, y };
+
+            if tries >= 20{
+                //println!("Placed shape without checking after {tries} tries");
+                break (pos, angle);
+            }
+
+            if rapier_context
+                .intersection_with_shape(pos, angle, &collider, QueryFilter::new())
+                .is_none()
+            {
+                //println!("Placed shape after {tries} tries");
+                break (pos, angle);
+            }
+            tries+=1;
+
+        }
+    });
+
+    let velocity = fixed_shape.fixed_velocity.unwrap_or_else(|| Velocity {
+        linvel: Vec2 {
+            x: rng.gen_range((WINDOW_WIDTH * -0.5)..(WINDOW_WIDTH * 0.5)),
+            y:  rng.gen_range(0.0..WINDOW_HEIGHT),
+        },
+        angvel: rng.gen_range(0.0..std::f32::consts::TAU),
+    });
+
+    create_shape(
+        commands,
+        fixed_shape.shape,
+        position,
+        angle,
+        fixed_shape.locked,
+        velocity,
+    );
 }
 
 pub fn create_shape(
@@ -109,6 +123,7 @@ pub fn create_shape(
     position: Vec2,
     angle: f32,
     locked: bool,
+    velocity: Velocity,
 ) {
     //info!("Creating {game_shape} angle {angle} position {position} locked {locked}");
 
@@ -136,7 +151,7 @@ pub fn create_shape(
         .insert(Ccd::enabled())
         .insert(LockedAxes::default())
         .insert(GravityScale::default())
-        .insert(Velocity::default())
+        .insert(velocity)
         .insert(Dominance::default())
         .insert(ColliderMassProperties::default())
         .insert(draggable)

@@ -99,7 +99,15 @@ fn string_to_png(str: &str) -> Result<Vec<u8>, anyhow::Error> {
     let mut pixmap = resvg::tiny_skia::Pixmap::new(pixmap_size.width(), pixmap_size.height())
         .ok_or(anyhow!("Could not create pixmap"))?;
 
-        pixmap.fill(resvg::tiny_skia::Color::from_rgba(BACKGROUND_COLOR.r(), BACKGROUND_COLOR.g(), BACKGROUND_COLOR.b(), BACKGROUND_COLOR.a()).unwrap());
+    pixmap.fill(
+        resvg::tiny_skia::Color::from_rgba(
+            BACKGROUND_COLOR.r(),
+            BACKGROUND_COLOR.g(),
+            BACKGROUND_COLOR.b(),
+            BACKGROUND_COLOR.a(),
+        )
+        .unwrap(),
+    );
     resvg::render(
         &tree,
         usvg::FitTo::Original,
@@ -181,7 +189,8 @@ pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, &'a DrawMode)
         viewbox = "0 0 {WINDOW_WIDTH} {WINDOW_HEIGHT}"
         xmlns="http://www.w3.org/2000/svg" fill="{}">
         {str}
-        </svg>"#, color_to_rgba(color::BACKGROUND_COLOR)
+        </svg>"#,
+        color_to_rgba(color::BACKGROUND_COLOR)
     )
 }
 

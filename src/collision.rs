@@ -67,24 +67,34 @@ fn display_collision_markers(
                         //  info!("dcm updated");
                         *transform = new_transform;
                     } else {
-
                         let (xr, yr) = if wall.horizontal() {
-                            (SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125)
+                            (
+                                SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
+                                SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,
+                            )
                         } else {
-                            (SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25)
+                            (
+                                SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,
+                                SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
+                            )
                         };
 
-                        let points = vec![Vec2::new(-xr, -yr),Vec2::new(xr, -yr), Vec2::new(xr, yr),Vec2::new(-xr, yr) ];
+                        let points = vec![
+                            Vec2::new(-xr, -yr),
+                            Vec2::new(xr, -yr),
+                            Vec2::new(xr, yr),
+                            Vec2::new(-xr, yr),
+                        ];
 
                         //info!("dcm new");
                         let draw_mode = bevy_prototype_lyon::prelude::DrawMode::Fill(
                             bevy_prototype_lyon::prelude::FillMode::color(Color::RED),
                         );
                         commands.spawn(cm).insert(GeometryBuilder::build_as(
-                            &shapes::RoundedPolygon{
+                            &shapes::RoundedPolygon {
                                 points,
                                 clockwise: true,
-                                radius: 5.0
+                                radius: 5.0,
                             },
                             // &shapes::Rectangle {
                             //     origin: RectangleOrigin::Center,

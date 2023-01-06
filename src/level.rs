@@ -1,12 +1,13 @@
+use std::f32::consts;
 use std::time::Duration;
 
+use crate::game_shape::GameShape;
 use crate::*;
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
+use rand::RngCore;
 
 pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
-
-pub const CHALLENGE_SHAPES: usize = 10;
 
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
@@ -33,15 +34,9 @@ pub fn handle_change_level(
             commands.entity(e).despawn_recursive();
         }
 
-        current_level.0 = event.apply(&current_level.0, &mut pkv);
+        current_level.0 = event.apply(&current_level.0, &mut pkv, input_detector);
 
-        level::start_level(
-            commands,
-            current_level.0,
-            level_ui,
-            input_detector,
-            asset_server,
-        );
+        level::start_level(commands, current_level.0.clone(), level_ui, asset_server);
     }
 }
 
@@ -68,14 +63,13 @@ fn start_level(
     mut commands: Commands,
     level: GameLevel,
     level_ui: Query<Entity, With<LevelUI>>,
-    input_detector: Res<InputDetector>,
     asset_server: Res<AssetServer>,
 ) {
     if let Some(level_ui_entity) = level_ui.iter().next() {
         let mut builder = commands.entity(level_ui_entity);
         builder.despawn_descendants();
 
-        if let Some(text) = level.get_text(input_detector) {
+        if let Some(text) = level.get_text() {
             builder.with_children(|parent| {
                 const LEVEL_TEXT_SECONDS: u64 = 20;
                 parent
@@ -140,8 +134,6 @@ pub fn setup_level_ui(mut commands: Commands) {
                 position_type: PositionType::Absolute,
                 justify_content: JustifyContent::Center,
                 flex_direction: FlexDirection::Column,
-                //position: UiRect::new(Val::Auto, Val::Auto, Val::Percent(10.), Val::Auto),
-                // align_items: AlignItems::FlexEnd,
                 ..Default::default()
             },
             z_index: ZIndex::Global(5),
@@ -150,57 +142,34 @@ pub fn setup_level_ui(mut commands: Commands) {
         .insert(LevelUI);
 }
 
-// #[derive(Component)]
-// pub struct LevelText;
-
 #[derive(Component)]
 pub struct LevelUI;
 
 #[derive(Default, Resource)]
 pub struct CurrentLevel(pub GameLevel);
 
-#[derive(Debug, Clone, Copy)]
-pub struct GameLevel {
-    //pub message: &'static str,
-    pub shapes: usize,
-    pub level_type: LevelType,
-}
-impl Default for GameLevel {
-    fn default() -> Self {
-        Self {
-            shapes: 1,
-            level_type: LevelType::Tutorial,
-        }
-    }
-}
-
 impl GameLevel {
-    pub fn get_text(&self, input_detector: Res<InputDetector>) -> Option<String> {
-        match self.level_type {
-            LevelType::Tutorial => match self.shapes {
-                1 => Some("place the shape".to_string()),
-                2 => Some("build a tower with all the shapes".to_string()),
-                3 => Some("move the locked shape fast\nto unlock".to_string()),
-                4 => {
-                    if input_detector.is_touch {
-                        Some("Rotate with your finger".to_string())
-                    } else {
-                        Some("Rotate with the mousewheel, or Q/E".to_string())
-                    }
-                }
-                _ => None,
-            },
-            LevelType::Infinite => None,
-            LevelType::Challenge => Some("Daily Challenge".to_string()),
-            LevelType::ChallengeComplete(streak) => {
+    pub fn get_text(&self) -> Option<String> {
+        match self {
+            GameLevel::Tutorial {
+                index: _,
+                text,
+                shapes: _,
+            } => Some(text.to_string()),
+            GameLevel::Infinite {
+                starting_shapes: _,
+                seed: _,
+            } => None,
+            GameLevel::Challenge => Some("Daily Challenge".to_string()),
+            GameLevel::ChallengeComplete { streak } => {
                 Some(format!("Congratulations.\nYour streak is {streak}!"))
             }
         }
     }
 
     pub fn get_buttons(&self) -> Option<Vec<MenuButton>> {
-        match self.level_type {
-            LevelType::ChallengeComplete(_streak) => {
+        match self {
+            GameLevel::ChallengeComplete { streak: _ } => {
                 Some(vec![MenuButton::DownloadImage, MenuButton::Infinite])
             }
             _ => Default::default(),
@@ -208,12 +177,102 @@ impl GameLevel {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum LevelType {
-    Tutorial,
-    Infinite,
+#[derive(Debug, Clone, PartialEq)]
+pub enum GameLevel {
+    Tutorial {
+        index: u8,
+        text: &'static str,
+        shapes: Vec<FixedShape>,
+    },
+    Infinite {
+        starting_shapes: usize,
+        seed: u64,
+    },
     Challenge,
-    ChallengeComplete(usize),
+    ChallengeComplete {
+        streak: usize,
+    },
+}
+
+impl Default for GameLevel {
+    fn default() -> Self {
+        Self::get_tutorial_level(0, false)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FixedShape {
+    pub shape: &'static GameShape,
+    pub fixed_location: Option<(Vec2, f32)>,
+    pub locked: bool,
+}
+
+impl FixedShape {
+    fn by_name(s: &'static str) -> Self {
+        game_shape::shape_by_name(s)
+            .map(|shape| Self {
+                shape: shape,
+                fixed_location: None,
+                locked: false,
+            })
+            .expect(format!("Could not find shape with name '{s}'").as_str())
+    }
+
+    fn with_location(mut self, position: Vec2, angle: f32) -> Self {
+        self.fixed_location = Some((position, angle));
+        self
+    }
+
+    fn lock(mut self) -> Self {
+        self.locked = true;
+        self
+    }
+}
+
+impl GameLevel {
+    pub fn get_tutorial_level(index: u8, allow_touch: bool) -> Self {
+        match index{
+            0=> GameLevel::Tutorial { index: 0, text: "Welcome to steks!\r\nThe game where you build towers\r\nPut the square on the triangle", shapes:
+            vec![
+                    FixedShape::by_name("Triangle").with_location(Vec2::new(0.0, -100.0), consts::TAU * 0.125).lock(),
+                    FixedShape::by_name("O").with_location(Vec2::new(100.0, -100.0), 0.0),
+
+                ]
+        },
+        1 => GameLevel::Tutorial { index: 1, text: "Move the circle\r\nHold in place for a moment to lock it\r\nYou can only lock one shape", shapes: vec![
+            FixedShape::by_name("Circle"),
+
+] },    2 => GameLevel::Tutorial { index: 2, text:
+    if allow_touch{
+        "You'll need to rotate that triangle\r\nUnlock it and rotate it\r\nUse a second finger"
+    }else{
+        "You'll need to rotate that triangle\r\nUnlock it and rotate it\r\nUse Q/E or the mouse wheel"
+    }
+
+    , shapes: vec![
+        FixedShape::by_name("Triangle").with_location(Vec2::new(0.0, -100.0), consts::TAU * 0.625).lock(),
+        FixedShape::by_name("O").with_location(Vec2::new(100.0, -100.0), 0.0),
+
+] },
+3 => GameLevel::Tutorial { index: 3, text:
+    "Build a tower with all the shapes\r\nHave Fun!"
+
+    , shapes: vec![
+        FixedShape::by_name("U"),
+        FixedShape::by_name("U"),
+        FixedShape::by_name("N"),
+        FixedShape::by_name("T"),
+
+] },
+
+        Self::TUTORIAL_LEVELS.. => GameLevel::Challenge
+        }
+    }
+
+    pub const TUTORIAL_LEVELS: u8 = 4;
+
+    pub const CHALLENGE_SHAPES: usize = 10;
+    pub const INFINITE_SHAPES: usize = 4;
 }
 
 #[derive(Debug)]
@@ -228,77 +287,79 @@ pub enum ChangeLevelEvent {
 
 impl ChangeLevelEvent {
     #[must_use]
-    pub fn apply(&self, level: &GameLevel, pkv: &mut ResMut<PkvStore>) -> GameLevel {
+    pub fn apply(
+        &self,
+        level: &GameLevel,
+        pkv: &mut ResMut<PkvStore>,
+        input_detector: Res<InputDetector>,
+    ) -> GameLevel {
         //info!("Change level {:?}", self);
         match self {
-            ChangeLevelEvent::Next => match level.level_type {
-                LevelType::Tutorial => {
-                    if level.shapes >= 4 {
+            ChangeLevelEvent::Next => match level {
+                GameLevel::Tutorial {
+                    index,
+                    text: _,
+                    shapes: _,
+                } => {
+                    if *index > GameLevel::TUTORIAL_LEVELS {
                         let saved_data = SavedData::update(pkv, |mut x| {
                             x.tutorial_finished = true;
                             x
                         });
                         if saved_data.has_beat_todays_challenge() {
-                            GameLevel {
-                                shapes: level.shapes + 1,
-                                level_type: LevelType::Infinite,
+                            GameLevel::Infinite {
+                                starting_shapes: GameLevel::INFINITE_SHAPES,
+                                seed: rand::thread_rng().next_u64(),
                             }
                         } else {
-                            GameLevel {
-                                shapes: CHALLENGE_SHAPES,
-                                level_type: LevelType::Challenge,
-                            }
+                            GameLevel::Challenge
                         }
                     } else {
-                        GameLevel {
-                            shapes: level.shapes + 1,
-                            level_type: LevelType::Tutorial,
-                        }
+                        GameLevel::get_tutorial_level(*index + 1, input_detector.is_touch)
                     }
                 }
-                LevelType::Infinite => GameLevel {
-                    shapes: level.shapes + 1,
-                    level_type: LevelType::Infinite,
+                GameLevel::Infinite {
+                    starting_shapes,
+                    seed,
+                } => GameLevel::Infinite {
+                    starting_shapes: starting_shapes + 1,
+                    seed: seed.wrapping_add(1),
                 },
-                LevelType::Challenge => {
+                GameLevel::Challenge => {
                     let saved_data = SavedData::update(pkv, |x| x.with_todays_challenge_beat());
 
-                    GameLevel {
-                        shapes: level.shapes + 1,
-                        level_type: LevelType::ChallengeComplete(saved_data.challenge_streak),
+                    GameLevel::ChallengeComplete {
+                        streak: saved_data.challenge_streak,
                     }
                 }
-                LevelType::ChallengeComplete(x) => GameLevel {
-                    shapes: level.shapes + 1,
-                    level_type: LevelType::ChallengeComplete(x),
-                },
+                GameLevel::ChallengeComplete { streak } => {
+                    GameLevel::ChallengeComplete { streak: *streak }
+                }
             },
             // ChangeLevelEvent::Previous => GameLevel {
             //     shapes: level.shapes.saturating_sub(1).max(1),
             //     level_type: level.level_type,
             // },
-            ChangeLevelEvent::ResetLevel => *level,
-            ChangeLevelEvent::StartTutorial => GameLevel {
-                shapes: 1,
-                level_type: LevelType::Tutorial,
-            },
+            ChangeLevelEvent::ResetLevel => level.clone(),
+            ChangeLevelEvent::StartTutorial => GameLevel::get_tutorial_level(0, false),
             ChangeLevelEvent::StartInfinite => {
-                if matches!(level.level_type, LevelType::ChallengeComplete(_)) {
-                    GameLevel {
-                        shapes: level.shapes + 1,
-                        level_type: LevelType::Infinite,
-                    }
-                } else {
-                    GameLevel {
-                        shapes: 5,
-                        level_type: LevelType::Infinite,
-                    }
+                GameLevel::Infinite {
+                    starting_shapes: GameLevel::INFINITE_SHAPES,
+                    seed: rand::thread_rng().next_u64(),
                 }
+                // if matches!(level, GameLevel::ChallengeComplete(_)) {
+                //     GameLevel {
+                //         shapes: level.shapes + 1,
+                //         level_type: GameLevel::Infinite,
+                //     }
+                // } else {
+                //     GameLevel {
+                //         shapes: 5,
+                //         level_type: GameLevel::Infinite,
+                //     }
+                // }
             }
-            ChangeLevelEvent::StartChallenge => GameLevel {
-                shapes: CHALLENGE_SHAPES,
-                level_type: LevelType::Challenge,
-            },
+            ChangeLevelEvent::StartChallenge => GameLevel::Challenge,
         }
     }
 }

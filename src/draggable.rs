@@ -120,7 +120,7 @@ pub fn translate_desired(
         let vel = (delta_position / time.delta_seconds()).clamp_length_max(MAX_VELOCITY);
 
         if vel.length() < MIN_VELOCITY {
-            velocity.linvel = vel;// Vec2::default(); //prevent drift and flickering
+            velocity.linvel = vel; // Vec2::default(); //prevent drift and flickering
             if padlock.is_invisible() {
                 if desired.last_update_time + PAUSE_DURATION < time.elapsed() {
                     //info!("lut: {:?}", desired.last_update_time);
@@ -294,7 +294,7 @@ pub fn handle_drag_changes(
 
                 builder.insert(DesiredTranslation {
                     translation: transform.translation.truncate(),
-                    last_update_time: time.elapsed()
+                    last_update_time: time.elapsed(),
                 });
             }
         }

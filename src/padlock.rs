@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_tweening::{Tween, EaseFunction, lens::TransformPositionLens};
+use bevy_tweening::{lens::TransformPositionLens, EaseFunction, Tween};
 
 use crate::level::CurrentLevel;
 
@@ -76,20 +76,20 @@ fn control_padlock(
                     let mut transform_from = transform_to;
                     transform_from.translation += OPEN_PADLOCK_OFFSET;
 
-
-                    commands.entity(e).insert(GeometryBuilder::build_as(
-                        &shapes::SvgPathShape {
-                            svg_path_string: CLOSED_PADLOCK_OUTLINE.to_owned(),
-                            svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
-                        },
-                        DrawMode::Fill(FillMode {
-                            options: FillOptions::DEFAULT,
-                            color: Color::BLACK,
-                        }),
-                        transform_from,
-                    ))
-                    .insert(bevy_tweening::Animator::new(
-                        Tween::new(
+                    commands
+                        .entity(e)
+                        .insert(GeometryBuilder::build_as(
+                            &shapes::SvgPathShape {
+                                svg_path_string: CLOSED_PADLOCK_OUTLINE.to_owned(),
+                                svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
+                            },
+                            DrawMode::Fill(FillMode {
+                                options: FillOptions::DEFAULT,
+                                color: Color::BLACK,
+                            }),
+                            transform_from,
+                        ))
+                        .insert(bevy_tweening::Animator::new(Tween::new(
                             EaseFunction::QuadraticInOut,
                             Duration::from_secs(1),
                             TransformPositionLens {

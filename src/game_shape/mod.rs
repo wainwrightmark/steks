@@ -30,6 +30,14 @@ pub struct GameShape {
     pub index: usize,
 }
 
+impl Eq for GameShape {}
+
+impl PartialEq for GameShape {
+    fn eq(&self, other: &Self) -> bool {
+        self.index == other.index
+    }
+}
+
 impl GameShape {
     pub fn default_fill_color(&self) -> Color {
         // let hue = (self.index * 540 / ALL_SHAPES.len()) % 360;
@@ -79,5 +87,9 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .map(|(index, (body, name))| GameShape { name, body, index })
         .collect_vec()
 });
+
+pub fn shape_by_name(name: &'static str) -> Option<&GameShape> {
+    ALL_SHAPES.iter().filter(|x| x.name == name).next()
+}
 
 const TRIANGLE: PolygonBody<4, 3> = PolygonBody(&[(-1, -1), (-1, 2), (2, -1)]);

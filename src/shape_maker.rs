@@ -3,7 +3,7 @@ use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
 
-use crate::{game_shape::GameShape, *};
+use crate::*;
 
 use rand::{rngs::StdRng, seq::SliceRandom, Rng};
 
@@ -16,64 +16,60 @@ pub fn create_level_shapes(commands: &mut Commands, level: GameLevel) {
     let mut positions = (0..MAX_SHAPES).collect_vec();
     positions.shuffle(&mut position_rng);
 
-    let shapes: Vec<&'static GameShape> = match level.level_type {
-        LevelType::Tutorial => match level.shapes {
-            1 => vec![&game_shape::ALL_SHAPES[11]],
-            2 => vec![&game_shape::ALL_SHAPES[6], &game_shape::ALL_SHAPES[4]],
-            3 => vec![
-                &game_shape::ALL_SHAPES[7],
-                &game_shape::ALL_SHAPES[2],
-                &game_shape::ALL_SHAPES[9],
-            ],
-            4 => vec![
-                &game_shape::ALL_SHAPES[8],
-                &game_shape::ALL_SHAPES[13],
-                &game_shape::ALL_SHAPES[5],
-                &game_shape::ALL_SHAPES[17],
-            ],
-            _ => vec![&game_shape::ALL_SHAPES[0]],
-        },
-        LevelType::Infinite => {
-            let mut shapes: Vec<&'static GameShape> = vec![];
-            let mut shape_rng = rand::thread_rng();
-            for _ in 0..level.shapes {
+    let shapes: Vec<FixedShape> = match level {
+        GameLevel::Tutorial {
+            index: _,
+            text: _,
+            shapes,
+        } => shapes,
+        GameLevel::Infinite {
+            starting_shapes,
+            seed,
+        } => {
+            let mut shapes: Vec<FixedShape> = vec![];
+            let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(seed);
+            for _ in 0..starting_shapes {
                 let shape = crate::game_shape::ALL_SHAPES
                     .choose(&mut shape_rng)
                     .unwrap();
-                shapes.push(shape)
+                shapes.push(FixedShape {
+                    shape,
+                    fixed_location: None,
+                    locked: false,
+                })
             }
             shapes
         }
-        LevelType::Challenge => {
-            let mut shapes: Vec<&'static GameShape> = vec![];
-
+        GameLevel::Challenge => {
             let today = get_today_date();
             let seed = (today.year().unsigned_abs() * 2000) + (today.month() * 100) + today.day();
             let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(seed as u64);
-            for _ in 0..level.shapes {
+            let mut shapes: Vec<FixedShape> = vec![];
+            for _ in 0..GameLevel::CHALLENGE_SHAPES {
                 let shape = crate::game_shape::ALL_SHAPES
                     .choose(&mut shape_rng)
                     .unwrap();
-                shapes.push(shape)
+                shapes.push(FixedShape {
+                    shape,
+                    fixed_location: None,
+                    locked: false,
+                })
             }
             shapes
         }
-        LevelType::ChallengeComplete(_) => vec![],
+        GameLevel::ChallengeComplete { streak: _ } => vec![],
     };
 
     for (index, shape) in shapes.into_iter().enumerate() {
-        let i = positions[index];
+        let (position, angle) = shape.fixed_location.unwrap_or_else(|| {
+            let i = positions[index];
 
-        let angle = position_rng.gen_range(0f32..std::f32::consts::TAU);
+            let position = get_shape_spawn_position(i);
+            let angle = position_rng.gen_range(0f32..std::f32::consts::TAU);
+            (position, angle)
+        });
 
-        create_shape(
-            commands,
-            shape.clone(),
-            SHAPE_SIZE,
-            get_shape_spawn_position(i),
-            angle,
-            shape.draw_mode(),
-        );
+        create_shape(commands, shape.shape, position, angle, shape.locked);
     }
 }
 
@@ -86,39 +82,71 @@ fn get_shape_spawn_position(i: usize) -> Vec2 {
     Vec2::new(x, y)
 }
 
+pub struct SpawnNewShapeEvent {
+    pub seed: u64,
+}
+
+pub fn spawn_shapes(mut commands: Commands, mut events: EventReader<SpawnNewShapeEvent>) {
+    for event in events.iter() {
+        let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(event.seed as u64);
+        let shape = crate::game_shape::ALL_SHAPES
+            .choose(&mut shape_rng)
+            .unwrap();
+
+        create_shape(
+            &mut commands,
+            shape,
+            get_shape_spawn_position(0),
+            0.0,
+            false,
+        )
+    }
+}
+
 pub fn create_shape(
     commands: &mut Commands,
-    game_shape: game_shape::GameShape,
-    shape_size: f32,
+    game_shape: &game_shape::GameShape,
     position: Vec2,
     angle: f32,
-    draw_mode: DrawMode,
+    locked: bool,
 ) {
-    let collider_shape = game_shape.body.to_collider_shape(shape_size);
+    //info!("Creating {game_shape} angle {angle} position {position} locked {locked}");
+
+    let collider_shape = game_shape.body.to_collider_shape(SHAPE_SIZE);
     let transform: Transform = Transform {
         translation: position.extend(0.0),
-        rotation: Quat::from_rotation_x(angle),
+        rotation: Quat::from_rotation_z(angle),
         scale: Vec3::ONE,
     };
 
+    let draggable = if locked {
+        crate::Draggable::Locked
+    } else {
+        crate::Draggable::Free
+    };
+
     commands
-        .spawn(game_shape.body.get_shape_bundle(shape_size, draw_mode))
+        .spawn(
+            game_shape
+                .body
+                .get_shape_bundle(SHAPE_SIZE, game_shape.draw_mode()),
+        )
         .insert(RigidBody::Dynamic)
         .insert(collider_shape)
-        .insert(transform)
         .insert(Ccd::enabled())
         .insert(LockedAxes::default())
         .insert(GravityScale::default())
         .insert(Velocity::default())
         .insert(Dominance::default())
         .insert(ColliderMassProperties::default())
-        .insert(crate::Draggable::Free {})
+        .insert(draggable)
+        .insert(transform)
         .with_children(|x| {
             x.spawn(bevy::render::view::visibility::RenderLayers::layer(
                 ZOOM_ENTITY_LAYER,
             ))
             .insert(game_shape.body.get_shape_bundle(
-                shape_size,
+                SHAPE_SIZE,
                 DrawMode::Stroke(StrokeMode::new(Color::BLACK, 1.)),
             ));
         });

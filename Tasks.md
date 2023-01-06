@@ -25,6 +25,8 @@
 - [ ] Remove collision detection system
 - [x] Change padlock system
 - [ ] Use new logo and icon
+- [ ] Infinite mode should let you build upon previous shapes
+- [ ] The bottom should be a pool of water!
 
 
 - [ ] Performance profiling

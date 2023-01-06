@@ -6,6 +6,7 @@ use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 
 use crate::game_shape::GameShapeBody;
 use crate::screenshots::SaveSVGEvent;
+use crate::shape_maker::SpawnNewShapeEvent;
 use crate::*;
 
 #[derive(Component)]
@@ -20,6 +21,8 @@ impl Plugin for WinPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(check_for_collisions)
             .add_system(check_for_win.after(check_for_collisions))
+            .add_event::<SpawnNewShapeEvent>()
+            .add_system(shape_maker::spawn_shapes)
             .add_system_to_stage(CoreStage::First, handle_change_level)
             .add_system_to_stage(CoreStage::PostUpdate, check_for_tower);
     }
@@ -31,10 +34,12 @@ const COUNTDOWN: f64 = 5.0;
 pub fn check_for_win(
     mut commands: Commands,
     mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
+    draggables: Query<(With<Draggable>, Without<WinTimer>)>,
     time: Res<Time>,
     level: Res<CurrentLevel>,
     mut new_game_events: EventWriter<ChangeLevelEvent>,
     mut screenshot_events: EventWriter<SaveSVGEvent>,
+    mut spawn_shape_events: EventWriter<SpawnNewShapeEvent>,
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
         let remaining = timer.win_time - time.elapsed_seconds_f64();
@@ -44,20 +49,32 @@ pub fn check_for_win(
 
             commands.entity(timer_entity).despawn();
 
-            match level.0.level_type {
-                LevelType::Tutorial => {
-                    let title = format!("steks tutorial {}", level.0.shapes);
+            match &level.0 {
+                GameLevel::Tutorial {
+                    index,
+                    text: _,
+                    shapes: _,
+                } => {
+                    let title = format!("steks tutorial {}", index);
                     screenshot_events.send(SaveSVGEvent { title });
                 }
-                LevelType::Infinite => {
-                    let title = format!("steks infinite {}", level.0.shapes);
+                GameLevel::Infinite {
+                    starting_shapes: _,
+                    seed,
+                } => {
+                    let title = format!("steks infinite {}", seed);
                     screenshot_events.send(SaveSVGEvent { title });
+                    spawn_shape_events.send(SpawnNewShapeEvent {
+                        seed: seed.wrapping_add(draggables.iter().len() as u64),
+                    });
+
+                    return;
                 }
-                LevelType::Challenge => {
+                GameLevel::Challenge => {
                     let title = format!("steks challenge {}", get_today_date());
                     screenshot_events.send(SaveSVGEvent { title });
                 }
-                LevelType::ChallengeComplete(_) => {}
+                GameLevel::ChallengeComplete { streak: _ } => {}
             }
 
             new_game_events.send(ChangeLevelEvent::Next);

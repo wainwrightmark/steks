@@ -16,11 +16,11 @@ pub const WALL_WIDTH: f32 = 1920f32;
 
 pub const PHYSICS_SCALE: f32 = 64f32;
 mod camera;
+mod color;
 mod draggable;
 mod grid;
 mod saved_data;
 pub mod screenshots;
-mod color;
 use color::*;
 pub mod padlock;
 use padlock::*;
@@ -105,8 +105,6 @@ fn main() {
         .add_plugin(CollisionPlugin)
         .add_plugin(PadlockPlugin)
         .insert_resource(PkvStore::new("Wainwrong", "steks"))
-
-
         .insert_resource(WinitSettings {
             return_from_run: false,
             focused_mode: UpdateMode::Continuous,
@@ -120,8 +118,8 @@ fn main() {
 
     if cfg!(debug_assertions) {
         builder.add_plugin(RapierDebugRenderPlugin::default());
-        builder.add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
-        builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
+        //builder.add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
+        // builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
     builder.run();
 }

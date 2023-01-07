@@ -3,7 +3,9 @@ use bevy_pkv::PkvStore;
 use chrono::NaiveDate;
 use serde::*;
 
-use crate::get_today_date;
+use crate::{
+    encoding::encode_shapes, fixed_shape::Location, game_shape::GameShape, get_today_date,
+};
 
 #[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 
@@ -11,6 +13,7 @@ pub struct SavedData {
     pub tutorial_finished: bool,
     pub challenge_streak: usize,
     pub last_challenge: Option<NaiveDate>,
+    pub saved_infinite: Option<Vec<u8>>,
 }
 
 impl SavedData {
@@ -24,6 +27,15 @@ impl SavedData {
         }
     }
 
+    pub fn save_game(&self, shapes: Vec<(&GameShape, Location, bool)>) -> Self {
+        let encoded = encode_shapes(shapes);
+
+        Self {
+            saved_infinite: Some(encoded),
+            ..self.clone()
+        }
+    }
+
     pub fn with_todays_challenge_beat(&self) -> Self {
         let today = get_today_date();
 
@@ -33,6 +45,7 @@ impl SavedData {
                     tutorial_finished: true,
                     challenge_streak: self.challenge_streak + 1,
                     last_challenge: Some(today),
+                    saved_infinite: self.saved_infinite.clone(),
                 };
             }
         }
@@ -40,6 +53,7 @@ impl SavedData {
             tutorial_finished: true,
             challenge_streak: 1,
             last_challenge: Some(today),
+            saved_infinite: self.saved_infinite.clone(),
         }
     }
 

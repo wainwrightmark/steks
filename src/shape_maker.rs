@@ -37,6 +37,9 @@ pub fn create_level_shapes(
                 .collect_vec()
         }
         GameLevel::ChallengeComplete { streak: _ } => vec![],
+        GameLevel::SavedInfinite { data, seed:_ } => {
+            encoding::decode_shapes(&data)
+        },
     };
 
     for fixed_shape in shapes {
@@ -117,6 +120,9 @@ pub fn place_and_create_shape<RNG: Rng>(
     );
 }
 
+#[derive(Component)]
+pub struct ShapeIndex(pub usize);
+
 pub fn create_shape(
     commands: &mut Commands,
     game_shape: &game_shape::GameShape,
@@ -146,6 +152,7 @@ pub fn create_shape(
                 .body
                 .get_shape_bundle(SHAPE_SIZE, game_shape.draw_mode()),
         )
+        .insert(ShapeIndex(game_shape.index))
         .insert(RigidBody::Dynamic)
         .insert(collider_shape)
         .insert(Ccd::enabled())

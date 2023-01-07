@@ -9,6 +9,10 @@ pub fn encode_shapes(shapes: Vec<(&GameShape, Location, bool)>) -> Vec<u8> {
         .collect_vec()
 }
 
+pub fn decode_shapes(data: &[u8])-> Vec<FixedShape>{
+    data.chunks_exact(7).map(|chunk|decode_shape(chunk)).collect_vec()
+}
+
 pub fn encode_shape(shape: &GameShape, location: Location, locked: bool) -> [u8; 7] {
     let mut arr = [0u8; 7];
 
@@ -24,7 +28,7 @@ pub fn encode_shape(shape: &GameShape, location: Location, locked: bool) -> [u8;
     arr
 }
 
-pub fn decode_shape(arr: [u8; 7]) -> FixedShape {
+pub fn decode_shape(arr: &[u8]) -> FixedShape {
     let locked = arr[6] > 0; // % 2 == 0;
     let shape_index = (arr[0]) as usize; //TODO combine locked and shape index
 
@@ -88,7 +92,7 @@ mod tests {
 
         let encoded = encode_shape(fs.shape , fs.fixed_location.unwrap(), fs.locked);
 
-        let decoded = decode_shape(encoded);
+        let decoded = decode_shape(&encoded);
 
         assert_eq!(fs, decoded)
     }

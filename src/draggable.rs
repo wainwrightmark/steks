@@ -330,9 +330,9 @@ impl Draggable {
     //     matches!(self, Draggable::Free)
     // }
 
-    // pub fn is_locked(&self) -> bool {
-    //     matches!(self, Draggable::Locked)
-    // }
+    pub fn is_locked(&self) -> bool {
+        matches!(self, Draggable::Locked)
+    }
 
     pub fn has_drag_source(&self, drag_source: DragSource) -> bool {
         let Draggable::Dragged(dragged) = self else {return  false;};

@@ -3,10 +3,11 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::crossbeam::atomic::AtomicCell;
 use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
+use itertools::Itertools;
 
 use crate::game_shape::GameShapeBody;
 use crate::screenshots::SaveSVGEvent;
-use crate::shape_maker::SpawnNewShapeEvent;
+use crate::shape_maker::{SpawnNewShapeEvent, ShapeIndex};
 use crate::*;
 
 #[derive(Component)]
@@ -34,12 +35,13 @@ const COUNTDOWN: f64 = 5.0;
 pub fn check_for_win(
     mut commands: Commands,
     mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
-    draggables: Query<(With<Draggable>, Without<WinTimer>)>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), Without<WinTimer>>,
     time: Res<Time>,
     level: Res<CurrentLevel>,
     mut new_game_events: EventWriter<ChangeLevelEvent>,
     mut screenshot_events: EventWriter<SaveSVGEvent>,
     mut spawn_shape_events: EventWriter<SpawnNewShapeEvent>,
+    mut pkv: ResMut<PkvStore>
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
         let remaining = timer.win_time - time.elapsed_seconds_f64();
@@ -64,11 +66,15 @@ pub fn check_for_win(
                 } => {
                     let title = format!("steks infinite {}", seed);
                     screenshot_events.send(SaveSVGEvent { title });
+                    let shapes = shapes_query.iter().map(|(index, transform, draggable)| (&ALL_SHAPES[index.0], transform.into(), draggable.is_locked() )).collect_vec();
+
                     spawn_shape_events.send(SpawnNewShapeEvent {
                         fixed_shape: FixedShape::from_seed(
-                            seed.wrapping_add(draggables.iter().len() as u64),
+                            seed.wrapping_add(shapes_query.iter().len() as u64),
                         ),
                     });
+
+                    SavedData::update(&mut pkv, |s|s.save_game(shapes));
 
                     return;
                 }
@@ -77,6 +83,21 @@ pub fn check_for_win(
                     screenshot_events.send(SaveSVGEvent { title });
                 }
                 GameLevel::ChallengeComplete { streak: _ } => {}
+                GameLevel::SavedInfinite { data:_, seed } => {
+                    let title = format!("steks infinite {}", seed);
+                    screenshot_events.send(SaveSVGEvent { title });
+                    let shapes = shapes_query.iter().map(|(index, transform, draggable)| (&ALL_SHAPES[index.0], transform.into(), draggable.is_locked() )).collect_vec();
+
+                    spawn_shape_events.send(SpawnNewShapeEvent {
+                        fixed_shape: FixedShape::from_seed(
+                            seed.wrapping_add(shapes_query.iter().len() as u64),
+                        ),
+                    });
+
+                    SavedData::update(&mut pkv, |s|s.save_game(shapes));
+
+                    return;
+                },
             }
 
             new_game_events.send(ChangeLevelEvent::Next);

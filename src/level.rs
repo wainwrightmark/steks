@@ -14,7 +14,7 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CurrentLevel>()
             .add_startup_system(setup_level_ui)
-            .add_startup_system_to_stage(StartupStage::PostStartup, skip_tutorial)
+            .add_startup_system_to_stage(StartupStage::PostStartup, choose_level_on_game_load)
             .add_event::<ChangeLevelEvent>();
     }
 }
@@ -47,7 +47,7 @@ pub fn handle_change_level(
     }
 }
 
-fn skip_tutorial(
+fn choose_level_on_game_load(
     mut pkv: ResMut<PkvStore>,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
 ) {
@@ -57,8 +57,11 @@ fn skip_tutorial(
             //info!("Skip to infinite");
             change_level_events.send(ChangeLevelEvent::StartInfinite);
         } else {
-            //info!("Skip to challenge");
-            change_level_events.send(ChangeLevelEvent::StartChallenge);
+            if let Some(saved) = settings.saved_infinite {
+                change_level_events.send(ChangeLevelEvent::Load(saved.clone()));
+            } else {
+                change_level_events.send(ChangeLevelEvent::StartChallenge);
+            }
         }
     } else {
         info!("Do tutorial");
@@ -172,6 +175,7 @@ impl GameLevel {
             GameLevel::ChallengeComplete { streak } => {
                 Some(format!("Congratulations.\nYour streak is {streak}!"))
             }
+            GameLevel::SavedInfinite { data: _, seed: _ } => Some("Loaded Game".to_string()),
         }
     }
 
@@ -194,6 +198,10 @@ pub enum GameLevel {
     },
     Infinite {
         starting_shapes: usize,
+        seed: u64,
+    },
+    SavedInfinite {
+        data: Vec<u8>,
         seed: u64,
     },
     Challenge,
@@ -262,6 +270,7 @@ pub enum ChangeLevelEvent {
     StartTutorial,
     StartInfinite,
     StartChallenge,
+    Load(Vec<u8>),
 }
 
 impl ChangeLevelEvent {
@@ -269,7 +278,7 @@ impl ChangeLevelEvent {
     pub fn apply(
         &self,
         level: &GameLevel,
-        pkv: &mut ResMut<PkvStore>,
+        pkv: &mut ResMut<PkvStore>, //TODO remove
         input_detector: Res<InputDetector>,
     ) -> GameLevel {
         //info!("Change level {:?}", self);
@@ -314,6 +323,10 @@ impl ChangeLevelEvent {
                 GameLevel::ChallengeComplete { streak } => {
                     GameLevel::ChallengeComplete { streak: *streak }
                 }
+                GameLevel::SavedInfinite { data: _, seed: _ } => GameLevel::Infinite {
+                    starting_shapes: GameLevel::INFINITE_SHAPES,
+                    seed: rand::thread_rng().next_u64(),
+                },
             },
             // ChangeLevelEvent::Previous => GameLevel {
             //     shapes: level.shapes.saturating_sub(1).max(1),
@@ -339,6 +352,7 @@ impl ChangeLevelEvent {
                 // }
             }
             ChangeLevelEvent::StartChallenge => GameLevel::Challenge,
+            ChangeLevelEvent::Load(data) => GameLevel::SavedInfinite { data: data.clone(), seed: rand::thread_rng().next_u64(), },
         }
     }
 }

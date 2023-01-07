@@ -1,13 +1,10 @@
 use std::f32::consts;
 use std::time::Duration;
 
-use crate::game_shape::GameShape;
-use crate::*;
 use crate::shape_maker::SpawnNewShapeEvent;
+use crate::*;
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
-use rand::rngs::StdRng;
-use rand::seq::SliceRandom;
 use rand::RngCore;
 
 pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
@@ -31,7 +28,7 @@ pub fn handle_change_level(
     level_ui: Query<Entity, With<LevelUI>>,
     asset_server: Res<AssetServer>,
     mut pkv: ResMut<PkvStore>,
-    event_writer: EventWriter<SpawnNewShapeEvent>
+    event_writer: EventWriter<SpawnNewShapeEvent>,
 ) {
     if let Some(event) = change_level_events.iter().next() {
         for (e, _) in draggables.iter() {
@@ -74,7 +71,7 @@ fn start_level(
     level: GameLevel,
     level_ui: Query<Entity, With<LevelUI>>,
     asset_server: Res<AssetServer>,
-    event_writer: EventWriter<SpawnNewShapeEvent>
+    event_writer: EventWriter<SpawnNewShapeEvent>,
 ) {
     if let Some(level_ui_entity) = level_ui.iter().next() {
         let mut builder = commands.entity(level_ui_entity);
@@ -208,61 +205,6 @@ pub enum GameLevel {
 impl Default for GameLevel {
     fn default() -> Self {
         Self::get_tutorial_level(0, false)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct FixedShape {
-    pub shape: &'static GameShape,
-    pub fixed_location: Option<(Vec2, f32)>,
-    pub locked: bool,
-    pub fixed_velocity: Option<Velocity>
-}
-
-impl FixedShape {
-    pub fn by_name(s: &'static str) -> Self {
-        game_shape::shape_by_name(s)
-            .map(|shape| Self {
-                shape: shape,
-                fixed_location: None,
-                locked: false,
-                fixed_velocity: Some(Default::default()),
-            })
-            .expect(format!("Could not find shape with name '{s}'").as_str())
-    }
-
-    pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {
-        self.fixed_location = Some((position, angle));
-        self
-    }
-
-    pub fn lock(mut self) -> Self {
-        self.locked = true;
-        self
-    }
-
-    pub fn with_velocity(mut self, velocity: Velocity)-> Self{
-        self.fixed_velocity = Some(velocity);
-        self
-    }
-
-    pub fn with_random_velocity(mut self)-> Self{
-        self.fixed_velocity = None;
-        self
-    }
-
-    pub fn from_seed(seed: u64) -> Self {
-        let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(seed);
-        let shape = crate::game_shape::ALL_SHAPES
-            .choose(&mut shape_rng)
-            .unwrap();
-
-        Self {
-            shape,
-            fixed_location: None,
-            locked: false,
-            fixed_velocity: Some(Default::default())
-        }
     }
 }
 

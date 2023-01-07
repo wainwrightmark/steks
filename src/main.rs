@@ -21,6 +21,7 @@ mod draggable;
 mod grid;
 mod saved_data;
 pub mod screenshots;
+pub mod fixed_shape;
 use color::*;
 pub mod padlock;
 use padlock::*;
@@ -50,6 +51,8 @@ mod collision;
 use collision::*;
 
 pub mod game_shape;
+use game_shape::*;
+use fixed_shape::*;
 
 pub const ZOOM_ENTITY_LAYER: u8 = 1;
 

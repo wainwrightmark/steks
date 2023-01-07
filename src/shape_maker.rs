@@ -69,7 +69,7 @@ pub fn place_and_create_shape<RNG: Rng>(
     rapier_context: &Res<RapierContext>,
     rng: &mut RNG,
 ) {
-    let (position, angle) = fixed_shape.fixed_location.unwrap_or_else(|| {
+    let Location{position, angle} = fixed_shape.fixed_location.unwrap_or_else(|| {
         let collider = fixed_shape.shape.body.to_collider_shape(SHAPE_SIZE);
         let mut tries = 0;
         loop {
@@ -80,19 +80,19 @@ pub fn place_and_create_shape<RNG: Rng>(
                 ((WINDOW_HEIGHT * -0.5) + SHAPE_SIZE)..((WINDOW_HEIGHT * 0.5) + SHAPE_SIZE),
             );
             let angle = rng.gen_range(0f32..std::f32::consts::TAU);
-            let pos = Vec2 { x, y };
+            let position = Vec2 { x, y };
 
             if tries >= 20{
                 //println!("Placed shape without checking after {tries} tries");
-                break (pos, angle);
+                break Location{position, angle};
             }
 
             if rapier_context
-                .intersection_with_shape(pos, angle, &collider, QueryFilter::new())
+                .intersection_with_shape(position, angle, &collider, QueryFilter::new())
                 .is_none()
             {
                 //println!("Placed shape after {tries} tries");
-                break (pos, angle);
+                break Location{position, angle};
             }
             tries+=1;
 

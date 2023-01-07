@@ -22,6 +22,7 @@ mod grid;
 mod saved_data;
 pub mod screenshots;
 pub mod fixed_shape;
+pub mod encoding;
 use color::*;
 pub mod padlock;
 use padlock::*;

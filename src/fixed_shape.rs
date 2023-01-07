@@ -1,12 +1,18 @@
-use rand::{rngs::StdRng, seq::SliceRandom};
 use crate::*;
+use rand::{rngs::StdRng, seq::SliceRandom};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FixedShape {
     pub shape: &'static GameShape,
-    pub fixed_location: Option<(Vec2, f32)>,
+    pub fixed_location: Option<Location>,
     pub locked: bool,
     pub fixed_velocity: Option<Velocity>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Location{
+    pub position: Vec2,
+    pub angle: f32
 }
 
 impl FixedShape {
@@ -22,7 +28,7 @@ impl FixedShape {
     }
 
     pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {
-        self.fixed_location = Some((position, angle));
+        self.fixed_location = Some(Location{position, angle} );
         self
     }
 
@@ -54,4 +60,6 @@ impl FixedShape {
             fixed_velocity: Some(Default::default()),
         }
     }
+
+
 }

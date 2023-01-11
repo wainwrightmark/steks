@@ -119,8 +119,8 @@ pub fn translate_desired(
         let delta_position = desired.translation - transform.translation.truncate();
         let vel = (delta_position / time.delta_seconds()).clamp_length_max(MAX_VELOCITY);
 
+        velocity.linvel = vel;
         if vel.length() < MIN_VELOCITY {
-            velocity.linvel = vel; // Vec2::default(); //prevent drift and flickering
             if padlock.is_invisible() {
                 if desired.last_update_time + PAUSE_DURATION < time.elapsed() {
                     //info!("lut: {:?}", desired.last_update_time);
@@ -130,7 +130,7 @@ pub fn translate_desired(
                 }
             }
         } else {
-            velocity.linvel = vel;
+            //info!("{}", vel.length());
             desired.last_update_time = time.elapsed();
 
             if padlock.has_entity(entity) {

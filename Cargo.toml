@@ -21,6 +21,7 @@ resvg = { version = "0.28.0", default-features = false, features = ["png"] }
 anyhow = "1.0.68"
 base64 = "0.21"
 half = "2.2.1"
+geometrid = {git= "https://github.com/wainwrightmark/geometrid"}
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"

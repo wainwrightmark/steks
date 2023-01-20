@@ -2,10 +2,10 @@ use std::fmt::Debug;
 
 use crate::color::choose_color;
 
-use super::grid::prelude::*;
 use bevy::{prelude::Color, render::once_cell::sync::Lazy};
 use bevy_prototype_lyon::{entity::ShapeBundle, prelude::*};
 use bevy_rapier2d::prelude::Collider;
+use geometrid::polyomino::Polyomino;
 use itertools::Itertools;
 
 pub mod circle;
@@ -71,14 +71,14 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
     let v1: [(&'static dyn GameShapeBody, &'static str); 2] =
         [(&Circle {}, "Circle"), (&TRIANGLE, "Triangle")];
 
-    let tetrominos = Shape::TETROMINOS
+    let tetrominos = Polyomino::TETROMINOS
         .iter()
         .map(|x| x as &'static dyn GameShapeBody)
-        .zip(Shape::TETROMINO_NAMES);
-    let pentominos = Shape::FREE_PENTOMINOS
+        .zip(Polyomino::TETROMINO_NAMES);
+    let pentominos = Polyomino::FREE_PENTOMINOS
         .iter()
         .map(|x| x as &'static dyn GameShapeBody)
-        .zip(Shape::FREE_PENTOMINO_NAMES);
+        .zip(Polyomino::FREE_PENTOMINO_NAMES);
 
     v1.into_iter()
         .chain(tetrominos)

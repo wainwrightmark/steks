@@ -1,17 +1,22 @@
-use super::{GameShapeBody, SHAPE_RADIUS};
-use crate::{
-    grid::prelude::{PolyominoShape, Shape},
-    PHYSICS_SCALE,
-};
+// use super::{GameShapeBody, SHAPE_RADIUS};
+// use crate::{
+//     grid::prelude::{PolyominoShape, Shape},
+//     PHYSICS_SCALE,
+// };
 use bevy::prelude::{Transform, Vec2};
 use bevy_prototype_lyon::{
     prelude::{DrawMode, GeometryBuilder},
     shapes::RoundedPolygon,
 };
 use bevy_rapier2d::prelude::Collider;
+use geometrid::polyomino::{Polyomino, PolyominoShape};
 use itertools::Itertools;
 
-fn get_vertices<const S: usize>(shape: &Shape<S>, shape_size: f32) -> impl Iterator<Item = Vec2> {
+use crate::PHYSICS_SCALE;
+
+use super::{GameShapeBody, SHAPE_RADIUS};
+
+fn get_vertices<const S: usize>(shape: &Polyomino<S>, shape_size: f32) -> impl Iterator<Item = Vec2> {
     let u = shape_size / (1.0 * f32::sqrt(S as f32));
     let (x_offset, y_offset) = shape.get_centre();
 
@@ -22,7 +27,7 @@ fn get_vertices<const S: usize>(shape: &Shape<S>, shape_size: f32) -> impl Itera
         )
     })
 }
-impl<const S: usize> GameShapeBody for Shape<S> {
+impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn to_collider_shape(&self, shape_size: f32) -> Collider {
         let u = shape_size / (1.0 * f32::sqrt(S as f32));
         let (x_offset, y_offset) = self.get_centre();
@@ -30,13 +35,13 @@ impl<const S: usize> GameShapeBody for Shape<S> {
         let shapes = self
             .deconstruct_into_rectangles()
             .into_iter()
-            .map(|(min, max)| {
-                let x_mid = ((min.x() as f32) + (max.x() as f32)) * 0.5;
-                let y_mid = ((min.y() as f32) + (max.y() as f32)) * 0.5;
-                let vect = Vec2::new((x_mid - x_offset + 0.5) * u, (y_mid - y_offset + 0.5) * u);
+            .map(|rectangle| {
+                let x_mid = rectangle.x as f32 + ((rectangle.width as f32) * 0.5);
+                let y_mid = rectangle.y as f32 + ((rectangle.height as f32) * 0.5);
+                let vect = Vec2::new((x_mid - x_offset) * u, (y_mid - y_offset) * u);
 
-                let x_len = (1 + max.x() - min.x()) as f32;
-                let y_len = (1 + max.y() - min.y()) as f32;
+                let x_len = rectangle.width as f32;
+                let y_len = rectangle.height as f32;
                 (
                     vect,
                     0.0,

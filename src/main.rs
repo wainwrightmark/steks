@@ -18,7 +18,6 @@ pub const PHYSICS_SCALE: f32 = 64f32;
 mod camera;
 mod color;
 mod draggable;
-mod grid;
 mod saved_data;
 pub mod screenshots;
 pub mod fixed_shape;

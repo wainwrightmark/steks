@@ -1584,6 +1584,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "geometrid"
+version = "0.1.0"
+source = "git+https://github.com/wainwrightmark/geometrid#7c3821327b73e6a25a13f89e4677a22e53ab3fec"
+dependencies = [
+ "itertools",
+ "strum",
+ "tinyvec",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3074,6 +3084,7 @@ dependencies = [
  "chrono",
  "console_error_panic_hook",
  "embed-resource",
+ "geometrid",
  "half",
  "insta",
  "itertools",
@@ -3285,6 +3296,12 @@ dependencies = [
  "bytemuck",
  "strict-num",
 ]
+
+[[package]]
+name = "tinyvec"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87cc5ceb3875bb20c2890005a4e226a4651264a5c75edb2421b52861a0a0cb50"
 
 [[package]]
 name = "toml"

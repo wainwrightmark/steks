@@ -35,7 +35,7 @@ impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
                 .0
                 .map(|(x, y)| Vec2::new((x as f32) * u, (y as f32) * u))
                 .into(),
-            clockwise: true,
+            closed: true,
             radius: SHAPE_RADIUS,
         };
 

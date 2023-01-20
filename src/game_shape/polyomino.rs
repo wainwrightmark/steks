@@ -60,7 +60,7 @@ impl<const S: usize> GameShapeBody for Shape<S> {
         let points = get_vertices(self, shape_size).collect_vec();
         let shape = RoundedPolygon {
             points,
-            clockwise: true,
+            closed: true,
             radius: SHAPE_RADIUS,
         };
 

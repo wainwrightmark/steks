@@ -93,7 +93,7 @@ fn display_collision_markers(
                         commands.spawn(cm).insert(GeometryBuilder::build_as(
                             &shapes::RoundedPolygon {
                                 points,
-                                clockwise: true,
+                                closed: true,
                                 radius: 5.0,
                             },
                             // &shapes::Rectangle {

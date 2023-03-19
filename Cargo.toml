@@ -17,11 +17,11 @@ chrono = {version="0.4", features = ["serde", "wasmbind"]}
 bevy_pkv = "0.6.0"
 
 serde = { version = "1", features = ["derive"] }
-resvg = { version = "0.28.0", default-features = false, features = ["png"] }
+resvg = { version = "0.29.0", default-features = false, features = ["png"] }
 anyhow = "1.0.68"
 base64 = "0.21"
 half = "2.2.1"
-geometrid = {git= "https://github.com/wainwrightmark/geometrid"}
+geometrid = {git = "https://github.com/wainwrightmark/geometrid"}
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"
@@ -34,7 +34,7 @@ web-sys = {version = "0.3", features = ['Window', 'TouchEvent', 'TouchList', 'To
 console_error_panic_hook = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-winit = { version = "0.27", features=["x11"]}
+winit = { version = "0.28", features=["x11"]}
 
 [build-dependencies]
 embed-resource = "1.4"
@@ -44,7 +44,7 @@ resolver = "2" # Important! wgpu/Bevy needs this!
 
 [dev-dependencies]
 insta = "1.23"
-test-case = "2.2"
+test-case = "3"
 bevy_rapier2d = { version = "0.19", features = [  "debug-render", "serde-serialize" ] }
 
 [profile.release]

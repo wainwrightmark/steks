@@ -9,7 +9,7 @@ use bevy_prototype_lyon::{
     shapes::RoundedPolygon,
 };
 use bevy_rapier2d::prelude::Collider;
-use geometrid::polyomino::{Polyomino, PolyominoShape};
+use geometrid::{polyomino::{Polyomino}, prelude::{HasCenter, Center}, shape::Shape};
 use itertools::Itertools;
 
 use crate::PHYSICS_SCALE;
@@ -18,26 +18,26 @@ use super::{GameShapeBody, SHAPE_RADIUS};
 
 fn get_vertices<const S: usize>(shape: &Polyomino<S>, shape_size: f32) -> impl Iterator<Item = Vec2> {
     let u = shape_size / (1.0 * f32::sqrt(S as f32));
-    let (x_offset, y_offset) = shape.get_centre();
+    let Center{x: x_offset, y: y_offset}  = shape.get_center(1.0);
 
     shape.draw_outline().map(move |qr| {
         Vec2::new(
-            ((qr.x() as f32) - x_offset) * u,
-            ((qr.y() as f32) - y_offset) * u,
+            ((qr.x as f32) - x_offset) * u,
+            ((qr.y as f32) - y_offset) * u,
         )
     })
 }
 impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn to_collider_shape(&self, shape_size: f32) -> Collider {
         let u = shape_size / (1.0 * f32::sqrt(S as f32));
-        let (x_offset, y_offset) = self.get_centre();
+        let Center{x: x_offset, y: y_offset}  = self.get_center(1.0);
 
         let shapes = self
             .deconstruct_into_rectangles()
             .into_iter()
             .map(|rectangle| {
-                let x_mid = rectangle.x as f32 + ((rectangle.width as f32) * 0.5);
-                let y_mid = rectangle.y as f32 + ((rectangle.height as f32) * 0.5);
+                let x_mid = rectangle.north_west.x as f32 + ((rectangle.width as f32) * 0.5);
+                let y_mid = rectangle.north_west.y as f32 + ((rectangle.height as f32) * 0.5);
                 let vect = Vec2::new((x_mid - x_offset) * u, (y_mid - y_offset) * u);
 
                 let x_len = rectangle.width as f32;

@@ -17,7 +17,7 @@ chrono = {version="0.4", features = ["serde", "wasmbind"]}
 bevy_pkv = "0.6.0"
 
 serde = { version = "1", features = ["derive"] }
-resvg = { version = "0.29.0", default-features = false, features = ["png"] }
+resvg = { version = "0.32", default-features = false, features = ["png"] }
 anyhow = "1.0.68"
 base64 = "0.21"
 half = "2.2.1"

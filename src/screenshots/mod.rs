@@ -3,7 +3,7 @@ use std::{fs, ops::Neg};
 use anyhow::anyhow;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{tess::geom::traits::Transformation, *};
-use resvg::usvg::{self, NodeExt};
+use resvg::usvg::{self, NodeExt, TreeParsing};
 
 use crate::*;
 
@@ -110,7 +110,7 @@ fn string_to_png(str: &str) -> Result<Vec<u8>, anyhow::Error> {
     );
     resvg::render(
         &tree,
-        usvg::FitTo::Original,
+        resvg::FitTo::Original,
         resvg::tiny_skia::Transform::from_translate(
             bounding_box.x().neg() as f32,
             bounding_box.y().neg() as f32,

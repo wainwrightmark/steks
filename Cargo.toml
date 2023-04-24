@@ -21,7 +21,7 @@ resvg = { version = "0.29.0", default-features = false, features = ["png"] }
 anyhow = "1.0.68"
 base64 = "0.21"
 half = "2.2.1"
-geometrid = {git = "https://github.com/wainwrightmark/geometrid"}
+geometrid = "0.1"
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"
@@ -36,8 +36,6 @@ console_error_panic_hook = "0.1"
 [target.'cfg(target_os = "linux")'.dependencies]
 winit = { version = "0.28", features=["x11"]}
 
-[build-dependencies]
-embed-resource = "1.4"
 
 [workspace]
 resolver = "2" # Important! wgpu/Bevy needs this!

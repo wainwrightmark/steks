@@ -9,7 +9,7 @@ use bevy_prototype_lyon::{
     shapes::RoundedPolygon,
 };
 use bevy_rapier2d::prelude::Collider;
-use geometrid::{polyomino::{Polyomino}, prelude::{HasCenter, Center}, shape::Shape};
+use geometrid::{polyomino::{Polyomino}, prelude::{HasCenter, Location}, shape::Shape};
 use itertools::Itertools;
 
 use crate::PHYSICS_SCALE;
@@ -18,7 +18,7 @@ use super::{GameShapeBody, SHAPE_RADIUS};
 
 fn get_vertices<const S: usize>(shape: &Polyomino<S>, shape_size: f32) -> impl Iterator<Item = Vec2> {
     let u = shape_size / (1.0 * f32::sqrt(S as f32));
-    let Center{x: x_offset, y: y_offset}  = shape.get_center(1.0);
+    let Location{x: x_offset, y: y_offset}  = shape.get_center(1.0);
 
     shape.draw_outline().map(move |qr| {
         Vec2::new(
@@ -30,7 +30,7 @@ fn get_vertices<const S: usize>(shape: &Polyomino<S>, shape_size: f32) -> impl I
 impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn to_collider_shape(&self, shape_size: f32) -> Collider {
         let u = shape_size / (1.0 * f32::sqrt(S as f32));
-        let Center{x: x_offset, y: y_offset}  = self.get_center(1.0);
+        let Location{x: x_offset, y: y_offset}  = self.get_center(1.0);
 
         let shapes = self
             .deconstruct_into_rectangles()

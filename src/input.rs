@@ -143,6 +143,7 @@ pub fn keyboard_listener(
     mut key_evr: EventReader<KeyboardInput>,
     mut rotate_evw: EventWriter<RotateEvent>,
 ) {
+    //Note keyboard doesn't work during mobile emulation in browser dev tools I think
     for ev in key_evr.iter() {
         if let Some(code) = ev.key_code {
             if let bevy::input::ButtonState::Pressed = ev.state {
@@ -152,6 +153,7 @@ pub fn keyboard_listener(
                     _ => None,
                 };
                 if let Some(angle) = angle {
+                    //info!("Keyboard rotate {angle}");
                     rotate_evw.send(RotateEvent {
                         angle,
                         snap_resolution: Some(SNAP_RESOLUTION),

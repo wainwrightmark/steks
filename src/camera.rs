@@ -1,4 +1,5 @@
-use bevy::{prelude::*};
+use bevy::prelude::*;
+use bevy_rapier2d::parry::simba::simd::SimdSigned;
 
 use crate::ZOOM_ENTITY_LAYER;
 
@@ -45,7 +46,7 @@ fn activate_zoom_camera(
     added: Query<&TouchDragged, Added<TouchDragged>>,
     mut cameras: Query<&mut Camera, With<ZoomCamera>>,
 ) {
-    if !added.is_empty(){
+    if !added.is_empty() {
         for mut camera in cameras.iter_mut() {
             camera.is_active = true;
             debug!("Camera set to active");
@@ -58,7 +59,7 @@ fn deactivate_zoom_camera(
     query: Query<With<TouchDragged>>,
     mut cameras: Query<&mut Camera, With<ZoomCamera>>,
 ) {
-    if !removals.is_empty(){
+    if !removals.is_empty() {
         if query.is_empty() {
             for mut c in cameras.iter_mut() {
                 debug!("Camera set to inactive");
@@ -101,12 +102,7 @@ pub fn new_camera(far: f32, scale: f32, is_active: bool) -> Camera2dBundle {
         bevy::render::camera::CameraProjection::get_projection_matrix(&projection)
             * transform.compute_matrix().inverse();
 
-    let frustum = bevy::render::primitives::Frustum::from_view_projection_custom_far(
-        &view_projection,
-        &transform.translation,
-        &transform.back(),
-        projection.far,
-    );
+    let frustum = bevy::render::primitives::Frustum::from_view_projection(&view_projection);
 
     Camera2dBundle {
         camera_render_graph: bevy::render::camera::CameraRenderGraph::new(

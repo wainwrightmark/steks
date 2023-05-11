@@ -87,7 +87,7 @@ pub fn drag_end(
             .iter_mut()
             .filter(|x| x.1.has_drag_source(event.drag_source))
         {
-            if let Draggable::Dragged(_dragged) = draggable.as_ref() {
+            if let Draggable::Dragged(..) = draggable.as_ref() {
                 *draggable = if !padlock_resource.has_entity(entity) {
                     Draggable::Free
                 } else {
@@ -322,10 +322,6 @@ impl Draggable {
         dragged.drag_source.touch_id()
     }
 
-    // pub fn is_free(&self) -> bool {
-    //     matches!(self, Draggable::Free)
-    // }
-
     pub fn is_locked(&self) -> bool {
         matches!(self, Draggable::Locked)
     }
@@ -334,10 +330,6 @@ impl Draggable {
         let Draggable::Dragged(dragged) = self else {return  false;};
         dragged.drag_source == drag_source
     }
-
-    // pub fn has_touch_id(&self, id: u64) -> bool {
-    //     self.has_drag_source(DragSource::Touch { touch_id: id })
-    // }
 
     pub fn get_offset(&self) -> Vec2 {
         let Draggable::Dragged(dragged) = self else {return  Default::default();};

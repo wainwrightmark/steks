@@ -13,7 +13,7 @@ impl Plugin for PadlockPlugin {
         app.add_startup_system(create_padlock);
         app.init_resource::<PadlockResource>();
         app.add_system(clear_padlock_on_level_change)
-            .add_system(control_padlock.in_base_set(CoreSet::PostUpdate));
+            .add_system(control_padlock);
     }
 }
 
@@ -56,25 +56,23 @@ const OPEN_PADLOCK_OFFSET: Vec3 = Vec2::new(50.0, 50.0).extend(0.0);
 
 fn control_padlock(
     mut commands: Commands,
-
     padlock_resource: Res<PadlockResource>,
-    mut query: Query<(Entity, &mut Visibility), With<Padlock>>,
+    mut query: Query<(Entity, &mut Visibility, &mut Transform), With<Padlock>>,
 ) {
     if padlock_resource.is_changed() {
-        //info!("Padlock changed");
+        info!("Padlock changed {padlock_resource:?}");
         match padlock_resource.as_ref() {
             PadlockResource::Locked(_entity, translation) => {
-                for (e, mut visibility) in query.iter_mut() {
+                for (e, mut visibility, mut transform) in query.iter_mut() {
                     *visibility = Visibility::Inherited;
 
                     let transform_to = Transform {
-                        rotation: Default::default(), // parent_transform.rotation.conjugate(),
+                        rotation: Default::default(),
                         scale: Vec3::new(0.05, 0.05, 1.),
                         translation: *translation + Vec3::Z,
                     };
 
-                    let mut transform_from = transform_to;
-                    transform_from.translation += OPEN_PADLOCK_OFFSET;
+                    transform.translation = transform_to.translation + OPEN_PADLOCK_OFFSET;
 
                     commands
                         .entity(e)
@@ -86,33 +84,27 @@ fn control_padlock(
                             options: FillOptions::DEFAULT,
                             color: Color::BLACK,
                         })
-                        .insert(transform_from)
                         .insert(bevy_tweening::Animator::new(Tween::new(
                             EaseFunction::QuadraticInOut,
                             Duration::from_secs(1),
                             TransformPositionLens {
-                                start: transform_from.translation,
+                                start: transform.translation,
                                 end: transform_to.translation,
                             },
                         )));
                 }
             }
             PadlockResource::Unlocked(_entity, translation) => {
-                for (e, mut visibility) in query.iter_mut() {
+                for (e, mut visibility, mut transform) in query.iter_mut() {
                     *visibility = Visibility::Inherited;
 
-                    let transform = Transform {
-                        rotation: Default::default(), // parent_transform.rotation.conjugate(),
-                        scale: Vec3::new(0.05, 0.05, 1.),
-                        translation: *translation + Vec3::Z + OPEN_PADLOCK_OFFSET,
-                    };
+                    transform.translation = *translation + Vec3::Z + OPEN_PADLOCK_OFFSET;
                     commands
                         .entity(e)
                         .insert(GeometryBuilder::build_as(&shapes::SvgPathShape {
                             svg_path_string: OPEN_PADLOCK_OUTLINE.to_owned(),
                             svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
                         }))
-                        .insert(transform)
                         .insert(Fill {
                             options: FillOptions::DEFAULT,
                             color: Color::BLACK,
@@ -120,7 +112,7 @@ fn control_padlock(
                 }
             }
             PadlockResource::Invisible => {
-                for (_e, mut visibility) in query.iter_mut() {
+                for (_e, mut visibility, _) in query.iter_mut() {
                     *visibility = Visibility::Hidden;
                 }
             }

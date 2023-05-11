@@ -145,9 +145,7 @@ pub fn create_shape(
 
     commands
         .spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE))
-        //.insert(Fill::color(Color::RED))
         .insert(game_shape.fill())
-        .insert(game_shape.stroke())
         .insert(ShapeIndex(game_shape.index))
         .insert(RigidBody::Dynamic)
         .insert(collider_shape)

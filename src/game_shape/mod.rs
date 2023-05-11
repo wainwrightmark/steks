@@ -43,11 +43,11 @@ impl GameShape {
         choose_color(self.index)
     }
 
-    pub fn fill(&self)-> Fill{
+    pub fn fill(&self) -> Fill {
         Fill::color(self.default_fill_color())
     }
 
-    pub fn stroke(&self)-> Stroke{
+    pub fn stroke(&self) -> Stroke {
         Stroke::color(Color::BLACK)
     }
 }
@@ -86,7 +86,7 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
 });
 
 pub fn shape_by_name(name: &'static str) -> Option<&GameShape> {
-    ALL_SHAPES.iter().filter(|x| x.name == name).next()
+    ALL_SHAPES.iter().find(|x| x.name == name)
 }
 
 const TRIANGLE: PolygonBody<4, 3> = PolygonBody(&[(-1, -1), (-1, 2), (2, -1)]);

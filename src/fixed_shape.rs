@@ -10,32 +10,22 @@ pub struct FixedShape {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Location{
+pub struct Location {
     pub position: Vec2,
-    pub angle: f32
+    pub angle: f32,
 }
 
-impl From<&Transform> for Location{
+impl From<&Transform> for Location {
     fn from(value: &Transform) -> Self {
-
-
         fn get_angle(q: Quat) -> f32 {
-            // let [x, y, z, w] = q.to_array();
-            // let mut asin_z = z.asin();
-            // let mut acos_w = w.acos();
-
-
-
-            // asin_z = f32::round(asin_z / multiple) * multiple;
-            // acos_w = f32::round(acos_w / multiple) * multiple;
-
-            // Quat::from_xyzw(x, y, asin_z.sin(), acos_w.cos())
             let (axis, angle) = q.to_axis_angle();
             axis.z * angle
         }
 
-
-        Self { position: value.translation.truncate(), angle: get_angle(value.rotation) }
+        Self {
+            position: value.translation.truncate(),
+            angle: get_angle(value.rotation),
+        }
     }
 }
 
@@ -43,16 +33,16 @@ impl FixedShape {
     pub fn by_name(s: &'static str) -> Self {
         game_shape::shape_by_name(s)
             .map(|shape| Self {
-                shape: shape,
+                shape,
                 fixed_location: None,
                 locked: false,
                 fixed_velocity: Some(Default::default()),
             })
-            .expect(format!("Could not find shape with name '{s}'").as_str())
+            .unwrap_or_else(|| panic!("Could not find shape with name '{s}'"))
     }
 
     pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {
-        self.fixed_location = Some(Location{position, angle} );
+        self.fixed_location = Some(Location { position, angle });
         self
     }
 
@@ -84,6 +74,4 @@ impl FixedShape {
             fixed_velocity: Some(Default::default()),
         }
     }
-
-
 }

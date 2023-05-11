@@ -1,4 +1,4 @@
-use bevy::{prelude::*, log};
+use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;

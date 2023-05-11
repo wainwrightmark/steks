@@ -19,10 +19,10 @@ pub const PHYSICS_SCALE: f32 = 64f32;
 mod camera;
 mod color;
 mod draggable;
+pub mod encoding;
+pub mod fixed_shape;
 mod saved_data;
 pub mod screenshots;
-pub mod fixed_shape;
-pub mod encoding;
 use color::*;
 pub mod padlock;
 use padlock::*;
@@ -52,8 +52,8 @@ mod collision;
 use collision::*;
 
 pub mod game_shape;
-use game_shape::*;
 use fixed_shape::*;
+use game_shape::*;
 
 pub const ZOOM_ENTITY_LAYER: u8 = 1;
 
@@ -66,21 +66,20 @@ fn main() {
     console_error_panic_hook::set_once();
 
     let window_plugin = WindowPlugin {
-        primary_window: Some(
-            Window {
-                title: "steks".to_string(),
-                canvas: Some("#game".to_string()),
-                resolution: WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
-                resize_constraints: WindowResizeConstraints{
-                    min_height: WINDOW_HEIGHT,
-                    min_width: WINDOW_WIDTH,
-                    max_width: MAX_WINDOW_WIDTH,
-                    max_height: MAX_WINDOW_HEIGHT
-                },
+        primary_window: Some(Window {
+            title: "steks".to_string(),
+            canvas: Some("#game".to_string()),
+            resolution: WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
+            resize_constraints: WindowResizeConstraints {
+                min_height: WINDOW_HEIGHT,
+                min_width: WINDOW_WIDTH,
+                max_width: MAX_WINDOW_WIDTH,
+                max_height: MAX_WINDOW_HEIGHT,
+            },
 
-                resizable: true,
-                ..Default::default() }
-        ),
+            resizable: true,
+            ..Default::default()
+        }),
         ..Default::default()
     };
 
@@ -91,8 +90,7 @@ fn main() {
     let mut builder = App::new();
 
     builder
-    .insert_resource(Msaa::Sample4)
-
+        .insert_resource(Msaa::Sample4)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin))
         .add_plugin(WallsPlugin)

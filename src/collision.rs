@@ -94,7 +94,10 @@ fn display_collision_markers(
 
                         commands
                             .spawn(cm)
-                            .insert(ShapeBundle{path,..Default::default()})
+                            .insert(ShapeBundle {
+                                path,
+                                ..Default::default()
+                            })
                             .insert(Fill {
                                 color: Color::RED,
                                 options: Default::default(),

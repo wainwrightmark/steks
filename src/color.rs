@@ -6,7 +6,7 @@ pub fn choose_color(index: usize) -> Color {
     const SATURATIONS: [f32; 2] = [0.9, 0.28];
     const LIGHTNESSES: [f32; 2] = [0.28, 0.49];
 
-    const PHI_CONJUGATE: f32 = 0.618033988749895;
+    const PHI_CONJUGATE: f32 = 0.618_034;
 
     let hue = 360. * (((index as f32) * PHI_CONJUGATE) % 1.);
 

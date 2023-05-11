@@ -3,7 +3,7 @@
 //     grid::prelude::{PolyominoShape, Shape},
 //     PHYSICS_SCALE,
 // };
-use bevy::prelude::{Transform, Vec2};
+use bevy::prelude::Vec2;
 use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 use geometrid::{
@@ -44,7 +44,6 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
 
         let shapes = self
             .deconstruct_into_rectangles()
-            .into_iter()
             .map(|rectangle| {
                 let x_mid = rectangle.north_west.x as f32 + ((rectangle.width as f32) * 0.5);
                 let y_mid = rectangle.north_west.y as f32 + ((rectangle.height as f32) * 0.5);

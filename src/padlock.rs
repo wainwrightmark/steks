@@ -70,7 +70,7 @@ fn control_padlock(
                     let transform_to = Transform {
                         rotation: Default::default(), // parent_transform.rotation.conjugate(),
                         scale: Vec3::new(0.05, 0.05, 1.),
-                        translation: translation.clone() + Vec3::Z,
+                        translation: *translation + Vec3::Z,
                     };
 
                     let mut transform_from = transform_to;
@@ -104,7 +104,7 @@ fn control_padlock(
                     let transform = Transform {
                         rotation: Default::default(), // parent_transform.rotation.conjugate(),
                         scale: Vec3::new(0.05, 0.05, 1.),
-                        translation: translation.clone() + Vec3::Z + OPEN_PADLOCK_OFFSET,
+                        translation: *translation + Vec3::Z + OPEN_PADLOCK_OFFSET,
                     };
                     commands
                         .entity(e)
@@ -141,7 +141,7 @@ fn create_padlock(mut commands: Commands) {
     });
 
     commands
-        .spawn(ShapeBundle{
+        .spawn(ShapeBundle {
             path,
             ..Default::default()
         })

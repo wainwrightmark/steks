@@ -56,12 +56,10 @@ fn choose_level_on_game_load(
         if settings.has_beat_todays_challenge() {
             //info!("Skip to infinite");
             change_level_events.send(ChangeLevelEvent::StartInfinite);
+        } else if let Some(saved) = settings.saved_infinite {
+            change_level_events.send(ChangeLevelEvent::Load(saved));
         } else {
-            if let Some(saved) = settings.saved_infinite {
-                change_level_events.send(ChangeLevelEvent::Load(saved.clone()));
-            } else {
-                change_level_events.send(ChangeLevelEvent::StartChallenge);
-            }
+            change_level_events.send(ChangeLevelEvent::StartChallenge);
         }
     } else {
         info!("Do tutorial");
@@ -352,7 +350,10 @@ impl ChangeLevelEvent {
                 // }
             }
             ChangeLevelEvent::StartChallenge => GameLevel::Challenge,
-            ChangeLevelEvent::Load(data) => GameLevel::SavedInfinite { data: data.clone(), seed: rand::thread_rng().next_u64(), },
+            ChangeLevelEvent::Load(data) => GameLevel::SavedInfinite {
+                data: data.clone(),
+                seed: rand::thread_rng().next_u64(),
+            },
         }
     }
 }

@@ -121,13 +121,9 @@ pub fn translate_desired(
 
         velocity.linvel = vel;
         if vel.length() < MIN_VELOCITY {
-            if padlock.is_invisible() {
-                if desired.last_update_time + PAUSE_DURATION < time.elapsed() {
-                    //info!("lut: {:?}", desired.last_update_time);
-                    //info!("elapsed: {:?}", time.elapsed());
-
-                    *padlock = PadlockResource::Unlocked(entity, transform.translation);
-                }
+            if padlock.is_invisible() && desired.last_update_time + PAUSE_DURATION < time.elapsed()
+            {
+                *padlock = PadlockResource::Unlocked(entity, transform.translation);
             }
         } else {
             //info!("{}", vel.length());

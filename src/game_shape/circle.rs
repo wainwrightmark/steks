@@ -1,4 +1,4 @@
-use bevy::prelude::{Transform, Vec2};
+use bevy::prelude::Vec2;
 use bevy_prototype_lyon::{
     prelude::*,
     shapes::{self},
@@ -24,10 +24,9 @@ impl GameShapeBody for Circle {
     }
 
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle {
-        ShapeBundle{
+        ShapeBundle {
             path: GeometryBuilder::build_as(&circle_geometry(shape_size)),
             ..Default::default()
         }
-
     }
 }

@@ -67,11 +67,9 @@ pub fn get_cursor_position(
     // check if the cursor is inside the window and get its position
     if let Some(screen_pos) = window.cursor_position() {
         let world_pos =
-
-
             convert_screen_to_world_position(screen_pos, window, camera, camera_transform);
 
-            //info!("Cursor world: {world_pos}; screen {screen_pos}");
+        //info!("Cursor world: {world_pos}; screen {screen_pos}");
         Some(world_pos)
     } else {
         None

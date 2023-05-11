@@ -3,7 +3,7 @@ pub mod download;
 use crate::input::{convert_screen_to_world_position, InputDetector};
 use crate::*;
 use bevy::input::touch::{ForceTouch, TouchPhase};
-use bevy::input::InputSystem;
+
 use bevy::window::{PrimaryWindow, WindowResized};
 use wasm_bindgen::prelude::*;
 use web_sys::{TouchEvent, TouchList};
@@ -52,8 +52,8 @@ fn resizer(
                 .set_physical_resolution(p_width.floor() as u32, p_height.floor() as u32);
             window_resized_events.send(WindowResized {
                 window: window_entity,
-                height: height,
-                width: width,
+                height,
+                width,
             });
 
             resize_canvas(width, height);
@@ -108,7 +108,7 @@ pub fn pool_touch_system(
                 if let Some(touch) = touches.get(i) {
                     let id = touch.identifier() as u64;
                     let x = touch.client_x() as f32;
-                    let y = window.height() as f32 - touch.client_y() as f32;
+                    let y = window.height() - touch.client_y() as f32;
                     let force = Some(ForceTouch::Normalized(touch.force() as f64));
 
                     let screen_pos = Vec2::new(x, y);

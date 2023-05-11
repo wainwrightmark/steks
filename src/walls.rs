@@ -95,7 +95,10 @@ fn spawn_wall(commands: &mut Commands, color: Color, wall: Wall) {
     let collider_shape = Collider::cuboid(shape.extents.x / 2.0, shape.extents.y / 2.0);
     let path = GeometryBuilder::build_as(&shape);
     commands
-        .spawn(ShapeBundle{path, ..Default::default()})
+        .spawn(ShapeBundle {
+            path,
+            ..Default::default()
+        })
         .insert(Stroke::color(color))
         .insert(Fill::color(color))
         .insert(RigidBody::Fixed)

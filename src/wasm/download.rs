@@ -1,10 +1,10 @@
 use bevy::log::{error, info};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::rc::Rc;
 
 use js_sys::{Array, Date, Promise, Uint8Array};
 use wasm_bindgen::closure::Closure;
-use wasm_bindgen::prelude::wasm_bindgen;
+
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Blob, BlobPropertyBag, Document, FileReader, Window};
@@ -62,7 +62,7 @@ fn read_to_data(blob: &Blob) -> Promise {
 
         let closure_file_reader = file_reader.clone();
         let closure_reject = reject.clone();
-        let mut closure = Closure::once(move || {
+        let closure = Closure::once(move || {
             let value = err_return!(
                 closure_file_reader.result(),
                 "Could not get file reader result",

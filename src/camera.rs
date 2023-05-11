@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::primitives::Frustum};
+use bevy::prelude::*;
 
 use crate::ZOOM_ENTITY_LAYER;
 
@@ -72,15 +72,14 @@ fn deactivate_zoom_camera(
 
 fn move_zoom_camera(
     query: Query<&Transform, (Changed<Transform>, Without<ZoomCamera>, With<TouchDragged>)>,
-    mut cameras: Query<(
-        &mut Transform,
-        &ZoomCamera, &OrthographicProjection
-    )>,
+    mut cameras: Query<(&mut Transform, &ZoomCamera, &OrthographicProjection)>,
 ) {
     for (mut camera_transform, zoom_camera, _) in cameras.iter_mut() {
         for transform in query.iter() {
             camera_transform.rotation = Default::default();
-            camera_transform.translation = (transform.translation.truncate() * (1. - zoom_camera.scale)).extend(transform.translation.z);
+            camera_transform.translation = (transform.translation.truncate()
+                * (1. - zoom_camera.scale))
+                .extend(transform.translation.z);
         }
     }
 }
@@ -91,7 +90,7 @@ pub fn new_camera(far: f32, scale: f32, is_active: bool) -> Camera2dBundle {
     let projection = OrthographicProjection {
         far,
         scale,
-        viewport_origin: Vec2{x: 0.5, y: 0.5},
+        viewport_origin: Vec2 { x: 0.5, y: 0.5 },
         ..Default::default()
     };
     let mut transform = Transform::default();

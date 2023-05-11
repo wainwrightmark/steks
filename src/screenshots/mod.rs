@@ -1,11 +1,8 @@
-use std::{fs, ops::Neg};
+use std::ops::Neg;
 
 use anyhow::anyhow;
 use bevy::prelude::*;
-use bevy_prototype_lyon::{
-    entity::ShapeBundle,
-    prelude::{tess::geom::traits::Transformation, *},
-};
+use bevy_prototype_lyon::prelude::{tess::geom::traits::Transformation, *};
 use resvg::usvg::{self, NodeExt, TreeParsing};
 
 use crate::*;
@@ -72,7 +69,10 @@ fn save_file(file_name: std::path::PathBuf, bytes: Vec<u8>) -> anyhow::Result<()
 
 fn save_svg(
     mut events: EventReader<SaveSVGEvent>,
-    query: Query<(&Transform, &Path, &Fill, &Stroke), (With<Draggable>, Without<Wall>, Without<Padlock>)>,
+    query: Query<
+        (&Transform, &Path, &Fill, &Stroke),
+        (With<Draggable>, Without<Wall>, Without<Padlock>),
+    >,
     mut saves: ResMut<SavedSvg>,
 ) {
     for event in events.iter() {

@@ -62,6 +62,7 @@ fn download_svg(mut events: EventReader<DownloadPngEvent>, saves: Res<SavedSvg>)
 
 #[cfg(not(target_arch = "wasm32"))]
 fn save_file(file_name: std::path::PathBuf, bytes: Vec<u8>) -> anyhow::Result<()> {
+    use std::fs;
     fs::write(file_name, bytes)?;
 
     Ok(())

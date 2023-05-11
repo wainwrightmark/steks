@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*};
 
 use crate::ZOOM_ENTITY_LAYER;
 
@@ -7,7 +7,7 @@ pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup)
-            .add_system(move_zoom_camera.in_base_set(CoreSet::PostUpdate))
+            .add_system(move_zoom_camera)
             .add_system(activate_zoom_camera.in_base_set(CoreSet::PostUpdate))
             .add_system(deactivate_zoom_camera.in_base_set(CoreSet::PostUpdate));
     }
@@ -42,28 +42,26 @@ pub struct ZoomCamera {
 pub struct TouchDragged;
 
 fn activate_zoom_camera(
-    added: Query<Added<TouchDragged>>,
+    added: Query<&TouchDragged, Added<TouchDragged>>,
     mut cameras: Query<&mut Camera, With<ZoomCamera>>,
 ) {
-    if !added.is_empty() {
-        for mut c in cameras.iter_mut() {
-            c.is_active = true;
+    if !added.is_empty(){
+        for mut camera in cameras.iter_mut() {
+            camera.is_active = true;
+            debug!("Camera set to active");
         }
     }
 }
 
 fn deactivate_zoom_camera(
-    mut removals: RemovedComponents<TouchDragged>,
+    removals: RemovedComponents<TouchDragged>,
     query: Query<With<TouchDragged>>,
     mut cameras: Query<&mut Camera, With<ZoomCamera>>,
 ) {
-    //info!("d z c");
-    if removals.iter().next().is_some() {
-        //info!("d z c 2");
+    if !removals.is_empty(){
         if query.is_empty() {
-            //info!("d z c 3");
             for mut c in cameras.iter_mut() {
-                //info!("d z c 4");
+                debug!("Camera set to inactive");
                 c.is_active = false;
             }
         }
@@ -72,14 +70,16 @@ fn deactivate_zoom_camera(
 
 fn move_zoom_camera(
     query: Query<&Transform, (Changed<Transform>, Without<ZoomCamera>, With<TouchDragged>)>,
-    mut cameras: Query<(&mut Transform, &ZoomCamera, &OrthographicProjection)>,
+    mut cameras: Query<(&mut Transform, &ZoomCamera)>,
 ) {
-    for (mut camera_transform, zoom_camera, _) in cameras.iter_mut() {
+    for (mut camera_transform, zoom_camera) in cameras.iter_mut() {
         for transform in query.iter() {
-            camera_transform.rotation = Default::default();
-            camera_transform.translation = (transform.translation.truncate()
-                * (1. - zoom_camera.scale))
-                .extend(transform.translation.z);
+            let adjusted_translation = transform.translation.truncate() * (1. - zoom_camera.scale);
+
+            camera_transform.translation.x = adjusted_translation.x;
+            camera_transform.translation.y = adjusted_translation.y;
+
+            debug!("Camera transform: {camera_transform:?}");
         }
     }
 }
@@ -94,6 +94,7 @@ pub fn new_camera(far: f32, scale: f32, is_active: bool) -> Camera2dBundle {
         ..Default::default()
     };
     let mut transform = Transform::default();
+
     transform.translation.z = far - 0.1;
 
     let view_projection =
@@ -106,6 +107,7 @@ pub fn new_camera(far: f32, scale: f32, is_active: bool) -> Camera2dBundle {
         &transform.back(),
         projection.far,
     );
+
     Camera2dBundle {
         camera_render_graph: bevy::render::camera::CameraRenderGraph::new(
             bevy::core_pipeline::core_2d::graph::NAME,

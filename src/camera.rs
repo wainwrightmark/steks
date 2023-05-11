@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::primitives::Frustum};
 
 use crate::ZOOM_ENTITY_LAYER;
 
@@ -7,9 +7,9 @@ pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup)
-            .add_system_to_stage(CoreStage::PostUpdate, move_zoom_camera)
-            .add_system_to_stage(CoreStage::PostUpdate, activate_zoom_camera)
-            .add_system_to_stage(CoreStage::PostUpdate, deactivate_zoom_camera);
+            .add_system(move_zoom_camera.in_base_set(CoreSet::PostUpdate))
+            .add_system(activate_zoom_camera.in_base_set(CoreSet::PostUpdate))
+            .add_system(deactivate_zoom_camera.in_base_set(CoreSet::PostUpdate));
     }
 }
 
@@ -53,7 +53,7 @@ fn activate_zoom_camera(
 }
 
 fn deactivate_zoom_camera(
-    removals: RemovedComponents<TouchDragged>,
+    mut removals: RemovedComponents<TouchDragged>,
     query: Query<With<TouchDragged>>,
     mut cameras: Query<&mut Camera, With<ZoomCamera>>,
 ) {
@@ -72,12 +72,15 @@ fn deactivate_zoom_camera(
 
 fn move_zoom_camera(
     query: Query<&Transform, (Changed<Transform>, Without<ZoomCamera>, With<TouchDragged>)>,
-    mut cameras: Query<(&mut Transform, &ZoomCamera)>,
+    mut cameras: Query<(
+        &mut Transform,
+        &ZoomCamera, &OrthographicProjection
+    )>,
 ) {
-    for (mut camera_transform, zoom_camera) in cameras.iter_mut() {
+    for (mut camera_transform, zoom_camera, _) in cameras.iter_mut() {
         for transform in query.iter() {
             camera_transform.rotation = Default::default();
-            camera_transform.translation = transform.translation * (1. - zoom_camera.scale);
+            camera_transform.translation = (transform.translation.truncate() * (1. - zoom_camera.scale)).extend(transform.translation.z);
         }
     }
 }
@@ -88,24 +91,21 @@ pub fn new_camera(far: f32, scale: f32, is_active: bool) -> Camera2dBundle {
     let projection = OrthographicProjection {
         far,
         scale,
+        viewport_origin: Vec2{x: 0.5, y: 0.5},
         ..Default::default()
     };
     let mut transform = Transform::default();
-
-    // transform.rotation = Default::default();
-    // transform.translation *= 1. - scale;
     transform.translation.z = far - 0.1;
 
-    //origin.extend(0.0) *
-    //let transform = Transform::from_xyz(0.0, 0.0, far - 0.1);
     let view_projection =
         bevy::render::camera::CameraProjection::get_projection_matrix(&projection)
             * transform.compute_matrix().inverse();
-    let frustum = bevy::render::primitives::Frustum::from_view_projection(
+
+    let frustum = bevy::render::primitives::Frustum::from_view_projection_custom_far(
         &view_projection,
         &transform.translation,
         &transform.back(),
-        bevy::render::camera::CameraProjection::far(&projection),
+        projection.far,
     );
     Camera2dBundle {
         camera_render_graph: bevy::render::camera::CameraRenderGraph::new(
@@ -117,13 +117,14 @@ pub fn new_camera(far: f32, scale: f32, is_active: bool) -> Camera2dBundle {
         transform,
         global_transform: Default::default(),
         camera: Camera {
-            priority: 1,
+            order: 1,
             is_active,
             ..Default::default()
         },
         camera_2d: Camera2d {
             clear_color: bevy::core_pipeline::clear_color::ClearColorConfig::None,
         },
-        tonemapping: bevy::core_pipeline::tonemapping::Tonemapping::Disabled,
+        tonemapping: Default::default(),
+        deband_dither: Default::default(),
     }
 }

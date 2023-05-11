@@ -2,7 +2,10 @@ use std::{fs, ops::Neg};
 
 use anyhow::anyhow;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{tess::geom::traits::Transformation, *};
+use bevy_prototype_lyon::{
+    entity::ShapeBundle,
+    prelude::{tess::geom::traits::Transformation, *},
+};
 use resvg::usvg::{self, NodeExt, TreeParsing};
 
 use crate::*;
@@ -14,7 +17,7 @@ impl Plugin for ScreenshotPlugin {
         app.insert_resource(SavedSvg::default())
             .add_event::<SaveSVGEvent>()
             .add_event::<DownloadPngEvent>()
-            .add_system_to_stage(CoreStage::Last, save_svg)
+            .add_system(save_svg.in_base_set(CoreSet::Last))
             .add_system(download_svg);
     }
 }
@@ -69,10 +72,7 @@ fn save_file(file_name: std::path::PathBuf, bytes: Vec<u8>) -> anyhow::Result<()
 
 fn save_svg(
     mut events: EventReader<SaveSVGEvent>,
-    query: Query<
-        (&Transform, &Path, &DrawMode),
-        (With<Draggable>, Without<Wall>, Without<Padlock>),
-    >,
+    query: Query<(&Transform, &Path, &Fill, &Stroke), (With<Draggable>, Without<Wall>, Without<Padlock>)>,
     mut saves: ResMut<SavedSvg>,
 ) {
     for event in events.iter() {
@@ -123,7 +123,7 @@ fn string_to_png(str: &str) -> Result<Vec<u8>, anyhow::Error> {
     Ok(vec)
 }
 
-pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, &'a DrawMode)>>(
+pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, &'a Fill, &'a Stroke)>>(
     iterator: I,
 ) -> String {
     let mut str: String = "".to_owned();
@@ -149,7 +149,7 @@ pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, &'a DrawMode)
     // let mut max_y: f32 = 0.;
 
     str.push('\n');
-    for (transform, path, draw_mode) in iterator {
+    for (transform, path, fill, stroke) in iterator {
         let tw: TransformWrapper = transform.into();
         let path = path.0.clone().transformed(&tw);
         let path = path.transformed(&global_transform);
@@ -174,7 +174,7 @@ pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, &'a DrawMode)
 
         str.push('\n');
         let path_d = format!("{:?}", path);
-        let path_style = get_path_style(draw_mode);
+        let path_style = get_path_style(fill, stroke);
 
         str.push_str(format!(r#"<path {path_style} d={path_d} />"#).as_str());
         str.push('\n');
@@ -194,26 +194,15 @@ pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, &'a DrawMode)
     )
 }
 
-fn get_path_style(draw_mode: &DrawMode) -> String {
-    match draw_mode {
-        DrawMode::Fill(fill_mode) => get_fill_style(fill_mode),
-        DrawMode::Stroke(stroke_mode) => get_stroke_style(stroke_mode),
-        DrawMode::Outlined {
-            fill_mode,
-            outline_mode,
-        } => format!(
-            "{} {}",
-            get_fill_style(fill_mode),
-            get_stroke_style(outline_mode)
-        ),
-    }
+fn get_path_style(fill: &Fill, stroke: &Stroke) -> String {
+    format!("{} {}", get_fill_style(fill), get_stroke_style(stroke))
 }
 
-fn get_fill_style(fill_mode: &FillMode) -> String {
+fn get_fill_style(fill_mode: &Fill) -> String {
     format!(r#"fill = "{}""#, color_to_rgba(fill_mode.color))
 }
 
-fn get_stroke_style(stroke_mode: &StrokeMode) -> String {
+fn get_stroke_style(stroke_mode: &Stroke) -> String {
     format!(r#"stroke = "{}""#, color_to_rgba(stroke_mode.color))
 }
 

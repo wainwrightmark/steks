@@ -6,7 +6,7 @@ pub struct ButtonPlugin;
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup.after(setup_level_ui))
-            .add_system_to_stage(CoreStage::First, button_system);
+            .add_system(button_system.in_base_set(CoreSet::First));
     }
 }
 
@@ -42,11 +42,17 @@ fn button_system(
         match *interaction {
             Interaction::Clicked => {
                 *color = PRESSED_BUTTON.into();
-                let mut menu = menu_query.single_mut();
+                let mut menu_visibility = menu_query.single_mut();
 
                 //info!("{:?}", *button);
                 match *button {
-                    MenuButton::ToggleMenu => menu.is_visible = !menu.is_visible,
+                    MenuButton::ToggleMenu => {
+                        *menu_visibility = match *menu_visibility {
+                            Visibility::Inherited => Visibility::Hidden,
+                            Visibility::Hidden => Visibility::Inherited,
+                            Visibility::Visible => Visibility::Hidden,
+                        }
+                    }
                     MenuButton::GoFullscreen => {
                         #[cfg(target_arch = "wasm32")]
                         {
@@ -71,7 +77,7 @@ fn button_system(
                 }
 
                 if !matches!(*button, MenuButton::ToggleMenu) {
-                    menu.is_visible = false;
+                    *menu_visibility = Visibility::Hidden
                 }
             }
             Interaction::Hovered => {
@@ -99,7 +105,7 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 ..Default::default()
             },
             z_index: ZIndex::Global(10),
-            visibility: Visibility::INVISIBLE,
+            visibility: Visibility::Hidden,
             ..Default::default()
         })
         .insert(MainMenu)

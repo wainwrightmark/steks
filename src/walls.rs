@@ -93,16 +93,11 @@ fn spawn_wall(commands: &mut Commands, color: Color, wall: Wall) {
         origin: RectangleOrigin::Center,
     };
     let collider_shape = Collider::cuboid(shape.extents.x / 2.0, shape.extents.y / 2.0);
-
+    let path = GeometryBuilder::build_as(&shape);
     commands
-        .spawn(GeometryBuilder::build_as(
-            &shape,
-            DrawMode::Outlined {
-                fill_mode: bevy_prototype_lyon::prelude::FillMode::color(color),
-                outline_mode: StrokeMode::color(color),
-            },
-            Transform::default(),
-        ))
+        .spawn(ShapeBundle{path, ..Default::default()})
+        .insert(Stroke::color(color))
+        .insert(Fill::color(color))
         .insert(RigidBody::Fixed)
         .insert(Transform::from_translation(point))
         .insert(collider_shape.clone())

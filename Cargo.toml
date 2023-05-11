@@ -8,13 +8,13 @@ edition = "2021"
 [dependencies]
 rand = "0.8.5"
 itertools = "0.10"
-bevy_prototype_lyon = {git="https://github.com/wainwrightmark/bevy_prototype_lyon"}
-bevy_rapier2d = {version = "0.19" }
+bevy_prototype_lyon = {version="0.8"}
+bevy_rapier2d = {version = "0.21" }
 
 strum = { version = "0.24.1", features = ["derive"] }
-bevy_tweening = { version = "0.6.0", default-features = false, features = ["bevy_text"] }
+bevy_tweening = { version = "0.7", default-features = false, features = ["bevy_text"] }
 chrono = {version="0.4", features = ["serde", "wasmbind"]}
-bevy_pkv = "0.6.0"
+bevy_pkv = "0.7"
 
 serde = { version = "1", features = ["derive"] }
 resvg = { version = "0.32", default-features = false, features = ["png"] }
@@ -43,7 +43,7 @@ resolver = "2" # Important! wgpu/Bevy needs this!
 [dev-dependencies]
 insta = "1.23"
 test-case = "3"
-bevy_rapier2d = { version = "0.19", features = [  "debug-render", "serde-serialize" ] }
+bevy_rapier2d = { version = "0.21", features = [  "debug-render-2d", "serde-serialize" ] }
 
 [profile.release]
 opt-level = 'z'
@@ -54,7 +54,7 @@ lto = 'thin'
 opt-level = 3
 
 [dependencies.bevy]
-version = "0.9"
+version = "0.10.1"
 
 
 

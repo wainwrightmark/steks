@@ -14,7 +14,7 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CurrentLevel>()
             .add_startup_system(setup_level_ui)
-            .add_startup_system_to_stage(StartupStage::PostStartup, choose_level_on_game_load)
+            .add_startup_system(choose_level_on_game_load.in_base_set(StartupSet::PostStartup))
             .add_event::<ChangeLevelEvent>();
     }
 }
@@ -93,7 +93,7 @@ fn start_level(
                                 color: SMALL_TEXT_COLOR,
                             },
                         )
-                        .with_text_alignment(TextAlignment::CENTER)
+                        .with_text_alignment(TextAlignment::Center)
                         .with_style(Style {
                             align_self: AlignSelf::Center,
                             ..Default::default()

@@ -4,7 +4,7 @@ use crate::input::{convert_screen_to_world_position, InputDetector};
 use crate::*;
 use bevy::input::touch::{ForceTouch, TouchPhase};
 use bevy::input::InputSystem;
-use bevy::window::WindowResized;
+use bevy::window::{PrimaryWindow, WindowResized};
 use wasm_bindgen::prelude::*;
 use web_sys::{TouchEvent, TouchList};
 
@@ -29,34 +29,35 @@ struct LastSize {
 }
 
 fn resizer(
-    mut windows: ResMut<Windows>,
+    mut windows: Query<(Entity, &mut Window), With<PrimaryWindow>>,
     mut window_resized_events: EventWriter<WindowResized>,
     mut last_size: ResMut<LastSize>,
 ) {
     let window = web_sys::window().expect("no global `window` exists");
     let mut width: f32 = window.inner_width().unwrap().as_f64().unwrap() as f32;
     let mut height: f32 = window.inner_height().unwrap().as_f64().unwrap() as f32;
-
-    if let Some(window) = windows.get_primary_mut() {
-        if width != last_size.width || height != last_size.height {
+    if width != last_size.width || height != last_size.height {
+        if let Ok((window_entity, mut window)) = windows.get_single_mut() {
             *last_size = LastSize { width, height };
 
-            let constraints = window.resize_constraints();
+            let constraints = window.resize_constraints;
 
             width = width.clamp(constraints.min_width, constraints.max_width);
             height = height.clamp(constraints.min_height, constraints.max_height);
 
             let p_width = width * window.scale_factor() as f32;
             let p_height = height * window.scale_factor() as f32;
-            window.update_actual_size_from_backend(p_width as u32, p_height as u32);
+            window
+                .resolution
+                .set_physical_resolution(p_width.floor() as u32, p_height.floor() as u32);
             window_resized_events.send(WindowResized {
-                id: window.id(),
+                window: window_entity,
                 height: height,
                 width: width,
             });
 
             resize_canvas(width, height);
-            debug!(
+            info!(
                 "Resizing to {:?},{:?} with scale factor of {}",
                 width,
                 height,
@@ -68,10 +69,10 @@ fn resizer(
 
 pub fn pool_touch_system(
     mut touch_input_writer: EventWriter<TouchInput>,
-    windows: Res<Windows>,
+    windows: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
 ) {
-    if let Some(window) = windows.get_primary() {
+    if let Ok(window) = windows.get_single() {
         let (camera, camera_transform) = q_camera.single();
         while let Some(touch_event) = pop_touch_event() {
             let t = touch_event.type_();
@@ -146,13 +147,14 @@ impl Plugin for WASMPlugin {
             width: 0.0,
             height: 0.0,
         });
+        //TODO fix resizer
         app.add_system(resizer);
 
         if has_touch() {
-            app.add_system_to_stage(CoreStage::PreUpdate, pool_touch_system.before(InputSystem));
-            app.add_startup_system_to_stage(StartupStage::PostStartup, check_touch);
+            app.add_system(pool_touch_system.in_base_set(CoreSet::PreUpdate));
+            app.add_startup_system(check_touch.in_base_set(StartupSet::PostStartup));
         }
 
-        app.add_startup_system_to_stage(StartupStage::PostStartup, on_start);
+        app.add_startup_system(on_start.in_base_set(StartupSet::PostStartup));
     }
 }

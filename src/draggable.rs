@@ -28,13 +28,13 @@ impl Plugin for DragPlugin {
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
-            .add_system_to_stage(
-                CoreStage::Update,
+            .add_system(
                 translate_desired
+                    .in_base_set(CoreSet::Update)
                     .after(drag_move)
                     .before(handle_drag_changes),
             )
-            .add_system_to_stage(CoreStage::Update, handle_drag_changes)
+            .add_system(handle_drag_changes.in_base_set(CoreSet::Update))
             .add_event::<RotateEvent>()
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()

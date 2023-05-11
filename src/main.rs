@@ -3,6 +3,7 @@ use std::time::Duration;
 use bevy::log::*;
 use bevy::prelude::*;
 use bevy::window::WindowResizeConstraints;
+use bevy::window::WindowResolution;
 use bevy::winit::*;
 use bevy_pkv::PkvStore;
 use bevy_prototype_lyon::prelude::*;
@@ -65,20 +66,21 @@ fn main() {
     console_error_panic_hook::set_once();
 
     let window_plugin = WindowPlugin {
-        window: WindowDescriptor {
-            title: "steks".to_string(),
-            canvas: Some("#game".to_string()),
-            width: WINDOW_WIDTH,
-            height: WINDOW_HEIGHT,
-            resize_constraints: WindowResizeConstraints {
-                min_width: WINDOW_WIDTH,
-                max_width: MAX_WINDOW_WIDTH,
+        primary_window: Some(
+            Window {
+                title: "steks".to_string(),
+                canvas: Some("#game".to_string()),
+                resolution: WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
+                resize_constraints: WindowResizeConstraints{
+                    min_height: WINDOW_HEIGHT,
+                    min_width: WINDOW_WIDTH,
+                    max_width: MAX_WINDOW_WIDTH,
+                    max_height: MAX_WINDOW_HEIGHT
+                },
 
-                min_height: WINDOW_HEIGHT,
-                max_height: MAX_WINDOW_HEIGHT,
-            },
-            ..Default::default()
-        },
+                resizable: true,
+                ..Default::default() }
+        ),
         ..Default::default()
     };
 
@@ -89,6 +91,8 @@ fn main() {
     let mut builder = App::new();
 
     builder
+    .insert_resource(Msaa::Sample4)
+
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin))
         .add_plugin(WallsPlugin)

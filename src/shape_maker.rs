@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, log};
 use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
@@ -24,7 +24,7 @@ pub fn create_level_shapes(
         } => shapes,
         GameLevel::Infinite {
             starting_shapes,
-                        seed,
+            seed,
         } => (0..starting_shapes)
             .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
             .collect_vec(),
@@ -37,9 +37,7 @@ pub fn create_level_shapes(
                 .collect_vec()
         }
         GameLevel::ChallengeComplete { streak: _ } => vec![],
-        GameLevel::SavedInfinite { data, seed:_ } => {
-            encoding::decode_shapes(&data)
-        },
+        GameLevel::SavedInfinite { data, seed: _ } => encoding::decode_shapes(&data),
     };
 
     for fixed_shape in shapes {
@@ -72,7 +70,7 @@ pub fn place_and_create_shape<RNG: Rng>(
     rapier_context: &Res<RapierContext>,
     rng: &mut RNG,
 ) {
-    let Location{position, angle} = fixed_shape.fixed_location.unwrap_or_else(|| {
+    let Location { position, angle } = fixed_shape.fixed_location.unwrap_or_else(|| {
         let collider = fixed_shape.shape.body.to_collider_shape(SHAPE_SIZE);
         let mut tries = 0;
         loop {
@@ -85,27 +83,26 @@ pub fn place_and_create_shape<RNG: Rng>(
             let angle = rng.gen_range(0f32..std::f32::consts::TAU);
             let position = Vec2 { x, y };
 
-            if tries >= 20{
-                //println!("Placed shape without checking after {tries} tries");
-                break Location{position, angle};
+            if tries >= 20 {
+                //log::info!("Placed shape without checking after {tries} tries at {position}");
+                break Location { position, angle };
             }
 
             if rapier_context
                 .intersection_with_shape(position, angle, &collider, QueryFilter::new())
                 .is_none()
             {
-                //println!("Placed shape after {tries} tries");
-                break Location{position, angle};
+                //log::info!("Placed shape after {tries} tries at {position}");
+                break Location { position, angle };
             }
-            tries+=1;
-
+            tries += 1;
         }
     });
 
     let velocity = fixed_shape.fixed_velocity.unwrap_or_else(|| Velocity {
         linvel: Vec2 {
             x: rng.gen_range((WINDOW_WIDTH * -0.5)..(WINDOW_WIDTH * 0.5)),
-            y:  rng.gen_range(0.0..WINDOW_HEIGHT),
+            y: rng.gen_range(0.0..WINDOW_HEIGHT),
         },
         angvel: rng.gen_range(0.0..std::f32::consts::TAU),
     });
@@ -131,11 +128,11 @@ pub fn create_shape(
     locked: bool,
     velocity: Velocity,
 ) {
-    //info!("Creating {game_shape} angle {angle} position {position} locked {locked}");
+    info!("Creating {game_shape} angle {angle} position {position} locked {locked}");
 
     let collider_shape = game_shape.body.to_collider_shape(SHAPE_SIZE);
     let transform: Transform = Transform {
-        translation: position.extend(0.0),
+        translation: (position.extend(1.0)),
         rotation: Quat::from_rotation_z(angle),
         scale: Vec3::ONE,
     };
@@ -147,11 +144,10 @@ pub fn create_shape(
     };
 
     commands
-        .spawn(
-            game_shape
-                .body
-                .get_shape_bundle(SHAPE_SIZE, game_shape.draw_mode()),
-        )
+        .spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE))
+        //.insert(Fill::color(Color::RED))
+        .insert(game_shape.fill())
+        .insert(game_shape.stroke())
         .insert(ShapeIndex(game_shape.index))
         .insert(RigidBody::Dynamic)
         .insert(collider_shape)
@@ -167,9 +163,10 @@ pub fn create_shape(
             x.spawn(bevy::render::view::visibility::RenderLayers::layer(
                 ZOOM_ENTITY_LAYER,
             ))
-            .insert(game_shape.body.get_shape_bundle(
-                SHAPE_SIZE,
-                DrawMode::Stroke(StrokeMode::new(Color::BLACK, 1.)),
-            ));
+            .insert(game_shape.body.get_shape_bundle(SHAPE_SIZE))
+            .insert(Stroke {
+                color: Color::BLACK,
+                options: Default::default(),
+            });
         });
 }

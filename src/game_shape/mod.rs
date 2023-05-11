@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use crate::color::choose_color;
 
 use bevy::{prelude::Color, render::once_cell::sync::Lazy};
-use bevy_prototype_lyon::{entity::ShapeBundle, prelude::*};
+use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
 use itertools::Itertools;
@@ -19,7 +19,7 @@ pub use polygon::*;
 
 pub trait GameShapeBody: Send + Sync {
     fn to_collider_shape(&self, shape_size: f32) -> Collider;
-    fn get_shape_bundle(&self, shape_size: f32, draw_mode: DrawMode) -> ShapeBundle;
+    fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle;
 }
 
 const SHAPE_RADIUS: f32 = 5.0;
@@ -40,18 +40,15 @@ impl PartialEq for GameShape {
 
 impl GameShape {
     pub fn default_fill_color(&self) -> Color {
-        // let hue = (self.index * 540 / ALL_SHAPES.len()) % 360;
-
-        // Color::hsla(hue as f32, SATURATION, LIGHTNESS, ALPHA)
         choose_color(self.index)
     }
 
-    pub fn draw_mode(&self) -> DrawMode {
-        DrawMode::Fill(FillMode::color(self.default_fill_color()))
-        // {
-        //     //fill_mode: FillMode::color(self.default_fill_color()),
-        //     stroke_mode: ,
-        // }
+    pub fn fill(&self)-> Fill{
+        Fill::color(self.default_fill_color())
+    }
+
+    pub fn stroke(&self)-> Stroke{
+        Stroke::color(Color::BLACK)
     }
 }
 

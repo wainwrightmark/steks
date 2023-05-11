@@ -5,9 +5,8 @@ use bevy_rapier2d::rapier::crossbeam::atomic::AtomicCell;
 use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 use itertools::Itertools;
 
-use crate::game_shape::GameShapeBody;
 use crate::screenshots::SaveSVGEvent;
-use crate::shape_maker::{SpawnNewShapeEvent, ShapeIndex};
+use crate::shape_maker::{ShapeIndex, SpawnNewShapeEvent};
 use crate::*;
 
 #[derive(Component)]
@@ -24,8 +23,8 @@ impl Plugin for WinPlugin {
             .add_system(check_for_win.after(check_for_collisions))
             .add_event::<SpawnNewShapeEvent>()
             .add_system(shape_maker::spawn_shapes)
-            .add_system_to_stage(CoreStage::First, handle_change_level)
-            .add_system_to_stage(CoreStage::PostUpdate, check_for_tower);
+            .add_system(handle_change_level.in_base_set(CoreSet::First))
+            .add_system(check_for_tower.in_base_set(CoreSet::PostUpdate));
     }
 }
 
@@ -41,7 +40,7 @@ pub fn check_for_win(
     mut new_game_events: EventWriter<ChangeLevelEvent>,
     mut screenshot_events: EventWriter<SaveSVGEvent>,
     mut spawn_shape_events: EventWriter<SpawnNewShapeEvent>,
-    mut pkv: ResMut<PkvStore>
+    mut pkv: ResMut<PkvStore>,
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
         let remaining = timer.win_time - time.elapsed_seconds_f64();
@@ -66,7 +65,16 @@ pub fn check_for_win(
                 } => {
                     let title = format!("steks infinite {}", seed);
                     screenshot_events.send(SaveSVGEvent { title });
-                    let shapes = shapes_query.iter().map(|(index, transform, draggable)| (&ALL_SHAPES[index.0], transform.into(), draggable.is_locked() )).collect_vec();
+                    let shapes = shapes_query
+                        .iter()
+                        .map(|(index, transform, draggable)| {
+                            (
+                                &ALL_SHAPES[index.0],
+                                transform.into(),
+                                draggable.is_locked(),
+                            )
+                        })
+                        .collect_vec();
 
                     spawn_shape_events.send(SpawnNewShapeEvent {
                         fixed_shape: FixedShape::from_seed(
@@ -74,7 +82,7 @@ pub fn check_for_win(
                         ),
                     });
 
-                    SavedData::update(&mut pkv, |s|s.save_game(shapes));
+                    SavedData::update(&mut pkv, |s| s.save_game(shapes));
 
                     return;
                 }
@@ -83,10 +91,19 @@ pub fn check_for_win(
                     screenshot_events.send(SaveSVGEvent { title });
                 }
                 GameLevel::ChallengeComplete { streak: _ } => {}
-                GameLevel::SavedInfinite { data:_, seed } => {
+                GameLevel::SavedInfinite { data: _, seed } => {
                     let title = format!("steks infinite {}", seed);
                     screenshot_events.send(SaveSVGEvent { title });
-                    let shapes = shapes_query.iter().map(|(index, transform, draggable)| (&ALL_SHAPES[index.0], transform.into(), draggable.is_locked() )).collect_vec();
+                    let shapes = shapes_query
+                        .iter()
+                        .map(|(index, transform, draggable)| {
+                            (
+                                &ALL_SHAPES[index.0],
+                                transform.into(),
+                                draggable.is_locked(),
+                            )
+                        })
+                        .collect_vec();
 
                     spawn_shape_events.send(SpawnNewShapeEvent {
                         fixed_shape: FixedShape::from_seed(
@@ -94,10 +111,10 @@ pub fn check_for_win(
                         ),
                     });
 
-                    SavedData::update(&mut pkv, |s|s.save_game(shapes));
+                    SavedData::update(&mut pkv, |s| s.save_game(shapes));
 
                     return;
-                },
+                }
             }
 
             new_game_events.send(ChangeLevelEvent::Next);
@@ -160,14 +177,12 @@ pub fn check_for_tower(
             win_time: time.elapsed_seconds_f64() + countdown,
             total_countdown: countdown,
         })
+        .insert(game_shape::circle::Circle {}.get_shape_bundle(100f32))
         .insert(Transform {
             translation: Vec3::new(50.0, 200.0, 0.0),
             ..Default::default()
         })
-        .insert(
-            game_shape::circle::Circle {}
-                .get_shape_bundle(100f32, DrawMode::Stroke(StrokeMode::color(Color::BLACK))),
-        );
+        .insert(Stroke::color(Color::BLACK));
 }
 
 fn check_future_collisions(
@@ -202,6 +217,7 @@ fn check_future_collisions(
             &mut impulse_joints,
             &mut multibody_joints,
             &mut ccd_solver,
+            None,
             &(),
             &event_handler,
         );

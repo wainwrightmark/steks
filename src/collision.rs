@@ -8,7 +8,7 @@ pub struct CollisionPlugin;
 
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_to_stage(CoreStage::PreUpdate, display_collision_markers);
+        app.add_system(display_collision_markers.in_base_set(CoreSet::PreUpdate));
     }
 }
 
@@ -57,7 +57,7 @@ fn display_collision_markers(
                     //new_transform.
                     new_transform.translation +=
                         wall_local_point.extend(0.0) * rapier_context.physics_scale();
-                    new_transform.translation.z = 1.0;
+                    new_transform.translation.z = 2.0;
 
                     //info!("dcm shape {:?} + {:?} = {:?}", wall_transform, wall_local_point, new_transform.translation);
 
@@ -86,23 +86,20 @@ fn display_collision_markers(
                             Vec2::new(-xr, yr),
                         ];
 
-                        //info!("dcm new");
-                        let draw_mode = bevy_prototype_lyon::prelude::DrawMode::Fill(
-                            bevy_prototype_lyon::prelude::FillMode::color(Color::RED),
-                        );
-                        commands.spawn(cm).insert(GeometryBuilder::build_as(
-                            &shapes::RoundedPolygon {
-                                points,
-                                closed: true,
-                                radius: 5.0,
-                            },
-                            // &shapes::Rectangle {
-                            //     origin: RectangleOrigin::Center,
-                            //     extents,
-                            // },
-                            draw_mode,
-                            new_transform,
-                        ));
+                        let path = GeometryBuilder::build_as(&shapes::RoundedPolygon {
+                            points,
+                            closed: true,
+                            radius: 5.0,
+                        });
+
+                        commands
+                            .spawn(cm)
+                            .insert(ShapeBundle{path,..Default::default()})
+                            .insert(Fill {
+                                color: Color::RED,
+                                options: Default::default(),
+                            })
+                            .insert(new_transform);
                     }
                     index += 1;
                 }

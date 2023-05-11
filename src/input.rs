@@ -2,7 +2,7 @@ use bevy::input::keyboard::*;
 use bevy::input::mouse::*;
 use bevy::input::touch::*;
 use bevy::prelude::*;
-use bevy::render::camera::RenderTarget;
+use bevy::window::PrimaryWindow;
 
 use crate::*;
 
@@ -20,7 +20,7 @@ impl Plugin for InputPlugin {
 pub fn mousebutton_listener(
     mouse_button_input: Res<Input<MouseButton>>,
     // need to get window dimensions
-    windows: Res<Windows>,
+    primary_query: Query<&Window, With<PrimaryWindow>>,
     // query to get camera transform
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut ew_drag_start: EventWriter<DragStartEvent>,
@@ -33,7 +33,7 @@ pub fn mousebutton_listener(
             drag_source: DragSource::Mouse,
         })
     } else if mouse_button_input.just_pressed(MouseButton::Left) {
-        if let Some(position) = get_cursor_position(windows, q_camera) {
+        if let Some(position) = get_cursor_position(primary_query, q_camera) {
             debug!("Sent mouse left just pressed event {position}");
             ew_drag_start.send(DragStartEvent {
                 drag_source: DragSource::Mouse,
@@ -41,7 +41,7 @@ pub fn mousebutton_listener(
             });
         }
     } else if mouse_button_input.pressed(MouseButton::Left) {
-        if let Some(position) = get_cursor_position(windows, q_camera) {
+        if let Some(position) = get_cursor_position(primary_query, q_camera) {
             debug!("Sent mouse left is pressed event {position}");
             ew_drag_move.send(DragMoveEvent {
                 drag_source: DragSource::Mouse,
@@ -53,7 +53,7 @@ pub fn mousebutton_listener(
 
 pub fn get_cursor_position(
     // need to get window dimensions
-    windows: Res<Windows>,
+    primary_query: Query<&Window, With<PrimaryWindow>>,
     // query to get camera transform
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
 ) -> Option<Vec2> {
@@ -62,16 +62,16 @@ pub fn get_cursor_position(
     let (camera, camera_transform) = q_camera.single();
 
     // get the window that the camera is displaying to (or the primary window)
-    let window = if let RenderTarget::Window(id) = camera.target {
-        windows.get(id).unwrap()
-    } else {
-        windows.get_primary().unwrap()
-    };
+    let window = primary_query.get_single().unwrap();
 
     // check if the cursor is inside the window and get its position
     if let Some(screen_pos) = window.cursor_position() {
         let world_pos =
+
+
             convert_screen_to_world_position(screen_pos, window, camera, camera_transform);
+
+            //info!("Cursor world: {world_pos}; screen {screen_pos}");
         Some(world_pos)
     } else {
         None

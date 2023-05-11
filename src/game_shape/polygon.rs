@@ -1,9 +1,6 @@
 use super::{GameShapeBody, SHAPE_RADIUS};
-use bevy::prelude::{Transform, Vec2};
-use bevy_prototype_lyon::{
-    prelude::{DrawMode, GeometryBuilder},
-    shapes::RoundedPolygon,
-};
+use bevy::prelude::Vec2;
+use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
@@ -23,11 +20,7 @@ impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
         Collider::convex_decomposition(&vertices, &start_indices)
     }
 
-    fn get_shape_bundle(
-        &self,
-        shape_size: f32,
-        draw_mode: DrawMode,
-    ) -> bevy_prototype_lyon::entity::ShapeBundle {
+    fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle {
         let u = shape_size / (1.0 * f32::sqrt(S as f32));
 
         let shape = RoundedPolygon {
@@ -39,6 +32,9 @@ impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
             radius: SHAPE_RADIUS,
         };
 
-        GeometryBuilder::build_as(&shape, draw_mode, Transform::default())
+        ShapeBundle {
+            path: GeometryBuilder::build_as(&shape),
+            ..Default::default()
+        }
     }
 }

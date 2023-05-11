@@ -32,7 +32,7 @@ fn display_collision_markers(
 
     //info!("dcm markers: {}", markers_map.len());
 
-    for (wall_entity, wall_transform, wall) in walls.iter() {
+    for (wall_entity, wall_transform, wall) in walls.iter().filter(|x|x.2 != &Wall::Bottom) {
         for contact in rapier_context
             .contacts_with(wall_entity)
             .filter(|contact| contact.has_any_active_contacts())

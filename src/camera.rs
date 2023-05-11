@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_rapier2d::parry::simba::simd::SimdSigned;
 
 use crate::ZOOM_ENTITY_LAYER;
 

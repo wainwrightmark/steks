@@ -18,18 +18,18 @@ bevy_pkv = "0.7"
 
 serde = { version = "1", features = ["derive"] }
 resvg = { version = "0.32", default-features = false, features = ["png"] }
-anyhow = "1.0.68"
+anyhow = "1"
 base64 = "0.21"
-half = "2.2.1"
+half = "2"
 geometrid = "0.1"
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-js-sys = { version = "0.3.58" }
+js-sys = { version = "0.3" }
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4.31"
+wasm-bindgen-futures = "0.4"
 web-sys = {version = "0.3", features = ['Window', 'TouchEvent', 'TouchList', 'Touch', 'Blob', 'BlobPropertyBag', 'Document', 'FileReader', 'Element', 'HtmlElement', 'HtmlCollection']}
 console_error_panic_hook = "0.1"
 
@@ -41,7 +41,7 @@ winit = { version = "0.28", features=["x11"]}
 resolver = "2" # Important! wgpu/Bevy needs this!
 
 [dev-dependencies]
-insta = "1.23"
+insta = "1"
 test-case = "3"
 bevy_rapier2d = { version = "0.21", features = [  "debug-render-2d", "serde-serialize" ] }
 
@@ -54,7 +54,7 @@ lto = 'thin'
 opt-level = 3
 
 [dependencies.bevy]
-version = "0.10.1"
+version = "0.10"
 
 
 

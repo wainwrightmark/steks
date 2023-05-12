@@ -12,17 +12,26 @@
     <meta property="og:title" content="steks" />
     <meta property="og:url" content="www.steks.net" />
     <meta property="og:site_name" content="steks" />
-    <meta property="og:description" content="How will you build it?" />
-    <meta
-      property="og:image"
-      content="https://repository-images.githubusercontent.com/474112540/329ba0e2-fb72-4b6b-bded-8ef640769402"
-    />
+    <meta property="og:description" content="Find your balance" />
+    <meta property="og:image" content="https://steks.net/icon/og_image.png" />
+
+    <link data-trunk rel="copy-dir" href="icon" />
+    <link rel="icon" href="/icon/icon192.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/icon/icon76.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/icon/icon120.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon/icon152.png" />
+    <meta name="msapplication-square70x70logo" content="/icon/icon70.png" />
+    <meta name="msapplication-square150x150logo" content="/icon/icon150.png" />
+    <meta name="msapplication-wide310x150logo" content="/icon/icon310.png" />
+
+    <link data-trunk rel="copy-file" href="robots.txt" />
+    <link data-trunk rel="copy-file" href="sitemap.txt" />
+    <link data-trunk rel="copy-file" href="manifest.json" />
+
+    <link rel="manifest" href="/manifest.json" />
 
     <link data-trunk rel="copy-dir" href="assets" />
-    <link data-trunk rel="copy-dir" href="credits" />
-    <link data-trunk rel="copy-file" href="build/windows/icon.ico" />
-    <link rel="icon" href="icon.ico" />
-    <link data-trunk rel="inline" href="build/web/styles.css" />
+    <link data-trunk rel="inline" href="styles.css" />
   </head>
 
   <body>
@@ -31,90 +40,5 @@
 
       <canvas id="game" style="width: 0px; height: 0px;"></canvas>
     </div>
-
-    <script>
-      let touch_added = false;
-      let touch_events = [];
-
-      let on_start = () =>{
-        var spinner = window.document.getElementById("spinner");
-        window.document.body.removeChild(spinner);
-      }
-
-      let has_touch = () => {
-        return !!("ontouchstart" in window);
-      };
-
-      let pop_touch_event = () => {
-        let e = touch_events.shift();
-        return e;
-      };
-
-      let request_fullscreen = () => {
-        var doc = window.document;
-        var docEl = doc.getElementById("game");
-
-        var requestFullScreen =
-          docEl.requestFullscreen ||
-          docEl.mozRequestFullScreen ||
-          docEl.webkitRequestFullScreen ||
-          docEl.msRequestFullscreen;
-        var cancelFullScreen =
-          doc.exitFullscreen ||
-          doc.mozCancelFullScreen ||
-          doc.webkitExitFullscreen ||
-          doc.msExitFullscreen;
-
-        if (
-          !doc.fullscreenElement &&
-          !doc.mozFullScreenElement &&
-          !doc.webkitFullscreenElement &&
-          !doc.msFullscreenElement
-        ) {
-          requestFullScreen.call(docEl, { navigationUI: "hide" });
-        } else {
-          cancelFullScreen.call(doc);
-        }
-      };
-
-      let enable_touch = () => {
-        if (has_touch() == true && touch_added == false) {
-          let canvas = document.getElementById("game");
-          canvas.addEventListener(
-            "touchstart",
-            (ev) => {
-              ev.preventDefault();
-              touch_events.push(ev);
-            },
-            { passive: false }
-          );
-          canvas.addEventListener(
-            "touchend",
-            (ev) => {
-              ev.preventDefault();
-              touch_events.push(ev);
-            },
-            { passive: false }
-          );
-          canvas.addEventListener(
-            "touchmove",
-            (ev) => {
-              ev.preventDefault();
-              touch_events.push(ev);
-            },
-            { passive: false }
-          );
-
-          touch_added = true;
-        }
-      };
-
-      let resize_canvas = (width, height) => {
-        let canvas = document.getElementById("game");
-        canvas.width = width * window.devicePixelRatio;
-        canvas.height = height * window.devicePixelRatio;
-        canvas.style = `width: ${width}; height: ${height}`;
-      };
-    </script>
   </body>
 </html>

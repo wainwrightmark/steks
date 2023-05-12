@@ -8,7 +8,7 @@ use bevy::window::{PrimaryWindow, WindowResized};
 use wasm_bindgen::prelude::*;
 use web_sys::{TouchEvent, TouchList};
 
-#[wasm_bindgen]
+#[wasm_bindgen(module = "/web.js")]
 extern "C" {
     fn resize_canvas(width: f32, height: f32);
 

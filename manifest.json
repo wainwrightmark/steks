@@ -1,0 +1,32 @@
+{
+    "name": "Steks: find your balance",
+    "short_name": "Steks",
+    "icons": [
+      {
+        "src": "/icon/icon.svg",
+        "type": "image/svg+xml",
+        "sizes": "500x500"
+      },
+      {
+        "src": "/icon/icon192.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      },
+      {
+        "src": "/icon/icon512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }
+    ],
+    "id": "/manifest.json",
+    "start_url": "",
+    "background_color": "#86adea",
+    "display": "standalone",
+    "scope": "/",
+    "theme_color": "#86adea",
+    "shortcuts": [
+    ],
+    "description": "The game where you build a tower out of shapes",
+    "screenshots": [
+    ]
+  }

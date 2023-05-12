@@ -2,6 +2,7 @@ pub mod download;
 
 use crate::input::{convert_screen_to_world_position, InputDetector};
 use crate::*;
+use base64::Engine;
 use bevy::input::touch::{ForceTouch, TouchPhase};
 
 use bevy::window::{PrimaryWindow, WindowResized};
@@ -23,14 +24,13 @@ extern "C" {
     fn on_start();
 
     fn share(game: String);
+
+    fn get_game_from_location() -> Option<String>;
 }
 
-pub fn share_game(game: String)
-{
+pub fn share_game(game: String) {
     share(game);
-
 }
-
 
 #[derive(Resource)]
 struct LastSize {
@@ -149,6 +149,24 @@ fn check_touch(mut input_detector: ResMut<InputDetector>) {
     }
 }
 
+fn load_from_url_on_startup(mut ev: EventWriter<ChangeLevelEvent>) {
+    match get_game_from_location() {
+        Some(data) => {
+            info!("Load game {data}");
+            match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data){
+                Ok(bytes) => {
+                    ev.send(ChangeLevelEvent::Load(bytes));
+                },
+                Err(err) => warn!("{err}"),
+            }
+
+
+
+        }
+        None => info!("No game to load"),
+    }
+}
+
 pub struct WASMPlugin;
 
 impl Plugin for WASMPlugin {
@@ -157,8 +175,9 @@ impl Plugin for WASMPlugin {
             width: 0.0,
             height: 0.0,
         });
-        //TODO fix resizer
+
         app.add_system(resizer);
+        app.add_startup_system(load_from_url_on_startup);
 
         if has_touch() {
             app.add_system(pool_touch_system.in_base_set(CoreSet::PreUpdate));

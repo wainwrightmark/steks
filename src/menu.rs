@@ -1,6 +1,6 @@
 use strum::Display;
 
-use crate::{*, share::ShareEvent};
+use crate::{share::ShareEvent, *};
 use ChangeLevelEvent;
 pub struct ButtonPlugin;
 
@@ -62,28 +62,17 @@ fn button_system(
                             crate::wasm::request_fullscreen();
                         }
                     }
-                    Tutorial => {
-                        change_level_events.send(ChangeLevelEvent::StartTutorial)
-                    }
-                    Infinite => {
-                        change_level_events.send(ChangeLevelEvent::StartInfinite)
-                    }
-                    DailyChallenge => {
-                        change_level_events.send(ChangeLevelEvent::StartChallenge)
-                    }
-                    ResetLevel => {
-                        change_level_events.send(ChangeLevelEvent::ResetLevel)
-                    }
+                    Tutorial => change_level_events.send(ChangeLevelEvent::StartTutorial),
+                    Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
+                    DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
+                    ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
                     DownloadImage => {
                         download_image_events.send(crate::screenshots::DownloadPngEvent)
-                    },
-                    Share =>{
-                        share_events.send(ShareEvent)
                     }
+                    Share => share_events.send(ShareEvent),
                 }
 
                 if !matches!(*button, ToggleMenu) {
-
                     *menu_visibility = Visibility::Hidden
                 }
             }
@@ -128,7 +117,7 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 DailyChallenge,
                 DownloadImage,
                 #[cfg(target_arch = "wasm32")]
-                Share
+                Share,
             ] {
                 spawn_button(parent, button, asset_server);
             }
@@ -202,7 +191,7 @@ pub enum MenuButton {
     Infinite,
     DailyChallenge,
     DownloadImage,
-    Share
+    Share,
 }
 
 impl MenuButton {
@@ -216,7 +205,7 @@ impl MenuButton {
             Infinite => "\u{e802}",       //"Infinite",
             DailyChallenge => "\u{e803}", // "Challenge",
             DownloadImage => "\u{e804}",  // "Image",
-            Share => "\u{f1e0}",  // "Image",
+            Share => "\u{f1e0}",          // "Image",
         }
     }
 }

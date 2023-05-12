@@ -1,8 +1,7 @@
 let touch_added = false;
 let touch_events = [];
 
-export let share = (game)=> {
-
+export let share = (game) => {
   const shareData = {
     title: "Steks",
     text: "Try this level of steks",
@@ -10,6 +9,15 @@ export let share = (game)=> {
   };
 
   navigator.share(shareData);
+};
+
+export let get_game_from_location = () => {
+
+  let path = window.location.pathname;
+  if (path.toLowerCase().startsWith("/game")){
+    return path.substring(6);
+  }
+  return null;
 };
 
 export let on_start = () => {

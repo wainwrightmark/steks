@@ -21,7 +21,17 @@ extern "C" {
     pub fn request_fullscreen();
 
     fn on_start();
+
+    fn share(game: String);
 }
+
+pub fn share_game(game: String)
+{
+    share(game);
+
+}
+
+
 #[derive(Resource)]
 struct LastSize {
     pub width: f32,

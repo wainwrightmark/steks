@@ -1,6 +1,17 @@
 let touch_added = false;
 let touch_events = [];
 
+export let share = (game)=> {
+
+  const shareData = {
+    title: "Steks",
+    text: "Try this level of steks",
+    url: "https://steks.net/game/" + game,
+  };
+
+  navigator.share(shareData);
+};
+
 export let on_start = () => {
   var spinner = window.document.getElementById("spinner");
   window.document.body.removeChild(spinner);

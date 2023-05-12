@@ -1,6 +1,7 @@
 use strum::Display;
 
-use crate::*;
+use crate::{*, share::ShareEvent};
+use ChangeLevelEvent;
 pub struct ButtonPlugin;
 
 impl Plugin for ButtonPlugin {
@@ -33,11 +34,13 @@ fn button_system(
         (&Interaction, &mut BackgroundColor, &MenuButton),
         (Changed<Interaction>, With<Button>),
     >,
-    mut change_level_events: EventWriter<crate::ChangeLevelEvent>,
+    mut change_level_events: EventWriter<ChangeLevelEvent>,
     mut menu_query: Query<&mut Visibility, With<MainMenu>>,
     mut download_image_events: EventWriter<crate::screenshots::DownloadPngEvent>,
+    mut share_events: EventWriter<ShareEvent>,
 ) {
     for (interaction, mut color, button) in interaction_query.iter_mut() {
+        use MenuButton::*;
         //info!("{:?}", interaction);
         match *interaction {
             Interaction::Clicked => {
@@ -46,37 +49,41 @@ fn button_system(
 
                 //info!("{:?}", *button);
                 match *button {
-                    MenuButton::ToggleMenu => {
+                    ToggleMenu => {
                         *menu_visibility = match *menu_visibility {
                             Visibility::Inherited => Visibility::Hidden,
                             Visibility::Hidden => Visibility::Inherited,
                             Visibility::Visible => Visibility::Hidden,
                         }
                     }
-                    MenuButton::GoFullscreen => {
+                    GoFullscreen => {
                         #[cfg(target_arch = "wasm32")]
                         {
                             crate::wasm::request_fullscreen();
                         }
                     }
-                    MenuButton::Tutorial => {
-                        change_level_events.send(crate::ChangeLevelEvent::StartTutorial)
+                    Tutorial => {
+                        change_level_events.send(ChangeLevelEvent::StartTutorial)
                     }
-                    MenuButton::Infinite => {
-                        change_level_events.send(crate::ChangeLevelEvent::StartInfinite)
+                    Infinite => {
+                        change_level_events.send(ChangeLevelEvent::StartInfinite)
                     }
-                    MenuButton::DailyChallenge => {
-                        change_level_events.send(crate::ChangeLevelEvent::StartChallenge)
+                    DailyChallenge => {
+                        change_level_events.send(ChangeLevelEvent::StartChallenge)
                     }
-                    MenuButton::ResetLevel => {
-                        change_level_events.send(crate::ChangeLevelEvent::ResetLevel)
+                    ResetLevel => {
+                        change_level_events.send(ChangeLevelEvent::ResetLevel)
                     }
-                    MenuButton::DownloadImage => {
+                    DownloadImage => {
                         download_image_events.send(crate::screenshots::DownloadPngEvent)
+                    },
+                    Share =>{
+                        share_events.send(ShareEvent)
                     }
                 }
 
-                if !matches!(*button, MenuButton::ToggleMenu) {
+                if !matches!(*button, ToggleMenu) {
+
                     *menu_visibility = Visibility::Hidden
                 }
             }
@@ -120,6 +127,8 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 Infinite,
                 DailyChallenge,
                 DownloadImage,
+                #[cfg(target_arch = "wasm32")]
+                Share
             ] {
                 spawn_button(parent, button, asset_server);
             }
@@ -193,18 +202,21 @@ pub enum MenuButton {
     Infinite,
     DailyChallenge,
     DownloadImage,
+    Share
 }
 
 impl MenuButton {
     pub fn text(&self) -> &'static str {
+        use MenuButton::*;
         match self {
-            MenuButton::ToggleMenu => "\u{f0c9}",     // "Menu",
-            MenuButton::ResetLevel => "\u{e800}",     //"Reset Level",image
-            MenuButton::GoFullscreen => "\u{f0b2}",   //"Fullscreen",
-            MenuButton::Tutorial => "\u{e801}",       //"Tutorial",
-            MenuButton::Infinite => "\u{e802}",       //"Infinite",
-            MenuButton::DailyChallenge => "\u{e803}", // "Challenge",
-            MenuButton::DownloadImage => "\u{e804}",  // "Image",
+            ToggleMenu => "\u{f0c9}",     // "Menu",
+            ResetLevel => "\u{e800}",     //"Reset Level",image
+            GoFullscreen => "\u{f0b2}",   //"Fullscreen",
+            Tutorial => "\u{e801}",       //"Tutorial",
+            Infinite => "\u{e802}",       //"Infinite",
+            DailyChallenge => "\u{e803}", // "Challenge",
+            DownloadImage => "\u{e804}",  // "Image",
+            Share => "\u{f1e0}",  // "Image",
         }
     }
 }

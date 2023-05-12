@@ -73,7 +73,7 @@ fn save_file(file_name: std::path::PathBuf, bytes: Vec<u8>) -> anyhow::Result<()
 fn save_svg(
     mut events: EventReader<SaveSVGEvent>,
     query: Query<
-        (&Transform, &Path, Option<&Fill> , Option<&Stroke>),
+        (&Transform, &Path, Option<&Fill>, Option<&Stroke>),
         (With<Draggable>, Without<Wall>, Without<Padlock>),
     >,
     mut saves: ResMut<SavedSvg>,
@@ -88,14 +88,13 @@ fn save_svg(
 }
 
 fn string_to_png(str: &str) -> Result<Vec<u8>, anyhow::Error> {
-    //println!("{}", str);
     let opt = usvg::Options::default();
     //info!(str);
     let tree = usvg::Tree::from_str(str, &opt)?;
-    //info!("Tree Size {:?}", tree.size);
-    //info!("Viewbox {:?}", tree.view_box);
-    //info!("ViewBox Size {:?}", tree.view_box.rect.size());
-    let bounding_box = tree.root.calculate_bbox().ok_or(anyhow!("Could not calculate bounding box"))?;
+    let bounding_box = tree
+        .root
+        .calculate_bbox()
+        .ok_or(anyhow!("Could not calculate bounding box"))?;
 
     let pixmap_size = bounding_box.to_rect().unwrap().size().to_screen_size(); // tree.size.to_screen_size();
                                                                                //info!("Pixmap size {:?}", pixmap_size);
@@ -126,7 +125,17 @@ fn string_to_png(str: &str) -> Result<Vec<u8>, anyhow::Error> {
     Ok(vec)
 }
 
-pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, Option< &'a Fill>, Option<&'a Stroke>)>>(
+pub fn create_svg<
+    'a,
+    I: Iterator<
+        Item = (
+            &'a Transform,
+            &'a Path,
+            Option<&'a Fill>,
+            Option<&'a Stroke>,
+        ),
+    >,
+>(
     iterator: I,
 ) -> String {
     let mut str: String = "".to_owned();
@@ -146,34 +155,11 @@ pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, Option< &'a F
     });
     let global_transform: TransformWrapper = (&global_transform).into();
 
-    // let mut min_x: f32 = WINDOW_WIDTH;
-    // let mut min_y: f32 = WINDOW_HEIGHT;
-    // let mut max_x: f32 = 0.;
-    // let mut max_y: f32 = 0.;
-
     str.push('\n');
     for (transform, path, fill, stroke) in iterator {
         let tw: TransformWrapper = transform.into();
         let path = path.0.clone().transformed(&tw);
         let path = path.transformed(&global_transform);
-
-        // for event in path.iter(){
-        //     // let (p1, p2) =
-        //     // match event {
-        //     //     tess::path::Event::Begin { at } => (at,at),
-        //     //     tess::path::Event::Line { from, to} => (from, to),
-        //     //     tess::path::Event::Quadratic { from, ctrl: _, to } => (from, to),
-        //     //     tess::path::Event::Cubic { from, ctrl1:_, ctrl2:_, to } => (from, to),
-        //     //     tess::path::Event::End { last, first, close:_ } => (last, first),
-        //     // };
-
-        //     // for p in [p1,p2]{
-        //     //     min_x = min_x.min(p.x);
-        //     //     max_x = max_x.max(p.x);
-        //     //     min_y = min_y.min(p.y);
-        //     //     max_y = max_y.max(p.y);
-        //     // }
-        // }
 
         str.push('\n');
         let path_d = format!("{:?}", path);
@@ -183,9 +169,6 @@ pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, Option< &'a F
         str.push('\n');
         str.push('\n');
     }
-
-    // let width = max_x - min_x;
-    // let height = max_y - min_y;
 
     format!(
         r#"<svg
@@ -198,14 +181,14 @@ pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, Option< &'a F
 }
 
 fn get_path_style(fill: Option<&Fill>, stroke: Option<&Stroke>) -> String {
-
-    match (fill, stroke){
+    match (fill, stroke) {
         (None, None) => "".to_string(),
-        (None, Some(stroke)) => format!("{}",  get_stroke_style(stroke)),
+        (None, Some(stroke)) => format!("{}", get_stroke_style(stroke)),
         (Some(fill), None) => format!("{}", get_fill_style(fill)),
-        (Some(fill), Some(stroke)) => format!("{} {}", get_fill_style(fill), get_stroke_style(stroke)),
+        (Some(fill), Some(stroke)) => {
+            format!("{} {}", get_fill_style(fill), get_stroke_style(stroke))
+        }
     }
-
 }
 
 fn get_fill_style(fill_mode: &Fill) -> String {

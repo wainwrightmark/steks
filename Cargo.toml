@@ -38,6 +38,7 @@ winit = { version = "0.28", features=["x11"]}
 
 
 [workspace]
+exclude=["netlify/functions/image"]
 resolver = "2" # Important! wgpu/Bevy needs this!
 
 [dev-dependencies]

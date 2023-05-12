@@ -3,9 +3,9 @@
   to = "/index.html"
   status = 200
 
-# [[edge_functions]]
-#   function = "og-param-proxy"
-#   path = "/game/*"
+[[edge_functions]]
+  function = "og-param-proxy"
+  path = "/game/*"
 
 [build]
   publish = "dist"

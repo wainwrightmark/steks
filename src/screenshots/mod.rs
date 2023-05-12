@@ -28,6 +28,7 @@ pub struct DownloadPngEvent;
 #[derive(Resource, Default)]
 pub struct SavedSvg(Option<SvgFile>);
 
+#[derive(Debug)]
 pub struct SvgFile {
     pub title: String,
     pub svg: String,
@@ -36,6 +37,7 @@ pub struct SvgFile {
 fn download_svg(mut events: EventReader<DownloadPngEvent>, saves: Res<SavedSvg>) {
     for _event in events.iter() {
         if let Some(svg) = &saves.0 {
+            //info!("Download {svg:?}");
             match string_to_png(&svg.svg) {
                 Ok(vec) => {
                     let filename = svg.title.clone() + ".png";
@@ -71,7 +73,7 @@ fn save_file(file_name: std::path::PathBuf, bytes: Vec<u8>) -> anyhow::Result<()
 fn save_svg(
     mut events: EventReader<SaveSVGEvent>,
     query: Query<
-        (&Transform, &Path, &Fill, &Stroke),
+        (&Transform, &Path, Option<&Fill> , Option<&Stroke>),
         (With<Draggable>, Without<Wall>, Without<Padlock>),
     >,
     mut saves: ResMut<SavedSvg>,
@@ -93,7 +95,7 @@ fn string_to_png(str: &str) -> Result<Vec<u8>, anyhow::Error> {
     //info!("Tree Size {:?}", tree.size);
     //info!("Viewbox {:?}", tree.view_box);
     //info!("ViewBox Size {:?}", tree.view_box.rect.size());
-    let bounding_box = tree.root.calculate_bbox().unwrap();
+    let bounding_box = tree.root.calculate_bbox().ok_or(anyhow!("Could not calculate bounding box"))?;
 
     let pixmap_size = bounding_box.to_rect().unwrap().size().to_screen_size(); // tree.size.to_screen_size();
                                                                                //info!("Pixmap size {:?}", pixmap_size);
@@ -124,7 +126,7 @@ fn string_to_png(str: &str) -> Result<Vec<u8>, anyhow::Error> {
     Ok(vec)
 }
 
-pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, &'a Fill, &'a Stroke)>>(
+pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, Option< &'a Fill>, Option<&'a Stroke>)>>(
     iterator: I,
 ) -> String {
     let mut str: String = "".to_owned();
@@ -195,8 +197,15 @@ pub fn create_svg<'a, I: Iterator<Item = (&'a Transform, &'a Path, &'a Fill, &'a
     )
 }
 
-fn get_path_style(fill: &Fill, stroke: &Stroke) -> String {
-    format!("{} {}", get_fill_style(fill), get_stroke_style(stroke))
+fn get_path_style(fill: Option<&Fill>, stroke: Option<&Stroke>) -> String {
+
+    match (fill, stroke){
+        (None, None) => "".to_string(),
+        (None, Some(stroke)) => format!("{}",  get_stroke_style(stroke)),
+        (Some(fill), None) => format!("{}", get_fill_style(fill)),
+        (Some(fill), Some(stroke)) => format!("{} {}", get_fill_style(fill), get_stroke_style(stroke)),
+    }
+
 }
 
 fn get_fill_style(fill_mode: &Fill) -> String {

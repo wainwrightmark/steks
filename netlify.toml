@@ -1,0 +1,16 @@
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# [[edge_functions]]
+#   function = "og-param-proxy"
+#   path = "/game/*"
+
+[build]
+  publish = "dist"
+  command = "cargo install trunk --force && trunk build index.html --release"
+
+
+[context.production]
+environment = { NETLIFY_EXPERIMENTAL_BUILD_RUST_SOURCE = "true" }

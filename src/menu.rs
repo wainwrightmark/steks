@@ -1,6 +1,6 @@
 use strum::Display;
 
-use crate::{share::ShareEvent, *};
+use crate::{share::{ShareEvent, ShareSavedSvgEvent}, *};
 use ChangeLevelEvent;
 pub struct ButtonPlugin;
 
@@ -36,7 +36,7 @@ fn button_system(
     >,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
     mut menu_query: Query<&mut Visibility, With<MainMenu>>,
-    mut download_image_events: EventWriter<crate::screenshots::DownloadPngEvent>,
+    mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
     mut share_events: EventWriter<ShareEvent>,
 ) {
     for (interaction, mut color, button) in interaction_query.iter_mut() {
@@ -67,7 +67,7 @@ fn button_system(
                     DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
                     ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
                     DownloadImage => {
-                        download_image_events.send(crate::screenshots::DownloadPngEvent)
+                        share_saved_events.send(ShareSavedSvgEvent)
                     }
                     Share => share_events.send(ShareEvent),
                 }
@@ -115,7 +115,6 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 Tutorial,
                 Infinite,
                 DailyChallenge,
-                DownloadImage,
                 #[cfg(target_arch = "wasm32")]
                 Share,
             ] {
@@ -190,7 +189,7 @@ pub enum MenuButton {
     Tutorial,
     Infinite,
     DailyChallenge,
-    DownloadImage,
+    ShareSaved,
     Share,
 }
 
@@ -204,8 +203,8 @@ impl MenuButton {
             Tutorial => "\u{e801}",       //"Tutorial",
             Infinite => "\u{e802}",       //"Infinite",
             DailyChallenge => "\u{e803}", // "Challenge",
-            DownloadImage => "\u{e804}",  // "Image",
-            Share => "\u{f1e0}",          // "Image",
+            Share => "\u{f1e0}",          // "Share",
+            ShareSaved => "\u{f1e0}",          // "Share",
         }
     }
 }

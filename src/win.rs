@@ -5,9 +5,9 @@ use bevy_rapier2d::rapier::crossbeam::atomic::AtomicCell;
 use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 use itertools::Itertools;
 
-use crate::screenshots::SaveSVGEvent;
 use crate::shape_maker::{ShapeIndex, SpawnNewShapeEvent};
 use crate::*;
+use crate::share::SaveSVGEvent;
 
 #[derive(Component)]
 pub struct WinTimer {

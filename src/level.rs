@@ -180,7 +180,7 @@ impl GameLevel {
     pub fn get_buttons(&self) -> Option<Vec<MenuButton>> {
         match self {
             GameLevel::ChallengeComplete { streak: _ } => {
-                Some(vec![MenuButton::DownloadImage, MenuButton::Infinite])
+                Some(vec![MenuButton::ShareSaved, MenuButton::Infinite])
             }
             _ => Default::default(),
         }

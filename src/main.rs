@@ -22,7 +22,6 @@ mod draggable;
 pub mod encoding;
 pub mod fixed_shape;
 mod saved_data;
-pub mod screenshots;
 pub mod share;
 use color::*;
 pub mod padlock;
@@ -36,7 +35,6 @@ mod level;
 use level::*;
 mod walls;
 use screen_diags::ScreenDiagsPlugin;
-use screenshots::ScreenshotPlugin;
 use share::SharePlugin;
 use walls::*;
 
@@ -112,7 +110,6 @@ fn main() {
         .add_plugin(WinPlugin)
         .add_plugin(LevelPlugin)
         .add_plugin(TweeningPlugin)
-        .add_plugin(ScreenshotPlugin)
         .add_plugin(SharePlugin)
         .add_plugin(CollisionPlugin)
         .add_plugin(PadlockPlugin)

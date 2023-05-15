@@ -4,13 +4,15 @@ pub mod fixed_shape;
 pub mod game_shape;
 pub mod screenshots;
 
+use std::ops::Neg;
+
 use aws_lambda_events::encodings::Body;
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use base64::Engine;
 use http::header::HeaderMap;
 use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
-use resvg::usvg::{Tree, TreeParsing, Color};
+use resvg::usvg::{Tree, TreeParsing, Color, NodeExt, ScreenSize, PathBbox};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec2 {
@@ -81,7 +83,20 @@ fn draw_image(game: &str) -> Vec<u8> {
         Err(e) => panic!("{e}"),
     };
 
-    let mut pixmap = resvg::tiny_skia::Pixmap::new(WIDTH, HEIGHT).unwrap();
+
+    let bounding_box = tree
+        .root
+        .calculate_bbox()
+        .unwrap_or(PathBbox::new(0., 0., WIDTH as f64, HEIGHT as f64).unwrap());
+
+    let pixmap_size = bounding_box.to_rect().unwrap().size().to_screen_size(); // tree.size.to_screen_size();
+
+    //let pixmap_size = ScreenSize::new(pixmap_size.width().max(pixmap_size.height()), pixmap_size.width().max(pixmap_size.height())).unwrap();
+                                                                               //info!("Pixmap size {:?}", pixmap_size);
+    let mut pixmap = resvg::tiny_skia::Pixmap::new(pixmap_size.width(), pixmap_size.height())
+        .expect("Could not create pixmap");
+
+    //let mut pixmap = resvg::tiny_skia::Pixmap::new(WIDTH, HEIGHT).unwrap();
 
     let bc = color::background_color();
      pixmap.fill(resvg::tiny_skia::Color::from_rgba8(bc.red, bc.green, bc.blue, 255) );
@@ -90,7 +105,10 @@ fn draw_image(game: &str) -> Vec<u8> {
     resvg::render(
         &tree,
         FitTo::Size(WIDTH, HEIGHT),
-        resvg::tiny_skia::Transform::from_translate((WIDTH as f32) *0.0, (HEIGHT as f32) * 0.0),
+        resvg::tiny_skia::Transform::from_translate(
+            bounding_box.x().neg() as f32,
+            bounding_box.y().neg() as f32,
+        ),
         pixmap.as_mut(),
     )
     .unwrap();

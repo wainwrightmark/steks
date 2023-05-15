@@ -7,6 +7,11 @@ export default async (request, context) => {
 
     try{
         const game = url.pathname.substring(6);
+
+        if (game.length < 4){
+            return response;
+        }
+
         const search = 'https://steks.net/icon/og_image.png'
         const replace = `https://steks.net/.netlify/functions/image?game=${game}`
 

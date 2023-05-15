@@ -1,9 +1,27 @@
+pub mod color;
+pub mod encoding;
+pub mod fixed_shape;
+pub mod game_shape;
+pub mod screenshots;
+
 use aws_lambda_events::encodings::Body;
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
+use base64::Engine;
 use http::header::HeaderMap;
 use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
-use resvg::usvg::{Tree, TreeParsing};
+use resvg::usvg::{Tree, TreeParsing, Color};
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Vec2 {
+    x: f32,
+    y: f32,
+}
+impl Vec2 {
+    fn new(x: f32, y: f32) -> Vec2 {
+        Self { x, y }
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -14,9 +32,6 @@ async fn main() -> Result<(), Error> {
 
 const WIDTH: u32 = 1024;
 const HEIGHT: u32 = 1024;
-const WHITE: &str = "#f7f5f0";
-const BLACK: &str = "#1f1b20";
-const GRAY: &str = "#a1a9b0";
 
 pub(crate) async fn my_handler(
     e: LambdaEvent<ApiGatewayProxyRequest>,
@@ -47,23 +62,13 @@ pub(crate) async fn my_handler(
 }
 
 fn make_svg_text(data: &str) -> String {
-    let mut svg_text: String = "".to_string();
-    svg_text.push_str(format!(r#"<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 238.1 238.1">"#).as_str());
-    svg_text.push('\n');
+    let Ok(bytes) = base64::engine::general_purpose::URL_SAFE.decode(data) else {return "".to_string();};
 
-    svg_text.push_str(
-        format!(
-            r#"<path d="M0 0h238.1v238.1H0z" style="fill:{WHITE};stroke:{GRAY};stroke-width:4;" />"#
-        )
-        .as_str(),
-    );
-    svg_text.push('\n');
+    let shapes = encoding::decode_shapes(&bytes);
 
-    svg_text.push_str("</svg>");
-
-    return svg_text;
+    let svg_text = screenshots::create_svg(shapes.into_iter());
+    svg_text
 }
-
 
 fn draw_image(game: &str) -> Vec<u8> {
     let opt: resvg::usvg::Options = Default::default();
@@ -78,11 +83,14 @@ fn draw_image(game: &str) -> Vec<u8> {
 
     let mut pixmap = resvg::tiny_skia::Pixmap::new(WIDTH, HEIGHT).unwrap();
 
+    let bc = color::background_color();
+     pixmap.fill(resvg::tiny_skia::Color::from_rgba8(bc.red, bc.green, bc.blue, 255) );
+
     use resvg::FitTo;
     resvg::render(
         &tree,
         FitTo::Size(WIDTH, HEIGHT),
-        resvg::tiny_skia::Transform::default(),
+        resvg::tiny_skia::Transform::from_translate((WIDTH as f32) *0.0, (HEIGHT as f32) * 0.0),
         pixmap.as_mut(),
     )
     .unwrap();
@@ -92,17 +100,19 @@ fn draw_image(game: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
+    use core::panic;
+
     use crate::{draw_image, make_svg_text};
 
     #[test]
     fn test_svg() {
-        let svg: String = make_svg_text("-1+4/78 5");
+        let svg: String = make_svg_text("BczJ2_d4CkEj2myzFs6m2xo7Bs5o2XJ2JkY32IvuCsVN1vm0ClBJ1XruBs4y1Q95Hsn40Ht5KNBuvOQ9IF_L32S0Ft8p34g8BsieUHA9");
         std::fs::write("og_example.svg", svg).unwrap();
     }
 
     #[test]
     fn parse_test() {
-        let data = draw_image("-1+4/78 5");
+        let data = draw_image("BczJ2_d4CkEj2myzFs6m2xo7Bs5o2XJ2JkY32IvuCsVN1vm0ClBJ1XruBs4y1Q95Hsn40Ht5KNBuvOQ9IF_L32S0Ft8p34g8BsieUHA9");
         std::fs::write("parse_test.png", data).unwrap();
     }
 

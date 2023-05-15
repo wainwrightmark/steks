@@ -35,6 +35,7 @@ use saved_data::*;
 mod level;
 use level::*;
 mod walls;
+use screen_diags::ScreenDiagsPlugin;
 use screenshots::ScreenshotPlugin;
 use share::SharePlugin;
 use walls::*;
@@ -57,6 +58,8 @@ pub mod game_shape;
 use fixed_shape::*;
 use game_shape::*;
 
+pub mod screen_diags;
+
 pub const ZOOM_ENTITY_LAYER: u8 = 1;
 
 #[cfg(target_arch = "wasm32")]
@@ -78,6 +81,7 @@ fn main() {
                 max_width: MAX_WINDOW_WIDTH,
                 max_height: MAX_WINDOW_HEIGHT,
             },
+            present_mode: bevy::window::PresentMode::default(),
 
             resizable: true,
             ..Default::default()
@@ -112,20 +116,24 @@ fn main() {
         .add_plugin(SharePlugin)
         .add_plugin(CollisionPlugin)
         .add_plugin(PadlockPlugin)
+
+
         .insert_resource(PkvStore::new("Wainwrong", "steks"))
-        .insert_resource(WinitSettings {
-            return_from_run: false,
-            focused_mode: UpdateMode::Continuous,
-            unfocused_mode: UpdateMode::ReactiveLowPower {
-                max_wait: Duration::from_secs(60),
-            },
-        });
+        // .insert_resource(WinitSettings {
+        //     return_from_run: false,
+        //     focused_mode: UpdateMode::Continuous,
+        //     unfocused_mode: UpdateMode::ReactiveLowPower {
+        //         max_wait: Duration::from_secs(60),
+        //     },
+        // })
+        ;
 
     #[cfg(target_arch = "wasm32")]
     builder.add_plugin(wasm::WASMPlugin);
 
     if cfg!(debug_assertions) {
         builder.add_plugin(RapierDebugRenderPlugin::default());
+        builder.add_plugin(ScreenDiagsPlugin);
         // builder.add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
         // builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }

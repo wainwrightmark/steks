@@ -2,7 +2,7 @@ use base64::Engine;
 use bevy::prelude::{EventReader, Plugin, Query, Transform, Resource, CoreSet, Res, ResMut, IntoSystemConfig};
 use itertools::Itertools;
 
-use crate::{draggable::Draggable, encoding, shape_maker::ShapeIndex, wasm};
+use crate::{draggable::Draggable, encoding, shape_maker::ShapeIndex};
 
 pub struct ShareEvent;
 
@@ -29,7 +29,7 @@ fn handle_shares(
         let data = make_data(shapes_query);
         #[cfg(target_arch = "wasm32")]
         {
-            wasm::share_game(data);
+            crate::wasm::share_game(data);
         }
     }
 }
@@ -80,7 +80,7 @@ fn share_saved_svg(mut events: EventReader<ShareSavedSvgEvent>, saves: Res<Saved
         for save in saves.0.iter(){
             #[cfg(target_arch = "wasm32")]
         {
-            wasm::share_game(save.data.clone());
+            crate::wasm::share_game(save.data.clone());
         }
         }
     }

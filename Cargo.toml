@@ -48,6 +48,7 @@ bevy_rapier2d = { version = "0.21", features = [  "debug-render-2d", "serde-seri
 [profile.release]
 opt-level = 'z'
 lto = 'thin'
+# debug=true
 
 # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]

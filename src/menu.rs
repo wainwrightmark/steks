@@ -1,6 +1,9 @@
 use strum::Display;
 
-use crate::{share::{ShareEvent, ShareSavedSvgEvent}, *};
+use crate::{
+    share::{ShareEvent, ShareSavedSvgEvent},
+    *,
+};
 use ChangeLevelEvent;
 pub struct ButtonPlugin;
 
@@ -66,9 +69,7 @@ fn button_system(
                     Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
                     DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
                     ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
-                    DownloadImage => {
-                        share_saved_events.send(ShareSavedSvgEvent)
-                    }
+                    _DownloadImage => share_saved_events.send(ShareSavedSvgEvent),
                     Share => share_events.send(ShareEvent),
                 }
 
@@ -204,7 +205,7 @@ impl MenuButton {
             Infinite => "\u{e802}",       //"Infinite",
             DailyChallenge => "\u{e803}", // "Challenge",
             Share => "\u{f1e0}",          // "Share",
-            ShareSaved => "\u{f1e0}",          // "Share",
+            ShareSaved => "\u{f1e0}",     // "Share",
         }
     }
 }

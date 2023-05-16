@@ -4,7 +4,7 @@ use bevy::log::*;
 use bevy::prelude::*;
 use bevy::window::WindowResizeConstraints;
 use bevy::window::WindowResolution;
-use bevy::winit::*;
+
 use bevy_pkv::PkvStore;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -58,7 +58,7 @@ use game_shape::*;
 
 pub mod screen_diags;
 
-pub const ZOOM_ENTITY_LAYER: u8 = 1;
+//pub const ZOOM_ENTITY_LAYER: u8 = 1;
 
 #[cfg(target_arch = "wasm32")]
 mod wasm;

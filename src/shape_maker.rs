@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+
 use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
@@ -158,13 +159,25 @@ pub fn create_shape(
         .insert(draggable)
         .insert(transform)
         .with_children(|x| {
-            x.spawn(bevy::render::view::visibility::RenderLayers::layer(
-                ZOOM_ENTITY_LAYER,
-            ))
-            .insert(game_shape.body.get_shape_bundle(SHAPE_SIZE))
-            .insert(Stroke {
-                color: Color::BLACK,
-                options: Default::default(),
-            });
+            x.spawn_empty()
+                .insert(Shadow)
+                // .insert(bevy::render::view::visibility::RenderLayers::layer(ZOOM_ENTITY_LAYER))
+                .insert(
+                    game_shape
+                        .body
+                        .get_shape_bundle(SHAPE_SIZE * camera::ZOOM_LEVEL),
+                )
+                .insert(Transform {
+                    translation: Vec3::new(0., 0., 10.),
+                    ..Default::default()
+                })
+                .insert(Visibility::Hidden)
+                .insert(Stroke {
+                    color: Color::BLACK,
+                    options: StrokeOptions::default().with_line_width(camera::ZOOM_LEVEL),
+                });
         });
 }
+
+#[derive(Component)]
+pub struct Shadow;

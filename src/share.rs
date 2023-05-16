@@ -1,5 +1,7 @@
 use base64::Engine;
-use bevy::prelude::{EventReader, Plugin, Query, Transform, Resource, CoreSet, Res, ResMut, IntoSystemConfig};
+use bevy::prelude::{
+    CoreSet, EventReader, IntoSystemConfig, Plugin, Query, Res, ResMut, Resource, Transform,
+};
 use itertools::Itertools;
 
 use crate::{draggable::Draggable, encoding, shape_maker::ShapeIndex};
@@ -14,10 +16,10 @@ impl Plugin for SharePlugin {
         app.add_system(handle_shares);
 
         app.insert_resource(SavedShare::default())
-        .add_event::<SaveSVGEvent>()
-        .add_event::<ShareSavedSvgEvent>()
-        .add_system(save_svg.in_base_set(CoreSet::Last))
-        .add_system(share_saved_svg);
+            .add_event::<SaveSVGEvent>()
+            .add_event::<ShareSavedSvgEvent>()
+            .add_system(save_svg.in_base_set(CoreSet::Last))
+            .add_system(share_saved_svg);
     }
 }
 
@@ -51,7 +53,6 @@ pub fn make_data(shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>) -> 
     data
 }
 
-
 pub struct SaveSVGEvent {
     pub title: String,
 }
@@ -75,13 +76,13 @@ fn save_file(file_name: std::path::PathBuf, bytes: Vec<u8>) -> anyhow::Result<()
     Ok(())
 }
 
-fn share_saved_svg(mut events: EventReader<ShareSavedSvgEvent>, saves: Res<SavedShare>,){
-    if let Some(_) = events.iter().next(){
-        for save in saves.0.iter(){
+fn share_saved_svg(mut events: EventReader<ShareSavedSvgEvent>, saves: Res<SavedShare>) {
+    if let Some(_) = events.iter().next() {
+        for save in saves.0.iter() {
             #[cfg(target_arch = "wasm32")]
-        {
-            crate::wasm::share_game(save.data.clone());
-        }
+            {
+                crate::wasm::share_game(save.data.clone());
+            }
         }
     }
 }
@@ -91,7 +92,7 @@ fn save_svg(
     shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>,
     mut saves: ResMut<SavedShare>,
 ) {
-    if let Some(event) = events.iter().next(){
+    if let Some(event) = events.iter().next() {
         let data = make_data(shapes_query);
         *saves = SavedShare(Some(ShareData {
             title: event.title.clone(),

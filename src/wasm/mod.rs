@@ -153,15 +153,12 @@ fn load_from_url_on_startup(mut ev: EventWriter<ChangeLevelEvent>) {
     match get_game_from_location() {
         Some(data) => {
             info!("Load game {data}");
-            match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data){
+            match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data) {
                 Ok(bytes) => {
                     ev.send(ChangeLevelEvent::Load(bytes));
-                },
+                }
                 Err(err) => warn!("{err}"),
             }
-
-
-
         }
         None => info!("No game to load"),
     }

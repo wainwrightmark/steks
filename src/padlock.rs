@@ -60,7 +60,7 @@ fn control_padlock(
     mut query: Query<(Entity, &mut Visibility, &mut Transform), With<Padlock>>,
 ) {
     if padlock_resource.is_changed() {
-        info!("Padlock changed {padlock_resource:?}");
+        debug!("Padlock changed {padlock_resource:?}");
         match padlock_resource.as_ref() {
             PadlockResource::Locked(_entity, translation) => {
                 for (e, mut visibility, mut transform) in query.iter_mut() {

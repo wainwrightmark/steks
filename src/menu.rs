@@ -69,8 +69,9 @@ fn button_system(
                     Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
                     DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
                     ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
-                    _DownloadImage => share_saved_events.send(ShareSavedSvgEvent),
                     Share => share_events.send(ShareEvent),
+                    _DownloadImage => share_saved_events.send(ShareSavedSvgEvent),
+
                 }
 
                 if !matches!(*button, ToggleMenu) {

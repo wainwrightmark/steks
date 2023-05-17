@@ -8,6 +8,17 @@ canvas {
   display: block;
   margin: auto;
   background-color: transparent;
+  overscroll-behavior-x: none;
+  touch-action: none;
+}
+
+html {
+  overscroll-behavior-x: none;
+  touch-action: none;
+}
+body {
+  overscroll-behavior-x: none;
+  touch-action: none;
 }
 
 .spinner{

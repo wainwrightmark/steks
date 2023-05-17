@@ -1,23 +1,18 @@
 pub mod download;
 
-use crate::input::{convert_screen_to_world_position, InputDetector};
+use crate::input::{InputDetector};
 use crate::*;
 use base64::Engine;
-use bevy::input::touch::{ForceTouch, TouchPhase};
+
 
 use bevy::window::{PrimaryWindow, WindowResized};
 use wasm_bindgen::prelude::*;
-use web_sys::{TouchEvent, TouchList};
 
 #[wasm_bindgen(module = "/web.js")]
 extern "C" {
     fn resize_canvas(width: f32, height: f32);
 
     fn has_touch() -> bool;
-
-    fn pop_touch_event() -> Option<TouchEvent>;
-
-    fn enable_touch();
 
     pub fn request_fullscreen();
 
@@ -77,74 +72,9 @@ fn resizer(
     }
 }
 
-pub fn pool_touch_system(
-    mut touch_input_writer: EventWriter<TouchInput>,
-    windows: Query<&Window, With<PrimaryWindow>>,
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-) {
-    if let Ok(window) = windows.get_single() {
-        let (camera, camera_transform) = q_camera.single();
-        while let Some(touch_event) = pop_touch_event() {
-            let t = touch_event.type_();
-
-            let phase = if t == "touchstart" {
-                TouchPhase::Started
-            } else if t == "touchend" {
-                TouchPhase::Ended
-            } else if t == "touchmove" {
-                TouchPhase::Moved
-            } else if t == "touchcancel" {
-                TouchPhase::Cancelled
-            } else {
-                continue;
-            };
-
-            let touches: TouchList = if phase == TouchPhase::Ended || phase == TouchPhase::Cancelled
-            {
-                touch_event.changed_touches()
-            } else {
-                touch_event.touches()
-            };
-
-            debug!(
-                "{} touches: {} target touches {} changed touches {}",
-                touch_event.type_(),
-                touches.length(),
-                touch_event.target_touches().length(),
-                touch_event.changed_touches().length(),
-            );
-
-            for i in 0..touches.length() {
-                if let Some(touch) = touches.get(i) {
-                    let id = touch.identifier() as u64;
-                    let x = touch.client_x() as f32;
-                    let y = window.height() - touch.client_y() as f32;
-                    let force = Some(ForceTouch::Normalized(touch.force() as f64));
-
-                    let screen_pos = Vec2::new(x, y);
-
-                    let world_position = convert_screen_to_world_position(
-                        screen_pos,
-                        window,
-                        camera,
-                        camera_transform,
-                    );
-
-                    touch_input_writer.send(TouchInput {
-                        phase,
-                        position: world_position,
-                        id,
-                        force,
-                    });
-                }
-            }
-        }
-    }
-}
 
 fn check_touch(mut input_detector: ResMut<InputDetector>) {
     if has_touch() {
-        enable_touch();
         input_detector.is_touch = true;
     }
 }
@@ -177,7 +107,6 @@ impl Plugin for WASMPlugin {
         app.add_startup_system(load_from_url_on_startup);
 
         if has_touch() {
-            app.add_system(pool_touch_system.in_base_set(CoreSet::PreUpdate));
             app.add_startup_system(check_touch.in_base_set(StartupSet::PostStartup));
         }
 

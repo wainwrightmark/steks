@@ -19,9 +19,7 @@ impl Plugin for InputPlugin {
 
 pub fn mousebutton_listener(
     mouse_button_input: Res<Input<MouseButton>>,
-    // need to get window dimensions
-    primary_query: Query<&Window, With<PrimaryWindow>>,
-    // query to get camera transform
+    primary_window_query: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut ew_drag_start: EventWriter<DragStartEvent>,
     mut ew_drag_move: EventWriter<DragMoveEvent>,
@@ -33,7 +31,7 @@ pub fn mousebutton_listener(
             drag_source: DragSource::Mouse,
         })
     } else if mouse_button_input.just_pressed(MouseButton::Left) {
-        if let Some(position) = get_cursor_position(primary_query, q_camera) {
+        if let Some(position) = get_cursor_position(primary_window_query, q_camera) {
             debug!("Sent mouse left just pressed event {position}");
             ew_drag_start.send(DragStartEvent {
                 drag_source: DragSource::Mouse,
@@ -41,7 +39,7 @@ pub fn mousebutton_listener(
             });
         }
     } else if mouse_button_input.pressed(MouseButton::Left) {
-        if let Some(position) = get_cursor_position(primary_query, q_camera) {
+        if let Some(position) = get_cursor_position(primary_window_query, q_camera) {
             debug!("Sent mouse left is pressed event {position}");
             ew_drag_move.send(DragMoveEvent {
                 drag_source: DragSource::Mouse,
@@ -52,9 +50,7 @@ pub fn mousebutton_listener(
 }
 
 pub fn get_cursor_position(
-    // need to get window dimensions
     primary_query: Query<&Window, With<PrimaryWindow>>,
-    // query to get camera transform
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
 ) -> Option<Vec2> {
     // get the camera info and transform
@@ -76,27 +72,37 @@ pub fn get_cursor_position(
     }
 }
 
+fn convert_screen_to_world_position2(
+    mut screen_pos: Vec2,
+    primary_query: &Query<&Window, With<PrimaryWindow>>,
+    q_camera: &Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+)-> Vec2{
+    let (camera, camera_transform) = q_camera.single();
+    let window = primary_query.get_single().unwrap();
+
+    screen_pos.y = window.height() - screen_pos.y;
+
+    convert_screen_to_world_position(screen_pos, window, camera, camera_transform)
+}
+
 pub fn convert_screen_to_world_position(
     screen_pos: Vec2,
     window: &Window,
     camera: &Camera,
     camera_transform: &GlobalTransform,
 ) -> Vec2 {
-    // get the size of the window
     let window_size = Vec2::new(window.width(), window.height());
-
-    // convert screen position [0..resolution] to ndc [-1..1] (gpu coordinates)
     let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
-
-    // matrix for undoing the projection and camera transform
     let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix().inverse();
-
-    // use it to convert ndc to world-space coordinates
     let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
     world_pos.truncate()
 }
 
 pub fn touch_listener(
+
+    primary_window_query: Query<&Window, With<PrimaryWindow>>,
+    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+
     mut touch_evr: EventReader<TouchInput>,
 
     mut ew_drag_start: EventWriter<DragStartEvent>,
@@ -108,16 +114,18 @@ pub fn touch_listener(
 
         match ev.phase {
             TouchPhase::Started => {
+                let position = convert_screen_to_world_position2(ev.position,&primary_window_query, &q_camera);
                 ew_drag_start.send(DragStartEvent {
                     drag_source: DragSource::Touch { touch_id: ev.id },
-                    position: ev.position,
+                    position,
                 });
                 debug!("Touch {} started at: {:?}", ev.id, ev.position);
             }
             TouchPhase::Moved => {
+                let new_position = convert_screen_to_world_position2(ev.position,&primary_window_query, &q_camera);
                 ew_drag_move.send(DragMoveEvent {
                     drag_source: DragSource::Touch { touch_id: ev.id },
-                    new_position: ev.position,
+                    new_position,
                 });
                 debug!("Touch {} moved to: {:?}", ev.id, ev.position);
             }

@@ -1,6 +1,3 @@
-let touch_added = false;
-let touch_events = [];
-
 export let share = (game) => {
   const shareData = {
     title: "Steks",
@@ -29,10 +26,6 @@ export let has_touch = () => {
   return !!("ontouchstart" in window);
 };
 
-export let pop_touch_event = () => {
-  let e = touch_events.shift();
-  return e;
-};
 
 export let request_fullscreen = () => {
   var doc = window.document;
@@ -61,37 +54,7 @@ export let request_fullscreen = () => {
   }
 };
 
-export let enable_touch = () => {
-  if (has_touch() == true && touch_added == false) {
-    let canvas = document.getElementById("game");
-    canvas.addEventListener(
-      "touchstart",
-      (ev) => {
-        ev.preventDefault();
-        touch_events.push(ev);
-      },
-      { passive: false }
-    );
-    canvas.addEventListener(
-      "touchend",
-      (ev) => {
-        ev.preventDefault();
-        touch_events.push(ev);
-      },
-      { passive: false }
-    );
-    canvas.addEventListener(
-      "touchmove",
-      (ev) => {
-        ev.preventDefault();
-        touch_events.push(ev);
-      },
-      { passive: false }
-    );
 
-    touch_added = true;
-  }
-};
 
 export let resize_canvas = (width, height) => {
   let canvas = document.getElementById("game");

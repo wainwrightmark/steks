@@ -70,7 +70,8 @@ fn button_system(
                     DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
                     ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
                     Share => share_events.send(ShareEvent),
-                    _DownloadImage => share_saved_events.send(ShareSavedSvgEvent),
+                    ShareSaved => share_saved_events.send(ShareSavedSvgEvent),
+                    // _DownloadImage => share_saved_events.send(ShareSavedSvgEvent),
 
                 }
 

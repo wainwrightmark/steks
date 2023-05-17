@@ -1,30 +1,70 @@
-// pub mod download;
-
-use crate::input::{InputDetector};
+use crate::input::InputDetector;
 use crate::*;
 use base64::Engine;
 
-
 use bevy::window::{PrimaryWindow, WindowResized};
-use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::spawn_local;
+use web_sys::ShareData;
 
-#[wasm_bindgen(module = "/web.js")]
-extern "C" {
-    fn resize_canvas(width: f32, height: f32);
+pub fn request_fullscreen() {
+    let window = web_sys::window().expect("Could not get window");
+    let document = window.document().expect("Could not get window document");
 
-    fn has_touch() -> bool;
+    let fs = document
+        .fullscreen_element()
+        .map(|x| !x.is_null())
+        .unwrap_or_default();
 
-    pub fn request_fullscreen();
+    if fs {
+        document.exit_fullscreen();
+    } else {
+        let canvas = document
+            .get_element_by_id("game")
+            .expect("Could not get 'game' canvas");
+        canvas
+            .request_fullscreen()
+            .expect("Could not request fullscreen");
+    }
+}
 
-    fn on_start();
+fn resize_canvas(width: f32, height: f32) {
+    let window = web_sys::window().expect("Could not get window");
+    let document = window.document().expect("Could not get window document");
 
-    fn share(game: String);
-
-    fn get_game_from_location() -> Option<String>;
+    let canvas = document
+        .get_element_by_id("game")
+        .expect("Could not get 'game' canvas");
+    let dpi = window.device_pixel_ratio() as f32;
+    canvas
+        .set_attribute("width", (width * dpi).to_string().as_str())
+        .expect("Could not set canvas width");
+    canvas
+        .set_attribute("height", (height * dpi).to_string().as_str())
+        .expect("Could not set canvas height");
 }
 
 pub fn share_game(game: String) {
-    share(game);
+    spawn_local(async move { share_game_async(game).await });
+}
+
+async fn share_game_async(game: String) {
+    let window = web_sys::window().unwrap();
+    let navigator = window.navigator();
+    let mut share_data = ShareData::new();
+    let url = "https://steks.net/game/".to_string() + game.as_str();
+    share_data
+        .title("steks")
+        .text("Try Steks")
+        .url(url.as_str());
+
+    let promise = navigator.share_with_data(&share_data);
+    let future = wasm_bindgen_futures::JsFuture::from(promise);
+    let result = future.await;
+
+    match result {
+        Ok(_) => info!("Share succeeded"),
+        Err(_) => info!("Share failed"),
+    }
 }
 
 #[derive(Resource)]
@@ -72,10 +112,18 @@ fn resizer(
     }
 }
 
+fn has_touch() -> bool {
+    let window = web_sys::window().unwrap();
+    let navigator = window.navigator();
+    navigator.max_touch_points() > 0
+}
 
 fn check_touch(mut input_detector: ResMut<InputDetector>) {
     if has_touch() {
+        debug!("Touch capability detected");
         input_detector.is_touch = true;
+    } else {
+        debug!("Touch capability not detected");
     }
 }
 
@@ -94,6 +142,26 @@ fn load_from_url_on_startup(mut ev: EventWriter<ChangeLevelEvent>) {
     }
 }
 
+fn get_game_from_location() -> Option<String> {
+    let window = web_sys::window()?;
+    let location = window.location();
+    let path = location.pathname().ok()?;
+
+    if path.to_ascii_lowercase().starts_with("/game") {
+        return Some(path[6..].to_string());
+    }
+
+    return None;
+}
+
+fn remove_spinner() {
+    let window = web_sys::window().unwrap();
+    let document = window.document().unwrap();
+    if let Some(spinner) = document.get_element_by_id("spinner") {
+        let _ = document.body().unwrap().remove_child(&spinner);
+    }
+}
+
 pub struct WASMPlugin;
 
 impl Plugin for WASMPlugin {
@@ -105,11 +173,7 @@ impl Plugin for WASMPlugin {
 
         app.add_system(resizer);
         app.add_startup_system(load_from_url_on_startup);
-
-        if has_touch() {
-            app.add_startup_system(check_touch.in_base_set(StartupSet::PostStartup));
-        }
-
-        app.add_startup_system(on_start.in_base_set(StartupSet::PostStartup));
+        app.add_startup_system(check_touch.in_base_set(StartupSet::PostStartup));
+        app.add_startup_system(remove_spinner.in_base_set(StartupSet::PostStartup));
     }
 }

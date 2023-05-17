@@ -129,7 +129,7 @@ pub fn create_shape(
     locked: bool,
     velocity: Velocity,
 ) {
-    info!("Creating {game_shape} angle {angle} position {position} locked {locked}");
+    debug!("Creating {game_shape} angle {angle} position {position} locked {locked}");
 
     let collider_shape = game_shape.body.to_collider_shape(SHAPE_SIZE);
     let transform: Transform = Transform {

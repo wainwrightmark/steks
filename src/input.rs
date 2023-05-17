@@ -20,7 +20,7 @@ impl Plugin for InputPlugin {
 pub fn mousebutton_listener(
     mouse_button_input: Res<Input<MouseButton>>,
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    q_camera: Query<(&Camera, &GlobalTransform)>,
     mut ew_drag_start: EventWriter<DragStartEvent>,
     mut ew_drag_move: EventWriter<DragMoveEvent>,
     mut ew_drag_end: EventWriter<DragEndEvent>,
@@ -51,7 +51,7 @@ pub fn mousebutton_listener(
 
 pub fn get_cursor_position(
     primary_query: Query<&Window, With<PrimaryWindow>>,
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    q_camera: Query<(&Camera, &GlobalTransform)>,
 ) -> Option<Vec2> {
     // get the camera info and transform
     // assuming there is exactly one main camera entity, so query::single() is OK
@@ -75,7 +75,7 @@ pub fn get_cursor_position(
 fn convert_screen_to_world_position2(
     mut screen_pos: Vec2,
     primary_query: &Query<&Window, With<PrimaryWindow>>,
-    q_camera: &Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    q_camera: &Query<(&Camera, &GlobalTransform)>,
 )-> Vec2{
     let (camera, camera_transform) = q_camera.single();
     let window = primary_query.get_single().unwrap();
@@ -101,7 +101,7 @@ pub fn convert_screen_to_world_position(
 pub fn touch_listener(
 
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    q_camera: Query<(&Camera, &GlobalTransform)>,
 
     mut touch_evr: EventReader<TouchInput>,
 

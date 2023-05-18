@@ -1,5 +1,5 @@
-use crate::input::InputDetector;
 use crate::*;
+// use crate::{input::InputDetector, logging::LogDeviceInfo};
 use base64::Engine;
 
 use bevy::window::{PrimaryWindow, WindowResized};
@@ -177,3 +177,12 @@ impl Plugin for WASMPlugin {
         app.add_startup_system(remove_spinner.in_base_set(StartupSet::PostStartup));
     }
 }
+
+// pub fn get_log_device_info() -> LogDeviceInfo {
+//     let window = web_sys::window().unwrap();
+//     let navigator = window.navigator();
+//     LogDeviceInfo {
+//         platform: navigator.platform().unwrap_or_default(),
+//         ..Default::default()
+//     }
+// }

@@ -58,6 +58,9 @@ use game_shape::*;
 
 pub mod screen_diags;
 
+pub mod logging;
+pub mod user_state;
+
 //pub const ZOOM_ENTITY_LAYER: u8 = 1;
 
 #[cfg(target_arch = "wasm32")]

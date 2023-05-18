@@ -1,0 +1,9 @@
+{
+  "appId": "com.steks.app",
+  "appName": "steks",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "bundledWebRuntime": false
+}

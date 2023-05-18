@@ -122,8 +122,10 @@ fn check_touch(mut input_detector: ResMut<InputDetector>) {
     if has_touch() {
         debug!("Touch capability detected");
         input_detector.is_touch = true;
+        //spawn_local(async {capacitor_bindings::toast::Toast::show("Touch detected").await.unwrap()});
     } else {
         debug!("Touch capability not detected");
+        //spawn_local(async {capacitor_bindings::toast::Toast::show("Touch not detected").await.unwrap()});
     }
 }
 

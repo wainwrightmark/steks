@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@capacitor/core": "./@capacitor/core.js",
+    "@capacitor/toast": "./@capacitor/toast.js"
+  }
+}

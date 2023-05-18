@@ -1019,6 +1019,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "capacitor_bindings"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a37d6c8e6ead26cb4116661867d8dd7a394c48e8e94c4d920e12a742d56b32f"
+dependencies = [
+ "js-sys",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_with 2.3.3",
+ "typed-builder",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2968,6 +2983,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-wasm-bindgen"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3b143e2833c57ab9ad3ea280d21fd34e285a42837aeb0ee301f4f41890fa00e"
+dependencies = [
+ "js-sys",
+ "serde",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "serde_derive"
 version = "1.0.163"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3003,6 +3029,22 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
+version = "2.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07ff71d2c147a7b57362cead5e22f772cd52f6ab31cfcd9edcd7f6aeb2a0afbe"
+dependencies = [
+ "base64 0.13.1",
+ "chrono",
+ "hex",
+ "indexmap",
+ "serde",
+ "serde_json",
+ "serde_with_macros 2.3.3",
+ "time 0.3.21",
+]
+
+[[package]]
+name = "serde_with"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f02d8aa6e3c385bf084924f660ce2a3a6bd333ba55b35e8590b321f35d88513"
@@ -3013,8 +3055,20 @@ dependencies = [
  "indexmap",
  "serde",
  "serde_json",
- "serde_with_macros",
+ "serde_with_macros 3.0.0",
  "time 0.3.21",
+]
+
+[[package]]
+name = "serde_with_macros"
+version = "2.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "881b6f881b17d13214e5d494c939ebab463d01264ce1811e9d4ac3a882e7695f"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.16",
 ]
 
 [[package]]
@@ -3180,6 +3234,7 @@ dependencies = [
  "bevy_prototype_lyon",
  "bevy_rapier2d",
  "bevy_tweening",
+ "capacitor_bindings",
  "chrono",
  "console_error_panic_hook",
  "geometrid",
@@ -3190,7 +3245,7 @@ dependencies = [
  "rand",
  "reqwest",
  "serde",
- "serde_with",
+ "serde_with 3.0.0",
  "strum",
  "test-case",
  "wasm-bindgen",
@@ -3583,6 +3638,17 @@ name = "ttf-parser"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44dcf002ae3b32cd25400d6df128c5babec3927cd1eb7ce813cfff20eb6c3746"
+
+[[package]]
+name = "typed-builder"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64cba322cb9b7bc6ca048de49e83918223f35e7a86311267013afff257004870"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
 
 [[package]]
 name = "typenum"

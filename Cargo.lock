@@ -415,6 +415,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_embedded_assets"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a1d4ecf67c553196cfdef560cf0748f1f699db5a86ed2aa211c958e2a379451"
+dependencies = [
+ "bevy",
+ "cargo-emit",
+]
+
+[[package]]
 name = "bevy_encase_derive"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1032,6 +1042,12 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
 ]
+
+[[package]]
+name = "cargo-emit"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1582e1c9e755dd6ad6b224dcffb135d199399a4568d454bd89fe515ca8425695"
 
 [[package]]
 name = "cc"
@@ -3187,6 +3203,7 @@ dependencies = [
  "anyhow",
  "base64 0.21.0",
  "bevy",
+ "bevy_embedded_assets",
  "bevy_pkv",
  "bevy_prototype_lyon",
  "bevy_rapier2d",

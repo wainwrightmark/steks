@@ -4,6 +4,7 @@ use bevy::log::*;
 use bevy::prelude::*;
 use bevy::window::WindowResizeConstraints;
 use bevy::window::WindowResolution;
+use bevy_embedded_assets::EmbeddedAssetPlugin;
 
 use bevy_pkv::PkvStore;
 use bevy_prototype_lyon::prelude::*;
@@ -103,7 +104,13 @@ fn main() {
     builder
         .insert_resource(Msaa::Sample4)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
-        .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin))
+        .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin)
+        .build()            .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
+
+
+
+
+    )
         .add_plugin(WallsPlugin)
         .add_plugin(ButtonPlugin)
         .add_plugin(ShapePlugin)

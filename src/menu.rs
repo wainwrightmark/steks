@@ -72,7 +72,6 @@ fn button_system(
                     Share => share_events.send(ShareEvent),
                     ShareSaved => share_saved_events.send(ShareSavedSvgEvent),
                     // _DownloadImage => share_saved_events.send(ShareSavedSvgEvent),
-
                 }
 
                 if !matches!(*button, ToggleMenu) {

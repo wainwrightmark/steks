@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{shape_maker::Shadow};
+use crate::shape_maker::Shadow;
 
 // use crate::ZOOM_ENTITY_LAYER;
 
@@ -20,8 +20,7 @@ pub const ZOOM_LEVEL: f32 = 3.;
 const FAR: f32 = 1000.0;
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn(Camera2dBundle::new_with_far(FAR));
+    commands.spawn(Camera2dBundle::new_with_far(FAR));
 }
 
 #[derive(Component)]

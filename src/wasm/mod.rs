@@ -122,7 +122,7 @@ async fn get_url_search_params() -> Option<UrlSearchParams> {
 async fn share_game_async(game: String) {
     let device_id = capacitor_bindings::device::Device::get_id()
         .await
-        .unwrap_or_else(|_| DeviceId {
+        .unwrap_or_else(|_| capacitor_bindings::device::DeviceId {
             identifier: "unknown".to_string(),
         });
 

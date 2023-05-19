@@ -19,11 +19,10 @@ pub enum LoggableEvent {
         device: Option<LogDeviceInfo>,
         app: Option<LogAppInfo>,
     },
-    ApplicationStart{
+    ApplicationStart {
         ref_param: Option<String>,
         referrer: Option<String>,
         gclid: Option<String>,
-
     },
     ChangeLevel {
         level: LevelData,
@@ -47,12 +46,6 @@ pub enum LoggableEvent {
 #[derive(PartialEq, Eq, Clone, serde:: Serialize, serde::Deserialize, Debug)]
 #[serde(transparent)]
 pub struct DeviceIdentifier(pub String);
-
-impl DeviceIdentifier {
-    pub fn unknown() -> Self {
-        Self("unknown".to_string())
-    }
-}
 
 impl From<DeviceId> for DeviceIdentifier {
     fn from(value: DeviceId) -> Self {

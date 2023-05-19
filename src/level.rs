@@ -75,7 +75,15 @@ fn start_level(
     asset_server: Res<AssetServer>,
     event_writer: EventWriter<SpawnNewShapeEvent>,
 ) {
-    LoggableEvent::ChangeLevel { level: level.clone().into() }.try_log1();
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        LoggableEvent::ChangeLevel {
+            level: level.clone().into(),
+        }
+        .try_log1();
+    }
+
 
     if let Some(level_ui_entity) = level_ui.iter().next() {
         let mut builder = commands.entity(level_ui_entity);

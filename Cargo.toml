@@ -32,7 +32,7 @@ runner = "wasm-server-runner"
 js-sys = { version = "0.3" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-web-sys = {version = "0.3", features = ['Window', 'Blob', 'BlobPropertyBag', 'Document', 'FileReader', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
+web-sys = {version = "0.3", features = ['Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
 console_error_panic_hook = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]

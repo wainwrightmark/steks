@@ -28,9 +28,9 @@ fn handle_shares(
     shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>,
 ) {
     if let Some(_) = events.iter().next() {
-        let data = make_data(shapes_query);
         #[cfg(target_arch = "wasm32")]
         {
+            let data = make_data(shapes_query);
             crate::wasm::share_game(data);
         }
     }
@@ -77,10 +77,10 @@ fn save_file(file_name: std::path::PathBuf, bytes: Vec<u8>) -> anyhow::Result<()
 }
 
 fn share_saved_svg(mut events: EventReader<ShareSavedSvgEvent>, saves: Res<SavedShare>) {
-    if let Some(_) = events.iter().next() {
-        for save in saves.0.iter() {
-            #[cfg(target_arch = "wasm32")]
-            {
+    #[cfg(target_arch = "wasm32")]
+    {
+        if let Some(_) = events.iter().next() {
+            for save in saves.0.iter() {
                 crate::wasm::share_game(save.data.clone());
             }
         }

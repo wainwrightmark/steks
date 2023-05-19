@@ -23,7 +23,6 @@ pub mod encoding;
 pub mod fixed_shape;
 mod saved_data;
 pub mod share;
-use capacitor_bindings::device::DeviceId;
 use color::*;
 pub mod padlock;
 use padlock::*;
@@ -53,16 +52,18 @@ use input::*;
 mod collision;
 use collision::*;
 
-pub mod game_shape;
+mod game_shape;
 use fixed_shape::*;
 use game_shape::*;
 
+#[cfg(target_arch = "wasm32")]
 use crate::logging::LoggableEvent;
 
-pub mod screen_diags;
+mod screen_diags;
 
-pub mod logging;
-pub mod user_state;
+#[cfg(target_arch = "wasm32")]
+mod logging;
+mod user_state;
 
 //pub const ZOOM_ENTITY_LAYER: u8 = 1;
 
@@ -171,26 +172,21 @@ pub fn log_start(mut pkv: ResMut<PkvStore>) {
 }
 
 async fn log_start_async<'a>(user_exists: bool) {
-    //Toast::show("abc").await;
+    #[cfg(target_arch = "wasm32")]
+    {
+        let device_id = match capacitor_bindings::device::Device::get_id().await {
+            Ok(device_id) => device_id,
+            Err(err) => {
+                bevy::log::error!("{err:?}");
+                return;
+            }
+        };
 
-    let device_id = match capacitor_bindings::device::Device::get_id().await {
-        Ok(device_id) => device_id,
-        Err(err) => {
-            bevy::log::error!("{err:?}");
-            return;
-        }
-    };
-
-    //let Ok(device_id) =  else {return;}; //do nothing if we can't get a device id
-
-    if !user_exists {
-        #[cfg(target_arch = "wasm32")]
-        {
+        if !user_exists {
             let new_user = wasm::new_user_async().await;
             new_user.try_log_async1(device_id.clone()).await;
         }
+        let application_start = wasm::application_start().await;
+        application_start.try_log_async1(device_id).await;
     }
-
-    let application_start = wasm::application_start().await;
-            application_start.try_log_async1(device_id).await;
 }

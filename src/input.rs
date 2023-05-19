@@ -76,7 +76,7 @@ fn convert_screen_to_world_position2(
     mut screen_pos: Vec2,
     primary_query: &Query<&Window, With<PrimaryWindow>>,
     q_camera: &Query<(&Camera, &GlobalTransform)>,
-)-> Vec2{
+) -> Vec2 {
     let (camera, camera_transform) = q_camera.single();
     let window = primary_query.get_single().unwrap();
 
@@ -99,7 +99,6 @@ pub fn convert_screen_to_world_position(
 }
 
 pub fn touch_listener(
-
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform)>,
 
@@ -114,7 +113,11 @@ pub fn touch_listener(
 
         match ev.phase {
             TouchPhase::Started => {
-                let position = convert_screen_to_world_position2(ev.position,&primary_window_query, &q_camera);
+                let position = convert_screen_to_world_position2(
+                    ev.position,
+                    &primary_window_query,
+                    &q_camera,
+                );
                 ew_drag_start.send(DragStartEvent {
                     drag_source: DragSource::Touch { touch_id: ev.id },
                     position,
@@ -122,7 +125,11 @@ pub fn touch_listener(
                 debug!("Touch {} started at: {:?}", ev.id, ev.position);
             }
             TouchPhase::Moved => {
-                let new_position = convert_screen_to_world_position2(ev.position,&primary_window_query, &q_camera);
+                let new_position = convert_screen_to_world_position2(
+                    ev.position,
+                    &primary_window_query,
+                    &q_camera,
+                );
                 ew_drag_move.send(DragMoveEvent {
                     drag_source: DragSource::Touch { touch_id: ev.id },
                     new_position,

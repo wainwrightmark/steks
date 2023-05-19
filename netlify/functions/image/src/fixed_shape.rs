@@ -1,5 +1,6 @@
 use crate::game_shape::*;
 use crate::*;
+use crate::point::Point;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FixedShape {
@@ -10,7 +11,7 @@ pub struct FixedShape {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Location {
-    pub position: Vec2,
+    pub position: Point,
     pub angle: f32,
 }
 
@@ -24,7 +25,7 @@ impl Location {
 }
 
 impl FixedShape {
-    pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {
+    pub fn with_location(mut self, position: Point, angle: f32) -> Self {
         self.fixed_location = Location { position, angle };
         self
     }

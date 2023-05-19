@@ -9,14 +9,14 @@ use geometrid::{
     shape::Shape,
 };
 
-use crate::Vec2;
+use crate::{point::Point, game_shape::rounded_polygon};
 
 use super::GameShapeBody;
 
 fn get_vertices<const S: usize>(
     shape: &Polyomino<S>,
     shape_size: f32,
-) -> impl Iterator<Item = Vec2> {
+) -> impl Iterator<Item = Point> {
     let u = shape_size / (1.0 * f32::sqrt(S as f32));
     let Location {
         x: x_offset,
@@ -24,7 +24,7 @@ fn get_vertices<const S: usize>(
     } = shape.get_center(1.0);
 
     shape.draw_outline().map(move |qr| {
-        Vec2::new(
+        Point::new(
             ((qr.x as f32) - x_offset) * u,
             ((qr.y as f32) - y_offset) * u,
         )
@@ -33,11 +33,15 @@ fn get_vertices<const S: usize>(
 impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn as_svg(&self, size: f32, color_rgba: String) -> String {
         let points: Vec<_> = get_vertices(&self, size)
-            .map(|v| format!("{},{}", v.x, v.y))
+            // .map(|v| format!("{},{}", v.x, v.y))
             .collect();
 
-        let points = points.join(" ");
+        // let points = self
+        //     .0
+        //     .map(|(x, y)| Point::new((x as f32) * u, (y as f32) * u));
 
-        format!(r#"<polygon points="{points}" fill="{color_rgba}" />"#)
+        let path = rounded_polygon::make_rounded_polygon_path(points.as_slice(), size / 10.0);
+
+        format!(r#"<path d="{path}" fill="{color_rgba}" />"#)
     }
 }

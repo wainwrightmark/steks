@@ -9,6 +9,7 @@ pub mod circle;
 
 pub mod polygon;
 pub mod polyomino;
+pub mod rounded_polygon;
 
 pub use circle::*;
 

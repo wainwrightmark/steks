@@ -1,5 +1,7 @@
 use std::format;
 
+use crate::{game_shape::rounded_polygon, point::Point};
+
 use super::GameShapeBody;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
@@ -10,12 +12,12 @@ pub struct PolygonBody<const SQUARES: usize, const POINTS: usize>(
 impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
     fn as_svg(&self, size: f32, color_rgba: String) -> String {
         let u = size / (1.0 * f32::sqrt(S as f32));
-
         let points = self
             .0
-            .map(|(x, y)| format!("{},{}", (x as f32) * u, (y as f32) * u))
-            .join(" ");
+            .map(|(x, y)| Point::new((x as f32) * u, (y as f32) * u));
 
-        format!(r#"<polygon points="{points}" fill="{color_rgba}" />"#)
+        let path = rounded_polygon::make_rounded_polygon_path(&points, size / 10.0);
+
+        format!(r#"<path d="{path}" fill="{color_rgba}" />"#)
     }
 }

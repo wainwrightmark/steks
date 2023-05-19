@@ -1,6 +1,6 @@
 
 use std::ops::RangeInclusive;
-use crate::{*, fixed_shape::{FixedShape, Location}};
+use crate::{*, fixed_shape::{FixedShape, Location}, point::Point};
 
 pub fn decode_shapes(data: &[u8]) -> Vec<FixedShape> {
     data.chunks_exact(6).map(decode_shape).collect()
@@ -22,7 +22,7 @@ pub fn decode_shape(arr: &[u8]) -> FixedShape {
     let x = denormalize_from_range(x_u16, X_RANGE);
     let y = denormalize_from_range(y_u16, Y_RANGE);
     let angle = decode_angle(arr[5]);
-    let position = Vec2 { x, y };
+    let position = Point { x, y };
     let location = Location { position, angle };
 
     FixedShape {

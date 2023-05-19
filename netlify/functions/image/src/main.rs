@@ -3,6 +3,7 @@ pub mod encoding;
 pub mod fixed_shape;
 pub mod game_shape;
 pub mod screenshots;
+pub mod point;
 
 use aws_lambda_events::encodings::Body;
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
@@ -11,16 +12,7 @@ use http::header::HeaderMap;
 use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use resvg::usvg::{AspectRatio, NodeExt, PathBbox, Tree, TreeParsing, ViewBox};
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Vec2 {
-    x: f32,
-    y: f32,
-}
-impl Vec2 {
-    fn new(x: f32, y: f32) -> Vec2 {
-        Self { x, y }
-    }
-}
+
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -130,7 +122,7 @@ fn draw_image(game: &str) -> Vec<u8> {
 mod tests {
 
     use crate::{draw_image, make_svg_text};
-    const TEST_DATA: &'static str = "Dnsqa4DSEnvicbiXE3pKZTkeCHf5d22gFnVke6DcBpdpRoC0";
+    const TEST_DATA: &'static str = "EHWEbQIBEIBBdrntBIM1ZLTwA38jYMQeHoeAaM12CHQ3ctMBBoijcwmyCIfGbUV2EHRSZmp5AoA9fGKT";
 
     #[test]
     fn generate_png_test() {

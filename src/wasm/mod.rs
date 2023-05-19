@@ -1,10 +1,11 @@
-use crate::*;
+use crate::{logging::LogAppInfo, *};
 // use crate::{input::InputDetector, logging::LogDeviceInfo};
 use base64::Engine;
 
 use bevy::window::{PrimaryWindow, WindowResized};
+use capacitor_bindings::{device::Device, share::ShareOptions};
 use wasm_bindgen_futures::spawn_local;
-use web_sys::ShareData;
+use web_sys::UrlSearchParams;
 
 pub fn request_fullscreen() {
     let window = web_sys::window().expect("Could not get window");
@@ -47,22 +48,108 @@ pub fn share_game(game: String) {
     spawn_local(async move { share_game_async(game).await });
 }
 
-async fn share_game_async(game: String) {
-    let window = web_sys::window().unwrap();
-    let navigator = window.navigator();
-    let mut share_data = ShareData::new();
-    let url = "https://steks.net/game/".to_string() + game.as_str();
-    share_data
-        .title("steks")
-        .text("Try Steks")
-        .url(url.as_str());
+pub async fn application_start() -> LoggableEvent {
+    let search_params = get_url_search_params().await;
 
-    let promise = navigator.share_with_data(&share_data);
-    let future = wasm_bindgen_futures::JsFuture::from(promise);
-    let result = future.await;
+    let ref_param = search_params.clone().map(|x| x.get("ref")).flatten();
+    let gclid = search_params.map(|x| x.get("gclid")).flatten();
+    let referrer = get_referrer();
+
+    let event = LoggableEvent::ApplicationStart {
+        ref_param,
+        referrer,
+        gclid,
+    };
+
+    //info!("{:?}",event);
+    event
+}
+
+pub async fn new_user_async() -> LoggableEvent {
+    let search_params = get_url_search_params().await;
+
+    let ref_param = search_params.clone().map(|x| x.get("ref")).flatten();
+    let gclid = search_params.map(|x| x.get("gclid")).flatten();
+    let referrer = get_referrer();
+
+    let language = Device::get_language_tag().await.map(|x| x.value).ok();
+    let device = Device::get_info().await.map(|x| x.into()).ok();
+
+    let app = LogAppInfo::try_get_async().await;
+
+    LoggableEvent::NewUser {
+        ref_param,
+        referrer,
+        gclid,
+        language,
+        device,
+        app,
+    }
+}
+
+fn get_referrer() -> Option<String> {
+    let window = web_sys::window()?;
+    let document = window.document()?;
+    let referrer = document.referrer();
+    if referrer.is_empty() {
+        return None;
+    }
+    Some(referrer)
+}
+
+async fn get_url_search_params() -> Option<UrlSearchParams> {
+    #[cfg(any(feature = "android", feature = "ios"))]
+    {
+        let url = capacitor_bindings::app::App::get_launch_url()
+            .await
+            .ok()??;
+
+        let url = web_sys::Url::new(&url.url).ok()?;
+        let params = url.search_params();
+        return Some(params);
+    }
+
+    #[cfg(not(any(feature = "android", feature = "ios")))]
+    {
+        use web_sys::window;
+        let window = window()?;
+        let search = window.location().search().ok()?;
+        let params = UrlSearchParams::new_with_str(search.as_str()).ok()?;
+        Some(params)
+    }
+}
+
+async fn share_game_async(game: String) {
+    let device_id = capacitor_bindings::device::Device::get_id()
+        .await
+        .unwrap_or_else(|_| DeviceId {
+            identifier: "unknown".to_string(),
+        });
+
+    LoggableEvent::ClickShare
+        .try_log_async1(device_id.clone())
+        .await;
+
+    let url = "https://steks.net/game/".to_string() + game.as_str();
+    let result = capacitor_bindings::share::Share::share(
+        ShareOptions::builder()
+            .title("steks")
+            .text("Try Steks")
+            .url(url)
+            .build(),
+    )
+    .await;
 
     match result {
-        Ok(_) => info!("Share succeeded"),
+        Ok(share_result) => {
+            if let Some(platform) = share_result.activity_type {
+                LoggableEvent::ShareOn { platform }
+                    .try_log_async1(device_id)
+                    .await;
+            }
+
+            info!("Share succeeded")
+        }
         Err(_) => info!("Share failed"),
     }
 }
@@ -179,12 +266,3 @@ impl Plugin for WASMPlugin {
         app.add_startup_system(remove_spinner.in_base_set(StartupSet::PostStartup));
     }
 }
-
-// pub fn get_log_device_info() -> LogDeviceInfo {
-//     let window = web_sys::window().unwrap();
-//     let navigator = window.navigator();
-//     LogDeviceInfo {
-//         platform: navigator.platform().unwrap_or_default(),
-//         ..Default::default()
-//     }
-// }

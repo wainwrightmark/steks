@@ -23,7 +23,7 @@ half = "2"
 geometrid = "0.1"
 serde_with = "3"
 reqwest = { version = "0.11",default-features = false, features = ["json"] }
-capacitor_bindings = { version = "0.5.1", features = ["web"] }
+capacitor_bindings = { version = "0.6", features = ["web"] }
 
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"
@@ -32,7 +32,7 @@ runner = "wasm-server-runner"
 js-sys = { version = "0.3" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-web-sys = {version = "0.3", features = ['Window', 'Blob', 'BlobPropertyBag', 'Document', 'FileReader', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'ShareData']}
+web-sys = {version = "0.3", features = ['Window', 'Blob', 'BlobPropertyBag', 'Document', 'FileReader', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
 console_error_panic_hook = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]

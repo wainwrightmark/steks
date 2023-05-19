@@ -1,6 +1,8 @@
 {
   "imports": {
     "@capacitor/core": "./@capacitor/core.js",
+    "@capacitor/device": "./@capacitor/device.js",
+    "@capacitor/share": "./@capacitor/share.js",
     "@capacitor/toast": "./@capacitor/toast.js"
   }
 }

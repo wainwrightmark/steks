@@ -6,6 +6,7 @@ use crate::*;
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
 use rand::RngCore;
+use serde::{Deserialize, Serialize};
 
 pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
 
@@ -74,6 +75,8 @@ fn start_level(
     asset_server: Res<AssetServer>,
     event_writer: EventWriter<SpawnNewShapeEvent>,
 ) {
+    LoggableEvent::ChangeLevel { level: level.clone().into() }.try_log1();
+
     if let Some(level_ui_entity) = level_ui.iter().next() {
         let mut builder = commands.entity(level_ui_entity);
         builder.despawn_descendants();
@@ -206,6 +209,33 @@ pub enum GameLevel {
     ChallengeComplete {
         streak: usize,
     },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum LevelData {
+    Tutorial { index: u8 },
+    Infinite { starting_shapes: usize, seed: u64 },
+    SavedInfinite { seed: u64 },
+    Challenge,
+    ChallengeComplete { streak: usize },
+}
+
+impl From<GameLevel> for LevelData {
+    fn from(value: GameLevel) -> Self {
+        match value {
+            GameLevel::Tutorial { index, .. } => Self::Tutorial { index },
+            GameLevel::Infinite {
+                starting_shapes,
+                seed,
+            } => Self::Infinite {
+                starting_shapes,
+                seed,
+            },
+            GameLevel::SavedInfinite { seed, .. } => Self::SavedInfinite { seed },
+            GameLevel::Challenge => Self::Challenge,
+            GameLevel::ChallengeComplete { streak } => Self::ChallengeComplete { streak },
+        }
+    }
 }
 
 impl Default for GameLevel {

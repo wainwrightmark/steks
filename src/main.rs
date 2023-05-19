@@ -23,6 +23,7 @@ pub mod encoding;
 pub mod fixed_shape;
 mod saved_data;
 pub mod share;
+use capacitor_bindings::device::DeviceId;
 use color::*;
 pub mod padlock;
 use padlock::*;
@@ -55,6 +56,8 @@ use collision::*;
 pub mod game_shape;
 use fixed_shape::*;
 use game_shape::*;
+
+use crate::logging::LoggableEvent;
 
 pub mod screen_diags;
 
@@ -117,7 +120,6 @@ fn main() {
         .add_plugin(CollisionPlugin)
         .add_plugin(PadlockPlugin)
 
-
         .insert_resource(PkvStore::new("Wainwrong", "steks"))
         // .insert_resource(WinitSettings {
         //     return_from_run: false,
@@ -137,6 +139,8 @@ fn main() {
         // builder.add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
         // builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
+
+    builder.add_startup_system(log_start.in_base_set(StartupSet::PostStartup));
     builder.run();
 }
 
@@ -149,4 +153,44 @@ pub const GRAVITY: Vec2 = Vec2::new(0.0, -1000.0);
 pub fn get_today_date() -> chrono::NaiveDate {
     let today = chrono::offset::Utc::now();
     today.date_naive()
+}
+
+pub fn log_start(mut pkv: ResMut<PkvStore>) {
+    const KEY: &'static str = "UserExists";
+
+    let user_exists = pkv.get::<bool>(KEY).ok().unwrap_or_default();
+
+    if !user_exists {
+        pkv.set(KEY, &true).unwrap();
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        wasm_bindgen_futures::spawn_local(async move { log_start_async(user_exists).await });
+    }
+}
+
+async fn log_start_async<'a>(user_exists: bool) {
+    //Toast::show("abc").await;
+
+    let device_id = match capacitor_bindings::device::Device::get_id().await {
+        Ok(device_id) => device_id,
+        Err(err) => {
+            bevy::log::error!("{err:?}");
+            return;
+        }
+    };
+
+    //let Ok(device_id) =  else {return;}; //do nothing if we can't get a device id
+
+    if !user_exists {
+        #[cfg(target_arch = "wasm32")]
+        {
+            let new_user = wasm::new_user_async().await;
+            new_user.try_log_async1(device_id.clone()).await;
+        }
+    }
+
+    let application_start = wasm::application_start().await;
+            application_start.try_log_async1(device_id).await;
 }

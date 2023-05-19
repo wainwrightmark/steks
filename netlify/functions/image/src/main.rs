@@ -97,20 +97,20 @@ fn draw_image(game: &str) -> Vec<u8> {
         bc.red, bc.green, bc.blue, 255,
     ));
 
-    let bbox_longest = bbox_size.width().max(bbox_size.height()) as f64;
+    let length_to_use = (bbox_size.width().max(bbox_size.height()) as f64) * 1.1;
 
     tree.view_box = ViewBox {
         rect: resvg::usvg::Rect::new(
-            bbox.x() - ((bbox_longest - bbox.width()) * 0.75),
-            bbox.y() - ((bbox_longest - bbox.height()) * 0.5),
-            bbox_longest,
-            bbox_longest,
+            bbox.x() - ((length_to_use - bbox.width()) * 0.75),
+            bbox.y() - ((length_to_use - bbox.height()) * 0.75),
+            length_to_use,
+            length_to_use,
         )
         .unwrap(),
         aspect: AspectRatio {
             defer: false,
-            slice: false,
-            align: resvg::usvg::Align::None,
+            slice: true,
+            align: resvg::usvg::Align::XMidYMid,
         },
     };
 

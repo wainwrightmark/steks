@@ -4,16 +4,13 @@ pub mod fixed_shape;
 pub mod game_shape;
 pub mod screenshots;
 
-use std::ops::Neg;
-
 use aws_lambda_events::encodings::Body;
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
 use base64::Engine;
 use http::header::HeaderMap;
 use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
-use resvg::usvg::{Tree, TreeParsing, Color, NodeExt, ScreenSize, PathBbox};
-
+use resvg::usvg::{AspectRatio, NodeExt, PathBbox, Tree, TreeParsing, ViewBox};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec2 {
     x: f32,
@@ -31,6 +28,8 @@ async fn main() -> Result<(), Error> {
     lambda_runtime::run(func).await?;
     Ok(())
 }
+
+const RESOLUTION: u32 = 1024;
 
 const WIDTH: u32 = 1024;
 const HEIGHT: u32 = 1024;
@@ -78,37 +77,48 @@ fn draw_image(game: &str) -> Vec<u8> {
 
     //println!("{svg_data}");
 
-    let tree = match Tree::from_data(&svg_data.as_bytes(), &opt) {
+    let mut tree = match Tree::from_data(&svg_data.as_bytes(), &opt) {
         Ok(tree) => tree,
         Err(e) => panic!("{e}"),
     };
 
-
-    let bounding_box = tree
+    let bbox = tree
         .root
         .calculate_bbox()
         .unwrap_or(PathBbox::new(0., 0., WIDTH as f64, HEIGHT as f64).unwrap());
 
-    let pixmap_size = bounding_box.to_rect().unwrap().size().to_screen_size(); // tree.size.to_screen_size();
+    let bbox_size = bbox.to_rect().unwrap().size().to_screen_size(); // tree.size.to_screen_size();
 
-    //let pixmap_size = ScreenSize::new(pixmap_size.width().max(pixmap_size.height()), pixmap_size.width().max(pixmap_size.height())).unwrap();
-                                                                               //info!("Pixmap size {:?}", pixmap_size);
-    let mut pixmap = resvg::tiny_skia::Pixmap::new(pixmap_size.width(), pixmap_size.height())
-        .expect("Could not create pixmap");
-
-    //let mut pixmap = resvg::tiny_skia::Pixmap::new(WIDTH, HEIGHT).unwrap();
+    let mut pixmap =
+        resvg::tiny_skia::Pixmap::new(RESOLUTION, RESOLUTION).expect("Could not create pixmap");
 
     let bc = color::background_color();
-     pixmap.fill(resvg::tiny_skia::Color::from_rgba8(bc.red, bc.green, bc.blue, 255) );
+    pixmap.fill(resvg::tiny_skia::Color::from_rgba8(
+        bc.red, bc.green, bc.blue, 255,
+    ));
+
+    let bbox_longest = bbox_size.width().max(bbox_size.height()) as f64;
+
+    tree.view_box = ViewBox {
+        rect: resvg::usvg::Rect::new(
+            bbox.x() - ((bbox_longest - bbox.width()) * 0.75),
+            bbox.y() - ((bbox_longest - bbox.height()) * 0.5),
+            bbox_longest,
+            bbox_longest,
+        )
+        .unwrap(),
+        aspect: AspectRatio {
+            defer: false,
+            slice: false,
+            align: resvg::usvg::Align::None,
+        },
+    };
 
     use resvg::FitTo;
     resvg::render(
         &tree,
-        FitTo::Size(WIDTH, HEIGHT),
-        resvg::tiny_skia::Transform::from_translate(
-            bounding_box.x().neg() as f32,
-            bounding_box.y().neg() as f32,
-        ),
+        FitTo::Size(RESOLUTION, RESOLUTION),
+        Default::default(),
         pixmap.as_mut(),
     )
     .unwrap();
@@ -118,20 +128,21 @@ fn draw_image(game: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use core::panic;
 
     use crate::{draw_image, make_svg_text};
 
+    const TEST_DATA: &'static str = "CNE4vxp4BNJK1CLvBtBv1n60ENYr1du9HtEn0G13CNA8UGwBENN1VBYBA9C82JIeEEvR10C1AtGBVsOX";
+
     #[test]
-    fn test_svg() {
-        let svg: String = make_svg_text("BczJ2_d4CkEj2myzFs6m2xo7Bs5o2XJ2JkY32IvuCsVN1vm0ClBJ1XruBs4y1Q95Hsn40Ht5KNBuvOQ9IF_L32S0Ft8p34g8BsieUHA9");
-        std::fs::write("og_example.svg", svg).unwrap();
+    fn generate_png_test() {
+        let data = draw_image(TEST_DATA);
+        std::fs::write("parse_test.png", data).unwrap();
     }
 
     #[test]
-    fn parse_test() {
-        let data = draw_image("BczJ2_d4CkEj2myzFs6m2xo7Bs5o2XJ2JkY32IvuCsVN1vm0ClBJ1XruBs4y1Q95Hsn40Ht5KNBuvOQ9IF_L32S0Ft8p34g8BsieUHA9");
-        std::fs::write("parse_test.png", data).unwrap();
+    fn generate_svg_test() {
+        let svg: String = make_svg_text(TEST_DATA);
+        std::fs::write("og_example.svg", svg).unwrap();
     }
 
     #[test]

@@ -1,5 +1,5 @@
-use half::f16;
 use itertools::Itertools;
+use std::ops::RangeInclusive;
 
 use crate::*;
 
@@ -14,14 +14,21 @@ pub fn decode_shapes(data: &[u8]) -> Vec<FixedShape> {
     data.chunks_exact(6).map(decode_shape).collect_vec()
 }
 
+const X_RANGE: RangeInclusive<f32> = (MAX_WINDOW_WIDTH * -0.5)..=(MAX_WINDOW_WIDTH * 0.5);
+const Y_RANGE: RangeInclusive<f32> = (MAX_WINDOW_HEIGHT * -0.5)..=(MAX_WINDOW_HEIGHT * 0.5);
+
 pub fn encode_shape(shape: &GameShape, location: Location, locked: bool) -> [u8; 6] {
     let mut arr = [0u8; 6];
 
     arr[0] = ((shape.index as u8) * 2) + if locked { 1 } else { 0 };
-    let [x1, x2] = f16::to_be_bytes(f16::from_f32(location.position.x));
+
+    let x = normalize_to_range(location.position.x, X_RANGE);
+    let y = normalize_to_range(location.position.y, Y_RANGE);
+
+    let [x1, x2] = x.to_be_bytes();
     arr[1] = x1;
     arr[2] = x2;
-    let [y1, y2] = f16::to_be_bytes(f16::from_f32(location.position.y));
+    let [y1, y2] = y.to_be_bytes();
     arr[3] = y1;
     arr[4] = y2;
     arr[5] = encode_angle(location.angle);
@@ -33,8 +40,10 @@ pub fn decode_shape(arr: &[u8]) -> FixedShape {
     let locked = arr[0] % 2 > 0;
 
     let shape = &game_shape::ALL_SHAPES[shape_index % game_shape::ALL_SHAPES.len()];
-    let x = f16::from_be_bytes([arr[1], arr[2]]).to_f32(); // decode_float();
-    let y = f16::from_be_bytes([arr[3], arr[4]]).to_f32();
+    let x_u16 = u16::from_be_bytes([arr[1], arr[2]]);
+    let y_u16 = u16::from_be_bytes([arr[3], arr[4]]);
+    let x = denormalize_from_range(x_u16, X_RANGE);
+    let y = denormalize_from_range(y_u16, Y_RANGE);
     let angle = decode_angle(arr[5]);
     let position = Vec2 { x, y };
     let location = Location { position, angle };
@@ -52,13 +61,29 @@ fn decode_angle(a: u8) -> f32 {
 }
 
 fn encode_angle(mut r: f32) -> u8 {
-    while r < 0.0 {
-        r += std::f32::consts::TAU;
-    }
-    r %= std::f32::consts::TAU;
+    r = r.rem_euclid(std::f32::consts::TAU);
     let s = (r * (ANGLE_FRACTION as f32)) / std::f32::consts::TAU;
 
     s.round() as u8
+}
+
+fn normalize_to_range(value: f32, range: RangeInclusive<f32>) -> u16 {
+    let clamped_value = value.clamp(*range.start(), *range.end());
+
+    let adjusted_value = clamped_value - range.start();
+    let ratio = adjusted_value / (range.end() - range.start());
+
+    let result = (ratio * u16::MAX as f32).floor() as u16;
+    result
+}
+
+fn denormalize_from_range(x: u16, range: RangeInclusive<f32>) -> f32 {
+    let ratio = (x as f32) / u16::MAX as f32;
+
+    let size = range.end() - range.start();
+    let diff = ratio * size;
+
+    diff + range.start()
 }
 
 const ANGLE_FRACTION: u8 = 240;
@@ -79,5 +104,26 @@ mod tests {
         let decoded = decode_shape(&encoded);
 
         assert_eq!(fs, decoded)
+    }
+
+    #[test]
+    fn test_normalize_to_range() {
+        let range = (-5.0)..=(5.0);
+        assert_eq!(0, normalize_to_range(-5.0, range.clone()));
+        assert_eq!(u16::MAX, normalize_to_range(5.0, range.clone()));
+        assert_eq!(u16::MAX / 2, normalize_to_range(0.0, range.clone()));
+        assert_eq!(19660, normalize_to_range(-2.0, range.clone()));
+    }
+
+    #[test]
+    fn test_denormalize_from_range() {
+        let range = (-5.0)..=(5.0);
+        assert_eq!(-5.0, denormalize_from_range(0, range.clone()));
+        assert_eq!(5.0, denormalize_from_range(u16::MAX, range.clone()));
+        assert_eq!(
+            0.0,
+            denormalize_from_range(u16::MAX / 2, range.clone()).round()
+        );
+        assert_eq!(-2.0, denormalize_from_range(19660, range.clone()).round());
     }
 }

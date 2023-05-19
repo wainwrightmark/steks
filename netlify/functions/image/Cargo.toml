@@ -10,7 +10,6 @@ aws_lambda_events = {version= "0.8", default-features=false, features=["apigw"]}
 base64 = "0.21.0"
 coolor = "0.5.1"
 geometrid = "0.1.0"
-half = "2.2.1"
 http = {version= "*", default-features=false}
 lambda_runtime = {version= "*", default-features=false}
 

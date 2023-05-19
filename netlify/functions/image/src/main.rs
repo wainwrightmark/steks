@@ -130,8 +130,7 @@ fn draw_image(game: &str) -> Vec<u8> {
 mod tests {
 
     use crate::{draw_image, make_svg_text};
-
-    const TEST_DATA: &'static str = "CNE4vxp4BNJK1CLvBtBv1n60ENYr1du9HtEn0G13CNA8UGwBENN1VBYBA9C82JIeEEvR10C1AtGBVsOX";
+    const TEST_DATA: &'static str = "Dnsqa4DSEnvicbiXE3pKZTkeCHf5d22gFnVke6DcBpdpRoC0";
 
     #[test]
     fn generate_png_test() {

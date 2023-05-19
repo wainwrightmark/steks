@@ -7,6 +7,6 @@ pub struct Circle;
 
 impl GameShapeBody for Circle {
     fn as_svg(&self, size: f32, color_rgba: String) -> String {
-        format!(r#"<circle r="{size}" fill={color_rgba} />"#)
+        format!(r#"<circle r="{size}" fill="{color_rgba}" />"#)
     }
 }

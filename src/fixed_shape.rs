@@ -12,6 +12,7 @@ pub struct FixedShape {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Location {
     pub position: Vec2,
+    /// angle in radians
     pub angle: f32,
 }
 

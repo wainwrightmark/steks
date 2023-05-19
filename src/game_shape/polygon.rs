@@ -1,4 +1,4 @@
-use super::{GameShapeBody, SHAPE_RADIUS};
+use super::{GameShapeBody, SHAPE_RADIUS_RATIO};
 use bevy::prelude::Vec2;
 use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
@@ -29,7 +29,7 @@ impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
                 .map(|(x, y)| Vec2::new((x as f32) * u, (y as f32) * u))
                 .into(),
             closed: true,
-            radius: SHAPE_RADIUS,
+            radius: shape_size * SHAPE_RADIUS_RATIO,
         };
 
         ShapeBundle {

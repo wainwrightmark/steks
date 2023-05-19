@@ -22,7 +22,7 @@ pub trait GameShapeBody: Send + Sync {
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle;
 }
 
-const SHAPE_RADIUS: f32 = 5.0;
+const SHAPE_RADIUS_RATIO: f32 = 0.1;
 #[derive(Clone)]
 pub struct GameShape {
     pub name: &'static str,

@@ -9,7 +9,6 @@ use crate::*;
 use rand::Rng;
 
 pub const SHAPE_SIZE: f32 = 50f32;
-// pub const MAX_SHAPES: usize = 36;
 
 pub fn create_level_shapes(
     // commands: &mut Commands,

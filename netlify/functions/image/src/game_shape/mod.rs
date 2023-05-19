@@ -19,7 +19,7 @@ pub trait GameShapeBody: Send + Sync {
     fn as_svg(&self, size: f32, color_rgba: String) -> String;
 }
 
-const SHAPE_RADIUS: f32 = 5.0;
+const SHAPE_RADIUS_RATIO: f32 = 0.1;
 #[derive(Clone)]
 pub struct GameShape {
     pub name: &'static str,

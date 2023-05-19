@@ -1,8 +1,3 @@
-// use super::{GameShapeBody, SHAPE_RADIUS};
-// use crate::{
-//     grid::prelude::{PolyominoShape, Shape},
-//     PHYSICS_SCALE,
-// };
 use bevy::prelude::Vec2;
 use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
@@ -15,7 +10,7 @@ use itertools::Itertools;
 
 use crate::PHYSICS_SCALE;
 
-use super::{GameShapeBody, SHAPE_RADIUS};
+use super::{GameShapeBody, SHAPE_RADIUS_RATIO};
 
 fn get_vertices<const S: usize>(
     shape: &Polyomino<S>,
@@ -41,6 +36,7 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
             x: x_offset,
             y: y_offset,
         } = self.get_center(1.0);
+        let shape_radius = shape_size * SHAPE_RADIUS_RATIO;
 
         let shapes = self
             .deconstruct_into_rectangles()
@@ -55,9 +51,9 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
                     vect,
                     0.0,
                     Collider::round_cuboid(
-                        (u * x_len * 0.5) - SHAPE_RADIUS,
-                        (u * y_len * 0.5) - SHAPE_RADIUS,
-                        SHAPE_RADIUS / PHYSICS_SCALE,
+                        (u * x_len * 0.5) - shape_radius,
+                        (u * y_len * 0.5) - shape_radius,
+                        shape_radius / PHYSICS_SCALE,
                     ),
                 )
             })
@@ -71,7 +67,7 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
         let shape = RoundedPolygon {
             points,
             closed: true,
-            radius: SHAPE_RADIUS,
+            radius: shape_size * SHAPE_RADIUS_RATIO,
         };
 
         let path = GeometryBuilder::build_as(&shape);

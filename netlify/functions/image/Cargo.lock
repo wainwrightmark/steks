@@ -59,11 +59,11 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "aws_lambda_events"
-version = "0.8.5"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a19b34cce92060dfb0bdab64b7f4e534c99ed0b7be7ba4a776972021919ae217"
+checksum = "1d13f801d4f819391ec4bcfcaa05f697e54992e90fb96d7bdaec87cbce3abce9"
 dependencies = [
- "base64 0.13.1",
+ "base64",
  "bytes",
  "chrono",
  "http",
@@ -74,12 +74,6 @@ dependencies = [
  "serde_derive",
  "serde_json",
 ]
-
-[[package]]
-name = "base64"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "base64"
@@ -422,7 +416,7 @@ name = "image"
 version = "0.1.0"
 dependencies = [
  "aws_lambda_events",
- "base64 0.21.0",
+ "base64",
  "coolor",
  "geometrid",
  "http",
@@ -434,9 +428,9 @@ dependencies = [
 
 [[package]]
 name = "imagesize"
-version = "0.11.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b72ad49b554c1728b1e83254a1b1565aea4161e28dabbfa171fc15fe62299caf"
+checksum = "029d73f573d8e8d63e6d5020011d3255b28c3ba85d6cf870a07184ed23de9284"
 
 [[package]]
 name = "itertools"
@@ -675,13 +669,14 @@ checksum = "3b42e27ef78c35d3998403c1d26f3efd9e135d3e5121b0a4845cc5cc27547f4f"
 
 [[package]]
 name = "resvg"
-version = "0.32.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "142e83d8ae8c8c639f304698a5567b229ba65caba867bf4387bbc0ae158827cf"
+checksum = "1df5f3de3bb51d8a4766a1ef5d85851f2737716dea899516248d25e313a51b0d"
 dependencies = [
  "log",
  "pico-args",
  "rgb",
+ "svgfilters",
  "svgtypes",
  "tiny-skia",
  "usvg",
@@ -830,6 +825,16 @@ dependencies = [
  "quote",
  "rustversion",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "svgfilters"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "639abcebc15fdc2df179f37d6f5463d660c1c79cd552c12343a4600827a04bce"
+dependencies = [
+ "float-cmp",
+ "rgb",
 ]
 
 [[package]]
@@ -1009,11 +1014,11 @@ checksum = "e5464a87b239f13a63a501f2701565754bae92d243d4bb7eb12f6d57d2269bf4"
 
 [[package]]
 name = "usvg"
-version = "0.32.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b44e14b7678bcc5947b397991432d0c4e02a103958a0ed5e1b9b961ddd08b21"
+checksum = "ae32eb823aab35fc343b19c4d354f70e713b442ce34cdfa8497bf6c39af8a342"
 dependencies = [
- "base64 0.21.0",
+ "base64",
  "log",
  "pico-args",
  "usvg-parser",
@@ -1023,9 +1028,9 @@ dependencies = [
 
 [[package]]
 name = "usvg-parser"
-version = "0.32.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90c8251d965c2882a636ffcc054340b1f13a6bce68779cb5b2084d8ffc2535be"
+checksum = "c7529174e721c8078d62b08399258469b1d68b4e5f2983b347d6a9d39779366c"
 dependencies = [
  "data-url",
  "flate2",
@@ -1040,9 +1045,9 @@ dependencies = [
 
 [[package]]
 name = "usvg-tree"
-version = "0.32.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7371265c467cdae0ccc3655e2e3f310c695fb9f717c0d25187bf3b333f7b5159"
+checksum = "3a56e9cd3be5eb6d6744477e95b82d52d393fc1dba4b5b090912c33af337c20b"
 dependencies = [
  "kurbo",
  "rctree",

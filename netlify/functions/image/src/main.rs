@@ -13,7 +13,6 @@ use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use resvg::tiny_skia::Transform;
 use resvg::usvg::{AspectRatio, NodeExt, PathBbox, Tree, TreeParsing, ViewBox};
-use resvg::FitTo;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -49,7 +48,7 @@ pub(crate) async fn my_handler(
         headers,
         multi_value_headers: HeaderMap::new(),
         body: Some(Body::Binary(data)),
-        is_base64_encoded: Some(true),
+        is_base64_encoded: true,
     };
 
     Ok(resp)
@@ -85,7 +84,7 @@ fn draw_image(game: &str) -> Vec<u8> {
         .calculate_bbox()
         .unwrap_or(PathBbox::new(0., 0., WIDTH as f64, HEIGHT as f64).unwrap());
 
-    let bbox_size = bbox.to_rect().unwrap().size().to_screen_size(); // tree.size.to_screen_size();
+    let bbox_size = bbox.to_rect().unwrap().size();
 
     let mut pixmap =
         resvg::tiny_skia::Pixmap::new(RESOLUTION, RESOLUTION).expect("Could not create pixmap");
@@ -95,10 +94,14 @@ fn draw_image(game: &str) -> Vec<u8> {
         bc.red, bc.green, bc.blue, 255,
     ));
 
-    let length_to_use = (bbox_size.width().max(bbox_size.height()) as f64) * 1.1;
+    const SPACE_RATIO: f64 = 1.1;
+
+    let length_to_use = (bbox_size.width().max(bbox_size.height()) as f64) * SPACE_RATIO;
 
     game_tree.view_box = ViewBox {
         rect: resvg::usvg::Rect::new(
+            //bbox.x(),
+            //bbox.y(),
             bbox.x() - ((length_to_use - bbox.width()) * 0.75),
             bbox.y() - ((length_to_use - bbox.height()) * 0.75),
             length_to_use,
@@ -112,21 +115,21 @@ fn draw_image(game: &str) -> Vec<u8> {
         },
     };
 
-    resvg::render(
-        &game_tree,
-        FitTo::Size(RESOLUTION, RESOLUTION),
-        Default::default(),
-        pixmap.as_mut(),
-    )
-    .expect("Could not render game svg");
+    let game_scale = (HEIGHT as f32/ game_tree.size.height() as f32).min(WIDTH as f32 / game_tree.size.width() as f32) ;
 
-    resvg::render(
-        &logo_tree,
-        FitTo::Size(RESOLUTION, RESOLUTION),
-        Transform::from_translate(0.0, 200.0),
-        pixmap.as_mut(),
-    )
-    .expect("Could not render logo svg");
+    resvg::Tree::render(
+        &resvg::Tree::from_usvg(&game_tree),
+        Transform::from_scale(game_scale, game_scale),
+        &mut pixmap.as_mut(),
+    );
+
+
+    let logo_scale = WIDTH as f32 / logo_tree.size.width() as f32;
+    resvg::Tree::render(
+        &resvg::Tree::from_usvg(&logo_tree),
+        Transform::from_scale(logo_scale, logo_scale).post_translate(0.0, 200.0),
+        &mut pixmap.as_mut(),
+    );
 
     pixmap.encode_png().expect("Could not encode png")
 }
@@ -135,7 +138,7 @@ fn draw_image(game: &str) -> Vec<u8> {
 mod tests {
 
     use crate::{draw_image, make_svg_from_data};
-    const TEST_DATA: &'static str =
+    const TEST_DATA: &'static str = //"CnddRksqIImSSB8OEi1GRq8eAjr5ShXU";
         "EHWEbQIBEIBBdrntBIM1ZLTwA38jYMQeHoeAaM12CHQ3ctMBBoijcwmyCIfGbUV2EHRSZmp5AoA9fGKT";
 
     #[test]

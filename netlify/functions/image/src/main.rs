@@ -127,7 +127,7 @@ fn draw_image(game: &str) -> Vec<u8> {
     let logo_scale = WIDTH as f32 / logo_tree.size.width() as f32;
     resvg::Tree::render(
         &resvg::Tree::from_usvg(&logo_tree),
-        Transform::from_scale(logo_scale, logo_scale).post_translate(0.0, 200.0),
+        Transform::from_scale(logo_scale, logo_scale),
         &mut pixmap.as_mut(),
     );
 

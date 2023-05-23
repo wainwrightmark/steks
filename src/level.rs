@@ -90,6 +90,15 @@ fn start_level(
         builder.despawn_descendants();
 
         if let Some(text) = level.get_text() {
+
+
+        // #[cfg(target_arch = "wasm32")]
+        // {
+        //     let text = text.clone();
+        //     wasm_bindgen_futures::spawn_local(async move{capacitor_bindings::toast::Toast::show(text).await.unwrap();})
+        //     ;
+        // }
+
             builder.with_children(|parent| {
                 const LEVEL_TEXT_SECONDS: u64 = 20;
                 parent

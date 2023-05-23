@@ -131,6 +131,7 @@ pub fn create_shape(
     debug!("Creating {game_shape} angle {angle} position {position} locked {locked}");
 
     let collider_shape = game_shape.body.to_collider_shape(SHAPE_SIZE);
+
     let transform: Transform = Transform {
         translation: (position.extend(1.0)),
         rotation: Quat::from_rotation_z(angle),
@@ -145,6 +146,7 @@ pub fn create_shape(
 
     commands
         .spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE))
+        .insert(Friction::coefficient(1.0))
         .insert(game_shape.fill())
         .insert(ShapeIndex(game_shape.index))
         .insert(RigidBody::Dynamic)

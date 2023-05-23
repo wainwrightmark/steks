@@ -31,6 +31,7 @@ use padlock::*;
 use bevy_tweening::TweeningPlugin;
 use camera::*;
 use draggable::*;
+use recording::RecordingPlugin;
 use saved_data::*;
 mod level;
 use level::*;
@@ -70,6 +71,8 @@ mod user_state;
 
 #[cfg(target_arch = "wasm32")]
 mod wasm;
+
+mod recording;
 
 fn main() {
     // When building for WASM, print panics to the browser console
@@ -127,6 +130,7 @@ fn main() {
         .add_plugin(SharePlugin)
         .add_plugin(CollisionPlugin)
         .add_plugin(PadlockPlugin)
+        .add_plugin(RecordingPlugin)
 
         .insert_resource(PkvStore::new("Wainwrong", "steks"))
         // .insert_resource(WinitSettings {

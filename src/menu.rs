@@ -1,6 +1,7 @@
 use strum::Display;
 
 use crate::{
+    recording::{RecordEvent, RecordingState},
     share::{ShareEvent, ShareSavedSvgEvent},
     *,
 };
@@ -41,6 +42,7 @@ fn button_system(
     mut menu_query: Query<&mut Visibility, With<MainMenu>>,
     mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
     mut share_events: EventWriter<ShareEvent>,
+    mut recording_events: EventWriter<RecordEvent>,
 ) {
     for (interaction, mut color, button) in interaction_query.iter_mut() {
         use MenuButton::*;
@@ -71,7 +73,9 @@ fn button_system(
                     ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
                     Share => share_events.send(ShareEvent),
                     ShareSaved => share_saved_events.send(ShareSavedSvgEvent),
-                    // _DownloadImage => share_saved_events.send(ShareSavedSvgEvent),
+
+                    StartRecording => recording_events.send(RecordEvent::Start),
+                    StopRecording => recording_events.send(RecordEvent::Stop),
                 }
 
                 if !matches!(*button, ToggleMenu) {
@@ -119,6 +123,8 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 DailyChallenge,
                 #[cfg(target_arch = "wasm32")]
                 Share,
+                #[cfg(target_arch = "wasm32")]
+                StartRecording
             ] {
                 spawn_button(parent, button, asset_server);
             }
@@ -183,7 +189,7 @@ pub fn spawn_button(
         .insert(menu_button);
 }
 
-#[derive(Component, Clone, Copy, Debug, Display)]
+#[derive(Component, Clone, Copy, Debug, Display, PartialEq, Eq)]
 pub enum MenuButton {
     ToggleMenu,
     ResetLevel,
@@ -193,6 +199,8 @@ pub enum MenuButton {
     DailyChallenge,
     ShareSaved,
     Share,
+    StartRecording,
+    StopRecording,
 }
 
 impl MenuButton {
@@ -207,6 +215,8 @@ impl MenuButton {
             DailyChallenge => "\u{e803}", // "Challenge",
             Share => "\u{f1e0}",          // "Share",
             ShareSaved => "\u{f1e0}",     // "Share",
+            StartRecording => "\u{e807}",
+            StopRecording => "\u{e809}",
         }
     }
 }

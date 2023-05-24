@@ -17,31 +17,45 @@ export function start_recording() {
     },
   };
 
-  const promise_user = navigator.mediaDevices.getUserMedia(mediaConstraints);
+  try {
+    const promise_user = navigator.mediaDevices.getUserMedia(mediaConstraints);
+    promise_user.then((user_stream) => {
+      //canvas_stream.getTracks().forEach((track) => user_stream.addTrack(track));
+
+      user_recorder = new MediaRecorder(user_stream);
+
+      console.log("Created Recorder");
+
+      user_recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          user_chunks.push(event.data);
+          console.log("User Data Found");
+        } else {
+          console.log("No User Data Found");
+        }
+      };
+
+      user_recorder.onstop = () => {
+        const blob = new Blob(user_chunks, {
+          type: "video/webm;codecs=vp9",
+        });
+
+        user_chunks = [];
+        console.log("User Recording Stopped");
+        saveFile("steks_user_recording.mpeg", blob);
+      };
+
+      user_recorder.start(200);
+    });
+  } catch (error) {
+    console.error(error);
+  }
 
   const canvas = document.getElementById("game");
-  const canvas_stream = canvas.captureStream(30); // 25 FPS
 
-
-  promise_user.then((user_stream) => {
-
-    //canvas_stream.getTracks().forEach((track) => user_stream.addTrack(track));
-
-    user_recorder = new MediaRecorder(user_stream);
+  try {
+    const canvas_stream = canvas.captureStream(30);
     canvas_recorder = new MediaRecorder(canvas_stream);
-
-
-
-    console.log("Created Recorder");
-
-    user_recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        user_chunks.push(event.data);
-        console.log("User Data Found");
-      } else {
-        console.log("No User Data Found");
-      }
-    };
 
     canvas_recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
@@ -51,17 +65,6 @@ export function start_recording() {
         console.log("No Canvas Data Found");
       }
     };
-
-    user_recorder.onstop = () => {
-      const blob = new Blob(user_chunks, {
-        type: "video/webm;codecs=vp9",
-      });
-
-      user_chunks = [];
-      console.log("User Recording Stopped");
-      saveFile("steks_user_recording.mpeg", blob);
-    };
-
     canvas_recorder.onstop = () => {
       const blob = new Blob(canvas_chunks, {
         type: "video/webm;codecs=vp9",
@@ -71,10 +74,10 @@ export function start_recording() {
       console.log("Canvas Recording Stopped");
       saveFile("steks_canvas_recording.mpeg", blob);
     };
-
-    user_recorder.start(200);
     canvas_recorder.start(200);
-  });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 export function stop_recording() {
@@ -82,13 +85,13 @@ export function stop_recording() {
   if (user_recorder != null) {
     user_recorder.stream.getTracks().forEach((track) => track.stop());
   } else {
-    console.log("No User Recorder to stop");
+    console.warn("No User Recorder to stop");
   }
 
   if (canvas_recorder != null) {
     canvas_recorder.stream.getTracks().forEach((track) => track.stop());
   } else {
-    console.log("No Canvas Recorder to stop");
+    console.warn("No Canvas Recorder to stop");
   }
 }
 

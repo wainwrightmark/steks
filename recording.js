@@ -3,7 +3,7 @@ let canvas_recorder = null;
 let user_chunks = [];
 let canvas_chunks = [];
 
-export function start_recording() {
+export async function start_recording() {
   console.log("Start Recording");
 
   const mediaConstraints = {
@@ -11,56 +11,15 @@ export function start_recording() {
       facingMode: "user",
     },
     audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
+      // echoCancellation: true,
+      // noiseSuppression: true,
       sampleRate: 44100,
     },
   };
 
   try {
-    const promise_user = navigator.mediaDevices.getUserMedia(mediaConstraints);
-    promise_user.then((user_stream) => {
-      let video = document.getElementById("video");
-      video.removeAttribute('hidden');
-      video.srcObject = user_stream;
 
-      //canvas_stream.getTracks().forEach((track) => user_stream.addTrack(track));
-
-      user_recorder = new MediaRecorder(user_stream);
-
-      console.log("Created Recorder");
-
-      user_recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          user_chunks.push(event.data);
-          console.log("User Data Found");
-        } else {
-          console.log("No User Data Found");
-        }
-      };
-
-      user_recorder.onstop = () => {
-        let video = document.getElementById("video");
-        video.setAttribute("hidden", "");
-
-        const blob = new Blob(user_chunks, {
-          type: "video/webm;codecs=vp9",
-        });
-
-        user_chunks = [];
-        console.log("User Recording Stopped");
-        saveFile("steks_user_recording.mpeg", blob);
-      };
-
-      user_recorder.start(200);
-    });
-  } catch (error) {
-    console.error(error);
-  }
-
-  const canvas = document.getElementById("game");
-
-  try {
+    const canvas = document.getElementById("game");
     const canvas_stream = canvas.captureStream(30);
     canvas_recorder = new MediaRecorder(canvas_stream);
 
@@ -81,7 +40,49 @@ export function start_recording() {
       console.log("Canvas Recording Stopped");
       saveFile("steks_canvas_recording.mpeg", blob);
     };
+
+
+    const promise_user = navigator.mediaDevices.getUserMedia(mediaConstraints);
+
+    let user_stream = await promise_user;
+    let video = document.getElementById("video");
+    video.removeAttribute("hidden");
+    video.srcObject = user_stream;
+
+    //canvas_stream.getTracks().forEach((track) => user_stream.addTrack(track));
+
+    user_recorder = new MediaRecorder(user_stream);
+
+    console.log("Created Recorder");
+
+    user_recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        user_chunks.push(event.data);
+        console.log("User Data Found");
+      } else {
+        console.log("No User Data Found");
+      }
+    };
+
+    user_recorder.onstop = () => {
+      let video = document.getElementById("video");
+      video.setAttribute("hidden", "");
+
+      const blob = new Blob(user_chunks, {
+        type: "video/webm;codecs=vp9",
+      });
+
+      user_chunks = [];
+      console.log("User Recording Stopped");
+      saveFile("steks_user_recording.mpeg", blob);
+    };
+
+
+
+
     canvas_recorder.start(200);
+    user_recorder.start(200);
+
   } catch (error) {
     console.error(error);
   }

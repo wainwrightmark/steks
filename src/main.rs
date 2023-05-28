@@ -11,7 +11,7 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 pub const WINDOW_WIDTH: f32 = 360f32;
-pub const MAX_WINDOW_WIDTH: f32 = 1080f32;
+pub const MAX_WINDOW_WIDTH: f32 = 1920f32;
 pub const WINDOW_HEIGHT: f32 = 520f32;
 pub const MAX_WINDOW_HEIGHT: f32 = 1080f32;
 pub const WALL_WIDTH: f32 = 1920f32;

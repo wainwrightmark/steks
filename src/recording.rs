@@ -1,4 +1,7 @@
+use std::thread::{Thread, spawn};
+
 use bevy::{prelude::{EventReader, Plugin, ResMut, Resource, Query, Res, DetectChanges, Children}, text::Text};
+use wasm_bindgen_futures::spawn_local;
 
 use crate::menu::MenuButton;
 
@@ -31,7 +34,8 @@ pub fn handle_record_events(mut er: EventReader<RecordEvent>, mut state: ResMut<
             RecordEvent::Start => {
                 *state = RecordingState::Recording;
 
-                crate::wasm::start_recording()
+                spawn_local(async move {crate::wasm::start_recording().await;});
+
             }
             RecordEvent::Stop => {
                 *state = RecordingState::NotRecording;

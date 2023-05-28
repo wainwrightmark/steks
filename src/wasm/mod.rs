@@ -1,7 +1,7 @@
 use crate::{logging::LogAppInfo, *};
 // use crate::{input::InputDetector, logging::LogDeviceInfo};
 use base64::Engine;
-use wasm_bindgen::{prelude::wasm_bindgen};
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use web_sys::UrlSearchParams;
 
 use bevy::window::{PrimaryWindow, WindowResized};
@@ -27,22 +27,6 @@ pub fn request_fullscreen() {
             .request_fullscreen()
             .expect("Could not request fullscreen");
     }
-}
-
-fn resize_canvas(width: f32, height: f32) {
-    let window = web_sys::window().expect("Could not get window");
-    let document = window.document().expect("Could not get window document");
-
-    let container = document
-        .get_element_by_id("container")
-        .expect("Could not get 'container' div");
-    let dpi = window.device_pixel_ratio() as f32;
-    container
-        .set_attribute("width", (width * dpi).to_string().as_str())
-        .expect("Could not set container width");
-    container
-        .set_attribute("height", (height * dpi).to_string().as_str())
-        .expect("Could not set container height");
 }
 
 pub fn share_game(game: String) {
@@ -189,7 +173,7 @@ fn resizer(
                 width,
             });
 
-            resize_canvas(width, height);
+            //resize_canvas(width, height);
             info!(
                 "Resizing to {:?},{:?} with scale factor of {}",
                 width,
@@ -257,28 +241,12 @@ fn remove_spinner() {
 #[wasm_bindgen(module="/recording.js")]
 extern "C" {
     #[wasm_bindgen()]
-    pub fn start_recording();
+    pub async fn start_recording();
 
     #[wasm_bindgen()]
     pub fn stop_recording();
 }
 
-
-// async fn get_user_media(){
-//     let window = web_sys::window().unwrap();
-//     let navigator = window.navigator();
-//     let media_devices = navigator.media_devices().expect("Could not get media devices");
-//     //let Ok(media_devices) = navigator.media_devices() else {return ;};
-//     let media_promise = media_devices.get_user_media().expect("Could not get user media");
-//     let media_stream =  wasm_bindgen_futures::JsFuture::from(media_promise).await.expect("Failed to await media promise");
-//     let ms: MediaStream = JsCast::dyn_into(media_stream).expect("Could not cast media stream");
-//     //let ms: MediaStream;
-
-//     let mr = MediaRecorder::new_with_media_stream_and_media_recorder_options(&ms, &MediaRecorderOptions::new()).expect("Could not create media recorder");
-
-//     mr.add_event_listener_with_callback("dataavailable", listener);
-
-// }
 
 pub struct WASMPlugin;
 

@@ -1,7 +1,6 @@
 body {
   margin: 0px;
   overflow: hidden;
-  background-color: #86adea;
 }
 
 canvas {
@@ -21,7 +20,7 @@ body {
   touch-action: none;
 }
 
-.spinner{
+.spinner {
   top: 50%;
   left: 50%;
   /* position: absolute; */
@@ -114,3 +113,28 @@ body {
   }
 }
 
+#container {
+  display: block;
+}
+
+#background {
+  background-color: #86adea;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  position: absolute;
+}
+
+#game {
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  position: absolute;
+}
+
+#video {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  pointer-events: none;
+}

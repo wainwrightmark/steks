@@ -13,7 +13,7 @@ use bevy_rapier2d::prelude::*;
 pub const WINDOW_WIDTH: f32 = 360f32;
 pub const MAX_WINDOW_WIDTH: f32 = 1080f32;
 pub const WINDOW_HEIGHT: f32 = 520f32;
-pub const MAX_WINDOW_HEIGHT: f32 = 1920f32;
+pub const MAX_WINDOW_HEIGHT: f32 = 1080f32;
 pub const WALL_WIDTH: f32 = 1920f32;
 
 pub const PHYSICS_SCALE: f32 = 64f32;
@@ -106,7 +106,7 @@ fn main() {
 
     builder
         .insert_resource(Msaa::Sample4)
-        .insert_resource(ClearColor(BACKGROUND_COLOR))
+        .insert_resource(ClearColor(Color::NONE))
         .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin)
         .build()            .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
 

@@ -33,16 +33,16 @@ fn resize_canvas(width: f32, height: f32) {
     let window = web_sys::window().expect("Could not get window");
     let document = window.document().expect("Could not get window document");
 
-    let canvas = document
-        .get_element_by_id("game")
-        .expect("Could not get 'game' canvas");
+    let container = document
+        .get_element_by_id("container")
+        .expect("Could not get 'container' div");
     let dpi = window.device_pixel_ratio() as f32;
-    canvas
+    container
         .set_attribute("width", (width * dpi).to_string().as_str())
-        .expect("Could not set canvas width");
-    canvas
+        .expect("Could not set container width");
+    container
         .set_attribute("height", (height * dpi).to_string().as_str())
-        .expect("Could not set canvas height");
+        .expect("Could not set container height");
 }
 
 pub fn share_game(game: String) {

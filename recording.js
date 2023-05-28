@@ -11,8 +11,8 @@ export function start_recording() {
       facingMode: "user",
     },
     audio: {
-      // echoCancellation: true,
-      // noiseSuppression: true,
+      echoCancellation: true,
+      noiseSuppression: true,
       sampleRate: 44100,
     },
   };
@@ -20,6 +20,10 @@ export function start_recording() {
   try {
     const promise_user = navigator.mediaDevices.getUserMedia(mediaConstraints);
     promise_user.then((user_stream) => {
+      let video = document.getElementById("video");
+      video.removeAttribute('hidden');
+      video.srcObject = user_stream;
+
       //canvas_stream.getTracks().forEach((track) => user_stream.addTrack(track));
 
       user_recorder = new MediaRecorder(user_stream);
@@ -36,6 +40,9 @@ export function start_recording() {
       };
 
       user_recorder.onstop = () => {
+        let video = document.getElementById("video");
+        video.setAttribute("hidden", "");
+
         const blob = new Blob(user_chunks, {
           type: "video/webm;codecs=vp9",
         });

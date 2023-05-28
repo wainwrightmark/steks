@@ -1,9 +1,9 @@
 let user_recorder = null;
 let canvas_recorder = null;
-let user_chunks = [];
-let canvas_chunks = [];
 
 export async function start_recording() {
+  let user_chunks = [];
+  let canvas_chunks = [];
   console.log("Start Recording");
 
   const mediaConstraints = {
@@ -18,7 +18,6 @@ export async function start_recording() {
   };
 
   try {
-
     const canvas = document.getElementById("game");
     const canvas_stream = canvas.captureStream(30);
     canvas_recorder = new MediaRecorder(canvas_stream);
@@ -37,10 +36,10 @@ export async function start_recording() {
       });
 
       canvas_chunks = [];
+      canvas_recorder = null;
       console.log("Canvas Recording Stopped");
       saveFile("steks_canvas_recording.mpeg", blob);
     };
-
 
     const promise_user = navigator.mediaDevices.getUserMedia(mediaConstraints);
 
@@ -73,16 +72,13 @@ export async function start_recording() {
       });
 
       user_chunks = [];
+      user_recorder = null;
       console.log("User Recording Stopped");
       saveFile("steks_user_recording.mpeg", blob);
     };
 
-
-
-
     canvas_recorder.start(200);
     user_recorder.start(200);
-
   } catch (error) {
     console.error(error);
   }

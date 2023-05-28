@@ -25,6 +25,11 @@ reqwest = { version = "0.11",default-features = false, features = ["json"] }
 capacitor_bindings = { version = "0.7.0", features = ["web"] }
 bevy_embedded_assets = "0.7.0"
 
+[dependencies.web-sys]
+version = "0.3"
+features = ["Url"
+]
+
 [target.wasm32-unknown-unknown]
 runner = "wasm-server-runner"
 
@@ -115,3 +120,8 @@ features = [
 #   "trace_chrome", # Tracing using the Chrome format
 #   "wgpu_trace",   # WGPU/rendering tracing
 ]
+
+[features]
+web =["capacitor_bindings/web"]
+android = ["capacitor_bindings/android"]
+ios = ["capacitor_bindings/ios"]

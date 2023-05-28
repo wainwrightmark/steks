@@ -1,5 +1,5 @@
 use bevy::log;
-use capacitor_bindings::device::{Device, DeviceId, DeviceInfo, OperatingSystem, Platform};
+use capacitor_bindings::{device::{Device, DeviceId, DeviceInfo, OperatingSystem, Platform}, app::AppInfo};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum::EnumDiscriminants;
@@ -102,13 +102,21 @@ pub struct LogAppInfo {
     version: String,
 }
 
+impl From<AppInfo> for LogAppInfo{
+    fn from(value: AppInfo) -> Self {
+        Self { build: value.build, version: value.version }
+    }
+}
+
 impl LogAppInfo {
     pub async fn try_get_async() -> Option<LogAppInfo> {
+
         #[cfg(any(feature = "android", feature = "ios"))]
         {
-            crate::web::capacitor::get_or_log_error_async(capacitor_bindings::app::App::get_info)
-                .await
-                .map(|x| x.into())
+            capacitor_bindings::app::App::get_info().await.ok().map(|x|x.into())
+            // crate::capacitor_bindings::get_or_log_error_async()
+            //     .await
+            //     .map(|x| x.into())
         }
         #[cfg(not(any(feature = "android", feature = "ios")))]
         {

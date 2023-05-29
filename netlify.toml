@@ -9,7 +9,7 @@
 
 [build]
   publish = "dist"
-  command = "cargo install trunk --force && trunk build index.html --release"
+  command = "cargo install trunk --force --locked && trunk build index.html --release"
 
 
 [context.production]

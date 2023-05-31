@@ -17,11 +17,9 @@ pub fn create_level_shapes(
     mut event_writer: EventWriter<SpawnNewShapeEvent>,
 ) {
     let shapes: Vec<FixedShape> = match level {
-        GameLevel::Tutorial {
-            index: _,
-            text: _,
-            shapes,
-        } => shapes,
+        GameLevel::SetLevel {
+            level,..
+        } => level.shapes.iter().map(|&x|x.into()).collect_vec(),
         GameLevel::Infinite {
             starting_shapes,
             seed,

@@ -190,16 +190,6 @@ fn has_touch() -> bool {
     navigator.max_touch_points() > 0
 }
 
-fn check_touch(mut input_detector: ResMut<InputDetector>) {
-    if has_touch() {
-        debug!("Touch capability detected");
-        input_detector.is_touch = true;
-        //spawn_local(async {capacitor_bindings::toast::Toast::show("Touch detected").await.unwrap()});
-    } else {
-        debug!("Touch capability not detected");
-        //spawn_local(async {capacitor_bindings::toast::Toast::show("Touch not detected").await.unwrap()});
-    }
-}
 
 fn load_from_url_on_startup(mut ev: EventWriter<ChangeLevelEvent>) {
     match get_game_from_location() {
@@ -259,7 +249,6 @@ impl Plugin for WASMPlugin {
 
         app.add_system(resizer);
         app.add_startup_system(load_from_url_on_startup);
-        app.add_startup_system(check_touch.in_base_set(StartupSet::PostStartup));
         app.add_startup_system(remove_spinner.in_base_set(StartupSet::PostStartup));
     }
 }

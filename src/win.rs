@@ -51,10 +51,9 @@ pub fn check_for_win(
             commands.entity(timer_entity).despawn();
 
             match &level.0 {
-                GameLevel::Tutorial {
+                GameLevel::SetLevel {
                     index,
-                    text: _,
-                    shapes: _,
+                    ..
                 } => {
                     let title = format!("steks tutorial {}", index);
                     screenshot_events.send(SaveSVGEvent { title });

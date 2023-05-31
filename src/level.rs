@@ -1,7 +1,7 @@
-use std::f32::consts;
 use std::time::Duration;
 
-use crate::shape_maker::SpawnNewShapeEvent;
+use crate::set_level::get_set_level;
+use crate::{shape_maker::SpawnNewShapeEvent, set_level::SetLevel};
 use crate::*;
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
@@ -25,7 +25,6 @@ pub fn handle_change_level(
     mut change_level_events: EventReader<ChangeLevelEvent>,
     draggables: Query<(Entity, With<Draggable>)>,
     mut current_level: ResMut<CurrentLevel>,
-    input_detector: Res<InputDetector>,
     level_ui: Query<Entity, With<LevelUI>>,
     asset_server: Res<AssetServer>,
     mut pkv: ResMut<PkvStore>,
@@ -36,7 +35,7 @@ pub fn handle_change_level(
             commands.entity(e).despawn_recursive();
         }
 
-        current_level.0 = event.apply(&current_level.0, &mut pkv, input_detector);
+        current_level.0 = event.apply(&current_level.0, &mut pkv);
 
         level::start_level(
             commands,
@@ -90,14 +89,6 @@ fn start_level(
         builder.despawn_descendants();
 
         if let Some(text) = level.get_text() {
-
-
-        // #[cfg(target_arch = "wasm32")]
-        // {
-        //     let text = text.clone();
-        //     wasm_bindgen_futures::spawn_local(async move{capacitor_bindings::toast::Toast::show(text).await.unwrap();})
-        //     ;
-        // }
 
             builder.with_children(|parent| {
                 const LEVEL_TEXT_SECONDS: u64 = 20;
@@ -180,11 +171,10 @@ pub struct CurrentLevel(pub GameLevel);
 impl GameLevel {
     pub fn get_text(&self) -> Option<String> {
         match self {
-            GameLevel::Tutorial {
-                index: _,
-                text,
-                shapes: _,
-            } => Some(text.to_string()),
+            GameLevel::SetLevel {
+                level,
+                ..
+            } => Some(level.text.to_string()),
             GameLevel::Infinite {
                 starting_shapes: _,
                 seed: _,
@@ -209,10 +199,9 @@ impl GameLevel {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameLevel {
-    Tutorial {
+    SetLevel {
         index: u8,
-        text: &'static str,
-        shapes: Vec<FixedShape>,
+        level: SetLevel
     },
     Infinite {
         starting_shapes: usize,
@@ -230,7 +219,7 @@ pub enum GameLevel {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LevelData {
-    Tutorial { index: u8 },
+    SetLevel { index: u8 },
     Infinite { starting_shapes: usize, seed: u64 },
     SavedInfinite { seed: u64 },
     Challenge,
@@ -240,7 +229,7 @@ pub enum LevelData {
 impl From<GameLevel> for LevelData {
     fn from(value: GameLevel) -> Self {
         match value {
-            GameLevel::Tutorial { index, .. } => Self::Tutorial { index },
+            GameLevel::SetLevel { index, .. } => Self::SetLevel { index },
             GameLevel::Infinite {
                 starting_shapes,
                 seed,
@@ -257,51 +246,11 @@ impl From<GameLevel> for LevelData {
 
 impl Default for GameLevel {
     fn default() -> Self {
-        Self::get_tutorial_level(0, false)
+        get_set_level(0).unwrap()
     }
 }
 
 impl GameLevel {
-    pub fn get_tutorial_level(index: u8, allow_touch: bool) -> Self {
-        match index{
-            0=> GameLevel::Tutorial { index: 0, text: "Welcome to steks!\r\nThe game where you build towers\r\nPut the square on the triangle", shapes:
-            vec![
-                    FixedShape::by_name("Triangle").with_location(Vec2::new(0.0, -100.0), consts::TAU * 0.125).lock(),
-                    FixedShape::by_name("O").with_location(Vec2::new(100.0, -100.0), 0.0),
-
-                ]
-        },
-        1 => GameLevel::Tutorial { index: 1, text: "Move the circle\r\nHold in place for a moment to lock it\r\nYou can only lock one shape", shapes: vec![
-            FixedShape::by_name("Circle"),
-
-] },    2 => GameLevel::Tutorial { index: 2, text:
-    if allow_touch{
-        "You'll need to rotate that triangle\r\nUnlock it and rotate it\r\nUse a second finger"
-    }else{
-        "You'll need to rotate that triangle\r\nUnlock it and rotate it\r\nUse Q/E or the mouse wheel"
-    }
-
-    , shapes: vec![
-        FixedShape::by_name("Triangle").with_location(Vec2::new(0.0, -100.0), consts::TAU * 0.625).lock(),
-        FixedShape::by_name("O").with_location(Vec2::new(100.0, -100.0), 0.0),
-
-] },
-3 => GameLevel::Tutorial { index: 3, text:
-    "Build a tower with all the shapes\r\nHave Fun!"
-
-    , shapes: vec![
-        FixedShape::by_name("U"),
-        FixedShape::by_name("U"),
-        FixedShape::by_name("N"),
-        FixedShape::by_name("T"),
-
-] },
-
-        Self::TUTORIAL_LEVELS.. => GameLevel::Challenge
-        }
-    }
-
-    pub const TUTORIAL_LEVELS: u8 = 4;
 
     pub const CHALLENGE_SHAPES: usize = 10;
     pub const INFINITE_SHAPES: usize = 4;
@@ -323,18 +272,19 @@ impl ChangeLevelEvent {
     pub fn apply(
         &self,
         level: &GameLevel,
-        pkv: &mut ResMut<PkvStore>, //TODO remove
-        input_detector: Res<InputDetector>,
+        pkv: &mut ResMut<PkvStore>,
     ) -> GameLevel {
-        //info!("Change level {:?}", self);
         match self {
             ChangeLevelEvent::Next => match level {
-                GameLevel::Tutorial {
+                GameLevel::SetLevel {
                     index,
-                    text: _,
-                    shapes: _,
+                    ..
                 } => {
-                    if *index > GameLevel::TUTORIAL_LEVELS {
+
+                    if let Some(next) = get_set_level(index.saturating_add(1)){
+                        return next;
+                    }
+                    else{
                         let saved_data = SavedData::update(pkv, |mut x| {
                             x.tutorial_finished = true;
                             x
@@ -347,8 +297,6 @@ impl ChangeLevelEvent {
                         } else {
                             GameLevel::Challenge
                         }
-                    } else {
-                        GameLevel::get_tutorial_level(*index + 1, input_detector.is_touch)
                     }
                 }
                 GameLevel::Infinite {
@@ -373,28 +321,13 @@ impl ChangeLevelEvent {
                     seed: rand::thread_rng().next_u64(),
                 },
             },
-            // ChangeLevelEvent::Previous => GameLevel {
-            //     shapes: level.shapes.saturating_sub(1).max(1),
-            //     level_type: level.level_type,
-            // },
             ChangeLevelEvent::ResetLevel => level.clone(),
-            ChangeLevelEvent::StartTutorial => GameLevel::get_tutorial_level(0, false),
+            ChangeLevelEvent::StartTutorial => get_set_level(0).unwrap(),
             ChangeLevelEvent::StartInfinite => {
                 GameLevel::Infinite {
                     starting_shapes: GameLevel::INFINITE_SHAPES,
                     seed: rand::thread_rng().next_u64(),
                 }
-                // if matches!(level, GameLevel::ChallengeComplete(_)) {
-                //     GameLevel {
-                //         shapes: level.shapes + 1,
-                //         level_type: GameLevel::Infinite,
-                //     }
-                // } else {
-                //     GameLevel {
-                //         shapes: 5,
-                //         level_type: GameLevel::Infinite,
-                //     }
-                // }
             }
             ChangeLevelEvent::StartChallenge => GameLevel::Challenge,
             ChangeLevelEvent::Load(data) => GameLevel::SavedInfinite {

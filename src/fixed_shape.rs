@@ -9,7 +9,7 @@ pub struct FixedShape {
     pub fixed_velocity: Option<Velocity>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Location {
     pub position: Vec2,
     /// angle in radians

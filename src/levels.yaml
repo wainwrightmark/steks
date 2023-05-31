@@ -1,0 +1,29 @@
+- text: "Welcome to steks!\r\nThe game where you build towers\r\nPut the square on the triangle"
+  shapes:
+    - shape: Triangle
+      x: 0.0
+      y: -100.0
+      r: 0.125
+      locked: true
+    - shape: O4
+      x: 100
+      y: -100
+- text: "Move the circle\r\nHold in place for a moment to lock it\r\nYou can only lock one shape"
+  shapes:
+    - shape: Circle
+- text: "You'll need to rotate that triangle\r\nUnlock it and rotate it\r\nUse Q/E, the mousewheel, or another finger"
+  shapes:
+    - shape: Triangle
+      x: 0.0
+      y: -100.0
+      r: 0.625
+      locked: true
+    - shape: O4
+      x: 100
+      y: -100
+- text: "Build a tower with all the shapes\r\nHave Fun!"
+  shapes:
+    - shape: U5
+    - shape: U5
+    - shape: N5
+    - shape: T5

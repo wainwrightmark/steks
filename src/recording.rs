@@ -1,6 +1,7 @@
 use std::thread::{Thread, spawn};
 
 use bevy::{prelude::{EventReader, Plugin, ResMut, Resource, Query, Res, DetectChanges, Children}, text::Text};
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::spawn_local;
 
 use crate::menu::MenuButton;
@@ -33,12 +34,13 @@ pub fn handle_record_events(mut er: EventReader<RecordEvent>, mut state: ResMut<
         match ev {
             RecordEvent::Start => {
                 *state = RecordingState::Recording;
-
+                #[cfg(target_arch = "wasm32")]
                 spawn_local(async move {crate::wasm::start_recording().await;});
 
             }
             RecordEvent::Stop => {
                 *state = RecordingState::NotRecording;
+                #[cfg(target_arch = "wasm32")]
                 crate::wasm::stop_recording()
             }
         }

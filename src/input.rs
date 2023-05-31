@@ -9,7 +9,7 @@ use crate::*;
 pub struct InputPlugin;
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(InputDetector::default())
+        app
             .add_system(touch_listener)
             .add_system(keyboard_listener)
             .add_system(mousewheel_listener)
@@ -193,7 +193,4 @@ pub fn mousewheel_listener(
     }
 }
 
-#[derive(Resource, Default)]
-pub struct InputDetector {
-    pub is_touch: bool,
-}
+

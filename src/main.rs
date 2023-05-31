@@ -26,6 +26,7 @@ mod saved_data;
 pub mod share;
 use color::*;
 pub mod padlock;
+pub mod set_level;
 use padlock::*;
 
 use bevy_tweening::TweeningPlugin;
@@ -65,7 +66,6 @@ mod screen_diags;
 
 #[cfg(target_arch = "wasm32")]
 mod logging;
-mod user_state;
 
 //pub const ZOOM_ENTITY_LAYER: u8 = 1;
 

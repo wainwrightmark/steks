@@ -17,7 +17,9 @@ lazy_static::lazy_static! {
     };
 }
 
-
+pub fn set_levels_len()-> usize{
+    LIST.len()
+}
 
 pub fn get_set_level(index: u8) -> Option<GameLevel>
 {

@@ -108,14 +108,14 @@ fn main() {
         .insert_resource(Msaa::Sample4)
         .insert_resource(ClearColor(Color::NONE))
         .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin)
-        .build()            .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
+        .build().add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
 
 
 
 
     )
         .add_plugin(WallsPlugin)
-        .add_plugin(ButtonPlugin)
+        .add_plugin(MenuPlugin)
         .add_plugin(ShapePlugin)
         .add_plugin(InputPlugin)
         .add_plugin(CameraPlugin)

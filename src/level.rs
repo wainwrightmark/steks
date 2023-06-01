@@ -120,27 +120,27 @@ fn start_level(
             });
         }
 
-        if let Some(buttons) = level.get_buttons() {
-            builder.with_children(|x| {
-                x.spawn(NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        align_items: AlignItems::Center,
-                        // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-                        margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
-                        justify_content: JustifyContent::Center,
+        // if let Some(buttons) = level.get_buttons() {
+        //     builder.with_children(|x| {
+        //         x.spawn(NodeBundle {
+        //             style: Style {
+        //                 display: Display::Flex,
+        //                 align_items: AlignItems::Center,
+        //                 // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
+        //                 margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
+        //                 justify_content: JustifyContent::Center,
 
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .with_children(|parent| {
-                    for button in buttons {
-                        spawn_button(parent, button, asset_server.as_ref())
-                    }
-                });
-            });
-        }
+        //                 ..Default::default()
+        //             },
+        //             ..Default::default()
+        //         })
+        //         .with_children(|parent| {
+        //             for button in buttons {
+        //                 spawn_button(parent, button, asset_server.as_ref())
+        //             }
+        //         });
+        //     });
+        // }
     }
 
     shape_maker::create_level_shapes(level, event_writer);
@@ -187,14 +187,14 @@ impl GameLevel {
         }
     }
 
-    pub fn get_buttons(&self) -> Option<Vec<MenuButton>> {
-        match self {
-            GameLevel::ChallengeComplete { streak: _ } => {
-                Some(vec![MenuButton::ShareSaved, MenuButton::Infinite])
-            }
-            _ => Default::default(),
-        }
-    }
+    // pub fn get_buttons(&self) -> Option<Vec<MenuButton>> {
+    //     match self {
+    //         GameLevel::ChallengeComplete { streak: _ } => {
+    //             Some(vec![MenuButton::ShareSaved, MenuButton::Infinite])
+    //         }
+    //         _ => Default::default(),
+    //     }
+    // }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -256,9 +256,10 @@ impl GameLevel {
     pub const INFINITE_SHAPES: usize = 4;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ChangeLevelEvent {
     Next,
+    ChooseLevel(u8),
     // Previous,
     ResetLevel,
     StartTutorial,
@@ -334,6 +335,7 @@ impl ChangeLevelEvent {
                 data: data.clone(),
                 seed: rand::thread_rng().next_u64(),
             },
+            ChangeLevelEvent::ChooseLevel(x) => get_set_level(*x).unwrap(),
         }
     }
 }

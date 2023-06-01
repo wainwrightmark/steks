@@ -602,6 +602,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c4b88451d4c5a353bff67dbaa937b6886efd26ae114769c17f2b35099c7a4de"
 
 [[package]]
+name = "bevy_quickmenu"
+version = "0.1.6"
+source = "git+https://github.com/terhechte/bevy_quickmenu#6d7c3ab06853fadf53e49ffed5ee1c33e973f358"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_rapier2d"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1883,6 +1891,7 @@ dependencies = [
  "color_quant",
  "num-rational",
  "num-traits",
+ "png",
 ]
 
 [[package]]
@@ -3219,6 +3228,7 @@ dependencies = [
  "bevy_embedded_assets",
  "bevy_pkv",
  "bevy_prototype_lyon",
+ "bevy_quickmenu",
  "bevy_rapier2d",
  "bevy_tweening",
  "capacitor_bindings",

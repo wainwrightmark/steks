@@ -6,6 +6,7 @@ use itertools::Itertools;
 
 use crate::{draggable::Draggable, encoding, shape_maker::ShapeIndex};
 
+#[derive(Debug, Clone, Copy)]
 pub struct ShareEvent;
 
 pub struct SharePlugin;
@@ -57,6 +58,7 @@ pub struct SaveSVGEvent {
     pub title: String,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct ShareSavedSvgEvent;
 
 #[derive(Resource, Default)]

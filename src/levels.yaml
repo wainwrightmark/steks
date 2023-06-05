@@ -8,9 +8,9 @@
     - shape: O4
       x: 100
       y: -100
-- text: "Move the circle\r\nHold in place for a moment to lock it\r\nYou can only lock one shape"
+- text: "Move the Square\r\nHold in place for a moment to lock it\r\nYou can only lock one shape"
   shapes:
-    - shape: Circle
+    - shape: O4
 - text: "You'll need to rotate that triangle\r\nUnlock it and rotate it\r\nUse Q/E, the mousewheel, or another finger"
   shapes:
     - shape: Triangle
@@ -21,9 +21,249 @@
     - shape: O4
       x: 100
       y: -100
-- text: "Build a tower with all the shapes\r\nHave Fun!"
+- text: "Level 4"
   shapes:
     - shape: U5
     - shape: U5
-    - shape: N5
+    - shape: U5
+- text: "Level 5"
+  shapes:
+    - shape: O4
+    - shape: L4
+    - shape: L4
+
+- text: "Level 6"
+  shapes:
+    - shape: S4
+    - shape: S4
+    - shape: Z4
+
+- text: "Level 7"
+  shapes:
+    - shape: S4
+    - shape: S4
+    - shape: Z4
+    - shape: Z4
+
+- text: "Level 8"
+  shapes:
+    - shape: J4
+    - shape: L4
+    - shape: S4
+    - shape: Triangle
+
+- text: "Level 9"
+  shapes:
+    - shape: P5
     - shape: T5
+    - shape: U5
+    - shape: N5
+
+- text: "Level 10"
+  shapes:
+    - shape: W5
+    - shape: X5
+    - shape: F5
+    - shape: Z5
+
+- text: "Four triangles"
+  shapes:
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+
+- text: "Level 12"
+  shapes:
+    - shape: I5
+    - shape: L5
+    - shape: L5
+    - shape: P5
+    - shape: U5
+
+- text: "Level 13"
+  shapes:
+    - shape: I5
+    - shape: L4
+    - shape: J4
+    - shape: P5
+    - shape: U5
+
+- text: "Level 14"
+  shapes:
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+
+- text: "Level 15"
+  shapes:
+    - shape: O4
+    - shape: F5
+    - shape: I5
+    - shape: T4
+    - shape: S4
+    - shape: Z4
+
+- text: "Level 16"
+  shapes:
+    - shape: L4
+    - shape: L4
+    - shape: J4
+    - shape: V5
+    - shape: Triangle
+    - shape: U5
+
+- text: "Level 17"
+  shapes:
+    - shape: P5
+    - shape: F5
+    - shape: Y5
+    - shape: T4
+    - shape: S4
+    - shape: Z4
+
+- text: "Level 18"
+  shapes:
+    - shape: O4
+    - shape: I4
+    - shape: X5
+    - shape: W5
+    - shape: Circle
+    - shape: U5
+
+- text: "Level 19"
+  shapes:
+    - shape: O4
+    - shape: I4
+    - shape: P5
+    - shape: I5
+    - shape: Circle
+    - shape: O4
+
+- text: "Eight"
+  shapes:
+    - shape: Triangle
+    - shape: O4
+    - shape: T5
+    - shape: T5
+    - shape: U5
+    - shape: I4
+    - shape: L4
+    - shape: L5
+
+- text: "Excess!"
+  shapes:
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+
+- text: "Hugs and kisses!"
+  shapes:
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: O4
+    - shape: O4
+    - shape: O4
+    - shape: O4
+
+
+- text: "Level is level"
+  shapes:
+    - shape: P5
+    - shape: F5
+    - shape: S4
+    - shape: Y5
+    - shape: L4
+    - shape: T4
+    - shape: J4
+    - shape: J4
+
+- text: "Double Trouble!"
+  shapes:
+    - shape: T5
+    - shape: T5
+    - shape: P5
+    - shape: P5
+    - shape: F5
+    - shape: F5
+    - shape: W5
+    - shape: W5
+
+- text: "Circle is back"
+  shapes:
+    - shape: O4
+    - shape: O4
+    - shape: O4
+    - shape: J4
+    - shape: L4
+    - shape: T4
+    - shape: W5
+    - shape: Circle
+
+- text: "Circular logic"
+  shapes:
+    - shape: L4
+    - shape: T4
+    - shape: T5
+    - shape: I4
+    - shape: I5
+    - shape: X5
+    - shape: Circle
+    - shape: Circle
+
+- text: "Oh no more triangles"
+  shapes:
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+
+- text: "Build a tower with all the shapes\r\nHave Fun!"
+  shapes:
+    - shape: Circle
+    - shape: Triangle
+    - shape: U5
+    - shape: U5
+    - shape: N5
+    - shape: T4
+    - shape: U5
+    - shape: U5
+    - shape: N5
+    - shape: T4
+    - shape: L4
+    - shape: L4
+    - shape: L4
+    - shape: L4
+    - shape: L5
+    - shape: L5
+    - shape: L5
+    - shape: L5
+    - shape: L5
+    - shape: O4
+    - shape: O4
+    - shape: F5
+    - shape: I5
+    - shape: N5
+    - shape: P5
+    - shape: T5
+    - shape: V5
+    - shape: W5
+    - shape: X5
+    - shape: Y5
+    - shape: Z5
+    - shape: O4
+    - shape: T4
+    - shape: J4
+    - shape: S4
+    - shape: Z4
+
+

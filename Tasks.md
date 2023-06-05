@@ -37,7 +37,7 @@
 - [ ] Prettier countdown timer
 - [x] Shapes should have rounded corners
 - [x] Prettier colors
-- [ ] Different print options
+- [ ] Different shape print options
 - [x] Take a screenshot after finishing level
 - [ ] Infinite mode should remember where you got to
 - [x] Walls should change color when you collide
@@ -45,7 +45,7 @@
 - [ ] Undo button - goes back to just before the last piece you picked up
 - [x] Show buttons in challenge complete screen
 - [ ] Gallery Screen
-- [ ] Real share button
+- [x] Real share button
 - [x] Shared image should be smaller
 - [x] Walls should move with the screen size
 - [ ] Achievements
@@ -53,7 +53,7 @@
 - [x] Better loading screen
 
 - [x] Win detection
-- [ ] Campaign mode
+- [x] Campaign mode
 - [x] Infinite mode 
 - [ ] Stats tracking
 - [ ] Speedrun mode
@@ -63,4 +63,14 @@
 
 - [x] WASM deploy
 - [ ] Sounds
-- [ ] Logo, Icon, etc
+- [x] Logo, Icon, etc
+
+
+
+- [ ] Big refactor
+- [ ] Menu icons + hover
+- [ ] End of level - see percentage of tallest tower, next level, share, retry
+- [ ] Show height in top right corner
+- [ ] Use joints instead of dragging
+- [ ] Make locking
+- [ ] Spirit level

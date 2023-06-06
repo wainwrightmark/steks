@@ -1,5 +1,5 @@
 use crate::{
-    recording::RecordEvent,
+    //recording::RecordEvent,
     set_level::set_levels_len,
     share::{ShareEvent, ShareSavedSvgEvent},
     *,
@@ -58,8 +58,8 @@ pub enum MenuAction {
     DailyChallenge,
     ShareSaved,
     Share,
-    StartRecording,
-    StopRecording,
+    // StartRecording,
+    // StopRecording,
     SelectLevel(u8),
 }
 
@@ -92,8 +92,8 @@ impl MenuAction {
             MenuAction::DailyChallenge => "Challenge",
             MenuAction::ShareSaved => "Share",
             MenuAction::Share => "Share",
-            MenuAction::StartRecording => "Start",
-            MenuAction::StopRecording => "Stop",
+            // MenuAction::StartRecording => "Start",
+            // MenuAction::StopRecording => "Stop",
             MenuAction::SelectLevel(_) => "Level",
         }
     }
@@ -124,11 +124,11 @@ fn root_menu(state: &SteksMenuState) -> Menu<Screens> {
                 MenuAction::Infinite.to_menu_item(state),
                 MenuAction::DailyChallenge.to_menu_item(state),
                 MenuAction::Share.to_menu_item(state),
-                if state.recording {
-                    MenuAction::StopRecording.to_menu_item(state)
-                } else {
-                    MenuAction::StartRecording.to_menu_item(state)
-                },
+                // if state.recording {
+                //     MenuAction::StopRecording.to_menu_item(state)
+                // } else {
+                //     MenuAction::StartRecording.to_menu_item(state)
+                // },
                 MenuItem::screen("Levels", Screens::Level),
 
             ],
@@ -177,7 +177,7 @@ pub enum MenuEvent {
     ChangeLevel(ChangeLevelEvent),
     ShareSaved(ShareSavedSvgEvent),
     Share(ShareEvent),
-    Record(RecordEvent),
+    //Record(RecordEvent),
 }
 
 impl From<ChangeLevelEvent> for MenuEvent {
@@ -195,11 +195,11 @@ impl From<ShareEvent> for MenuEvent {
         Self::Share(value)
     }
 }
-impl From<RecordEvent> for MenuEvent {
-    fn from(value: RecordEvent) -> Self {
-        Self::Record(value)
-    }
-}
+// impl From<RecordEvent> for MenuEvent {
+//     fn from(value: RecordEvent) -> Self {
+//         Self::Record(value)
+//     }
+// }
 
 #[derive(Debug, Clone, PartialEq, Eq, Resource)]
 pub struct SteksMenuState {
@@ -229,14 +229,14 @@ impl ActionTrait for MenuAction {
             MenuAction::Share => event_writer.send(ShareEvent.into()),
             MenuAction::ShareSaved => event_writer.send(ShareSavedSvgEvent.into()),
 
-            MenuAction::StartRecording => {
-                event_writer.send(RecordEvent::Start.into());
-                state.recording = true;
-            }
-            MenuAction::StopRecording => {
-                event_writer.send(RecordEvent::Stop.into());
-                state.recording = false;
-            }
+            // MenuAction::StartRecording => {
+            //     event_writer.send(RecordEvent::Start.into());
+            //     state.recording = true;
+            // }
+            // MenuAction::StopRecording => {
+            //     event_writer.send(RecordEvent::Stop.into());
+            //     state.recording = false;
+            // }
             MenuAction::OpenMenu => {
                 state.open = true;
                 return;
@@ -257,14 +257,14 @@ fn forward_events(
     mut change_level_events: EventWriter<ChangeLevelEvent>,
     mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
     mut share_events: EventWriter<ShareEvent>,
-    mut recording_events: EventWriter<RecordEvent>,
+    //mut recording_events: EventWriter<RecordEvent>,
 ) {
     for ev in menu_events.into_iter() {
         match ev.clone() {
             MenuEvent::ChangeLevel(x) => change_level_events.send(x),
             MenuEvent::ShareSaved(x) => share_saved_events.send(x),
             MenuEvent::Share(x) => share_events.send(x),
-            MenuEvent::Record(x) => recording_events.send(x),
+            //MenuEvent::Record(x) => recording_events.send(x),
         }
     }
 }

@@ -24,7 +24,6 @@ pub mod encoding;
 pub mod fixed_shape;
 mod saved_data;
 pub mod share;
-use color::*;
 pub mod padlock;
 pub mod set_level;
 use padlock::*;
@@ -32,7 +31,7 @@ use padlock::*;
 use bevy_tweening::TweeningPlugin;
 use camera::*;
 use draggable::*;
-use recording::RecordingPlugin;
+//use recording::RecordingPlugin;
 use saved_data::*;
 mod level;
 use level::*;
@@ -106,7 +105,7 @@ fn main() {
 
     builder
         .insert_resource(Msaa::Sample4)
-        .insert_resource(ClearColor(Color::NONE))
+        .insert_resource(ClearColor(Color::hsl(217., 0.7,0.72)))
         .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin)
         .build().add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
 
@@ -130,7 +129,7 @@ fn main() {
         .add_plugin(SharePlugin)
         .add_plugin(CollisionPlugin)
         .add_plugin(PadlockPlugin)
-        .add_plugin(RecordingPlugin)
+        //.add_plugin(RecordingPlugin)
 
         .insert_resource(PkvStore::new("Wainwrong", "steks"))
         // .insert_resource(WinitSettings {

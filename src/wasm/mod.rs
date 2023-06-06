@@ -228,14 +228,14 @@ fn remove_spinner() {
 
 
 
-#[wasm_bindgen(module="/recording.js")]
-extern "C" {
-    #[wasm_bindgen()]
-    pub async fn start_recording();
+// #[wasm_bindgen(module="/recording.js")]
+// extern "C" {
+//     #[wasm_bindgen()]
+//     pub async fn start_recording();
 
-    #[wasm_bindgen()]
-    pub fn stop_recording();
-}
+//     #[wasm_bindgen()]
+//     pub fn stop_recording();
+// }
 
 
 pub struct WASMPlugin;

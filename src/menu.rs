@@ -1,56 +1,294 @@
+use std::default;
+
+use strum::Display;
+
 use crate::{
-    //recording::RecordEvent,
-    set_level::set_levels_len,
+    set_level::SetLevel,
     share::{ShareEvent, ShareSavedSvgEvent},
     *,
 };
-use bevy::utils::HashMap;
-use bevy_quickmenu::{
-    style::{StyleEntry, Stylesheet},
-    *,
-};
-
-use itertools::Itertools;
 use ChangeLevelEvent;
-pub struct MenuPlugin;
+pub struct ButtonPlugin;
 
-impl Plugin for MenuPlugin {
+impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
-        let options = MenuOptions {
-            font: Some("fonts/FiraMono-Medium.ttf"),
-            ..Default::default()
-        };
-
-        app.add_event::<MenuEvent>()
-            .add_plugin(QuickMenuPlugin::<Screens>::with_options(options))
-            .add_startup_system(menu_setup)
-            .add_system(forward_events);
+        app.init_resource::<MenuState>()
+            .add_startup_system(setup.after(setup_level_ui))
+            .add_system(button_system.in_base_set(CoreSet::First))
+            .add_system(handle_menu_state_changes);
     }
 }
 
-/// All possible screens in our example
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
-enum Screens {
-    Root,
-    Level,
+#[derive(Component, PartialEq, Eq, Clone, Copy)]
+pub enum MenuComponent {
+    MenuHamburger,
+    MainMenu,
+    Levels,
 }
 
-/// Map from from `Screens` to the actual menu
-impl ScreenTrait for Screens {
-    type Action = MenuAction;
-    type State = SteksMenuState;
-    fn resolve(&self, state: &SteksMenuState) -> Menu<Screens> {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource)]
+pub enum MenuState {
+    #[default]
+    Closed,
+    MenuOpen,
+    LevelsOpen,
+}
+
+impl MenuState {
+    pub fn toggle_menu(&mut self) {
         match self {
-            Screens::Root => root_menu(state),
-            Screens::Level => level_menu(state),
+            MenuState::Closed => *self = MenuState::MenuOpen,
+            MenuState::MenuOpen => *self = MenuState::Closed,
+            MenuState::LevelsOpen => *self = MenuState::Closed,
+        }
+    }
+
+    pub fn toggle_levels(&mut self) {
+        match self {
+            MenuState::Closed => *self = MenuState::LevelsOpen,
+            MenuState::MenuOpen => *self = MenuState::LevelsOpen,
+            MenuState::LevelsOpen => *self = MenuState::Closed,
+        }
+    }
+
+    pub fn close(&mut self) {
+        *self = MenuState::Closed;
+    }
+}
+
+const NORMAL_BUTTON: Color = Color::Rgba {
+    red: 0.0,
+    green: 0.0,
+    blue: 0.0,
+    alpha: 0.0,
+}; //, green: (), blue: (), alpha: () } Color::rgb(0.9, 0.9, 0.9);
+
+const HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.3);
+const PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
+
+const BUTTON_BACKGROUND: Color = Color::rgb(0.1, 0.1, 0.1);
+
+const BUTTON_WIDTH: f32 = 65.;
+const BUTTON_HEIGHT: f32 = 65.;
+
+fn handle_menu_state_changes(
+    menu_state: Res<MenuState>,
+    mut components: Query<(&MenuComponent, &mut Visibility)>,
+) {
+    if menu_state.is_changed() {
+        for (component, mut visibility) in components.iter_mut() {
+            let visible = match (*component, *menu_state) {
+                (MenuComponent::MenuHamburger, _) => true,
+                (MenuComponent::MainMenu, MenuState::Closed) => false,
+                (MenuComponent::MainMenu, MenuState::MenuOpen) => true,
+                (MenuComponent::MainMenu, MenuState::LevelsOpen) => false,
+                (MenuComponent::Levels, MenuState::Closed) => false,
+                (MenuComponent::Levels, MenuState::MenuOpen) => false,
+                (MenuComponent::Levels, MenuState::LevelsOpen) => true,
+            };
+
+            if visible{
+                *visibility = Visibility::Inherited;
+            }else{
+                *visibility =Visibility::Hidden;
+            }
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum MenuAction {
-    OpenMenu,
-    CloseMenu,
+fn button_system(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor, &MenuButton),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut change_level_events: EventWriter<ChangeLevelEvent>,
+    mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
+    mut share_events: EventWriter<ShareEvent>,
+    mut menu_state: ResMut<MenuState>,
+) {
+    for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
+        use MenuButton::*;
+        //info!("{:?}", interaction);
+        match *interaction {
+            Interaction::Clicked => {
+                *bg_color = PRESSED_BUTTON.into();
+                //let mut menu_visibility = menu_query.single_mut();
+
+                //info!("{:?}", *button);
+                match *button {
+                    ToggleMenu => menu_state.as_mut().toggle_menu(),
+                    GoFullscreen => {
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            crate::wasm::request_fullscreen();
+                        }
+                    }
+                    Tutorial => change_level_events.send(ChangeLevelEvent::StartTutorial),
+                    Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
+                    DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
+                    ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
+                    Share => share_events.send(ShareEvent),
+                    ShareSaved => share_saved_events.send(ShareSavedSvgEvent),
+                    GotoLevel { level } => {
+                        change_level_events.send(ChangeLevelEvent::ChooseLevel(level))
+                    }
+                    Levels => menu_state.as_mut().toggle_levels(),
+                }
+
+                match *button {
+                    ToggleMenu | Levels => {}
+                    _ => {
+                        menu_state.as_mut().close();
+                    }
+                }
+            }
+            Interaction::Hovered => {
+                *bg_color = HOVERED_BUTTON.into();
+            }
+            Interaction::None => {
+                *bg_color = NORMAL_BUTTON.into();
+            }
+        }
+    }
+}
+
+fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    left: Val::Px(10.),
+                    top: Val::Px(10. + BUTTON_HEIGHT),
+                    ..Default::default()
+                },
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                ..Default::default()
+            },
+            z_index: ZIndex::Global(10),
+            visibility: Visibility::Hidden,
+            ..Default::default()
+        })
+        .insert(MenuComponent::MainMenu)
+        .with_children(|parent| {
+            use MenuButton::*;
+            let font = asset_server.load("fonts/fontello.ttf");
+            for button in [
+                // ToggleMenu,
+                ResetLevel,
+                #[cfg(target_arch = "wasm32")]
+                GoFullscreen,
+                Tutorial,
+                Infinite,
+                DailyChallenge,
+                #[cfg(target_arch = "wasm32")]
+                ShareSaved,
+                Levels,
+            ] {
+                spawn_button(parent, button, font.clone());
+            }
+        });
+}
+
+fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    left: Val::Px(10. + BUTTON_WIDTH),
+                    top: Val::Px(10. + BUTTON_HEIGHT),
+                    ..Default::default()
+                },
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+                flex_wrap: FlexWrap::Wrap,
+                flex_grow: 0.,
+
+                max_size: Size::width(Val::Px(BUTTON_WIDTH * 5.)),
+
+
+                ..Default::default()
+            },
+            z_index: ZIndex::Global(10),
+            visibility: Visibility::Hidden,
+            ..Default::default()
+        })
+        .insert(MenuComponent::Levels)
+        .with_children(|parent| {
+            let font = asset_server.load("fonts/FiraMono-Medium.ttf");
+            for level in 0..(set_level::set_levels_len() as u8) {
+                spawn_button(parent, MenuButton::GotoLevel { level }, font.clone())
+            }
+        });
+}
+
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    left: Val::Px(10.),
+                    top: Val::Px(10.),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            z_index: ZIndex::Global(10),
+            ..Default::default()
+        })
+        .insert(MenuComponent::MenuHamburger)
+        .with_children(|parent| {
+            let font = asset_server.load("fonts/fontello.ttf");
+            spawn_button(parent, MenuButton::ToggleMenu, font)
+        });
+
+    spawn_menu(&mut commands, asset_server.as_ref());
+    spawn_level_menu(&mut commands, asset_server.as_ref());
+}
+
+pub fn spawn_button(
+    parent: &mut ChildBuilder,
+    menu_button: MenuButton,
+    //asset_server: &AssetServer,
+    font: Handle<Font>
+) {
+    parent
+        .spawn(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Px(BUTTON_WIDTH), Val::Px(BUTTON_HEIGHT)),
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+
+                ..Default::default()
+            },
+            background_color: NORMAL_BUTTON.into(),
+            ..Default::default()
+        })
+        .with_children(|parent| {
+            parent.spawn(TextBundle {
+                text: Text::from_section(
+                    menu_button.text(),
+                    TextStyle {
+                        font,
+                        font_size: 30.0,
+                        color: BUTTON_BACKGROUND,
+                    },
+                ),
+                ..Default::default()
+            });
+        })
+        .insert(menu_button);
+}
+
+#[derive(Component, Clone, Copy, Debug, Display, PartialEq, Eq)]
+pub enum MenuButton {
+    ToggleMenu,
     ResetLevel,
     GoFullscreen,
     Tutorial,
@@ -58,213 +296,24 @@ pub enum MenuAction {
     DailyChallenge,
     ShareSaved,
     Share,
-    // StartRecording,
-    // StopRecording,
-    SelectLevel(u8),
+    Levels,
+    GotoLevel { level: u8 },
 }
 
-impl MenuAction {
-    // pub fn to_icon_name(&self) -> &'static str {
-    //     match self {
-    //         MenuAction::OpenMenu => "menu",
-    //         MenuAction::CloseMenu => "minus",
-    //         MenuAction::ResetLevel => "arrows-cw",
-    //         MenuAction::GoFullscreen => "resize-full-alt",
-    //         MenuAction::Tutorial => "lightbulb",
-    //         MenuAction::Infinite => "infinity",
-    //         MenuAction::DailyChallenge => "award",
-    //         MenuAction::ShareSaved => "share",
-    //         MenuAction::Share => "share",
-    //         MenuAction::StartRecording => "record",
-    //         MenuAction::StopRecording => "stop",
-    //         MenuAction::SelectLevel(_) => "th",
-    //     }
-    // }
-
-    fn name(&self)-> &'static str{
-        match self{
-            MenuAction::OpenMenu => "Menu",
-            MenuAction::CloseMenu => "Menu",
-            MenuAction::ResetLevel => "Reset",
-            MenuAction::GoFullscreen => "Fullscreen",
-            MenuAction::Tutorial => "Tutorial",
-            MenuAction::Infinite => "Infinite",
-            MenuAction::DailyChallenge => "Challenge",
-            MenuAction::ShareSaved => "Share",
-            MenuAction::Share => "Share",
-            // MenuAction::StartRecording => "Start",
-            // MenuAction::StopRecording => "Stop",
-            MenuAction::SelectLevel(_) => "Level",
-        }
-    }
-
-    fn to_menu_item(&self, state: &SteksMenuState) -> MenuItem<Screens> {
-        MenuItem::action(self.name(), self.clone())
-    }
-}
-
-fn level_menu(_state: &SteksMenuState) -> Menu<Screens> {
-    let levels = (0..set_levels_len())
-        .map(|x| MenuItem::action(x.to_string(), MenuAction::SelectLevel(x as u8)))
-        .collect_vec();
-
-    Menu::new("levels", levels)
-}
-
-/// The `root` menu that is displayed first
-fn root_menu(state: &SteksMenuState) -> Menu<Screens> {
-    if state.open {
-        Menu::new(
-            "root-open",
-            vec![
-                MenuAction::CloseMenu.to_menu_item(state),
-                MenuAction::ResetLevel.to_menu_item(state),
-                MenuAction::GoFullscreen.to_menu_item(state),
-                MenuAction::Tutorial.to_menu_item(state),
-                MenuAction::Infinite.to_menu_item(state),
-                MenuAction::DailyChallenge.to_menu_item(state),
-                MenuAction::Share.to_menu_item(state),
-                // if state.recording {
-                //     MenuAction::StopRecording.to_menu_item(state)
-                // } else {
-                //     MenuAction::StartRecording.to_menu_item(state)
-                // },
-                MenuItem::screen("Levels", Screens::Level),
-
-            ],
-        )
-    } else {
-        Menu::new(
-            "root-closed",
-            vec![MenuAction::OpenMenu.to_menu_item(state)],
-        )
-    }
-}
-
-fn menu_setup(mut commands: Commands) {
-    let mut button = StyleEntry::button();
-
-    button.normal.fg = Color::BLACK;
-    button.normal.bg = Color::NONE;
-    button.hover.fg = Color::BLACK;
-    button.hover.bg = Color::GRAY;
-
-    button.selected = button.normal;
-
-    let sheet = Stylesheet {
-        button,
-        label: StyleEntry::label(),
-        headline: StyleEntry::headline(),
-        vertical_spacing: 0f32,
-        style: Default::default(),
-        background: Default::default(),
-    };
-
-
-    let state = SteksMenuState {
-        open: false,
-        recording: false,
-    };
-
-    commands.insert_resource(MenuState::new(state, Screens::Root, Some(sheet)))
-}
-
-#[derive(Component)]
-pub struct MainMenu;
-
-#[derive(Debug, Clone)]
-pub enum MenuEvent {
-    ChangeLevel(ChangeLevelEvent),
-    ShareSaved(ShareSavedSvgEvent),
-    Share(ShareEvent),
-    //Record(RecordEvent),
-}
-
-impl From<ChangeLevelEvent> for MenuEvent {
-    fn from(value: ChangeLevelEvent) -> Self {
-        Self::ChangeLevel(value)
-    }
-}
-impl From<ShareSavedSvgEvent> for MenuEvent {
-    fn from(value: ShareSavedSvgEvent) -> Self {
-        Self::ShareSaved(value)
-    }
-}
-impl From<ShareEvent> for MenuEvent {
-    fn from(value: ShareEvent) -> Self {
-        Self::Share(value)
-    }
-}
-// impl From<RecordEvent> for MenuEvent {
-//     fn from(value: RecordEvent) -> Self {
-//         Self::Record(value)
-//     }
-// }
-
-#[derive(Debug, Clone, PartialEq, Eq, Resource)]
-pub struct SteksMenuState {
-    pub open: bool,
-    pub recording: bool,
-}
-
-
-impl ActionTrait for MenuAction {
-    type State = SteksMenuState;
-    type Event = MenuEvent;
-
-    fn handle(&self, state: &mut Self::State, event_writer: &mut EventWriter<Self::Event>) {
+impl MenuButton {
+    pub fn text(&self) -> String {
+        use MenuButton::*;
         match self {
-            MenuAction::GoFullscreen => {
-                #[cfg(target_arch = "wasm32")]
-                {
-                    crate::wasm::request_fullscreen();
-                }
-            }
-            MenuAction::Tutorial => event_writer.send(ChangeLevelEvent::StartTutorial.into()),
-            MenuAction::Infinite => event_writer.send(ChangeLevelEvent::StartInfinite.into()),
-            MenuAction::DailyChallenge => {
-                event_writer.send(ChangeLevelEvent::StartChallenge.into())
-            }
-            MenuAction::ResetLevel => event_writer.send(ChangeLevelEvent::ResetLevel.into()),
-            MenuAction::Share => event_writer.send(ShareEvent.into()),
-            MenuAction::ShareSaved => event_writer.send(ShareSavedSvgEvent.into()),
-
-            // MenuAction::StartRecording => {
-            //     event_writer.send(RecordEvent::Start.into());
-            //     state.recording = true;
-            // }
-            // MenuAction::StopRecording => {
-            //     event_writer.send(RecordEvent::Stop.into());
-            //     state.recording = false;
-            // }
-            MenuAction::OpenMenu => {
-                state.open = true;
-                return;
-            }
-            MenuAction::CloseMenu => {}
-            MenuAction::SelectLevel(l) => {
-                event_writer.send(ChangeLevelEvent::ChooseLevel(*l).into());
-                state.open = false;
-            }
-        }
-
-        state.open = false;
-    }
-}
-
-fn forward_events(
-    mut menu_events: EventReader<MenuEvent>,
-    mut change_level_events: EventWriter<ChangeLevelEvent>,
-    mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
-    mut share_events: EventWriter<ShareEvent>,
-    //mut recording_events: EventWriter<RecordEvent>,
-) {
-    for ev in menu_events.into_iter() {
-        match ev.clone() {
-            MenuEvent::ChangeLevel(x) => change_level_events.send(x),
-            MenuEvent::ShareSaved(x) => share_saved_events.send(x),
-            MenuEvent::Share(x) => share_events.send(x),
-            //MenuEvent::Record(x) => recording_events.send(x),
+            ToggleMenu => "\u{f0c9}".to_string(),     // "Menu",
+            ResetLevel => "\u{e800}".to_string(),     //"Reset Level",image
+            GoFullscreen => "\u{f0b2}".to_string(),   //"Fullscreen",
+            Tutorial => "\u{e801}".to_string(),       //"Tutorial",
+            Infinite => "\u{e802}".to_string(),       //"Infinite",
+            DailyChallenge => "\u{e803}".to_string(), // "Challenge",
+            Share => "\u{f1e0}".to_string(),          // "Share",
+            ShareSaved => "\u{f1e0}".to_string(),     // "Share",
+            Levels => "\u{e812}".to_string(),// "\u{e812};".to_string(),
+            GotoLevel { level } => format!("{:2}", level + 1),
         }
     }
 }

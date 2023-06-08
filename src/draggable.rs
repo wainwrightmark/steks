@@ -147,16 +147,15 @@ fn apply_forces(
         &mut ExternalForce,
         &Velocity,
         &BeingDragged,
-        &Draggable,
     )>,
 ) {
     // const ROTATION_DAMPING: f32 = 1.0;
     // const ROTATION_STIFFNESS: f32 = 1.0;
 
-    for (transform, mut external_force, velocity, dragged, draggable) in dragged_entities.iter_mut()
+    for (transform, mut external_force, velocity, dragged) in dragged_entities.iter_mut()
     {
         let distance =
-            dragged.desired_position + draggable.get_offset() - transform.translation.truncate();
+            dragged.desired_position - transform.translation.truncate();
 
         let force = (distance * POSITION_STIFFNESS) - (velocity.linvel * POSITION_DAMPING);
 

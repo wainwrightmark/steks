@@ -26,7 +26,7 @@ mod saved_data;
 pub mod share;
 pub mod padlock;
 pub mod set_level;
-use menu_action::MenuActionPlugin;
+//use menu_action::MenuActionPlugin;
 use padlock::*;
 
 use bevy_tweening::TweeningPlugin;
@@ -121,7 +121,7 @@ fn main() {
         .add_plugin(ShapePlugin)
         .add_plugin(InputPlugin)
         .add_plugin(CameraPlugin)
-        .add_plugin(MenuActionPlugin)
+        //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
         ))

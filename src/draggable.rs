@@ -159,7 +159,16 @@ fn apply_forces(
             dragged.desired_position + draggable.get_offset() - transform.translation.truncate();
 
         let force = (distance * POSITION_STIFFNESS) - (velocity.linvel * POSITION_DAMPING);
-        external_force.force = force.clamp_length_max(MAX_FORCE);
+
+        let clamped_force =
+        if force.length() > 0. && velocity.linvel.length() > 0. && force.angle_between(velocity.linvel).abs() > std::f32::consts::FRAC_PI_2  {
+            force // force is in opposite direction to velocity so don't clamp it
+        }
+        else{
+            force.clamp_length_max(MAX_FORCE)
+        };
+
+        external_force.force = clamped_force;
 
         //info!("Applied external force");
     }

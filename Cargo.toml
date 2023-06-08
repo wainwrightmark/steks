@@ -26,8 +26,6 @@ capacitor_bindings = { version = "0.7.0", features = ["web"] }
 bevy_embedded_assets = "0.7.0"
 lazy_static = "1.4.0"
 serde_yaml = "0.9.21"
-bevy_quickmenu = {git= "https://github.com/terhechte/bevy_quickmenu"}
-#rapier2d = { path= "C:/Source/rust/rapier/crates/rapier2d" }
 
 
 
@@ -98,7 +96,7 @@ features = [
   "bevy_ui",            # UI toolkit
 
   # File formats:
-#   "png",
+  # "png",
 #   "hdr",
 #   "vorbis",
 

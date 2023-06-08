@@ -8,7 +8,7 @@ pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup)
+        app.add_startup_system(camera_setup)
             .add_system(show_shadows.in_base_set(CoreSet::PostUpdate))
             .add_system(hide_shadows.in_base_set(CoreSet::PostUpdate))
             .add_system(move_shadows);
@@ -19,7 +19,7 @@ impl Plugin for CameraPlugin {
 pub const ZOOM_LEVEL: f32 = 3.;
 const FAR: f32 = 1000.0;
 
-fn setup(mut commands: Commands) {
+pub fn camera_setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::new_with_far(FAR));
 }
 

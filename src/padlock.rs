@@ -33,6 +33,14 @@ impl PadlockResource {
         matches!(self, PadlockResource::Invisible)
     }
 
+    pub fn is_locked(&self) -> bool {
+        matches!(self, PadlockResource::Locked(..))
+    }
+
+    pub fn is_unlocked(&self) -> bool {
+        matches!(self, PadlockResource::Unlocked(..))
+    }
+
     pub fn has_entity(&self, entity: Entity) -> bool {
         match self {
             PadlockResource::Invisible => false,

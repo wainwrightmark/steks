@@ -154,6 +154,7 @@ pub fn create_shape(
         .insert(GravityScale::default())
         .insert(velocity)
         .insert(Dominance::default())
+        .insert(ExternalForce::default())
         .insert(ColliderMassProperties::default())
         .insert(draggable)
         .insert(transform)

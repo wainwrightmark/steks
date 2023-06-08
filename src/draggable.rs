@@ -1,3 +1,6 @@
+use bevy::render::texture::CompressedImageFormats;
+use bevy_rapier2d::rapier::prelude::ImpulseJointSet;
+
 use crate::*;
 
 pub struct DragPlugin;
@@ -12,10 +15,12 @@ impl Plugin for DragPlugin {
             )
             .add_system(
                 drag_move
+                    .in_base_set(CoreSet::Update)
                     .after(input::mousebutton_listener)
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
+            .add_system(assign_padlock)
             .add_system(
                 handle_rotate_events
                     .after(input::keyboard_listener)
@@ -28,13 +33,8 @@ impl Plugin for DragPlugin {
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
-            .add_system(
-                translate_desired
-                    .in_base_set(CoreSet::Update)
-                    .after(drag_move)
-                    .before(handle_drag_changes),
-            )
-            .add_system(handle_drag_changes.in_base_set(CoreSet::Update))
+            .add_system(apply_forces.after(handle_rotate_events))
+            .add_system(handle_drag_changes.after(apply_forces))// .in_base_set(CoreSet::PostUpdate))
             .add_event::<RotateEvent>()
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()
@@ -43,15 +43,17 @@ impl Plugin for DragPlugin {
     }
 }
 
-pub const MAX_VELOCITY: f32 = 1000.0;
-// pub const LOCK_VELOCITY: f32 = 50.0;
+//pub const MAX_VELOCITY: f32 = 1000.0;
+pub const LOCK_VELOCITY: f32 = 50.0;
 
 fn handle_rotate_events(
     mut ev_rotate: EventReader<RotateEvent>,
-    mut dragged: Query<(&mut Transform, &Draggable)>,
+    mut dragged: Query<(&mut Transform, &BeingDragged)>,
 ) {
     for ev in ev_rotate.iter() {
-        for (mut rb, _) in dragged.iter_mut().filter(|x| x.1.is_dragged()) {
+        for (mut rb,_) in dragged.iter_mut() {
+            info!("Rotate Event");
+            //bd.desired_rotation = rb.rotation*  Quat::from_rotation_z(ev.angle);
             rb.rotation *= Quat::from_rotation_z(ev.angle);
             if let Some(multiple) = ev.snap_resolution {
                 rb.rotation = round_z(rb.rotation, multiple);
@@ -79,9 +81,7 @@ pub fn drag_end(
     mut ew_end_drag: EventWriter<DragEndedEvent>,
 ) {
     for event in er_drag_end.iter() {
-        debug!("{:?}", event);
-
-        //let any_locked = draggables.iter().any(|x| x.0.is_locked());
+        info!("{:?}", event);
 
         for (entity, mut draggable) in draggables
             .iter_mut()
@@ -107,44 +107,67 @@ pub fn drag_end(
     }
 }
 
-pub fn translate_desired(
+#[derive(Debug, Component)]
+pub struct BeingDragged{
+    pub last_moved: Duration,
+    pub desired_position: Vec2,
+    //pub desired_rotation: Quat,
+}
+
+pub fn assign_padlock(
     time: Res<Time>,
-    mut query: Query<(Entity, &mut DesiredTranslation, &Transform, &mut Velocity)>,
+    mut being_dragged: Query<(Entity, &mut BeingDragged, &Velocity, &Transform)>,
     mut padlock: ResMut<PadlockResource>,
 ) {
-    const MIN_VELOCITY: f32 = 100.0;
     const PAUSE_DURATION: Duration = Duration::from_millis(100);
 
-    for (entity, mut desired, transform, mut velocity) in query.iter_mut() {
-        let delta_position = desired.translation - transform.translation.truncate();
-        let vel = (delta_position / time.delta_seconds()).clamp_length_max(MAX_VELOCITY);
+    if padlock.is_locked() {
+        return;
+    }
 
-        velocity.linvel = vel;
-        if vel.length() < MIN_VELOCITY {
-            if padlock.is_invisible() && desired.last_update_time + PAUSE_DURATION < time.elapsed()
-            {
+    for (entity, mut dragged, velocity, transform) in being_dragged.iter_mut() {
+        if velocity.linvel.length() <= LOCK_VELOCITY {
+            if padlock.is_invisible() && dragged.last_moved + PAUSE_DURATION < time.elapsed() {
                 *padlock = PadlockResource::Unlocked(entity, transform.translation);
             }
         } else {
-            //info!("{}", vel.length());
-            desired.last_update_time = time.elapsed();
-
-            if padlock.has_entity(entity) {
+            if padlock.is_unlocked() {
                 *padlock = PadlockResource::Invisible;
             }
+            dragged.last_moved = time.elapsed();
         }
+    }
+}
+
+fn apply_forces(
+    mut dragged_entities: Query<(&Transform, &mut ExternalForce, &Velocity, &BeingDragged, &Draggable)>,
+) {
+    const POSITION_DAMPING: f32 = 1.0;
+    const POSITION_STIFFNESS: f32 = 10.0;
+
+    // const ROTATION_DAMPING: f32 = 1.0;
+    // const ROTATION_STIFFNESS: f32 = 1.0;
+
+    for (transform, mut external_force, velocity, dragged, draggable) in dragged_entities.iter_mut() {
+        let distance = dragged.desired_position + draggable.get_offset() - transform.translation.truncate();
+
+        let force = (distance * POSITION_STIFFNESS) - (velocity.linvel * POSITION_DAMPING);
+        external_force.force =  force.clamp_length_max(100.0);
+
+        //info!("Applied external force");
     }
 }
 
 pub fn drag_move(
     mut er_drag_move: EventReader<DragMoveEvent>,
-    mut dragged_entities: Query<(&Draggable, &mut DesiredTranslation), Without<ZoomCamera>>,
+
+    mut dragged_entities: Query<(&Draggable, &mut BeingDragged) >,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ev_rotate: EventWriter<RotateEvent>,
 ) {
     for event in er_drag_move.iter() {
-        debug!("{:?}", event);
-        if let Some((draggable, mut desired_translation)) = dragged_entities
+
+        if let Some((draggable, mut bd)) = dragged_entities
             .iter_mut()
             .find(|d| d.0.has_drag_source(event.drag_source))
         {
@@ -162,8 +185,10 @@ pub fn drag_move(
 
             let new_position = (draggable.get_offset() + clamped_position).extend(0.0);
 
-            desired_translation.translation = new_position.truncate();
-        } else if let DragSource::Touch { touch_id } = event.drag_source {
+            bd.desired_position = new_position.truncate();
+        } else
+
+        if let DragSource::Touch { touch_id } = event.drag_source {
             if let Some(mut rotate) = touch_rotate.0 {
                 if rotate.touch_id == touch_id {
                     let previous_angle = rotate.centre.angle_between(rotate.previous);
@@ -192,12 +217,12 @@ pub fn drag_start(
     mut touch_rotate: ResMut<TouchRotateResource>,
 ) {
     for event in er_drag_start.iter() {
-        debug!("Drag Started {:?}", event);
+        info!("Drag Started {:?}", event);
 
         if draggables.iter().all(|x| !x.0.is_dragged()) {
             rapier_context.intersections_with_point(event.position, default(), |entity| {
                 if let Ok((mut draggable, transform)) = draggables.get_mut(entity) {
-                    debug!("{:?} found intersection with {:?}", event, draggable);
+                    info!("{:?} found intersection with {:?}", event, draggable);
 
                     let origin = transform.translation.truncate();
                     let offset = origin - event.position;
@@ -226,7 +251,7 @@ pub fn drag_start(
 
 pub fn handle_drag_changes(
     mut commands: Commands,
-    time: Res<Time>,
+    //time: Res<Time>,
     mut query: Query<
         (
             Entity,
@@ -237,10 +262,12 @@ pub fn handle_drag_changes(
             &mut Velocity,
             &mut Dominance,
             &mut ColliderMassProperties,
+            &mut ExternalForce
         ),
         Changed<Draggable>,
     >,
     mut padlock_resource: ResMut<PadlockResource>,
+    time: Res<Time>,
 ) {
     for (
         entity,
@@ -251,6 +278,7 @@ pub fn handle_drag_changes(
         mut velocity,
         mut dominance,
         mut mass,
+        mut external_force
     ) in query.iter_mut()
     {
         match draggable {
@@ -277,6 +305,10 @@ pub fn handle_drag_changes(
                     *padlock_resource = Default::default();
                 }
                 let mut builder = commands.entity(entity);
+                builder.insert(BeingDragged {
+                    last_moved: time.elapsed(),
+                    desired_position: transform.translation.truncate(),
+                });
 
                 if let DragSource::Touch { touch_id: _ } = dragged.drag_source {
                     builder.insert(TouchDragged);
@@ -286,21 +318,20 @@ pub fn handle_drag_changes(
                 *locked_axes = LockedAxes::ROTATION_LOCKED;
                 *gravity_scale = GravityScale(0.0);
                 *velocity = Velocity::zero();
-                *dominance = Dominance::default();
-
-                builder.insert(DesiredTranslation {
-                    translation: transform.translation.truncate(),
-                    last_update_time: time.elapsed(),
-                });
-            }
+                *dominance = Dominance::default();            }
         }
 
+
+
         if !draggable.is_dragged() {
+            *external_force = Default::default();
             commands
                 .entity(entity)
-                .remove::<DesiredTranslation>()
+
+                // .remove::<DesiredTranslation>()
+                .remove::<BeingDragged>()
                 .remove::<TouchDragged>();
-            //info!("Removed touch dragged");
+            //info!("Entity is no longer dragged");
         }
     }
 }
@@ -314,7 +345,7 @@ pub enum Draggable {
 
 impl Draggable {
     pub fn is_dragged(&self) -> bool {
-        matches!(self, Draggable::Dragged(_))
+        matches!(self, Draggable::Dragged{..})
     }
 
     pub fn touch_id(&self) -> Option<u64> {
@@ -337,18 +368,12 @@ impl Draggable {
     }
 }
 
-#[derive(Component, Debug, Default)]
-pub struct DesiredTranslation {
-    pub translation: Vec2,
-    pub last_update_time: Duration,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Dragged {
     pub origin: Vec2,
     pub offset: Vec2,
     pub drag_source: DragSource,
-    // pub was_locked: bool,
 }
 
 #[derive(Resource, Default)]

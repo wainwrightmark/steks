@@ -24,7 +24,7 @@ impl Plugin for WinPlugin {
             .add_event::<SpawnNewShapeEvent>()
             .add_system(shape_maker::spawn_shapes)
             .add_system(handle_change_level.in_base_set(CoreSet::First))
-            .add_system(check_for_tower.in_base_set(CoreSet::PostUpdate));
+            .add_system(check_for_tower .before(drag_end));
     }
 }
 

@@ -1,7 +1,9 @@
-use bevy::render::texture::CompressedImageFormats;
-use bevy_rapier2d::rapier::prelude::ImpulseJointSet;
-
 use crate::*;
+
+const POSITION_DAMPING: f32 = 1.0;
+const POSITION_STIFFNESS: f32 = 20.0;
+const MAX_FORCE: f32 = 800.0;
+const DRAGGED_DENSITY: f32 = 0.10;
 
 pub struct DragPlugin;
 impl Plugin for DragPlugin {
@@ -34,7 +36,7 @@ impl Plugin for DragPlugin {
                     .before(handle_drag_changes),
             )
             .add_system(apply_forces.after(handle_rotate_events))
-            .add_system(handle_drag_changes.after(apply_forces))// .in_base_set(CoreSet::PostUpdate))
+            .add_system(handle_drag_changes.after(apply_forces)) // .in_base_set(CoreSet::PostUpdate))
             .add_event::<RotateEvent>()
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()
@@ -51,7 +53,7 @@ fn handle_rotate_events(
     mut dragged: Query<(&mut Transform, &BeingDragged)>,
 ) {
     for ev in ev_rotate.iter() {
-        for (mut rb,_) in dragged.iter_mut() {
+        for (mut rb, _) in dragged.iter_mut() {
             info!("Rotate Event");
             //bd.desired_rotation = rb.rotation*  Quat::from_rotation_z(ev.angle);
             rb.rotation *= Quat::from_rotation_z(ev.angle);
@@ -108,7 +110,7 @@ pub fn drag_end(
 }
 
 #[derive(Debug, Component)]
-pub struct BeingDragged{
+pub struct BeingDragged {
     pub last_moved: Duration,
     pub desired_position: Vec2,
     //pub desired_rotation: Quat,
@@ -140,19 +142,24 @@ pub fn assign_padlock(
 }
 
 fn apply_forces(
-    mut dragged_entities: Query<(&Transform, &mut ExternalForce, &Velocity, &BeingDragged, &Draggable)>,
+    mut dragged_entities: Query<(
+        &Transform,
+        &mut ExternalForce,
+        &Velocity,
+        &BeingDragged,
+        &Draggable,
+    )>,
 ) {
-    const POSITION_DAMPING: f32 = 1.0;
-    const POSITION_STIFFNESS: f32 = 10.0;
-
     // const ROTATION_DAMPING: f32 = 1.0;
     // const ROTATION_STIFFNESS: f32 = 1.0;
 
-    for (transform, mut external_force, velocity, dragged, draggable) in dragged_entities.iter_mut() {
-        let distance = dragged.desired_position + draggable.get_offset() - transform.translation.truncate();
+    for (transform, mut external_force, velocity, dragged, draggable) in dragged_entities.iter_mut()
+    {
+        let distance =
+            dragged.desired_position + draggable.get_offset() - transform.translation.truncate();
 
         let force = (distance * POSITION_STIFFNESS) - (velocity.linvel * POSITION_DAMPING);
-        external_force.force =  force.clamp_length_max(100.0);
+        external_force.force = force.clamp_length_max(MAX_FORCE);
 
         //info!("Applied external force");
     }
@@ -161,12 +168,11 @@ fn apply_forces(
 pub fn drag_move(
     mut er_drag_move: EventReader<DragMoveEvent>,
 
-    mut dragged_entities: Query<(&Draggable, &mut BeingDragged) >,
+    mut dragged_entities: Query<(&Draggable, &mut BeingDragged)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ev_rotate: EventWriter<RotateEvent>,
 ) {
     for event in er_drag_move.iter() {
-
         if let Some((draggable, mut bd)) = dragged_entities
             .iter_mut()
             .find(|d| d.0.has_drag_source(event.drag_source))
@@ -186,9 +192,7 @@ pub fn drag_move(
             let new_position = (draggable.get_offset() + clamped_position).extend(0.0);
 
             bd.desired_position = new_position.truncate();
-        } else
-
-        if let DragSource::Touch { touch_id } = event.drag_source {
+        } else if let DragSource::Touch { touch_id } = event.drag_source {
             if let Some(mut rotate) = touch_rotate.0 {
                 if rotate.touch_id == touch_id {
                     let previous_angle = rotate.centre.angle_between(rotate.previous);
@@ -262,7 +266,7 @@ pub fn handle_drag_changes(
             &mut Velocity,
             &mut Dominance,
             &mut ColliderMassProperties,
-            &mut ExternalForce
+            &mut ExternalForce,
         ),
         Changed<Draggable>,
     >,
@@ -278,7 +282,7 @@ pub fn handle_drag_changes(
         mut velocity,
         mut dominance,
         mut mass,
-        mut external_force
+        mut external_force,
     ) in query.iter_mut()
     {
         match draggable {
@@ -314,20 +318,18 @@ pub fn handle_drag_changes(
                     builder.insert(TouchDragged);
                 }
 
-                *mass = ColliderMassProperties::Density(0.05);
+                *mass = ColliderMassProperties::Density(DRAGGED_DENSITY);
                 *locked_axes = LockedAxes::ROTATION_LOCKED;
                 *gravity_scale = GravityScale(0.0);
                 *velocity = Velocity::zero();
-                *dominance = Dominance::default();            }
+                *dominance = Dominance::default();
+            }
         }
-
-
 
         if !draggable.is_dragged() {
             *external_force = Default::default();
             commands
                 .entity(entity)
-
                 // .remove::<DesiredTranslation>()
                 .remove::<BeingDragged>()
                 .remove::<TouchDragged>();
@@ -345,7 +347,7 @@ pub enum Draggable {
 
 impl Draggable {
     pub fn is_dragged(&self) -> bool {
-        matches!(self, Draggable::Dragged{..})
+        matches!(self, Draggable::Dragged { .. })
     }
 
     pub fn touch_id(&self) -> Option<u64> {
@@ -367,7 +369,6 @@ impl Draggable {
         dragged.offset
     }
 }
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Dragged {

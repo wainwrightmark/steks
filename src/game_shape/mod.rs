@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
-use crate::color::choose_color;
+use crate::{color::choose_color, fixed_shape::Location};
 
-use bevy::{prelude::Color, render::once_cell::sync::Lazy};
+use bevy::{prelude::{Color, Rect, Vec2}, render::once_cell::sync::Lazy};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
@@ -20,6 +20,8 @@ pub use polygon::*;
 pub trait GameShapeBody: Send + Sync {
     fn to_collider_shape(&self, shape_size: f32) -> Collider;
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle;
+
+    fn bounding_box(&self, size: f32, location: &Location)-> Rect;
 }
 
 const SHAPE_RADIUS_RATIO: f32 = 0.1;
@@ -50,6 +52,8 @@ impl GameShape {
     pub fn stroke(&self) -> Stroke {
         Stroke::color(Color::BLACK)
     }
+
+
 }
 
 impl Debug for GameShape {

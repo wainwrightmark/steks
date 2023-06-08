@@ -1,4 +1,3 @@
-use std::default;
 use std::time::Duration;
 
 use crate::set_level::get_set_level;
@@ -172,12 +171,12 @@ pub struct CurrentLevel {
     pub level: GameLevel,
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Resource)]
+#[derive(Debug, Default, Clone, Copy, PartialEq,  Resource)]
 pub enum LevelCompletion {
     #[default]
     Incomplete,
-    CompleteWithSplash,
-    CompleteNoSplash,
+    CompleteWithSplash{height: f32},
+    CompleteNoSplash{height: f32},
 }
 
 
@@ -197,10 +196,10 @@ impl GameLevel {
                     GameLevel::SavedInfinite { data: _, seed: _ } => Some("Loaded Game".to_string()),
                 }
             },
-            LevelCompletion::CompleteWithSplash => {
-                Some("Level Complete".to_string())
+            LevelCompletion::CompleteWithSplash{height} => {
+                Some(format!("Level Complete - Height {height:.2}"))
             },
-            LevelCompletion::CompleteNoSplash => None,
+            LevelCompletion::CompleteNoSplash{height} => Some(format!("{height:.2}")) ,
         }
 
 
@@ -211,15 +210,15 @@ impl LevelCompletion {
     pub fn get_buttons(&self) -> Option<Vec<MenuButton>> {
         match self {
             LevelCompletion::Incomplete => None,
-            LevelCompletion::CompleteWithSplash  => Some(vec![MenuButton::NextLevel, MenuButton::ShareSaved, MenuButton::Minimize_Completion]),
-            LevelCompletion::CompleteNoSplash  =>Some(vec![MenuButton::NextLevel, MenuButton::ShareSaved]),
+            LevelCompletion::CompleteWithSplash{..}  => Some(vec![MenuButton::NextLevel, MenuButton::ShareSaved, MenuButton::MinimizeCompletion]),
+            LevelCompletion::CompleteNoSplash{..}  =>Some(vec![MenuButton::NextLevel, MenuButton::ShareSaved]),
         }
     }
 
     pub fn get_ui_style(&self)-> Style
     {
         match self {
-            LevelCompletion::Incomplete | LevelCompletion::CompleteWithSplash => {
+            LevelCompletion::Incomplete | LevelCompletion::CompleteWithSplash{..} => {
                 Style {
                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                     position_type: PositionType::Absolute,
@@ -229,12 +228,12 @@ impl LevelCompletion {
                 }
 
             },
-            LevelCompletion::CompleteNoSplash => {
+            LevelCompletion::CompleteNoSplash{..} => {
                 Style {
                     position: UiRect{top: Val::Px(MENU_OFFSET) , left: Val::Px(MENU_OFFSET + BUTTON_WIDTH) , ..Default::default()},
                     position_type: PositionType::Absolute,
 
-                    flex_direction: FlexDirection::Column,
+                    flex_direction: FlexDirection::ColumnReverse,
                     ..Default::default()
                 }
             },

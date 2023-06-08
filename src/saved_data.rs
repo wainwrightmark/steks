@@ -27,7 +27,7 @@ impl SavedData {
         }
     }
 
-    pub fn save_game(&self, shapes: Vec<(&GameShape, Location, bool)>) -> Self {
+    pub fn save_game(&self, shapes: &Vec<(&GameShape, Location, bool)>) -> Self {
         let encoded = encode_shapes(shapes);
 
         Self {

@@ -1,4 +1,4 @@
-use bevy::prelude::Vec2;
+use bevy::prelude::{Vec2, Rect};
 use bevy_prototype_lyon::{
     prelude::*,
     shapes::{self},
@@ -29,4 +29,9 @@ impl GameShapeBody for Circle {
             ..Default::default()
         }
     }
+
+    fn bounding_box(&self,  size: f32, location: &crate::fixed_shape::Location)-> bevy::prelude::Rect {
+        Rect::from_center_size(location.position, Vec2::new(size * 2., size * 2.))
+    }
+
 }

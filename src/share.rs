@@ -49,7 +49,7 @@ pub fn make_data(shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>) -> 
         })
         .collect_vec();
 
-    let bytes = encoding::encode_shapes(shapes);
+    let bytes = encoding::encode_shapes(&shapes);
     let data = base64::engine::general_purpose::URL_SAFE.encode(bytes);
     data
 }

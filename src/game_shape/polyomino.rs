@@ -1,4 +1,4 @@
-use bevy::prelude::Vec2;
+use bevy::prelude::{Vec2, Rect, Transform, Quat};
 use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 use geometrid::{
@@ -6,6 +6,7 @@ use geometrid::{
     prelude::{HasCenter, Location},
     shape::Shape,
 };
+
 use itertools::Itertools;
 
 use crate::PHYSICS_SCALE;
@@ -75,5 +76,31 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
             path,
             ..Default::default()
         }
+    }
+
+    fn bounding_box(&self, size: f32, location: &crate::fixed_shape::Location)-> bevy::prelude::Rect {
+
+        let rotation =  Transform::from_rotation(Quat::from_rotation_z(location.angle));
+
+        let mut min_x = location.position.x;
+        let mut max_x = location.position.x;
+        let mut min_y = location.position.y;
+        let mut max_y = location.position.y;
+
+
+
+        for p in get_vertices(self, size){
+            let p = rotation.transform_point((p).extend(0.0)).truncate() + location.position;
+
+
+
+            min_x = min_x.min(p.x);
+            min_y = min_y.min(p.y);
+
+            max_x = max_x.max(p.x);
+            max_y = max_y.max(p.y);
+        }
+
+        Rect::from_corners(Vec2::new(min_x, min_y), Vec2::new(max_x, max_y))
     }
 }

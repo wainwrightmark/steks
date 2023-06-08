@@ -5,7 +5,7 @@ use bevy_rapier2d::rapier::crossbeam::atomic::AtomicCell;
 use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 use itertools::Itertools;
 
-use crate::shape_maker::{ShapeIndex, SpawnNewShapeEvent};
+use crate::shape_maker::{ShapeIndex, SpawnNewShapeEvent, SHAPE_SIZE};
 use crate::share::SaveSVGEvent;
 use crate::*;
 
@@ -24,14 +24,15 @@ impl Plugin for WinPlugin {
             .add_event::<SpawnNewShapeEvent>()
             .add_system(shape_maker::spawn_shapes)
             //.add_system(handle_change_level.in_base_set(CoreSet::First))
-            .add_system(check_for_tower .before(drag_end));
+            .add_system(check_for_tower.before(drag_end));
     }
 }
 
 const SHORT_COUNTDOWN: f64 = 0.5;
 const COUNTDOWN: f64 = 5.0;
 
-pub fn check_for_win( //TODO check tower height
+pub fn check_for_win(
+    //TODO check tower height
     mut commands: Commands,
     mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
     shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), Without<WinTimer>>,
@@ -51,13 +52,19 @@ pub fn check_for_win( //TODO check tower height
 
             commands.entity(timer_entity).despawn();
 
+            let shapes = shapes_query
+                .iter()
+                .map(|(index, transform, draggable)| {
+                    (
+                        &ALL_SHAPES[index.0],
+                        transform.into(),
+                        draggable.is_locked(),
+                    )
+                })
+                .collect_vec();
 
-            let set_complete =
-            match &level.level {
-                GameLevel::SetLevel {
-                    index,
-                    ..
-                } => {
+            let set_complete = match &level.level {
+                GameLevel::SetLevel { index, .. } => {
                     let title = format!("steks level {}", index + 1);
                     screenshot_events.send(SaveSVGEvent { title });
                     true
@@ -68,16 +75,6 @@ pub fn check_for_win( //TODO check tower height
                 } => {
                     let title = format!("steks infinite {}", seed);
                     screenshot_events.send(SaveSVGEvent { title });
-                    let shapes = shapes_query
-                        .iter()
-                        .map(|(index, transform, draggable)| {
-                            (
-                                &ALL_SHAPES[index.0],
-                                transform.into(),
-                                draggable.is_locked(),
-                            )
-                        })
-                        .collect_vec();
 
                     spawn_shape_events.send(SpawnNewShapeEvent {
                         fixed_shape: FixedShape::from_seed(
@@ -85,7 +82,7 @@ pub fn check_for_win( //TODO check tower height
                         ),
                     });
 
-                    SavedData::update(&mut pkv, |s| s.save_game(shapes));
+                    SavedData::update(&mut pkv, |s| s.save_game(&shapes));
 
                     false
                 }
@@ -97,16 +94,6 @@ pub fn check_for_win( //TODO check tower height
                 GameLevel::SavedInfinite { data: _, seed } => {
                     let title = format!("steks infinite {}", seed);
                     screenshot_events.send(SaveSVGEvent { title });
-                    let shapes = shapes_query
-                        .iter()
-                        .map(|(index, transform, draggable)| {
-                            (
-                                &ALL_SHAPES[index.0],
-                                transform.into(),
-                                draggable.is_locked(),
-                            )
-                        })
-                        .collect_vec();
 
                     spawn_shape_events.send(SpawnNewShapeEvent {
                         fixed_shape: FixedShape::from_seed(
@@ -114,22 +101,52 @@ pub fn check_for_win( //TODO check tower height
                         ),
                     });
 
-                    SavedData::update(&mut pkv, |s| s.save_game(shapes));
+                    SavedData::update(&mut pkv, |s| s.save_game(&shapes));
 
                     false
                 }
             };
 
-            if set_complete && *completion == LevelCompletion::Incomplete{
-                *completion = LevelCompletion::CompleteWithSplash;
-            }
+            if set_complete {
+                let height = calculate_tower_height(&shapes);
 
+                match completion.as_ref() {
+                    LevelCompletion::Incomplete | LevelCompletion::CompleteWithSplash { .. } => {
+                        *completion = LevelCompletion::CompleteWithSplash { height }
+                    }
+                    LevelCompletion::CompleteNoSplash { .. } => {
+                        *completion = LevelCompletion::CompleteNoSplash { height }
+                    }
+                }
+            }
         } else {
             let new_scale = (remaining / timer.total_countdown) as f32;
 
             timer_transform.scale = Vec3::new(new_scale, new_scale, 1.0);
         }
     }
+}
+
+fn calculate_tower_height(shapes: &Vec<(&GameShape, Location, bool)>) -> f32 {
+    let mut min = WINDOW_HEIGHT;
+    let mut max = -WINDOW_HEIGHT;
+
+    for (shape, location, _) in shapes {
+        let bb = shape.body.bounding_box(SHAPE_SIZE, location);
+
+
+        info!("shape {shape} {bb:?}");
+
+        min = min.min(bb.min.y);
+        max = max.max(bb.max.y);
+    }
+
+
+
+    let height = (max - min).max(0.0);
+
+    info!("Calculated height min {min:.2} max {max:.2} height {height:.2}");
+    height
 }
 
 pub fn check_for_tower(

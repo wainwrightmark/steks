@@ -132,9 +132,12 @@ fn button_system(
                     }
                     Levels => menu_state.as_mut().toggle_levels(),
                     NextLevel => change_level_events.send(ChangeLevelEvent::Next),
-                    Minimize_Completion => {
-                        if completion.as_ref() == &LevelCompletion::CompleteWithSplash{
-                            *completion = LevelCompletion::CompleteNoSplash;
+                    MinimizeCompletion => {
+
+                        match completion.as_ref(){
+
+                            LevelCompletion::CompleteWithSplash { height } => *completion = LevelCompletion::CompleteNoSplash{height: *height},
+                            _ => {}
                         }
                     }
                 }
@@ -303,7 +306,7 @@ pub enum MenuButton {
     Levels,
     GotoLevel { level: u8 },
     NextLevel,
-    Minimize_Completion
+    MinimizeCompletion
 }
 
 impl MenuButton {
@@ -321,7 +324,7 @@ impl MenuButton {
             Levels => "\u{e812}".to_string(),// "\u{e812};".to_string(),
             GotoLevel { level } => format!("{:2}", level + 1),
             NextLevel => "\u{e808}".to_string(), //play
-            Minimize_Completion => "\u{e814}".to_string() //minus
+            MinimizeCompletion => "\u{e814}".to_string() //minus
         }
     }
 }

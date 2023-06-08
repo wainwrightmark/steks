@@ -42,7 +42,6 @@ use share::SharePlugin;
 use walls::*;
 
 
-mod menu_action;
 mod shape_maker;
 
 mod menu;

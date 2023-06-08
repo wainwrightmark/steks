@@ -1,9 +1,8 @@
-use std::default;
+
 
 use strum::Display;
 
 use crate::{
-    set_level::SetLevel,
     share::{ShareEvent, ShareSavedSvgEvent},
     *,
 };
@@ -68,8 +67,9 @@ const PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
 
 const BUTTON_BACKGROUND: Color = Color::rgb(0.1, 0.1, 0.1);
 
-const BUTTON_WIDTH: f32 = 65.;
-const BUTTON_HEIGHT: f32 = 65.;
+pub const BUTTON_WIDTH: f32 = 65.;
+pub const BUTTON_HEIGHT: f32 = 65.;
+pub const MENU_OFFSET: f32 = 10.;
 
 fn handle_menu_state_changes(
     menu_state: Res<MenuState>,
@@ -105,16 +105,14 @@ fn button_system(
     mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
     mut share_events: EventWriter<ShareEvent>,
     mut menu_state: ResMut<MenuState>,
+    mut completion: ResMut<LevelCompletion>
 ) {
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
         use MenuButton::*;
-        //info!("{:?}", interaction);
+        info!("{:?}", interaction);
         match *interaction {
             Interaction::Clicked => {
                 *bg_color = PRESSED_BUTTON.into();
-                //let mut menu_visibility = menu_query.single_mut();
-
-                //info!("{:?}", *button);
                 match *button {
                     ToggleMenu => menu_state.as_mut().toggle_menu(),
                     GoFullscreen => {
@@ -133,6 +131,12 @@ fn button_system(
                         change_level_events.send(ChangeLevelEvent::ChooseLevel(level))
                     }
                     Levels => menu_state.as_mut().toggle_levels(),
+                    NextLevel => change_level_events.send(ChangeLevelEvent::Next),
+                    Minimize_Completion => {
+                        if completion.as_ref() == &LevelCompletion::CompleteWithSplash{
+                            *completion = LevelCompletion::CompleteNoSplash;
+                        }
+                    }
                 }
 
                 match *button {
@@ -158,8 +162,8 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
             style: Style {
                 position_type: PositionType::Absolute,
                 position: UiRect {
-                    left: Val::Px(10.),
-                    top: Val::Px(10. + BUTTON_HEIGHT),
+                    left: Val::Px(MENU_OFFSET),
+                    top: Val::Px(MENU_OFFSET + BUTTON_HEIGHT),
                     ..Default::default()
                 },
                 display: Display::Flex,
@@ -197,8 +201,8 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer) {
             style: Style {
                 position_type: PositionType::Absolute,
                 position: UiRect {
-                    left: Val::Px(10. + BUTTON_WIDTH),
-                    top: Val::Px(10. + BUTTON_HEIGHT),
+                    left: Val::Px(MENU_OFFSET + BUTTON_WIDTH),
+                    top: Val::Px(MENU_OFFSET + BUTTON_HEIGHT),
                     ..Default::default()
                 },
                 display: Display::Flex,
@@ -298,6 +302,8 @@ pub enum MenuButton {
     Share,
     Levels,
     GotoLevel { level: u8 },
+    NextLevel,
+    Minimize_Completion
 }
 
 impl MenuButton {
@@ -314,6 +320,8 @@ impl MenuButton {
             ShareSaved => "\u{f1e0}".to_string(),     // "Share",
             Levels => "\u{e812}".to_string(),// "\u{e812};".to_string(),
             GotoLevel { level } => format!("{:2}", level + 1),
+            NextLevel => "\u{e808}".to_string(), //play
+            Minimize_Completion => "\u{e814}".to_string() //minus
         }
     }
 }

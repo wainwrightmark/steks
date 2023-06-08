@@ -12,7 +12,7 @@ pub const SHAPE_SIZE: f32 = 50f32;
 
 pub fn create_level_shapes(
     // commands: &mut Commands,
-    level: GameLevel,
+    level: &GameLevel,
     // rapier_context: Res<RapierContext>,
     mut event_writer: EventWriter<SpawnNewShapeEvent>,
 ) {
@@ -23,7 +23,7 @@ pub fn create_level_shapes(
         GameLevel::Infinite {
             starting_shapes,
             seed,
-        } => (0..starting_shapes)
+        } => (0..*starting_shapes)
             .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
             .collect_vec(),
         GameLevel::Challenge => {
@@ -34,7 +34,6 @@ pub fn create_level_shapes(
                 .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
                 .collect_vec()
         }
-        GameLevel::ChallengeComplete { streak: _ } => vec![],
         GameLevel::SavedInfinite { data, seed: _ } => encoding::decode_shapes(&data),
     };
 

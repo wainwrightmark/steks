@@ -12,6 +12,9 @@ use planetscale_driver::{query, Database};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+
+    //try_set(45.5, 4314).await
+
     let func = service_fn(my_handler);
     lambda_runtime::run(func).await?;
     Ok(())
@@ -45,14 +48,6 @@ pub(crate) async fn my_handler(
             let rows: Vec<Row> = query("select shapes_hash, max_height FROM tower_height;")
                 .fetch_all(&mut connection)
                 .await?;
-
-            // .query_map(
-            //     ,
-            //     |(shapes_hash, max_height)| Row {
-            //         shapes_hash,
-            //         max_height,
-            //     },
-            // )?;
 
             let data = Itertools::join(&mut rows.into_iter(), " ");
 
@@ -107,6 +102,10 @@ fn connect_to_database() -> PSConnection {
     let host = env::var("DATABASE_HOST").expect("DATABASE_HOST not found");
     let username = env::var("DATABASE_USERNAME").expect("DATABASE_USERNAME not found");
     let password = env::var("DATABASE_PASSWORD").expect("DATABASE_PASSWORD not found");
+
+    // let host = "aws.connect.psdb.cloud".to_string();
+    // let username = "5dcexnmo42t4viw8iv9j".to_string();
+    // let password = "".to_string();
 
     let conn = PSConnection::new(host.as_str(), username.as_str(), password.as_str());
     conn

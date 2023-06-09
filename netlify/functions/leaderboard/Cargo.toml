@@ -10,5 +10,5 @@ aws_lambda_events = {version= "0.9", default-features=false, features=["apigw"]}
 lambda_runtime = {version= "*", default-features=false}
 tokio = {version= "*", default-features=false}
 itertools = "0.10.5"
-planetscale-driver = "0.3.2"
+planetscale-driver =  {git = "https://github.com/wainwrightmark/planetscale-driver" }
 anyhow = "1.0.71"

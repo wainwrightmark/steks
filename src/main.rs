@@ -41,7 +41,6 @@ use screen_diags::ScreenDiagsPlugin;
 use share::SharePlugin;
 use walls::*;
 
-
 mod shape_maker;
 
 mod menu;

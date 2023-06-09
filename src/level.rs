@@ -228,6 +228,7 @@ impl LevelCompletion {
                 }
 
             },
+
             LevelCompletion::CompleteNoSplash{..} => {
                 Style {
                     position: UiRect{top: Val::Px(MENU_OFFSET) , left: Val::Px(MENU_OFFSET + BUTTON_WIDTH) , ..Default::default()},

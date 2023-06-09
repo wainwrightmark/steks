@@ -29,6 +29,7 @@ serde_yaml = "0.9.21"
 
 
 
+
 [dependencies.web-sys]
 version = "0.3"
 features = ["Url"
@@ -49,7 +50,7 @@ winit = { version = "0.28", features=["x11"]}
 
 
 [workspace]
-exclude=["netlify/functions/image"]
+exclude=["netlify/functions/image", "netlify/functions/leaderboard"]
 resolver = "2" # Important! wgpu/Bevy needs this!
 
 [dev-dependencies]

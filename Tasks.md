@@ -71,6 +71,6 @@
 - [ ] Menu icons + hover
 - [ ] End of level - see percentage of tallest tower, next level, share, retry
 - [ ] Show height in top right corner
-- [ ] Use joints instead of dragging
+- [x] Use joints instead of dragging
 - [ ] Make locking
 - [ ] Spirit level

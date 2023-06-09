@@ -7,8 +7,8 @@ use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyRes
 use aws_lambda_events::http::{HeaderMap, HeaderValue};
 use itertools::Itertools;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
-use mysql::prelude::{ Queryable};
-use mysql::PooledConn;
+use planetscale_driver::PSConnection;
+use planetscale_driver::{query, Database};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -42,13 +42,17 @@ pub(crate) async fn my_handler(
         Command::Get => {
             let mut connection = connect_to_database();
 
-            let rows: Vec<Row> = connection.query_map(
-                "select shapes_hash, max_height FROM tower_height;",
-                |(shapes_hash, max_height)| Row {
-                    shapes_hash,
-                    max_height,
-                },
-            )?;
+            let rows: Vec<Row> = query("select shapes_hash, max_height FROM tower_height;")
+                .fetch_all(&mut connection)
+                .await?;
+
+            // .query_map(
+            //     ,
+            //     |(shapes_hash, max_height)| Row {
+            //         shapes_hash,
+            //         max_height,
+            //     },
+            // )?;
 
             let data = Itertools::join(&mut rows.into_iter(), " ");
 
@@ -67,19 +71,7 @@ pub(crate) async fn my_handler(
             let height = get_parameter(&e, "height").ok_or_else(|| "Could not get height")?;
             let height: f32 = height.parse()?;
 
-            let mut connection = connect_to_database();
-            connection.query_drop(format!(
-                "set @height = {height};
-            set @shapes_hash = {hash};
-
-            Insert into tower_height (shapes_hash, max_height) Values(@shapes_hash, @height)
-            ON DUPLICATE KEY UPDATE
-            max_height = IF (max_height > @height, max_height, @height);"
-            ))?;
-
-            //INSERT INTO `tower_height` (`shapes_hash`, `max_height`) VALUES
-            //    (123, 123.45);
-
+            try_set(height, hash).await?;
             let resp = ApiGatewayProxyResponse {
                 status_code: 200,
                 headers,
@@ -91,19 +83,36 @@ pub(crate) async fn my_handler(
             Ok(resp)
         }
     }
-
-
 }
 
-fn connect_to_database() -> PooledConn {
-    let url = env::var("DATABASE_URL").expect("DATABASE_URL not found");
-    let builder = mysql::OptsBuilder::from_opts(mysql::Opts::from_url(&url).unwrap());
-    let pool = mysql::Pool::new(builder.ssl_opts(mysql::SslOpts::default())).unwrap();
-    let conn = pool.get_conn().unwrap();
+async fn try_set(height: f32, hash: u64) -> Result<(), Error> {
+    let mut connection = connect_to_database();
+
+    query(
+        "
+
+            Insert into tower_height (shapes_hash, max_height) Values($0, $1)
+            ON DUPLICATE KEY UPDATE
+            max_height = IF (max_height > $1, max_height, $1);",
+    )
+    .bind(hash)
+    .bind(height)
+    .execute(&mut connection)
+    .await?;
+
+    Ok(())
+}
+
+fn connect_to_database() -> PSConnection {
+    let host = env::var("DATABASE_HOST").expect("DATABASE_HOST not found");
+    let username = env::var("DATABASE_USERNAME").expect("DATABASE_USERNAME not found");
+    let password = env::var("DATABASE_PASSWORD").expect("DATABASE_PASSWORD not found");
+
+    let conn = PSConnection::new(host.as_str(), username.as_str(), password.as_str());
     conn
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Database, PartialEq)]
 pub struct Row {
     shapes_hash: u64,
     max_height: f32,

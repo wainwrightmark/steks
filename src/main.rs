@@ -55,6 +55,9 @@ use input::*;
 mod collision;
 use collision::*;
 
+mod leaderboard;
+use leaderboard::*;
+
 mod game_shape;
 use fixed_shape::*;
 use game_shape::*;
@@ -119,6 +122,7 @@ fn main() {
         .add_plugin(ShapePlugin)
         .add_plugin(InputPlugin)
         .add_plugin(CameraPlugin)
+        .add_plugin(LeaderboardPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,

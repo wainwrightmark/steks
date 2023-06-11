@@ -61,8 +61,20 @@ impl ScoreStore {
     pub fn set_from_string(&mut self, s: &str) {
         let mut map: BTreeMap<i64, f32> = Default::default();
         for (hash, height) in s.split_ascii_whitespace().tuples() {
-            let hash: i64 = hash.parse().expect("Could not parse hash");
-            let height: f32 = height.parse().expect("Could not parse height");
+            let hash: i64 = match hash.parse(){
+                Ok(hash)=> hash,
+                Err(err)=> {
+                    log::error!("Error parsing hash '{hash}': {err}");
+                    continue;
+                }
+            };
+            let height: f32 = match height.parse(){
+                Ok(height)=> height,
+                Err(err)=> {
+                    log::error!("Error parsing height '{height}': {err}");
+                    continue;
+                }
+            };
             map.insert(hash, height);
         }
 

@@ -112,7 +112,7 @@ fn spawn_load_leaderboard_task(channels : Res<AsyncChannels>,) {
 async fn load_leaderboard_text() -> Result<String, reqwest::Error> {
     let client = reqwest::Client::new();
     let res = client
-            .get("https://steks.net/.netlify/functions/leaderboards?command=set&hash={hash}&height={height:.2}")
+            .get(format!("https://steks.net/.netlify/functions/leaderboard?command=get"))
             .send()
             .await?;
 
@@ -124,7 +124,7 @@ async fn load_leaderboard_text() -> Result<String, reqwest::Error> {
 async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error> {
     let client = reqwest::Client::new();
     let res = client
-            .post(format!("https://steks.net/.netlify/functions/leaderboards?command=set&hash={hash}&height={height:.2}"))
+            .post(format!("https://steks.net/.netlify/functions/leaderboard?command=set&hash={hash}&height={height:.2}"))
             .send()
             .await?;
 

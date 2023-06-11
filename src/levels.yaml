@@ -6,8 +6,8 @@
       r: 0.125
       locked: true
     - shape: O4
-      x: 100
-      y: -100
+      x: 0
+      y: -300
 - text: "Move the Square\r\nHold in place for a moment to lock it\r\nYou can only lock one shape"
   shapes:
     - shape: O4
@@ -169,10 +169,10 @@
     - shape: X5
     - shape: X5
     - shape: X5
-    - shape: O4
-    - shape: O4
-    - shape: O4
-    - shape: O4
+    - shape: Circle
+    - shape: Circle
+    - shape: Circle
+    - shape: Circle
 
 
 - text: "Level is level"

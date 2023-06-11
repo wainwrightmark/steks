@@ -37,7 +37,6 @@ use saved_data::*;
 mod level;
 use level::*;
 mod walls;
-use screen_diags::ScreenDiagsPlugin;
 use share::SharePlugin;
 use walls::*;
 
@@ -65,7 +64,6 @@ use game_shape::*;
 #[cfg(target_arch = "wasm32")]
 use crate::logging::LoggableEvent;
 
-mod screen_diags;
 
 #[cfg(target_arch = "wasm32")]
 mod logging;
@@ -152,7 +150,7 @@ fn main() {
 
     if cfg!(debug_assertions) {
         builder.add_plugin(RapierDebugRenderPlugin::default());
-        builder.add_plugin(ScreenDiagsPlugin);
+        //builder.add_plugin(ScreenDiagsPlugin);
         // builder.add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
         // builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }

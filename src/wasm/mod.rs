@@ -4,9 +4,8 @@ use base64::Engine;
 
 use web_sys::UrlSearchParams;
 
-use bevy::window::{PrimaryWindow, WindowResized};
+use bevy::{window::{PrimaryWindow, WindowResized}, tasks::IoTaskPool};
 use capacitor_bindings::{device::Device, share::ShareOptions};
-use wasm_bindgen_futures::spawn_local;
 
 pub fn request_fullscreen() {
     let window = web_sys::window().expect("Could not get window");
@@ -30,7 +29,7 @@ pub fn request_fullscreen() {
 }
 
 pub fn share_game(game: String) {
-    spawn_local(async move { share_game_async(game).await });
+    IoTaskPool::get().spawn(async move { share_game_async(game).await }).detach();
 }
 
 pub async fn application_start() -> LoggableEvent {

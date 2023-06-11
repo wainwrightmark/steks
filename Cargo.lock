@@ -3236,7 +3236,6 @@ dependencies = [
  "strum",
  "test-case",
  "wasm-bindgen",
- "wasm-bindgen-futures",
  "web-sys",
  "winit",
 ]

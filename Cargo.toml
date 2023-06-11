@@ -9,7 +9,7 @@ edition = "2021"
 rand = "0.8.5"
 itertools = "0.10"
 bevy_prototype_lyon = {version="0.8"}
-bevy_rapier2d = {version = "0.21"}#, git="https://github.com/robertdodd/bevy_rapier", branch="feature/add-rope-joint" }
+bevy_rapier2d = {version = "0.21"}
 
 strum = { version = "0.24.1", features = ["derive"] }
 bevy_tweening = { version = "0.7", default-features = false, features = ["bevy_text"] }
@@ -42,7 +42,7 @@ runner = "wasm-server-runner"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
+
 web-sys = {version = "0.3", features = ['Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
 console_error_panic_hook = "0.1"
 

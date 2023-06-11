@@ -1,4 +1,4 @@
-use bevy::log;
+use bevy::{log, tasks::IoTaskPool};
 use capacitor_bindings::{device::{Device, DeviceId, DeviceInfo, OperatingSystem, Platform}, app::AppInfo};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -234,9 +234,9 @@ impl LoggableEvent {
     }
 
     fn try_log(data: impl Into<Self> + 'static) {
-        wasm_bindgen_futures::spawn_local(async move {
+        IoTaskPool::get().spawn(async move {
             Self::try_get_device_id_and_log_async(data).await
-        });
+        }).detach();
     }
 
     pub fn get_severity(&self) -> Severity {

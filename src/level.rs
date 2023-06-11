@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::set_level::get_set_level;
 use crate::*;
+use crate::shape_maker::ShapeIndex;
 use crate::{set_level::SetLevel, shape_maker::SpawnNewShapeEvent};
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
@@ -32,6 +33,9 @@ fn manage_level_ui(
     completion: Res<LevelCompletion>,
     mut level_ui: Query<(Entity, &mut Style), With<LevelUI>>,
     asset_server: Res<AssetServer>,
+    score_store: Res<ScoreStore>,
+    shapes: Query<&ShapeIndex>
+
 ) {
     if current_level.is_changed() || completion.is_changed() {
         if let Some((level_ui_entity, mut style)) = level_ui.iter_mut().next() {
@@ -40,7 +44,7 @@ fn manage_level_ui(
             builder.despawn_descendants();
 
 
-            if let Some(text) = current_level.level.get_text(completion.as_ref()) {
+            if let Some(text) = current_level.level.get_text(completion.as_ref(), score_store, shapes) {
                 builder.with_children(|parent| {
                     const LEVEL_TEXT_SECONDS: u64 = 20;
                     parent
@@ -181,7 +185,7 @@ pub enum LevelCompletion {
 
 
 impl GameLevel {
-    pub fn get_text(&self, completion: &LevelCompletion) -> Option<String> {
+    pub fn get_text(&self, completion: &LevelCompletion, score_store: Res<ScoreStore>, shapes: Query<&ShapeIndex>) -> Option<String> {
 
         match completion{
             LevelCompletion::Incomplete => {
@@ -197,7 +201,20 @@ impl GameLevel {
                 }
             },
             LevelCompletion::CompleteWithSplash{height} => {
-                Some(format!("Level Complete - Height {height:.2}"))
+
+                let hash = leaderboard::ScoreStore::hash_shapes(shapes.iter());
+
+                let record_height: Option<f32> = match &score_store.map{
+                    Some(map) => map.get(&hash).map(|x|*x),
+                    None => None,
+                };
+
+                match record_height {
+                    Some(record_height) => Some(format!("Level Complete\nHeight {height:.2}\nRecord {record_height:.2}")),
+                    None => Some(format!("Level Complete\nHeight {height:.2}")),
+                }
+
+
             },
             LevelCompletion::CompleteNoSplash{height} => Some(format!("{height:.2}")) ,
         }

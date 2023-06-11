@@ -36,7 +36,9 @@ pub(crate) async fn my_handler(
     e: LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, Error> {
     let mut headers = HeaderMap::new();
-    headers.insert("Content-Type", HeaderValue::from_static("image/png"));
+    headers.insert("Access-Control-Allow-Origin", HeaderValue::from_static("*"));
+    headers.insert("Access-Control-Allow-Headers", HeaderValue::from_static("*"));
+    headers.insert("Access-Control-Allow-Methods", HeaderValue::from_static("GET, POST"));
 
     let command = get_parameter(&e, "command").ok_or_else(|| "Could not get command")?;
     let command: Command = command.parse()?;

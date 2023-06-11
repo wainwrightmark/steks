@@ -109,7 +109,7 @@ fn main() {
 
     builder
         .insert_resource(Msaa::Sample4)
-        .insert_resource(ClearColor(Color::hsl(217., 0.7,0.72)))
+        .insert_resource(ClearColor(color::BACKGROUND_COLOR))
         .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin)
         .build().add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
 

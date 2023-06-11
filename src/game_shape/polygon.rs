@@ -1,5 +1,5 @@
 use super::{GameShapeBody, SHAPE_RADIUS_RATIO};
-use bevy::prelude::{Vec2, Rect, Transform, Quat, Vec3};
+use bevy::prelude::{Vec2, Rect, Transform, Quat};
 use bevy_prototype_lyon::{prelude::{*,}, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 

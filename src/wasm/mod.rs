@@ -1,7 +1,7 @@
 use crate::{logging::LogAppInfo, *};
 // use crate::{input::InputDetector, logging::LogDeviceInfo};
 use base64::Engine;
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+
 use web_sys::UrlSearchParams;
 
 use bevy::window::{PrimaryWindow, WindowResized};

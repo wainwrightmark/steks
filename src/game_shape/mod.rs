@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::{color::choose_color, fixed_shape::Location};
 
-use bevy::{prelude::{Color, Rect, Vec2}, render::once_cell::sync::Lazy};
+use bevy::{prelude::{Color, Rect}, render::once_cell::sync::Lazy};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
@@ -53,6 +53,10 @@ impl GameShape {
         Stroke::color(Color::BLACK)
     }
 
+
+    pub fn from_index(index: &usize)-> &Self{
+        &ALL_SHAPES[*index]
+    }
 
 }
 

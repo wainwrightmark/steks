@@ -4,6 +4,7 @@ use crate::set_level::get_set_level;
 use crate::shape_maker::ShapeIndex;
 use crate::*;
 use crate::{set_level::SetLevel, shape_maker::SpawnNewShapeEvent};
+use base64::Engine;
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
 use serde::{Deserialize, Serialize};
@@ -168,6 +169,26 @@ fn choose_level_on_game_load(
     mut pkv: ResMut<PkvStore>,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
 ) {
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        match wasm::get_game_from_location() {
+            Some(data) => {
+                info!("Load game {data}");
+                match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data) {
+                    Ok(bytes) => {
+                        change_level_events.send(ChangeLevelEvent::Load(bytes));
+                        return;
+                    }
+                    Err(err) => warn!("{err}"),
+                }
+            }
+            None => info!("No url game to load"),
+        }
+    }
+
+
+
     let settings = SavedData::get_or_create(&mut pkv);
     if settings.tutorial_finished {
 
@@ -244,7 +265,7 @@ impl GameLevel {
                     level.get_stage(stage).map(|x| x.text.to_string())
                 }
                 GameLevel::Infinite {bytes} =>{
-                    if bytes.is_some(){
+                    if *stage == 0 && bytes.is_some(){
                         Some("Loaded Game".to_string())
                     }
                     else{

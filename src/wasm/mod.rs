@@ -190,22 +190,9 @@ fn has_touch() -> bool {
 }
 
 
-fn load_from_url_on_startup(mut ev: EventWriter<ChangeLevelEvent>) {
-    match get_game_from_location() {
-        Some(data) => {
-            info!("Load game {data}");
-            match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data) {
-                Ok(bytes) => {
-                    ev.send(ChangeLevelEvent::Load(bytes));
-                }
-                Err(err) => warn!("{err}"),
-            }
-        }
-        None => info!("No game to load"),
-    }
-}
 
-fn get_game_from_location() -> Option<String> {
+
+pub fn get_game_from_location() -> Option<String> {
     let window = web_sys::window()?;
     let location = window.location();
     let path = location.pathname().ok()?;
@@ -247,7 +234,7 @@ impl Plugin for WASMPlugin {
         });
 
         app.add_system(resizer);
-        app.add_startup_system(load_from_url_on_startup);
+        //app.add_startup_system(load_from_url_on_startup);
         app.add_startup_system(remove_spinner.in_base_set(StartupSet::PostStartup));
     }
 }

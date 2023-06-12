@@ -37,7 +37,7 @@ pub fn check_for_win(
     mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
     shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), Without<WinTimer>>,
     time: Res<Time>,
-    level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel>,
     mut completion: ResMut<LevelCompletion>,
     //mut new_game_events: EventWriter<ChangeLevelEvent>,
     mut screenshot_events: EventWriter<SaveSVGEvent>,
@@ -63,7 +63,7 @@ pub fn check_for_win(
                 })
                 .collect_vec();
 
-            let set_complete = match &level.level {
+            let set_complete = match &current_level.level {
                 GameLevel::SetLevel { index, .. } => {
                     let title = format!("steks level {}", index + 1);
                     screenshot_events.send(SaveSVGEvent { title });
@@ -108,13 +108,25 @@ pub fn check_for_win(
             };
 
             if set_complete {
-                let height = calculate_tower_height(&shapes);
+
 
                 match completion.as_ref() {
-                    LevelCompletion::Incomplete | LevelCompletion::CompleteWithSplash { .. } => {
+                    LevelCompletion::Incomplete {stage}=>{
+                        let next_stage = stage + 1;
+                        if current_level.level.has_stage(&next_stage){
+                            *completion = LevelCompletion::Incomplete { stage: next_stage }
+                        }else{
+                            let height = calculate_tower_height(&shapes);
+                            *completion = LevelCompletion::CompleteWithSplash { height }
+                        }
+                    },
+
+                     LevelCompletion::CompleteWithSplash { .. } => {
+                        let height = calculate_tower_height(&shapes);
                         *completion = LevelCompletion::CompleteWithSplash { height }
-                    }
+                    },
                     LevelCompletion::CompleteNoSplash { .. } => {
+                        let height = calculate_tower_height(&shapes);
                         *completion = LevelCompletion::CompleteNoSplash { height }
                     }
                 }

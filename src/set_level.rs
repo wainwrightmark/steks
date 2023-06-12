@@ -28,6 +28,27 @@ pub fn get_set_level(index: u8) -> Option<GameLevel>
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SetLevel {
+    #[serde(flatten)]
+    pub initial_stage: LevelStage,
+    #[serde(default)]
+    pub stages: Vec<LevelStage>
+}
+
+impl SetLevel{
+    pub fn get_stage(&self, stage: &usize)-> Option<&LevelStage>{
+        match stage.checked_sub(1) {
+            Some(index) => self.stages.get(index),
+            None =>Some( &self.initial_stage),
+        }
+    }
+
+    pub fn total_stages(&self)-> usize{
+        self.stages.len() + 1
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct LevelStage{
     pub text: String,
     pub shapes: Vec<LevelShape>,
 }
@@ -122,28 +143,54 @@ impl From<LevelShapeForm> for &'static GameShape {
 
 #[cfg(test)]
 mod tests {
-    use crate::set_level::LevelShape;
+    use crate::set_level::*;
 
     use super::SetLevel;
 
+
     #[test]
-    pub fn test_deserialize_levels() {
+    pub fn test_deserialize_level() {
         let levels: Vec<SetLevel> = vec![SetLevel {
-            text: "abc".to_string(),
-            shapes: vec![LevelShape {
-                shape: crate::set_level::LevelShapeForm::Circle,
-                x: Some(1.0),
-                y: Some(2.0),
-                r: Some(3.0),
-                locked: true,
-            }],
+            initial_stage: LevelStage{
+                text: "abc".to_string(),
+                shapes: vec![LevelShape {
+                    shape: crate::set_level::LevelShapeForm::Circle,
+                    x: Some(1.0),
+                    y: Some(2.0),
+                    r: Some(3.0),
+                    locked: true,
+                }],
+            },
+            stages: vec![
+                LevelStage{
+                    text: "Other Stage".to_string(),
+                    shapes: vec![LevelShape {
+                        shape: crate::set_level::LevelShapeForm::Circle,
+                        ..Default::default()
+                    }],
+                }
+            ]
+
         }];
 
         let str = serde_yaml::to_string(&levels).unwrap();
 
-        let expected = r#"
-        abc
-        "#;
+        let expected = r#"- text: abc
+  shapes:
+  - shape: Circle
+    x: 1.0
+    y: 2.0
+    r: 3.0
+    locked: true
+  stages:
+  - text: Other Stage
+    shapes:
+    - shape: Circle
+      x: null
+      y: null
+      r: null
+      locked: false
+"#;
 
         assert_eq!(str, expected);
     }

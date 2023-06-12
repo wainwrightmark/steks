@@ -11,15 +11,19 @@ use rand::Rng;
 pub const SHAPE_SIZE: f32 = 50f32;
 
 pub fn create_level_shapes(
-    // commands: &mut Commands,
     level: &GameLevel,
-    // rapier_context: Res<RapierContext>,
+    stage: &usize,
     mut event_writer: EventWriter<SpawnNewShapeEvent>,
 ) {
     let shapes: Vec<FixedShape> = match level {
         GameLevel::SetLevel {
             level,..
-        } => level.shapes.iter().map(|&x|x.into()).collect_vec(),
+        } => {
+            match level.get_stage(stage){
+                Some(stage) => stage.shapes.iter().map(|&x|x.into()).collect_vec(),
+                None => vec![],
+            }
+        },
         GameLevel::Infinite {
             starting_shapes,
             seed,

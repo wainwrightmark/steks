@@ -37,12 +37,9 @@
     - shape: S4
     - shape: S4
     - shape: Z4
-
-- text: "Level 7"
-  shapes:
-    - shape: S4
-    - shape: S4
-    - shape: Z4
+  stages:
+  - text: "Whoops"
+    shapes:
     - shape: Z4
 
 - text: "Level 8"

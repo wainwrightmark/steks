@@ -140,7 +140,7 @@ fn update_leaderboard_on_completion(
 ) {
     if completion.is_changed() {
         let height = match completion.as_ref() {
-            LevelCompletion::Incomplete => return,
+            LevelCompletion::Incomplete{..} => return,
             LevelCompletion::CompleteWithSplash { height } => height,
             LevelCompletion::CompleteNoSplash { height } => height,
         }

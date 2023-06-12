@@ -213,7 +213,7 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 flex_wrap: FlexWrap::Wrap,
                 flex_grow: 0.,
 
-                max_size: Size::width(Val::Px(BUTTON_WIDTH * 5.)),
+                max_size: Size::width(Val::Px(BUTTON_WIDTH * 4.)),
 
 
                 ..Default::default()

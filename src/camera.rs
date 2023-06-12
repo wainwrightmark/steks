@@ -47,11 +47,9 @@ fn hide_shadows(
     query: Query<With<TouchDragged>>,
     mut shadows: Query<(&mut Visibility, With<Shadow>)>,
 ) {
-    if !removals.is_empty() {
-        if query.is_empty() {
-            for mut shadow in shadows.iter_mut() {
-                *shadow.0 = Visibility::Hidden;
-            }
+    if !removals.is_empty() && query.is_empty() {
+        for mut shadow in shadows.iter_mut() {
+            *shadow.0 = Visibility::Hidden;
         }
     }
 }

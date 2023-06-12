@@ -180,7 +180,7 @@ pub fn get_today_date() -> chrono::NaiveDate {
 }
 
 pub fn log_start(mut pkv: ResMut<PkvStore>) {
-    const KEY: &'static str = "UserExists";
+    const KEY: &str = "UserExists";
 
     let user_exists = pkv.get::<bool>(KEY).ok().unwrap_or_default();
 

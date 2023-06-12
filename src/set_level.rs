@@ -87,7 +87,7 @@ impl From<LevelShape> for FixedShape {
             fl_set = true;
         }
 
-        let fixed_location = fl_set.then(|| fixed_location);
+        let fixed_location = fl_set.then_some(fixed_location);
 
         FixedShape {
             shape: val.shape.into(),

@@ -112,7 +112,7 @@ fn spawn_load_leaderboard_task(channels : Res<AsyncChannels>,) {
 async fn load_leaderboard_text() -> Result<String, reqwest::Error> {
     let client = reqwest::Client::new();
     let res = client
-            .get(format!("https://steks.net/.netlify/functions/leaderboard?command=get"))
+            .get("https://steks.net/.netlify/functions/leaderboard?command=get".to_string())
             .send()
             .await?;
 
@@ -143,8 +143,7 @@ fn update_leaderboard_on_completion(
             LevelCompletion::Incomplete{..} => return,
             LevelCompletion::CompleteWithSplash { height } => height,
             LevelCompletion::CompleteNoSplash { height } => height,
-        }
-        .clone();
+        };
 
         let hash = ScoreStore::hash_shapes(shapes.iter());
 

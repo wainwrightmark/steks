@@ -18,7 +18,7 @@ pub fn create_initial_shapes(level: &GameLevel, mut event_writer: EventWriter<Sp
         },
         GameLevel::Infinite { bytes } => {
             if let Some(bytes) = bytes {
-                encoding::decode_shapes(&bytes)
+                encoding::decode_shapes(bytes)
             } else {
                 let mut rng: ThreadRng = ThreadRng::default();
                 let mut shapes: Vec<FixedShape> = vec![];

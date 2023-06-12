@@ -54,7 +54,7 @@ impl<'a> ShapesVec<'a> {
 
     pub fn make_base64_data(&self) -> String {
         let bytes = encoding::encode_shapes(&self.0);
-        let data = base64::engine::general_purpose::URL_SAFE.encode(bytes);
-        data
+        
+        base64::engine::general_purpose::URL_SAFE.encode(bytes)
     }
 }

@@ -59,7 +59,7 @@ pub fn check_for_win(
                     true
                 }
                 GameLevel::Infinite { .. } => {
-                    let title = format!("steks infinite");
+                    let title = "steks infinite".to_string();
                     share::save_svg(title, &shapes, &mut saves);
                     SavedData::update(&mut pkv, |s| s.save_game(&shapes));
                     true

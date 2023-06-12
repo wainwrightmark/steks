@@ -24,7 +24,7 @@ fn handle_shares(
     mut events: EventReader<ShareEvent>,
     _shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>,
 ) {
-    if let Some(_) = events.iter().next() {
+    if events.iter().next().is_some() {
         #[cfg(target_arch = "wasm32")]
         {
             let shapes = ShapesVec::from_query(_shapes_query);
@@ -59,7 +59,7 @@ pub struct ShareData {
 // }
 
 fn share_saved_svg(mut events: EventReader<ShareSavedSvgEvent>, saves: Res<SavedShare>) {
-    if let Some(_) = events.iter().next() {
+    if events.iter().next().is_some() {
         for _save in saves.0.iter() {
             #[cfg(target_arch = "wasm32")]
             {

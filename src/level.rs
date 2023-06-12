@@ -124,7 +124,7 @@ fn manage_level_shapes(
                             if let Some(stage) = level.get_stage(&stage) {
                                 for shape in &stage.shapes {
                                     event_writer.send(SpawnNewShapeEvent {
-                                        fixed_shape: shape.clone().into(),
+                                        fixed_shape: (*shape).into(),
                                     })
                                 }
                             }
@@ -277,7 +277,7 @@ impl GameLevel {
                 let hash = leaderboard::ScoreStore::hash_shapes(shapes.iter());
 
                 let record_height: Option<f32> = match &score_store.map {
-                    Some(map) => map.get(&hash).map(|x| *x),
+                    Some(map) => map.get(&hash).copied(),
                     None => None,
                 };
 
@@ -401,7 +401,7 @@ fn track_level_completion(
             GameLevel::SetLevel { index, .. } => {
                 if *index == 3 {
                     SavedData::update(&mut pkv, |x| {
-                        let mut y = x.clone();
+                        let mut y = x;
                         y.tutorial_finished = true;
                         y
                     });
@@ -422,7 +422,7 @@ impl ChangeLevelEvent {
             ChangeLevelEvent::Next => match level {
                 GameLevel::SetLevel { index, .. } => {
                     if let Some(next) = get_set_level(index.saturating_add(1)) {
-                        return next;
+                        next
                     } else {
                         GameLevel::Infinite{bytes: None}
                     }

@@ -6,7 +6,7 @@ use crate::*;
 pub fn encode_shapes(shapes: &Vec<(&GameShape, Location, bool)>) -> Vec<u8> {
     shapes
         .iter()
-        .flat_map(|(shape, location, locked)| encode_shape(*shape, *location, *locked))
+        .flat_map(|(shape, location, locked)| encode_shape(shape, *location, *locked))
         .collect_vec()
 }
 
@@ -73,8 +73,8 @@ fn normalize_to_range(value: f32, range: RangeInclusive<f32>) -> u16 {
     let adjusted_value = clamped_value - range.start();
     let ratio = adjusted_value / (range.end() - range.start());
 
-    let result = (ratio * u16::MAX as f32).floor() as u16;
-    result
+    
+    (ratio * u16::MAX as f32).floor() as u16
 }
 
 fn denormalize_from_range(x: u16, range: RangeInclusive<f32>) -> f32 {
@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn test_shape_encoding_roundtrip() {
         let fs = FixedShape::by_name("O")
-            .with_location(Vec2 { x: 4200., y: -108. }, std::f32::consts::FRAC_PI_2)
+            .with_location(Vec2 { x: 41.99774, y: -108. }, std::f32::consts::FRAC_PI_2)
             .lock();
 
         let encoded = encode_shape(fs.shape, fs.fixed_location.unwrap(), fs.locked);
@@ -108,22 +108,22 @@ mod tests {
 
     #[test]
     fn test_normalize_to_range() {
-        let range = (-5.0)..=(5.0);
+        let range = (-5.0)..=5.0;
         assert_eq!(0, normalize_to_range(-5.0, range.clone()));
         assert_eq!(u16::MAX, normalize_to_range(5.0, range.clone()));
         assert_eq!(u16::MAX / 2, normalize_to_range(0.0, range.clone()));
-        assert_eq!(19660, normalize_to_range(-2.0, range.clone()));
+        assert_eq!(19660, normalize_to_range(-2.0, range));
     }
 
     #[test]
     fn test_denormalize_from_range() {
-        let range = (-5.0)..=(5.0);
+        let range = (-5.0)..=5.0;
         assert_eq!(-5.0, denormalize_from_range(0, range.clone()));
         assert_eq!(5.0, denormalize_from_range(u16::MAX, range.clone()));
         assert_eq!(
             0.0,
             denormalize_from_range(u16::MAX / 2, range.clone()).round()
         );
-        assert_eq!(-2.0, denormalize_from_range(19660, range.clone()).round());
+        assert_eq!(-2.0, denormalize_from_range(19660, range).round());
     }
 }

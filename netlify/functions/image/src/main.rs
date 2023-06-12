@@ -136,14 +136,19 @@ fn draw_image(game: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-
     use crate::{draw_image, make_svg_from_data};
+    use std::hash::{Hash, Hasher};
     const TEST_DATA: &'static str = "JnRAUUYRA3HNRXS0KHZnWiDFAHXoY_Eb";
 
     #[test]
     fn generate_png_test() {
         let data = draw_image(TEST_DATA);
-        std::fs::write("parse_test.png", data).unwrap();
+        let len = data.len();
+        std::fs::write("parse_test.png", data.as_slice()).unwrap();
+
+        assert!(len < 300000, "Image is too big - {len} bytes");
+        let hash = calculate_hash(&data);
+        insta::assert_debug_snapshot!(hash);
     }
 
     #[test]
@@ -155,6 +160,17 @@ mod tests {
     #[test]
     fn unknown_test() {
         let data = draw_image("null");
-        std::fs::write("unknown.png", data).unwrap();
+        let len = data.len();
+        std::fs::write("unknown.png", data.as_slice()).unwrap();
+
+        assert!(len < 300000, "Image is too big - {len} bytes");
+        let hash = calculate_hash(&data);
+        insta::assert_debug_snapshot!(hash);
+    }
+
+    fn calculate_hash<T: Hash>(t: &T) -> u64 {
+        let mut s = std::collections::hash_map::DefaultHasher::new();
+        t.hash(&mut s);
+        s.finish()
     }
 }

@@ -21,31 +21,51 @@ impl Plugin for PadlockPlugin {
 pub struct Padlock;
 
 #[derive(Resource, Debug, PartialEq, Default)]
-pub enum PadlockResource {
-    #[default]
-    Invisible,
-    Locked(Entity, Vec3),
-    Unlocked(Entity, Vec3),
+pub struct PadlockResource {
+    pub status: PadlockStatus,
+}
+
+#[derive(Resource, Debug, PartialEq)]
+pub enum PadlockStatus {
+
+    Invisible{last_moved: Option<Duration>},
+    Locked{entity: Entity, translation: Vec3},
+    Visible{entity: Entity, translation: Vec3, last_still: Duration},
+}
+
+impl Default for PadlockStatus{
+    fn default() -> Self {
+        Self::Invisible { last_moved: None }
+    }
 }
 
 impl PadlockResource {
     pub fn is_invisible(&self) -> bool {
-        matches!(self, PadlockResource::Invisible)
+        match self.status{
+            PadlockStatus::Invisible{..} => true,
+            _=> false
+        }
     }
 
     pub fn is_locked(&self) -> bool {
-        matches!(self, PadlockResource::Locked(..))
+        match self.status{
+            PadlockStatus::Locked{..} => true,
+            _=> false
+        }
     }
 
-    pub fn is_unlocked(&self) -> bool {
-        matches!(self, PadlockResource::Unlocked(..))
+    pub fn is_visible(&self) -> bool {
+        match self.status{
+            PadlockStatus::Visible{..} => true,
+            _=> false
+        }
     }
 
     pub fn has_entity(&self, entity: Entity) -> bool {
-        match self {
-            PadlockResource::Invisible => false,
-            PadlockResource::Locked(e, _) => *e == entity,
-            PadlockResource::Unlocked(e, _) => *e == entity,
+        match self.status {
+            PadlockStatus::Invisible{..} => false,
+            PadlockStatus::Locked{entity: e, ..} => e == entity,
+            PadlockStatus::Visible{entity: e, ..} => e == entity,
         }
     }
 }
@@ -69,15 +89,15 @@ fn control_padlock(
 ) {
     if padlock_resource.is_changed() {
         debug!("Padlock changed {padlock_resource:?}");
-        match padlock_resource.as_ref() {
-            PadlockResource::Locked(_entity, translation) => {
+        match padlock_resource.status {
+            PadlockStatus::Locked{translation,..} => {
                 for (e, mut visibility, mut transform) in query.iter_mut() {
                     *visibility = Visibility::Inherited;
 
                     let transform_to = Transform {
                         rotation: Default::default(),
                         scale: Vec3::new(0.05, 0.05, 1.),
-                        translation: *translation + Vec3::Z,
+                        translation: translation + Vec3::Z,
                     };
 
                     transform.translation = transform_to.translation + OPEN_PADLOCK_OFFSET;
@@ -102,11 +122,11 @@ fn control_padlock(
                         )));
                 }
             }
-            PadlockResource::Unlocked(_entity, translation) => {
+            PadlockStatus::Visible{translation,..} => {
                 for (e, mut visibility, mut transform) in query.iter_mut() {
                     *visibility = Visibility::Inherited;
 
-                    transform.translation = *translation + Vec3::Z + OPEN_PADLOCK_OFFSET;
+                    transform.translation = translation + Vec3::Z + OPEN_PADLOCK_OFFSET;
                     commands
                         .entity(e)
                         .insert(GeometryBuilder::build_as(&shapes::SvgPathShape {
@@ -119,7 +139,7 @@ fn control_padlock(
                         });
                 }
             }
-            PadlockResource::Invisible => {
+            PadlockStatus::Invisible{..} => {
                 for (_e, mut visibility, _) in query.iter_mut() {
                     *visibility = Visibility::Hidden;
                 }

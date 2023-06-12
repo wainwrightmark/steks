@@ -45,9 +45,6 @@ impl Plugin for DragPlugin {
     }
 }
 
-//pub const MAX_VELOCITY: f32 = 1000.0;
-pub const LOCK_VELOCITY: f32 = 50.0;
-
 fn handle_rotate_events(
     mut ev_rotate: EventReader<RotateEvent>,
     mut dragged: Query<(&mut Transform, &BeingDragged)>,
@@ -90,10 +87,10 @@ pub fn drag_end(
             .filter(|x| x.1.has_drag_source(event.drag_source))
         {
             if let Draggable::Dragged(..) = draggable.as_ref() {
-                *draggable = if !padlock_resource.has_entity(entity) {
-                    Draggable::Free
-                } else {
+                *draggable = if padlock_resource.has_entity(entity) {
                     Draggable::Locked
+                } else {
+                    Draggable::Free
                 };
                 ew_end_drag.send(DragEndedEvent {});
             }
@@ -111,59 +108,81 @@ pub fn drag_end(
 
 #[derive(Debug, Component)]
 pub struct BeingDragged {
-    pub last_moved: Duration,
     pub desired_position: Vec2,
-    //pub desired_rotation: Quat,
 }
 
 pub fn assign_padlock(
     time: Res<Time>,
-    mut being_dragged: Query<(Entity, &mut BeingDragged, &Velocity, &Transform)>,
+    being_dragged: Query<(Entity, &Velocity, &Transform), With<BeingDragged>>,
     mut padlock: ResMut<PadlockResource>,
 ) {
     const PAUSE_DURATION: Duration = Duration::from_millis(100);
+    const LINGER_DURATION: Duration = Duration::from_millis(500);
+    pub const LOCK_VELOCITY: f32 = 50.0;
+    pub const LOCK_BREAK_VELOCITY: f32 = 3000.0;
 
     if padlock.is_locked() {
         return;
     }
+    let elapsed = time.elapsed();
 
-    for (entity, mut dragged, velocity, transform) in being_dragged.iter_mut() {
+    for (entity, velocity, transform) in being_dragged.iter() {
         if velocity.linvel.length() <= LOCK_VELOCITY {
-            if padlock.is_invisible() && dragged.last_moved + PAUSE_DURATION < time.elapsed() {
-                *padlock = PadlockResource::Unlocked(entity, transform.translation);
+            if let PadlockStatus::Invisible { last_moved } = padlock.status {
+                if let Some(last_moved) = last_moved {
+                    if last_moved + PAUSE_DURATION < elapsed {
+                        padlock.status = PadlockStatus::Visible {
+                            entity,
+                            translation: transform.translation,
+                            last_still: elapsed,
+                        };
+                    }
+                } else {
+                    padlock.status = PadlockStatus::Invisible {
+                        last_moved: Some(elapsed),
+                    }
+                }
             }
         } else {
-            if padlock.is_unlocked() {
-                *padlock = PadlockResource::Invisible;
+            match padlock.status {
+                PadlockStatus::Invisible { .. } => {
+                    padlock.status = PadlockStatus::Invisible {
+                        last_moved: Some(elapsed),
+                    }
+                }
+                PadlockStatus::Locked { .. } => {} //unreachable
+                PadlockStatus::Visible { last_still, .. } => {
+                    if last_still + LINGER_DURATION > elapsed && velocity.linvel.length() < LOCK_BREAK_VELOCITY {
+                        padlock.status = PadlockStatus::Visible { entity, translation: transform.translation, last_still }
+                        //keep lingering
+                    } else {
+                        padlock.status = PadlockStatus::Invisible {
+                            last_moved: Some(elapsed),
+                        }
+                    }
+                }
             }
-            dragged.last_moved = time.elapsed();
         }
     }
 }
 
 fn apply_forces(
-    mut dragged_entities: Query<(
-        &Transform,
-        &mut ExternalForce,
-        &Velocity,
-        &BeingDragged,
-    )>,
+    mut dragged_entities: Query<(&Transform, &mut ExternalForce, &Velocity, &BeingDragged)>,
 ) {
     // const ROTATION_DAMPING: f32 = 1.0;
     // const ROTATION_STIFFNESS: f32 = 1.0;
 
-    for (transform, mut external_force, velocity, dragged) in dragged_entities.iter_mut()
-    {
-        let distance =
-            dragged.desired_position - transform.translation.truncate();
+    for (transform, mut external_force, velocity, dragged) in dragged_entities.iter_mut() {
+        let distance = dragged.desired_position - transform.translation.truncate();
 
         let force = (distance * POSITION_STIFFNESS) - (velocity.linvel * POSITION_DAMPING);
 
-        let clamped_force =
-        if force.length() > 0. && velocity.linvel.length() > 0. && force.angle_between(velocity.linvel).abs() > std::f32::consts::FRAC_PI_2  {
+        let clamped_force = if force.length() > 0.
+            && velocity.linvel.length() > 0.
+            && force.angle_between(velocity.linvel).abs() > std::f32::consts::FRAC_PI_2
+        {
             force // force is in opposite direction to velocity so don't clamp it
-        }
-        else{
+        } else {
             force.clamp_length_max(MAX_FORCE)
         };
 
@@ -279,7 +298,6 @@ pub fn handle_drag_changes(
         Changed<Draggable>,
     >,
     mut padlock_resource: ResMut<PadlockResource>,
-    time: Res<Time>,
 ) {
     for (
         entity,
@@ -305,7 +323,13 @@ pub fn handle_drag_changes(
             }
 
             Draggable::Locked => {
-                *padlock_resource = PadlockResource::Locked(entity, transform.translation);
+                *padlock_resource = PadlockResource {
+                    status: PadlockStatus::Locked {
+                        entity,
+                        translation: transform.translation,
+                    },
+                    ..Default::default()
+                };
                 *locked_axes = LockedAxes::all();
                 *gravity_scale = GravityScale(0.0);
                 *velocity = Velocity::zero();
@@ -318,7 +342,6 @@ pub fn handle_drag_changes(
                 }
                 let mut builder = commands.entity(entity);
                 builder.insert(BeingDragged {
-                    last_moved: time.elapsed(),
                     desired_position: transform.translation.truncate(),
                 });
 

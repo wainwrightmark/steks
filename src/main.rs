@@ -48,6 +48,7 @@ mod level;
 use level::*;
 mod walls;
 use share::SharePlugin;
+use spirit::SpiritPlugin;
 use walls::*;
 
 mod shape_maker;
@@ -66,6 +67,8 @@ use collision::*;
 
 mod leaderboard;
 use leaderboard::*;
+
+mod spirit;
 
 mod game_shape;
 use fixed_shape::*;
@@ -130,6 +133,7 @@ fn main() {
         .add_plugin(InputPlugin)
         .add_plugin(CameraPlugin)
         .add_plugin(LeaderboardPlugin)
+        .add_plugin(SpiritPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
@@ -145,13 +149,13 @@ fn main() {
         //.add_plugin(RecordingPlugin)
 
         .insert_resource(PkvStore::new("Wainwrong", "steks"))
-        // .insert_resource(WinitSettings {
-        //     return_from_run: false,
-        //     focused_mode: UpdateMode::Continuous,
-        //     unfocused_mode: UpdateMode::ReactiveLowPower {
-        //         max_wait: Duration::from_secs(60),
-        //     },
-        // })
+        .insert_resource(bevy::winit::WinitSettings {
+            return_from_run: false,
+            focused_mode: bevy::winit::UpdateMode::Continuous,
+            unfocused_mode: bevy::winit::UpdateMode::ReactiveLowPower {
+                max_wait: Duration::from_secs(60),
+            },
+        })
         ;
 
     #[cfg(target_arch = "wasm32")]

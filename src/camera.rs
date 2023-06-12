@@ -32,7 +32,7 @@ pub struct ZoomCamera {
 pub struct TouchDragged;
 
 fn show_shadows(
-    added: Query<&TouchDragged, Added<TouchDragged>>,
+    added: Query<(), Added<TouchDragged>>,
     mut shadows: Query<(&mut Visibility, With<Shadow>)>,
 ) {
     if !added.is_empty() {

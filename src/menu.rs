@@ -1,5 +1,3 @@
-
-
 use strum::Display;
 
 use crate::{
@@ -87,10 +85,10 @@ fn handle_menu_state_changes(
                 (MenuComponent::Levels, MenuState::LevelsOpen) => true,
             };
 
-            if visible{
+            if visible {
                 *visibility = Visibility::Inherited;
-            }else{
-                *visibility =Visibility::Hidden;
+            } else {
+                *visibility = Visibility::Hidden;
             }
         }
     }
@@ -105,7 +103,7 @@ fn button_system(
     mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
     mut share_events: EventWriter<ShareEvent>,
     mut menu_state: ResMut<MenuState>,
-    mut current_level: ResMut<CurrentLevel>
+    mut current_level: ResMut<CurrentLevel>,
 ) {
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
         use MenuButton::*;
@@ -133,11 +131,10 @@ fn button_system(
                     Levels => menu_state.as_mut().toggle_levels(),
                     NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                     MinimizeCompletion => {
-
-                        match current_level.completion{
-
-                            LevelCompletion::CompleteWithSplash { height } =>current_level.completion = LevelCompletion::CompleteNoSplash{height},
-                            _ => {}
+                        if let LevelCompletion::CompleteWithSplash { height } =
+                            current_level.completion
+                        {
+                            current_level.completion = LevelCompletion::CompleteNoSplash { height }
                         }
                     }
                 }
@@ -215,7 +212,6 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer) {
 
                 max_size: Size::width(Val::Px(BUTTON_WIDTH * 4.)),
 
-
                 ..Default::default()
             },
             z_index: ZIndex::Global(10),
@@ -260,7 +256,7 @@ pub fn spawn_button(
     parent: &mut ChildBuilder,
     menu_button: MenuButton,
     //asset_server: &AssetServer,
-    font: Handle<Font>
+    font: Handle<Font>,
 ) {
     parent
         .spawn(ButtonBundle {
@@ -306,7 +302,7 @@ pub enum MenuButton {
     Levels,
     GotoLevel { level: u8 },
     NextLevel,
-    MinimizeCompletion
+    MinimizeCompletion,
 }
 
 impl MenuButton {
@@ -321,10 +317,10 @@ impl MenuButton {
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
             ShareSaved => "\u{f1e0}".to_string(),     // "Share",
-            Levels => "\u{e812}".to_string(),// "\u{e812};".to_string(),
+            Levels => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
             GotoLevel { level } => format!("{:2}", level + 1),
-            NextLevel => "\u{e808}".to_string(), //play
-            MinimizeCompletion => "\u{e814}".to_string() //minus
+            NextLevel => "\u{e808}".to_string(),          //play
+            MinimizeCompletion => "\u{e814}".to_string(), //minus
         }
     }
 }

@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 
 use crate::*;
 
-pub fn encode_shapes(shapes: &Vec<(&GameShape, Location, bool)>) -> Vec<u8> {
+pub fn encode_shapes(shapes: &[(&GameShape, Location, bool)]) -> Vec<u8> {
     shapes
         .iter()
         .flat_map(|(shape, location, locked)| encode_shape(shape, *location, *locked))

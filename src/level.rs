@@ -40,8 +40,7 @@ fn manage_level_ui(
 
             if let Some(text) =
                 current_level
-                    .level
-                    .get_text(&current_level.completion, score_store, shapes)
+                    .get_text( score_store, shapes)
             {
                 builder.with_children(|parent| {
                     const LEVEL_TEXT_SECONDS: u64 = 20;
@@ -171,6 +170,7 @@ fn choose_level_on_game_load(
 
     #[cfg(target_arch = "wasm32")]
     {
+        use base64::Engine;
         match wasm::get_game_from_location() {
             Some(data) => {
                 info!("Load game {data}");
@@ -228,6 +228,53 @@ pub struct CurrentLevel {
     pub completion: LevelCompletion,
 }
 
+impl CurrentLevel{
+    pub fn get_text(
+        &self,
+        score_store: Res<ScoreStore>,
+        shapes: Query<&ShapeIndex>,
+    ) -> Option<String> {
+        match self.completion {
+            LevelCompletion::Incomplete { stage } => match &self.level {
+                GameLevel::SetLevel { level, .. } => {
+                    level.get_stage(&stage).map(|x| x.text.to_string())
+                }
+                GameLevel::Infinite {bytes} =>{
+                    if stage == 0 && bytes.is_some(){
+                        Some("Loaded Game".to_string())
+                    }
+                    else{
+                        None
+                    }
+                },
+                GameLevel::Challenge => Some("Daily Challenge".to_string()),
+            },
+            LevelCompletion::CompleteWithSplash { height } => {
+                let hash = leaderboard::ScoreStore::hash_shapes(shapes.iter());
+
+                let record_height: Option<f32> = match &score_store.map {
+                    Some(map) => map.get(&hash).copied(),
+                    None => None,
+                };
+
+                let message = match &self.level{
+                    GameLevel::SetLevel {  level, .. } => level.end_text.as_ref().map(|x|x.as_str()) .unwrap_or_else(|| "Level Complete"),
+                    GameLevel::Infinite { .. } => "",
+                    GameLevel::Challenge => "Challenge Complete",
+                };
+
+                match record_height {
+                    Some(record_height) => Some(format!(
+                        "{message}\nHeight {height:.2}\nRecord {record_height:.2}"
+                    )),
+                    None => Some(format!("Level Complete\nHeight {height:.2}")),
+                }
+            }
+            LevelCompletion::CompleteNoSplash { height } => Some(format!("{height:.2}")),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LevelCompletion {
     Incomplete { stage: usize },
@@ -251,47 +298,6 @@ impl LevelCompletion {
     }
 }
 
-impl GameLevel {
-    pub fn get_text(
-        &self,
-        completion: &LevelCompletion,
-        score_store: Res<ScoreStore>,
-        shapes: Query<&ShapeIndex>,
-    ) -> Option<String> {
-        match completion {
-            LevelCompletion::Incomplete { stage } => match self {
-                GameLevel::SetLevel { level, .. } => {
-                    level.get_stage(stage).map(|x| x.text.to_string())
-                }
-                GameLevel::Infinite {bytes} =>{
-                    if *stage == 0 && bytes.is_some(){
-                        Some("Loaded Game".to_string())
-                    }
-                    else{
-                        None
-                    }
-                },
-                GameLevel::Challenge => Some("Daily Challenge".to_string()),
-            },
-            LevelCompletion::CompleteWithSplash { height } => {
-                let hash = leaderboard::ScoreStore::hash_shapes(shapes.iter());
-
-                let record_height: Option<f32> = match &score_store.map {
-                    Some(map) => map.get(&hash).copied(),
-                    None => None,
-                };
-
-                match record_height {
-                    Some(record_height) => Some(format!(
-                        "Level Complete\nHeight {height:.2}\nRecord {record_height:.2}"
-                    )),
-                    None => Some(format!("Level Complete\nHeight {height:.2}")),
-                }
-            }
-            LevelCompletion::CompleteNoSplash { height } => Some(format!("{height:.2}")),
-        }
-    }
-}
 
 impl LevelCompletion {
     pub fn get_buttons(&self) -> Option<Vec<MenuButton>> {

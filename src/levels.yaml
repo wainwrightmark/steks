@@ -12,6 +12,7 @@
   shapes:
     - shape: O4
 - text: "You'll need to rotate that triangle\r\nUnlock it and rotate it\r\nUse Q/E, the mousewheel, or another finger"
+  end_text: "Time for some real levels"
   shapes:
     - shape: Triangle
       x: 0.0
@@ -33,6 +34,7 @@
     - shape: L4
 
 - text: "Level 6"
+  end_text: "That was sneaky of me, wasn't it"
   shapes:
     - shape: S4
     - shape: S4

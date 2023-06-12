@@ -31,7 +31,9 @@ pub struct SetLevel {
     #[serde(flatten)]
     pub initial_stage: LevelStage,
     #[serde(default)]
-    pub stages: Vec<LevelStage>
+    pub stages: Vec<LevelStage>,
+
+    pub end_text: Option<String>
 }
 
 impl SetLevel{
@@ -151,8 +153,10 @@ mod tests {
     #[test]
     pub fn test_deserialize_level() {
         let levels: Vec<SetLevel> = vec![SetLevel {
+            end_text: None,
             initial_stage: LevelStage{
                 text: "abc".to_string(),
+
                 shapes: vec![LevelShape {
                     shape: crate::set_level::LevelShapeForm::Circle,
                     x: Some(1.0),

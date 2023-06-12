@@ -27,10 +27,10 @@ mod color;
 mod draggable;
 pub mod encoding;
 pub mod fixed_shape;
-mod saved_data;
-pub mod share;
 pub mod padlock;
+mod saved_data;
 pub mod set_level;
+pub mod share;
 
 pub mod shapes_vec;
 
@@ -73,7 +73,6 @@ use game_shape::*;
 
 #[cfg(target_arch = "wasm32")]
 use crate::logging::LoggableEvent;
-
 
 #[cfg(target_arch = "wasm32")]
 mod logging;
@@ -189,13 +188,12 @@ pub fn log_start(mut pkv: ResMut<PkvStore>) {
         pkv.set(KEY, &true).unwrap();
     }
 
-    #[cfg(target_arch = "wasm32")]
-    {
-        bevy::tasks::IoTaskPool::get().spawn(async move { log_start_async(user_exists).await }).detach();
-    }
+    bevy::tasks::IoTaskPool::get()
+        .spawn(async move { log_start_async(user_exists).await })
+        .detach();
 }
 
-async fn log_start_async<'a>(user_exists: bool) {
+async fn log_start_async<'a>(_user_exists: bool) {
     #[cfg(target_arch = "wasm32")]
     {
         let device_id = match capacitor_bindings::device::Device::get_id().await {
@@ -206,7 +204,7 @@ async fn log_start_async<'a>(user_exists: bool) {
             }
         };
 
-        if !user_exists {
+        if !_user_exists {
             let new_user = wasm::new_user_async().await;
             new_user.try_log_async1(device_id.clone()).await;
         }

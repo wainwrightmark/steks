@@ -115,14 +115,14 @@ fn draw_image(game: &str) -> Vec<u8> {
         },
     };
 
-    let game_scale = (HEIGHT as f32/ game_tree.size.height() as f32).min(WIDTH as f32 / game_tree.size.width() as f32) ;
+    let game_scale = (HEIGHT as f32 / game_tree.size.height() as f32)
+        .min(WIDTH as f32 / game_tree.size.width() as f32);
 
     resvg::Tree::render(
         &resvg::Tree::from_usvg(&game_tree),
         Transform::from_scale(game_scale, game_scale),
         &mut pixmap.as_mut(),
     );
-
 
     let logo_scale = WIDTH as f32 / logo_tree.size.width() as f32;
     resvg::Tree::render(
@@ -138,9 +138,7 @@ fn draw_image(game: &str) -> Vec<u8> {
 mod tests {
 
     use crate::{draw_image, make_svg_from_data};
-    const TEST_DATA: &'static str =
-    "JnRAUUYRA3HNRXS0KHZnWiDFAHXoY_EbApgRUvfK";
-
+    const TEST_DATA: &'static str = "JnRAUUYRA3HNRXS0KHZnWiDFAHXoY_Eb";
 
     #[test]
     fn generate_png_test() {

@@ -32,6 +32,8 @@ pub mod share;
 pub mod padlock;
 pub mod set_level;
 
+pub mod shapes_vec;
+
 pub mod infinity;
 
 //use menu_action::MenuActionPlugin;

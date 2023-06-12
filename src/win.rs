@@ -3,10 +3,10 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::crossbeam::atomic::AtomicCell;
 use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
-use itertools::Itertools;
 
-use crate::shape_maker::{ShapeIndex, SpawnNewShapeEvent, SHAPE_SIZE};
-use crate::share::SaveSVGEvent;
+use crate::shape_maker::{ShapeIndex, SpawnNewShapeEvent};
+use crate::shapes_vec::ShapesVec;
+use crate::share::SavedShare;
 use crate::*;
 
 #[derive(Component)]
@@ -38,9 +38,8 @@ pub fn check_for_win(
     shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), Without<WinTimer>>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
-    mut screenshot_events: EventWriter<SaveSVGEvent>,
-    // mut spawn_shape_events: EventWriter<SpawnNewShapeEvent>,
     mut pkv: ResMut<PkvStore>,
+    mut saves: ResMut<SavedShare>,
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
         let remaining = timer.win_time - time.elapsed_seconds_f64();
@@ -50,32 +49,24 @@ pub fn check_for_win(
 
             commands.entity(timer_entity).despawn();
 
-            let shapes = shapes_query
-                .iter()
-                .map(|(index, transform, draggable)| {
-                    (
-                        &ALL_SHAPES[index.0],
-                        transform.into(),
-                        draggable.is_locked(),
-                    )
-                })
-                .collect_vec();
+            let shapes = ShapesVec::from_query(shapes_query);
+
 
             let set_complete = match &current_level.level {
                 GameLevel::SetLevel { index, .. } => {
                     let title = format!("steks level {}", index + 1);
-                    screenshot_events.send(SaveSVGEvent { title });
+                    share::save_svg(title, &shapes, &mut saves);
                     true
                 }
-                GameLevel::Infinite {..}=> {
+                GameLevel::Infinite { .. } => {
                     let title = format!("steks infinite");
-                    screenshot_events.send(SaveSVGEvent { title });
+                    share::save_svg(title, &shapes, &mut saves);
                     SavedData::update(&mut pkv, |s| s.save_game(&shapes));
                     true
                 }
                 GameLevel::Challenge => {
                     let title = format!("steks challenge {}", get_today_date());
-                    screenshot_events.send(SaveSVGEvent { title });
+                    share::save_svg(title, &shapes, &mut saves);
                     true
                 }
             };
@@ -88,18 +79,18 @@ pub fn check_for_win(
                             current_level.completion =
                                 LevelCompletion::Incomplete { stage: next_stage }
                         } else {
-                            let height = calculate_tower_height(&shapes);
+                            let height = shapes.calculate_tower_height();
                             current_level.completion =
                                 LevelCompletion::CompleteWithSplash { height }
                         }
                     }
 
                     LevelCompletion::CompleteWithSplash { .. } => {
-                        let height = calculate_tower_height(&shapes);
+                        let height = shapes.calculate_tower_height();
                         current_level.completion = LevelCompletion::CompleteWithSplash { height }
                     }
                     LevelCompletion::CompleteNoSplash { .. } => {
-                        let height = calculate_tower_height(&shapes);
+                        let height = shapes.calculate_tower_height();
                         current_level.completion = LevelCompletion::CompleteNoSplash { height }
                     }
                 }
@@ -112,24 +103,7 @@ pub fn check_for_win(
     }
 }
 
-fn calculate_tower_height(shapes: &Vec<(&GameShape, Location, bool)>) -> f32 {
-    let mut min = WINDOW_HEIGHT;
-    let mut max = -WINDOW_HEIGHT;
 
-    for (shape, location, _) in shapes {
-        let bb = shape.body.bounding_box(SHAPE_SIZE, location);
-
-        info!("shape {shape} {bb:?}");
-
-        min = min.min(bb.min.y);
-        max = max.max(bb.max.y);
-    }
-
-    let height = (max - min).max(0.0);
-
-    info!("Calculated height min {min:.2} max {max:.2} height {height:.2}");
-    height
-}
 
 pub fn check_for_tower(
     mut commands: Commands,

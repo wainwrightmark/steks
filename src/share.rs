@@ -1,10 +1,6 @@
-use base64::Engine;
-use bevy::prelude::{
-    CoreSet, EventReader, IntoSystemConfig, Plugin, Query, Res, ResMut, Resource, Transform,
-};
-use itertools::Itertools;
+use bevy::prelude::{EventReader, Plugin, Query, Res, ResMut, Resource, Transform};
 
-use crate::{draggable::Draggable, encoding, shape_maker::ShapeIndex};
+use crate::{draggable::Draggable, shape_maker::ShapeIndex, shapes_vec::ShapesVec};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ShareEvent;
@@ -17,9 +13,9 @@ impl Plugin for SharePlugin {
         app.add_system(handle_shares);
 
         app.insert_resource(SavedShare::default())
-            .add_event::<SaveSVGEvent>()
+            //.add_event::<SaveSVGEvent>()
             .add_event::<ShareSavedSvgEvent>()
-            .add_system(save_svg.in_base_set(CoreSet::Last))
+            //.add_system(save_svg.in_base_set(CoreSet::Last))
             .add_system(share_saved_svg);
     }
 }
@@ -29,34 +25,20 @@ fn handle_shares(
     shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>,
 ) {
     if let Some(_) = events.iter().next() {
+
+        let shapes = ShapesVec::from_query(shapes_query);
+        let data = shapes.make_base64_data();
         #[cfg(target_arch = "wasm32")]
         {
-            let data = make_data(shapes_query);
+
             crate::wasm::share_game(data);
         }
     }
 }
 
-pub fn make_data(shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>) -> String {
-    let shapes = shapes_query
-        .iter()
-        .map(|(index, transform, draggable)| {
-            (
-                &crate::game_shape::ALL_SHAPES[index.0],
-                transform.into(),
-                draggable.is_locked(),
-            )
-        })
-        .collect_vec();
-
-    let bytes = encoding::encode_shapes(&shapes);
-    let data = base64::engine::general_purpose::URL_SAFE.encode(bytes);
-    data
-}
-
-pub struct SaveSVGEvent {
-    pub title: String,
-}
+// pub struct SaveSVGEvent {
+//     pub title: String,
+// }
 
 #[derive(Debug, Clone, Copy)]
 pub struct ShareSavedSvgEvent;
@@ -89,16 +71,8 @@ fn share_saved_svg(mut events: EventReader<ShareSavedSvgEvent>, saves: Res<Saved
     }
 }
 
-fn save_svg(
-    mut events: EventReader<SaveSVGEvent>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>,
-    mut saves: ResMut<SavedShare>,
-) {
-    if let Some(event) = events.iter().next() {
-        let data = make_data(shapes_query);
-        *saves = SavedShare(Some(ShareData {
-            title: event.title.clone(),
-            data,
-        }))
-    }
+pub fn save_svg(title: String, shapes: &ShapesVec, saves: &mut ResMut<SavedShare>) {
+    let data = shapes.make_base64_data();
+
+    *saves.as_mut() = SavedShare(Some(ShareData { title, data }))
 }

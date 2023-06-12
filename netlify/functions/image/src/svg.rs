@@ -4,6 +4,8 @@ use resvg::usvg::Color;
 
 use crate::{fixed_shape::FixedShape, *};
 
+const SHAPE_SIZE: f32 = 50.0;
+
 pub fn create_svg<'a, I: Iterator<Item = FixedShape>>(iterator: I) -> String {
     let mut str: String = "".to_owned();
     let background = color_to_rgba(color::background_color());
@@ -21,7 +23,7 @@ pub fn create_svg<'a, I: Iterator<Item = FixedShape>>(iterator: I) -> String {
         let shape_svg = shape
             .shape
             .body
-            .as_svg(50., color_to_rgba(shape.shape.fill()));
+            .as_svg(SHAPE_SIZE, color_to_rgba(shape.shape.fill()));
         str.push_str(shape_svg.as_str());
         str.push('\n');
 

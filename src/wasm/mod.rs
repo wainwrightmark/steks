@@ -1,6 +1,4 @@
 use crate::{logging::LogAppInfo, *};
-// use crate::{input::InputDetector, logging::LogDeviceInfo};
-use base64::Engine;
 
 use web_sys::UrlSearchParams;
 

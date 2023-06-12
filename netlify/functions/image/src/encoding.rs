@@ -6,8 +6,8 @@ pub fn decode_shapes(data: &[u8]) -> Vec<FixedShape> {
     data.chunks_exact(6).map(decode_shape).collect()
 }
 
-pub const MAX_WINDOW_WIDTH: f32 = 1080f32;
-pub const MAX_WINDOW_HEIGHT: f32 = 1920f32;
+pub const MAX_WINDOW_WIDTH: f32 = 1920f32;
+pub const MAX_WINDOW_HEIGHT: f32 = 1080f32;
 
 const X_RANGE: RangeInclusive<f32> = (MAX_WINDOW_WIDTH * -0.5)..=(MAX_WINDOW_WIDTH * 0.5);
 const Y_RANGE: RangeInclusive<f32> = (MAX_WINDOW_HEIGHT * -0.5)..=(MAX_WINDOW_HEIGHT * 0.5);

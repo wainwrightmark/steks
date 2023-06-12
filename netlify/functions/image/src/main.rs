@@ -12,7 +12,7 @@ use http::header::HeaderMap;
 use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use resvg::tiny_skia::Transform;
-use resvg::usvg::{AspectRatio, NodeExt, PathBbox, Tree, TreeParsing, ViewBox};
+use resvg::usvg::{AspectRatio, NodeExt, NonZeroRect, Tree, TreeParsing, ViewBox};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -82,9 +82,7 @@ fn draw_image(game: &str) -> Vec<u8> {
     let bbox = game_tree
         .root
         .calculate_bbox()
-        .unwrap_or(PathBbox::new(0., 0., WIDTH as f64, HEIGHT as f64).unwrap());
-
-    let bbox_size = bbox.to_rect().unwrap().size();
+        .unwrap_or(resvg::usvg::Rect::from_xywh(0., 0., WIDTH as f32, HEIGHT as f32).unwrap());
 
     let mut pixmap =
         resvg::tiny_skia::Pixmap::new(RESOLUTION, RESOLUTION).expect("Could not create pixmap");
@@ -94,14 +92,12 @@ fn draw_image(game: &str) -> Vec<u8> {
         bc.red, bc.green, bc.blue, 255,
     ));
 
-    const SPACE_RATIO: f64 = 1.1;
+    const SPACE_RATIO: f32 = 1.1;
 
-    let length_to_use = (bbox_size.width().max(bbox_size.height()) as f64) * SPACE_RATIO;
+    let length_to_use = (bbox.width().max(bbox.height())) * SPACE_RATIO;
 
     game_tree.view_box = ViewBox {
-        rect: resvg::usvg::Rect::new(
-            //bbox.x(),
-            //bbox.y(),
+        rect: NonZeroRect::from_xywh(
             bbox.x() - ((length_to_use - bbox.width()) * 0.75),
             bbox.y() - ((length_to_use - bbox.height()) * 0.75),
             length_to_use,

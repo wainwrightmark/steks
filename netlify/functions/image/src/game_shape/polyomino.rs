@@ -9,7 +9,7 @@ use geometrid::{
     shape::Shape,
 };
 
-use crate::{point::Point, game_shape::rounded_polygon};
+use crate::{point::Point, game_shape::{rounded_polygon, SHAPE_RADIUS_RATIO}};
 
 use super::GameShapeBody;
 
@@ -33,14 +33,9 @@ fn get_vertices<const S: usize>(
 impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn as_svg(&self, size: f32, color_rgba: String) -> String {
         let points: Vec<_> = get_vertices(&self, size)
-            // .map(|v| format!("{},{}", v.x, v.y))
             .collect();
 
-        // let points = self
-        //     .0
-        //     .map(|(x, y)| Point::new((x as f32) * u, (y as f32) * u));
-
-        let path = rounded_polygon::make_rounded_polygon_path(points.as_slice(), size / 10.0);
+        let path = rounded_polygon::make_rounded_polygon_path(points.as_slice(), size * SHAPE_RADIUS_RATIO);
 
         format!(r#"<path d="{path}" fill="{color_rgba}" />"#)
     }

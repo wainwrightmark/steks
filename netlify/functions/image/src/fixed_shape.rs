@@ -1,5 +1,4 @@
 use crate::game_shape::*;
-use crate::*;
 use crate::point::Point;
 
 #[derive(Debug, Clone, Copy, PartialEq)]

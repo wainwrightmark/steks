@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_tweening::{lens::TransformPositionLens, EaseFunction, Tween};
 
-use crate::level::CurrentLevel;
+use crate::level::{CurrentLevel, LevelCompletion};
 
 pub struct PadlockPlugin;
 
@@ -54,7 +54,7 @@ fn clear_padlock_on_level_change(
     level: Res<CurrentLevel>,
     mut padlock_resource: ResMut<PadlockResource>,
 ) {
-    if level.is_changed() {
+    if level.is_changed() && level.completion == (LevelCompletion::Incomplete { stage: 0 }) {
         *padlock_resource = PadlockResource::default();
     }
 }

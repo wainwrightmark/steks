@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use crate::set_level::get_set_level;
-use crate::*;
 use crate::shape_maker::ShapeIndex;
+use crate::*;
 use crate::{set_level::SetLevel, shape_maker::SpawnNewShapeEvent};
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
@@ -15,15 +15,12 @@ pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CurrentLevel>()
-        .init_resource::<LevelCompletion>()
             .add_startup_system(setup_level_ui)
             .add_startup_system(choose_level_on_game_load.in_base_set(StartupSet::PostStartup))
             .add_system(handle_change_level_events.in_base_set(CoreSet::First))
             .add_system(track_level_completion)
             .add_system(manage_level_shapes)
-            .add_system(manage_level_stage_shapes)
             .add_system(manage_level_ui)
-
             .add_event::<ChangeLevelEvent>();
     }
 }
@@ -31,21 +28,22 @@ impl Plugin for LevelPlugin {
 fn manage_level_ui(
     mut commands: Commands,
     current_level: Res<CurrentLevel>,
-    completion: Res<LevelCompletion>,
     mut level_ui: Query<(Entity, &mut Style), With<LevelUI>>,
     asset_server: Res<AssetServer>,
     score_store: Res<ScoreStore>,
-    shapes: Query<&ShapeIndex>
-
+    shapes: Query<&ShapeIndex>,
 ) {
-    if current_level.is_changed() || completion.is_changed() {
+    if current_level.is_changed() {
         if let Some((level_ui_entity, mut style)) = level_ui.iter_mut().next() {
             let mut builder = commands.entity(level_ui_entity);
-            *style = completion.get_ui_style();
+            *style = current_level.completion.get_ui_style();
             builder.despawn_descendants();
 
-
-            if let Some(text) = current_level.level.get_text(completion.as_ref(), score_store, shapes) {
+            if let Some(text) =
+                current_level
+                    .level
+                    .get_text(&current_level.completion, score_store, shapes)
+            {
                 builder.with_children(|parent| {
                     const LEVEL_TEXT_SECONDS: u64 = 20;
                     parent
@@ -76,14 +74,19 @@ fn manage_level_ui(
                 });
             }
 
-            if let Some(buttons) = completion.get_buttons() {
+            if let Some(buttons) = current_level.completion.get_buttons() {
                 builder.with_children(|x| {
                     x.spawn(NodeBundle {
                         style: Style {
                             display: Display::Flex,
                             align_items: AlignItems::Center,
                             // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-                            margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
+                            margin: UiRect::new(
+                                Val::Auto,
+                                Val::Auto,
+                                Val::Undefined,
+                                Val::Undefined,
+                            ),
                             justify_content: JustifyContent::Center,
 
                             ..Default::default()
@@ -104,45 +107,37 @@ fn manage_level_ui(
 
 fn manage_level_shapes(
     mut commands: Commands,
-    current_level: Res<CurrentLevel>,
     draggables: Query<(Entity, With<Draggable>)>,
-    event_writer: EventWriter<SpawnNewShapeEvent>,
+    current_level: Res<CurrentLevel>,
+    mut event_writer: EventWriter<SpawnNewShapeEvent>,
 ) {
     if current_level.is_changed() {
-        for (e, _) in draggables.iter() {
-            commands.entity(e).despawn_recursive();
-        }
-
-        shape_maker::create_level_shapes(&current_level.level, &0, event_writer);
-    }
-}
-
-fn manage_level_stage_shapes(
-    current_level: Res<CurrentLevel>,
-    completion: Res<LevelCompletion>,
-    mut event_writer: EventWriter<SpawnNewShapeEvent>,
-){
-    if completion.is_changed(){
-        match completion.as_ref(){
+        match current_level.completion {
             LevelCompletion::Incomplete { stage } => {
-                if *stage > 0{
+                if stage == 0 {
+                    for (e, _) in draggables.iter() {
+                        commands.entity(e).despawn_recursive();
+                    }
+                    shape_maker::create_level_shapes(&current_level.level, &0, event_writer);
+                } else {
                     match &current_level.as_ref().level {
-                        GameLevel::SetLevel { level,.. } => {
-                            if let Some(stage) = level.get_stage(stage){
-                                for shape in &stage.shapes{
-                                    event_writer.send(SpawnNewShapeEvent { fixed_shape: shape.clone().into() })
+                        GameLevel::SetLevel { level, .. } => {
+                            if let Some(stage) = level.get_stage(&stage) {
+                                for shape in &stage.shapes {
+                                    event_writer.send(SpawnNewShapeEvent {
+                                        fixed_shape: shape.clone().into(),
+                                    })
                                 }
                             }
                         }
-                        GameLevel::Infinite { .. } => {},//TODO change how this works
-                        GameLevel::SavedInfinite { .. } => {},//TODO change this
-                        GameLevel::Challenge => {},
+                        GameLevel::Infinite { .. } => {} //TODO change how this works
+                        GameLevel::SavedInfinite { .. } => {} //TODO change this
+                        GameLevel::Challenge => {}
                     }
                 }
-
-            },
-            LevelCompletion::CompleteWithSplash { .. } => {},
-            LevelCompletion::CompleteNoSplash { .. } => {},
+            }
+            LevelCompletion::CompleteWithSplash { .. } => {}
+            LevelCompletion::CompleteNoSplash { .. } => {}
         }
     }
 }
@@ -150,7 +145,6 @@ fn manage_level_stage_shapes(
 fn handle_change_level_events(
     mut change_level_events: EventReader<ChangeLevelEvent>,
     mut current_level: ResMut<CurrentLevel>,
-    mut completion: ResMut<LevelCompletion>,
 ) {
     if let Some(event) = change_level_events.iter().next() {
         let level = event.get_new_level(&current_level.level);
@@ -164,7 +158,7 @@ fn handle_change_level_events(
         }
 
         current_level.level = level;
-        *completion = LevelCompletion::Incomplete{stage: 0};
+        current_level.completion = LevelCompletion::Incomplete { stage: 0 };
     }
 }
 
@@ -204,24 +198,24 @@ pub struct LevelUI;
 #[derive(Default, Resource)]
 pub struct CurrentLevel {
     pub level: GameLevel,
+    pub completion: LevelCompletion,
 }
 
-#[derive(Debug,  Clone, Copy, PartialEq,  Resource)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LevelCompletion {
-
-    Incomplete{stage: usize},
-    CompleteWithSplash{height: f32},
-    CompleteNoSplash{height: f32},
+    Incomplete { stage: usize },
+    CompleteWithSplash { height: f32 },
+    CompleteNoSplash { height: f32 },
 }
 
-impl Default for LevelCompletion{
+impl Default for LevelCompletion {
     fn default() -> Self {
         Self::Incomplete { stage: 0 }
     }
 }
 
-impl LevelCompletion{
-    pub fn is_complete(&self)-> bool{
+impl LevelCompletion {
+    pub fn is_complete(&self) -> bool {
         match self {
             LevelCompletion::Incomplete { .. } => false,
             LevelCompletion::CompleteWithSplash { .. } => true,
@@ -230,61 +224,64 @@ impl LevelCompletion{
     }
 }
 
-
 impl GameLevel {
-    pub fn get_text(&self, completion: &LevelCompletion, score_store: Res<ScoreStore>, shapes: Query<&ShapeIndex>) -> Option<String> {
-
-        match completion{
-            LevelCompletion::Incomplete{stage} => {
-                match self {
-                    GameLevel::SetLevel { level, .. } => {
-                        level.get_stage(stage).map(|x|x.text.to_string())
-                    },
-                    GameLevel::Infinite {
-                        starting_shapes: _,
-                        seed: _,
-                    } => None,
-                    GameLevel::Challenge => Some("Daily Challenge".to_string()),
-
-                    GameLevel::SavedInfinite { data: _, seed: _ } => Some("Loaded Game".to_string()),
+    pub fn get_text(
+        &self,
+        completion: &LevelCompletion,
+        score_store: Res<ScoreStore>,
+        shapes: Query<&ShapeIndex>,
+    ) -> Option<String> {
+        match completion {
+            LevelCompletion::Incomplete { stage } => match self {
+                GameLevel::SetLevel { level, .. } => {
+                    level.get_stage(stage).map(|x| x.text.to_string())
                 }
-            },
-            LevelCompletion::CompleteWithSplash{height} => {
+                GameLevel::Infinite {
+                    starting_shapes: _,
+                    seed: _,
+                } => None,
+                GameLevel::Challenge => Some("Daily Challenge".to_string()),
 
+                GameLevel::SavedInfinite { data: _, seed: _ } => Some("Loaded Game".to_string()),
+            },
+            LevelCompletion::CompleteWithSplash { height } => {
                 let hash = leaderboard::ScoreStore::hash_shapes(shapes.iter());
 
-                let record_height: Option<f32> = match &score_store.map{
-                    Some(map) => map.get(&hash).map(|x|*x),
+                let record_height: Option<f32> = match &score_store.map {
+                    Some(map) => map.get(&hash).map(|x| *x),
                     None => None,
                 };
 
                 match record_height {
-                    Some(record_height) => Some(format!("Level Complete\nHeight {height:.2}\nRecord {record_height:.2}")),
+                    Some(record_height) => Some(format!(
+                        "Level Complete\nHeight {height:.2}\nRecord {record_height:.2}"
+                    )),
                     None => Some(format!("Level Complete\nHeight {height:.2}")),
                 }
-
-
-            },
-            LevelCompletion::CompleteNoSplash{height} => Some(format!("{height:.2}")) ,
+            }
+            LevelCompletion::CompleteNoSplash { height } => Some(format!("{height:.2}")),
         }
-
-
     }
 }
 
 impl LevelCompletion {
     pub fn get_buttons(&self) -> Option<Vec<MenuButton>> {
         match self {
-            LevelCompletion::Incomplete{..} => None,
-            LevelCompletion::CompleteWithSplash{..}  => Some(vec![MenuButton::NextLevel, MenuButton::ShareSaved, MenuButton::MinimizeCompletion]),
-            LevelCompletion::CompleteNoSplash{..}  =>Some(vec![MenuButton::NextLevel, MenuButton::ShareSaved]),
+            LevelCompletion::Incomplete { .. } => None,
+            LevelCompletion::CompleteWithSplash { .. } => Some(vec![
+                MenuButton::NextLevel,
+                MenuButton::ShareSaved,
+                MenuButton::MinimizeCompletion,
+            ]),
+            LevelCompletion::CompleteNoSplash { .. } => {
+                Some(vec![MenuButton::NextLevel, MenuButton::ShareSaved])
+            }
         }
     }
 
-    pub fn get_ui_style(&self)-> Style
-    {
+    pub fn get_ui_style(&self) -> Style {
         match self {
-            LevelCompletion::Incomplete{..} | LevelCompletion::CompleteWithSplash{..} => {
+            LevelCompletion::Incomplete { .. } | LevelCompletion::CompleteWithSplash { .. } => {
                 Style {
                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                     position_type: PositionType::Absolute,
@@ -292,17 +289,18 @@ impl LevelCompletion {
                     flex_direction: FlexDirection::Column,
                     ..Default::default()
                 }
+            }
 
-            },
-
-            LevelCompletion::CompleteNoSplash{..} => {
-                Style {
-                    position: UiRect{top: Val::Px(MENU_OFFSET) , left: Val::Px(MENU_OFFSET + BUTTON_WIDTH) , ..Default::default()},
-                    position_type: PositionType::Absolute,
-
-                    flex_direction: FlexDirection::ColumnReverse,
+            LevelCompletion::CompleteNoSplash { .. } => Style {
+                position: UiRect {
+                    top: Val::Px(MENU_OFFSET),
+                    left: Val::Px(MENU_OFFSET + BUTTON_WIDTH),
                     ..Default::default()
-                }
+                },
+                position_type: PositionType::Absolute,
+
+                flex_direction: FlexDirection::ColumnReverse,
+                ..Default::default()
             },
         }
     }
@@ -316,8 +314,8 @@ pub enum GameLevel {
     Challenge,
 }
 
-impl GameLevel{
-    pub fn has_stage(&self, stage: &usize)-> bool{
+impl GameLevel {
+    pub fn has_stage(&self, stage: &usize) -> bool {
         match self {
             GameLevel::SetLevel { level, .. } => level.total_stages() > *stage,
             GameLevel::Infinite { .. } => true,
@@ -377,10 +375,9 @@ pub enum ChangeLevelEvent {
 
 fn track_level_completion(
     level: Res<CurrentLevel>,
-    completion: Res<LevelCompletion>,
     mut saved_data: ResMut<PkvStore>,
 ) {
-    if completion.is_changed() && completion.is_complete() {
+    if level.is_changed() && level.completion.is_complete() {
         match &level.level {
             GameLevel::SetLevel { index, .. } => {
                 if *index == 3 {
@@ -391,9 +388,7 @@ fn track_level_completion(
                     });
                 }
             }
-            GameLevel::Infinite {
-                ..
-            } => {}
+            GameLevel::Infinite { .. } => {}
             GameLevel::SavedInfinite { .. } => {}
             GameLevel::Challenge => {
                 SavedData::update(&mut saved_data, |x| x.with_todays_challenge_beat());

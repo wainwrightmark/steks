@@ -105,7 +105,7 @@ fn button_system(
     mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
     mut share_events: EventWriter<ShareEvent>,
     mut menu_state: ResMut<MenuState>,
-    mut completion: ResMut<LevelCompletion>
+    mut current_level: ResMut<CurrentLevel>
 ) {
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
         use MenuButton::*;
@@ -134,9 +134,9 @@ fn button_system(
                     NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                     MinimizeCompletion => {
 
-                        match completion.as_ref(){
+                        match current_level.completion{
 
-                            LevelCompletion::CompleteWithSplash { height } => *completion = LevelCompletion::CompleteNoSplash{height: *height},
+                            LevelCompletion::CompleteWithSplash { height } =>current_level.completion = LevelCompletion::CompleteNoSplash{height},
                             _ => {}
                         }
                     }

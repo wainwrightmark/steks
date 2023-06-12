@@ -9,7 +9,7 @@ use bevy::{
 };
 use itertools::Itertools;
 
-use crate::{level::LevelCompletion, shape_maker::ShapeIndex};
+use crate::{level::{LevelCompletion, CurrentLevel}, shape_maker::ShapeIndex};
 
 pub struct LeaderboardPlugin;
 
@@ -134,12 +134,12 @@ async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error
 }
 
 fn update_leaderboard_on_completion(
-    completion: Res<LevelCompletion>,
+    current_level: Res<CurrentLevel>,
     shapes: Query<&ShapeIndex>,
     mut score_store: ResMut<ScoreStore>,
 ) {
-    if completion.is_changed() {
-        let height = match completion.as_ref() {
+    if current_level.is_changed() {
+        let height = match current_level.completion {
             LevelCompletion::Incomplete{..} => return,
             LevelCompletion::CompleteWithSplash { height } => height,
             LevelCompletion::CompleteNoSplash { height } => height,

@@ -39,7 +39,7 @@ pub fn check_for_win(
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
     mut screenshot_events: EventWriter<SaveSVGEvent>,
-    mut spawn_shape_events: EventWriter<SpawnNewShapeEvent>,
+    // mut spawn_shape_events: EventWriter<SpawnNewShapeEvent>,
     mut pkv: ResMut<PkvStore>,
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
@@ -67,62 +67,37 @@ pub fn check_for_win(
                     screenshot_events.send(SaveSVGEvent { title });
                     true
                 }
-                GameLevel::Infinite {
-                    starting_shapes: _,
-                    seed,
-                } => {
-                    let title = format!("steks infinite {}", seed);
+                GameLevel::Infinite {..}=> {
+                    let title = format!("steks infinite");
                     screenshot_events.send(SaveSVGEvent { title });
-
-                    spawn_shape_events.send(SpawnNewShapeEvent {
-                        fixed_shape: FixedShape::from_seed(
-                            seed.wrapping_add(shapes_query.iter().len() as u64),
-                        ),
-                    });
-
                     SavedData::update(&mut pkv, |s| s.save_game(&shapes));
-
-                    false
+                    true
                 }
                 GameLevel::Challenge => {
                     let title = format!("steks challenge {}", get_today_date());
                     screenshot_events.send(SaveSVGEvent { title });
                     true
                 }
-                GameLevel::SavedInfinite { data: _, seed } => {
-                    let title = format!("steks infinite {}", seed);
-                    screenshot_events.send(SaveSVGEvent { title });
-
-                    spawn_shape_events.send(SpawnNewShapeEvent {
-                        fixed_shape: FixedShape::from_seed(
-                            seed.wrapping_add(shapes_query.iter().len() as u64),
-                        ),
-                    });
-
-                    SavedData::update(&mut pkv, |s| s.save_game(&shapes));
-
-                    false
-                }
             };
 
             if set_complete {
-
-
                 match current_level.completion {
-                    LevelCompletion::Incomplete {stage}=>{
+                    LevelCompletion::Incomplete { stage } => {
                         let next_stage = stage + 1;
-                        if current_level.level.has_stage(&next_stage){
-                            current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
-                        }else{
+                        if current_level.level.has_stage(&next_stage) {
+                            current_level.completion =
+                                LevelCompletion::Incomplete { stage: next_stage }
+                        } else {
                             let height = calculate_tower_height(&shapes);
-                            current_level.completion = LevelCompletion::CompleteWithSplash { height }
+                            current_level.completion =
+                                LevelCompletion::CompleteWithSplash { height }
                         }
-                    },
+                    }
 
-                     LevelCompletion::CompleteWithSplash { .. } => {
+                    LevelCompletion::CompleteWithSplash { .. } => {
                         let height = calculate_tower_height(&shapes);
                         current_level.completion = LevelCompletion::CompleteWithSplash { height }
-                    },
+                    }
                     LevelCompletion::CompleteNoSplash { .. } => {
                         let height = calculate_tower_height(&shapes);
                         current_level.completion = LevelCompletion::CompleteNoSplash { height }
@@ -144,14 +119,11 @@ fn calculate_tower_height(shapes: &Vec<(&GameShape, Location, bool)>) -> f32 {
     for (shape, location, _) in shapes {
         let bb = shape.body.bounding_box(SHAPE_SIZE, location);
 
-
         info!("shape {shape} {bb:?}");
 
         min = min.min(bb.min.y);
         max = max.max(bb.max.y);
     }
-
-
 
     let height = (max - min).max(0.0);
 

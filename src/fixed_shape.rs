@@ -1,5 +1,5 @@
 use crate::*;
-use rand::{rngs::StdRng, seq::SliceRandom};
+use rand::{rngs::StdRng, seq::SliceRandom, Rng};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FixedShape {
@@ -64,15 +64,19 @@ impl FixedShape {
 
     pub fn from_seed(seed: u64) -> Self {
         let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(seed);
+        Self::random(&mut shape_rng)
+    }
+
+    pub fn random<R: Rng>(shape_rng : &mut R)-> Self{
         let shape = crate::game_shape::ALL_SHAPES
-            .choose(&mut shape_rng)
+            .choose(shape_rng)
             .unwrap();
 
-        Self {
-            shape,
-            fixed_location: None,
-            locked: false,
-            fixed_velocity: Some(Default::default()),
-        }
+            Self {
+                shape,
+                fixed_location: None,
+                locked: false,
+                fixed_velocity: Some(Default::default()),
+            }
     }
 }

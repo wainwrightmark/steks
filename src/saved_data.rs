@@ -3,9 +3,7 @@ use bevy_pkv::PkvStore;
 use chrono::NaiveDate;
 use serde::*;
 
-use crate::{
-    encoding::encode_shapes, fixed_shape::Location, game_shape::GameShape, get_today_date,
-};
+use crate::{get_today_date, game_shape::GameShape, fixed_shape::Location};
 
 #[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 
@@ -28,7 +26,7 @@ impl SavedData {
     }
 
     pub fn save_game(&self, shapes: &Vec<(&GameShape, Location, bool)>) -> Self {
-        let encoded = encode_shapes(shapes);
+        let encoded = crate::encoding::encode_shapes(shapes);
 
         Self {
             saved_infinite: Some(encoded),

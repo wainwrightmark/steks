@@ -6,30 +6,28 @@ use itertools::Itertools;
 
 use crate::*;
 
-use rand::Rng;
+use rand::{rngs::ThreadRng, Rng};
 
 pub const SHAPE_SIZE: f32 = 50f32;
 
-pub fn create_level_shapes(
-    level: &GameLevel,
-    stage: &usize,
-    mut event_writer: EventWriter<SpawnNewShapeEvent>,
-) {
+pub fn create_initial_shapes(level: &GameLevel, mut event_writer: EventWriter<SpawnNewShapeEvent>) {
     let shapes: Vec<FixedShape> = match level {
-        GameLevel::SetLevel {
-            level,..
-        } => {
-            match level.get_stage(stage){
-                Some(stage) => stage.shapes.iter().map(|&x|x.into()).collect_vec(),
-                None => vec![],
-            }
+        GameLevel::SetLevel { level, .. } => match level.get_stage(&0) {
+            Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
+            None => vec![],
         },
-        GameLevel::Infinite {
-            starting_shapes,
-            seed,
-        } => (0..*starting_shapes)
-            .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
-            .collect_vec(),
+        GameLevel::Infinite { bytes } => {
+            if let Some(bytes) = bytes {
+                encoding::decode_shapes(&bytes)
+            } else {
+                let mut rng: ThreadRng = ThreadRng::default();
+                let mut shapes: Vec<FixedShape> = vec![];
+                for _ in 0..infinity::STARTING_SHAPES {
+                    shapes.push(FixedShape::random(&mut rng).with_random_velocity());
+                }
+                shapes
+            }
+        }
         GameLevel::Challenge => {
             let today = get_today_date();
             let seed =
@@ -38,7 +36,6 @@ pub fn create_level_shapes(
                 .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
                 .collect_vec()
         }
-        GameLevel::SavedInfinite { data, seed: _ } => encoding::decode_shapes(&data),
     };
 
     for fixed_shape in shapes {
@@ -118,8 +115,15 @@ pub fn place_and_create_shape<RNG: Rng>(
     );
 }
 
-#[derive(Component)]
+#[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct ShapeIndex(pub usize);
+
+impl ShapeIndex {
+    pub fn exclusive_max() -> Self {
+        let i = ALL_SHAPES.len();
+        Self(i)
+    }
+}
 
 pub fn create_shape(
     commands: &mut Commands,

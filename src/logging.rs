@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum::EnumDiscriminants;
 
-use crate::level::LevelData;
+use crate::level::LevelLogData;
+
 
 #[must_use]
 #[skip_serializing_none]
@@ -25,7 +26,7 @@ pub enum LoggableEvent {
         gclid: Option<String>,
     },
     ChangeLevel {
-        level: LevelData,
+        level: LevelLogData,
     },
     ClickShare,
     ShareOn {

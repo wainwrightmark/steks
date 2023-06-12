@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::log::*;
 use bevy::prelude::*;
-use bevy::tasks::IoTaskPool;
+
 use bevy::window::WindowResizeConstraints;
 use bevy::window::WindowResolution;
 use bevy_embedded_assets::EmbeddedAssetPlugin;
@@ -27,6 +27,9 @@ mod saved_data;
 pub mod share;
 pub mod padlock;
 pub mod set_level;
+
+pub mod infinity;
+
 //use menu_action::MenuActionPlugin;
 use padlock::*;
 
@@ -182,7 +185,7 @@ pub fn log_start(mut pkv: ResMut<PkvStore>) {
 
     #[cfg(target_arch = "wasm32")]
     {
-        IoTaskPool::get().spawn(async move { log_start_async(user_exists).await }).detach();
+        bevy::tasks::IoTaskPool::get().spawn(async move { log_start_async(user_exists).await }).detach();
     }
 }
 

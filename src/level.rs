@@ -1,105 +1,18 @@
-use std::time::Duration;
-
 use crate::set_level::get_set_level;
 use crate::shape_maker::ShapeIndex;
 use crate::*;
 use crate::{set_level::SetLevel, shape_maker::SpawnNewShapeEvent};
-use bevy_tweening::lens::*;
-use bevy_tweening::*;
 use serde::{Deserialize, Serialize};
-
-pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
 
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CurrentLevel>()
-            .add_startup_system(setup_level_ui)
             .add_startup_system(choose_level_on_game_load.in_base_set(StartupSet::PostStartup))
             .add_system(handle_change_level_events.in_base_set(CoreSet::First))
             .add_system(track_level_completion)
             .add_system(manage_level_shapes)
-            .add_system(manage_level_ui)
             .add_event::<ChangeLevelEvent>();
-    }
-}
-
-fn manage_level_ui(
-    mut commands: Commands,
-    current_level: Res<CurrentLevel>,
-    mut level_ui: Query<(Entity, &mut Style), With<LevelUI>>,
-    asset_server: Res<AssetServer>,
-    score_store: Res<ScoreStore>,
-    shapes: Query<&ShapeIndex>,
-) {
-    if current_level.is_changed() {
-        if let Some((level_ui_entity, mut style)) = level_ui.iter_mut().next() {
-            let mut builder = commands.entity(level_ui_entity);
-            *style = current_level.completion.get_ui_style();
-            builder.despawn_descendants();
-
-            if let Some(text) =
-                current_level
-                    .get_text( score_store, shapes)
-            {
-                builder.with_children(|parent| {
-                    const LEVEL_TEXT_SECONDS: u64 = 20;
-                    parent
-                        .spawn(
-                            TextBundle::from_section(
-                                text,
-                                TextStyle {
-                                    font: asset_server.load("fonts/FiraMono-Medium.ttf"),
-                                    font_size: 20.0,
-                                    color: SMALL_TEXT_COLOR,
-                                },
-                            )
-                            .with_text_alignment(TextAlignment::Center)
-                            .with_style(Style {
-                                align_self: AlignSelf::Center,
-                                ..Default::default()
-                            }),
-                        )
-                        .insert(Animator::new(Tween::new(
-                            EaseFunction::QuadraticInOut,
-                            Duration::from_secs(LEVEL_TEXT_SECONDS),
-                            TextColorLens {
-                                section: 0,
-                                start: SMALL_TEXT_COLOR,
-                                end: Color::NONE,
-                            },
-                        )));
-                });
-            }
-
-            if let Some(buttons) = current_level.completion.get_buttons() {
-                builder.with_children(|x| {
-                    x.spawn(NodeBundle {
-                        style: Style {
-                            display: Display::Flex,
-                            align_items: AlignItems::Center,
-                            // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-                            margin: UiRect::new(
-                                Val::Auto,
-                                Val::Auto,
-                                Val::Undefined,
-                                Val::Undefined,
-                            ),
-                            justify_content: JustifyContent::Center,
-
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    })
-                    .with_children(|parent| {
-                        let font = asset_server.load("fonts/fontello.ttf");
-                        for button in buttons {
-                            spawn_button(parent, button, font.clone())
-                        }
-                    });
-                });
-            }
-        }
     }
 }
 
@@ -128,9 +41,9 @@ fn manage_level_shapes(
                                 }
                             }
                         }
-                        GameLevel::Infinite{..}=> {
-
-                            let fixed_shape = infinity::get_next_shape(draggables.iter().map(|x|x.0.1));
+                        GameLevel::Infinite { .. } => {
+                            let fixed_shape =
+                                infinity::get_next_shape(draggables.iter().map(|x| x.0 .1));
                             event_writer.send(SpawnNewShapeEvent { fixed_shape });
                         }
                         GameLevel::Challenge => {}
@@ -167,7 +80,6 @@ fn choose_level_on_game_load(
     mut pkv: ResMut<PkvStore>,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
 ) {
-
     #[cfg(target_arch = "wasm32")]
     {
         use base64::Engine;
@@ -186,21 +98,14 @@ fn choose_level_on_game_load(
         }
     }
 
-
-
     let settings = SavedData::get_or_create(&mut pkv);
     if settings.tutorial_finished {
-
         if let Some(saved) = settings.saved_infinite {
             change_level_events.send(ChangeLevelEvent::Load(saved));
-        }
-
-        else if settings.has_beat_todays_challenge() {
+        } else if settings.has_beat_todays_challenge() {
             //info!("Skip to infinite");
             change_level_events.send(ChangeLevelEvent::StartInfinite);
-        }
-
-         else {
+        } else {
             change_level_events.send(ChangeLevelEvent::StartChallenge);
         }
     } else {
@@ -209,44 +114,30 @@ fn choose_level_on_game_load(
     }
 }
 
-pub fn setup_level_ui(mut commands: Commands) {
-    commands
-        .spawn(NodeBundle {
-            style: LevelCompletion::default().get_ui_style(),
-            z_index: ZIndex::Global(5),
-            ..Default::default()
-        })
-        .insert(LevelUI);
-}
-
-#[derive(Component)]
-pub struct LevelUI;
-
 #[derive(Default, Resource)]
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
 }
 
-impl CurrentLevel{
+impl CurrentLevel {
     pub fn get_text(
         &self,
-        score_store: Res<ScoreStore>,
-        shapes: Query<&ShapeIndex>,
+        score_store: &Res<ScoreStore>,
+        shapes: &Query<&ShapeIndex>,
     ) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::SetLevel { level, .. } => {
                     level.get_stage(&stage).map(|x| x.text.to_string())
                 }
-                GameLevel::Infinite {bytes} =>{
-                    if stage == 0 && bytes.is_some(){
+                GameLevel::Infinite { bytes } => {
+                    if stage == 0 && bytes.is_some() {
                         Some("Loaded Game".to_string())
-                    }
-                    else{
+                    } else {
                         None
                     }
-                },
+                }
                 GameLevel::Challenge => Some("Daily Challenge".to_string()),
             },
             LevelCompletion::CompleteWithSplash { height } => {
@@ -257,8 +148,12 @@ impl CurrentLevel{
                     None => None,
                 };
 
-                let message = match &self.level{
-                    GameLevel::SetLevel {  level, .. } => level.end_text.as_ref().map(|x|x.as_str()) .unwrap_or_else(|| "Level Complete"),
+                let message = match &self.level {
+                    GameLevel::SetLevel { level, .. } => level
+                        .end_text
+                        .as_ref()
+                        .map(|x| x.as_str())
+                        .unwrap_or_else(|| "Level Complete"),
                     GameLevel::Infinite { .. } => "",
                     GameLevel::Challenge => "Challenge Complete",
                 };
@@ -298,44 +193,19 @@ impl LevelCompletion {
     }
 }
 
-
 impl LevelCompletion {
-    pub fn get_buttons(&self) -> Option<Vec<MenuButton>> {
+    pub fn is_button_visible(&self, button: &MenuButton) -> bool {
+        use LevelCompletion::*;
+        use MenuButton::*;
         match self {
-            LevelCompletion::Incomplete { .. } => None,
-            LevelCompletion::CompleteWithSplash { .. } => Some(vec![
-                MenuButton::NextLevel,
-                MenuButton::ShareSaved,
-                MenuButton::MinimizeCompletion,
-            ]),
-            LevelCompletion::CompleteNoSplash { .. } => {
-                Some(vec![MenuButton::NextLevel, MenuButton::ShareSaved])
-            }
-        }
-    }
-
-    pub fn get_ui_style(&self) -> Style {
-        match self {
-            LevelCompletion::Incomplete { .. } | LevelCompletion::CompleteWithSplash { .. } => {
-                Style {
-                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                    position_type: PositionType::Absolute,
-                    justify_content: JustifyContent::Center,
-                    flex_direction: FlexDirection::Column,
-                    ..Default::default()
-                }
-            }
-
-            LevelCompletion::CompleteNoSplash { .. } => Style {
-                position: UiRect {
-                    top: Val::Px(MENU_OFFSET),
-                    left: Val::Px(MENU_OFFSET + BUTTON_WIDTH),
-                    ..Default::default()
-                },
-                position_type: PositionType::Absolute,
-
-                flex_direction: FlexDirection::ColumnReverse,
-                ..Default::default()
+            Incomplete { .. } => false,
+            CompleteWithSplash { .. } => match button {
+                NextLevel | Share | ResetLevel | MinimizeCompletion => true,
+                _ => false,
+            },
+            CompleteNoSplash { .. } => match button {
+                NextLevel | Share | ResetLevel | MinimizeCompletion => true,
+                _ => false,
             },
         }
     }
@@ -344,7 +214,7 @@ impl LevelCompletion {
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameLevel {
     SetLevel { index: u8, level: SetLevel },
-    Infinite{bytes: Option<Vec<u8>>},
+    Infinite { bytes: Option<Vec<u8>> },
     Challenge,
 }
 
@@ -369,7 +239,7 @@ impl From<GameLevel> for LevelLogData {
     fn from(value: GameLevel) -> Self {
         match value {
             GameLevel::SetLevel { index, .. } => Self::SetLevel { index },
-            GameLevel::Infinite { .. }=> Self::Infinite,
+            GameLevel::Infinite { .. } => Self::Infinite,
             GameLevel::Challenge => Self::Challenge,
         }
     }
@@ -398,10 +268,7 @@ pub enum ChangeLevelEvent {
     Load(Vec<u8>),
 }
 
-fn track_level_completion(
-    level: Res<CurrentLevel>,
-    mut pkv: ResMut<PkvStore>,
-) {
+fn track_level_completion(level: Res<CurrentLevel>, mut pkv: ResMut<PkvStore>) {
     if level.is_changed() && level.completion.is_complete() {
         match &level.level {
             GameLevel::SetLevel { index, .. } => {
@@ -430,18 +297,20 @@ impl ChangeLevelEvent {
                     if let Some(next) = get_set_level(index.saturating_add(1)) {
                         next
                     } else {
-                        GameLevel::Infinite{bytes: None}
+                        GameLevel::Infinite { bytes: None }
                     }
                 }
-                _ => GameLevel::Infinite{bytes: None},
+                _ => GameLevel::Infinite { bytes: None },
             },
             ChangeLevelEvent::ResetLevel => level.clone(),
             ChangeLevelEvent::StartTutorial => get_set_level(0).unwrap(),
-            ChangeLevelEvent::StartInfinite => GameLevel::Infinite{bytes: None},
+            ChangeLevelEvent::StartInfinite => GameLevel::Infinite { bytes: None },
             ChangeLevelEvent::StartChallenge => GameLevel::Challenge,
 
             ChangeLevelEvent::ChooseLevel(x) => get_set_level(*x).unwrap(),
-            ChangeLevelEvent::Load(bytes) => GameLevel::Infinite { bytes: Some(bytes.clone()) },
+            ChangeLevelEvent::Load(bytes) => GameLevel::Infinite {
+                bytes: Some(bytes.clone()),
+            },
         }
     }
 }

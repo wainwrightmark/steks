@@ -2,7 +2,7 @@ use strum::Display;
 
 use crate::{
     share::{ShareEvent, ShareSavedSvgEvent},
-    *,
+    *, level_ui::setup_level_ui,
 };
 
 pub struct ButtonPlugin;
@@ -53,17 +53,12 @@ impl MenuState {
     }
 }
 
-const NORMAL_BUTTON: Color = Color::Rgba {
-    red: 0.0,
-    green: 0.0,
-    blue: 0.0,
-    alpha: 0.0,
-}; //, green: (), blue: (), alpha: () } Color::rgb(0.9, 0.9, 0.9);
+pub const NORMAL_BUTTON: Color = Color::NONE; //, green: (), blue: (), alpha: () } Color::rgb(0.9, 0.9, 0.9);
 
-const HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.3);
-const PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
+pub const HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.3);
+pub const PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
 
-const BUTTON_BACKGROUND: Color = Color::rgb(0.1, 0.1, 0.1);
+pub const BUTTON_BACKGROUND: Color = Color::rgb(0.1, 0.1, 0.1);
 
 pub const BUTTON_WIDTH: f32 = 65.;
 pub const BUTTON_HEIGHT: f32 = 65.;
@@ -131,10 +126,11 @@ fn button_system(
                     Levels => menu_state.as_mut().toggle_levels(),
                     NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                     MinimizeCompletion => {
-                        if let LevelCompletion::CompleteWithSplash { height } =
-                            current_level.completion
-                        {
-                            current_level.completion = LevelCompletion::CompleteNoSplash { height }
+
+                        match current_level.completion{
+                            LevelCompletion::Incomplete { stage } => {},
+                            LevelCompletion::CompleteWithSplash { height } => current_level.completion = LevelCompletion::CompleteNoSplash { height },
+                            LevelCompletion::CompleteNoSplash { height } => current_level.completion = LevelCompletion::CompleteWithSplash { height },
                         }
                     }
                 }
@@ -252,6 +248,37 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     spawn_level_menu(&mut commands, asset_server.as_ref());
 }
 
+pub fn button_bundle()-> ButtonBundle{
+    ButtonBundle {
+        style: Style {
+            size: Size::new(Val::Px(BUTTON_WIDTH), Val::Px(BUTTON_HEIGHT)),
+            margin: UiRect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_grow: 0.0,
+            flex_shrink: 0.0,
+
+            ..Default::default()
+        },
+        background_color: NORMAL_BUTTON.into(),
+        ..Default::default()
+    }
+}
+
+pub fn button_text_bundle(menu_button: &MenuButton, font: Handle<Font>,)-> TextBundle{
+    TextBundle {
+        text: Text::from_section(
+            menu_button.text(),
+            TextStyle {
+                font,
+                font_size: 30.0,
+                color: BUTTON_BACKGROUND,
+            },
+        ),
+        ..Default::default()
+    }
+}
+
 pub fn spawn_button(
     parent: &mut ChildBuilder,
     menu_button: MenuButton,
@@ -259,32 +286,9 @@ pub fn spawn_button(
     font: Handle<Font>,
 ) {
     parent
-        .spawn(ButtonBundle {
-            style: Style {
-                size: Size::new(Val::Px(BUTTON_WIDTH), Val::Px(BUTTON_HEIGHT)),
-                margin: UiRect::all(Val::Auto),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                flex_grow: 0.0,
-                flex_shrink: 0.0,
-
-                ..Default::default()
-            },
-            background_color: NORMAL_BUTTON.into(),
-            ..Default::default()
-        })
+        .spawn(button_bundle())
         .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text::from_section(
-                    menu_button.text(),
-                    TextStyle {
-                        font,
-                        font_size: 30.0,
-                        color: BUTTON_BACKGROUND,
-                    },
-                ),
-                ..Default::default()
-            });
+            parent.spawn(button_text_bundle(&menu_button, font));
         })
         .insert(menu_button);
 }

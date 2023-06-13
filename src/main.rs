@@ -32,10 +32,13 @@ mod saved_data;
 pub mod set_level;
 pub mod share;
 
+pub mod level_ui;
+
 pub mod shapes_vec;
 
 pub mod infinity;
 
+use level_ui::LevelUiPlugin;
 //use menu_action::MenuActionPlugin;
 use padlock::*;
 
@@ -134,6 +137,7 @@ fn main() {
         .add_plugin(CameraPlugin)
         .add_plugin(LeaderboardPlugin)
         .add_plugin(SpiritPlugin)
+        .add_plugin(LevelUiPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,

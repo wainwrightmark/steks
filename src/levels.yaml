@@ -1,3 +1,6 @@
+# https://en.wikipedia.org/wiki/Tetromino
+# https://en.wikipedia.org/wiki/Pentomino
+
 - text: "Welcome to steks!\r\nThe game where you build towers\r\nPut the square on the triangle"
   shapes:
     - shape: Triangle

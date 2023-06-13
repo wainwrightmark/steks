@@ -14,7 +14,7 @@
 - text: "Move the Square\r\nHold in place for a moment to lock it\r\nYou can only lock one shape"
   shapes:
     - shape: O4
-- text: "You'll need to rotate that triangle\r\nUnlock it and rotate it\r\nUse Q/E, the mousewheel, or another finger"
+- text: "You'll need to rotate that triangle\r\nUnlock it and rotate it using another finger"
   end_text: "Time for some real levels"
   shapes:
     - shape: Triangle
@@ -25,18 +25,22 @@
     - shape: O4
       x: 100
       y: -100
-- text: "Level 4"
+  stages:
+  - text: "Can't see the shapes under your finger?\r\nUse the black outlines to build your tower"
+    shapes:
+    - shape: Z4
+- text: "Level 2"
   shapes:
     - shape: U5
     - shape: U5
     - shape: U5
-- text: "Level 5"
+- text: "Level 3"
   shapes:
     - shape: O4
     - shape: L4
     - shape: L4
 
-- text: "Level 6"
+- text: "Level 4"
   end_text: "That was sneaky of me, wasn't it"
   shapes:
     - shape: S4
@@ -47,35 +51,22 @@
     shapes:
     - shape: Z4
 
-- text: "Level 8"
+- text: "Level 5"
   shapes:
     - shape: J4
     - shape: L4
     - shape: S4
     - shape: Triangle
 
-- text: "Level 9"
-  shapes:
-    - shape: P5
-    - shape: T5
-    - shape: U5
-    - shape: N5
 
-- text: "Level 10"
+- text: "Level 6"
   shapes:
     - shape: W5
     - shape: X5
     - shape: F5
     - shape: Z5
 
-- text: "Four triangles"
-  shapes:
-    - shape: Triangle
-    - shape: Triangle
-    - shape: Triangle
-    - shape: Triangle
-
-- text: "Level 12"
+- text: "Level 7"
   shapes:
     - shape: I5
     - shape: L5
@@ -83,7 +74,7 @@
     - shape: P5
     - shape: U5
 
-- text: "Level 13"
+- text: "Level 8"
   shapes:
     - shape: I5
     - shape: L4
@@ -91,15 +82,8 @@
     - shape: P5
     - shape: U5
 
-- text: "Level 14"
-  shapes:
-    - shape: X5
-    - shape: X5
-    - shape: X5
-    - shape: X5
-    - shape: X5
 
-- text: "Level 15"
+- text: "Level 9"
   shapes:
     - shape: O4
     - shape: F5
@@ -108,7 +92,7 @@
     - shape: S4
     - shape: Z4
 
-- text: "Level 16"
+- text: "Level 10"
   shapes:
     - shape: L4
     - shape: L4
@@ -117,7 +101,7 @@
     - shape: Triangle
     - shape: U5
 
-- text: "Level 17"
+- text: "Level 11"
   shapes:
     - shape: P5
     - shape: F5
@@ -126,7 +110,7 @@
     - shape: S4
     - shape: Z4
 
-- text: "Level 18"
+- text: "Level 12"
   shapes:
     - shape: O4
     - shape: I4
@@ -135,7 +119,7 @@
     - shape: Circle
     - shape: U5
 
-- text: "Level 19"
+- text: "Level 13"
   shapes:
     - shape: O4
     - shape: I4
@@ -144,7 +128,7 @@
     - shape: Circle
     - shape: O4
 
-- text: "Eight"
+- text: "Level 14 Eight"
   shapes:
     - shape: Triangle
     - shape: O4
@@ -155,29 +139,21 @@
     - shape: L4
     - shape: L5
 
-- text: "Excess!"
+- text: "Level 15 Excess!"
   shapes:
     - shape: X5
     - shape: X5
     - shape: X5
     - shape: X5
     - shape: X5
-    - shape: X5
-    - shape: X5
-
-- text: "Hugs and kisses!"
-  shapes:
-    - shape: X5
-    - shape: X5
-    - shape: X5
-    - shape: X5
-    - shape: Circle
+  stages:
+  - text: "Balls!"
+    shapes:
     - shape: Circle
     - shape: Circle
     - shape: Circle
 
-
-- text: "Level is level"
+- text: "Level 16 Level is level"
   shapes:
     - shape: P5
     - shape: F5
@@ -188,7 +164,7 @@
     - shape: J4
     - shape: J4
 
-- text: "Double Trouble!"
+- text: "Level 17 Double Trouble!"
   shapes:
     - shape: T5
     - shape: T5
@@ -199,7 +175,7 @@
     - shape: W5
     - shape: W5
 
-- text: "Circle is back"
+- text: "Level 18 Circle is back"
   shapes:
     - shape: O4
     - shape: O4
@@ -210,7 +186,7 @@
     - shape: W5
     - shape: Circle
 
-- text: "Circular logic"
+- text: "Level 19 Circular logic"
   shapes:
     - shape: L4
     - shape: T4
@@ -220,6 +196,25 @@
     - shape: X5
     - shape: Circle
     - shape: Circle
+
+- text: "Level 20 something"
+  end_text: "now buy the game"
+  shapes:
+    - shape: Circle
+    - shape: L5
+    - shape: W5
+    - shape: F5
+    - shape: Z5
+    - shape: N5
+    - shape: T5
+  stages:
+  - text: "Nice try!"
+    shapes:
+    - shape: S4
+    - shape: S4
+    - shape: Z4
+
+
 
 - text: "Oh no more triangles"
   shapes:
@@ -267,5 +262,3 @@
     - shape: J4
     - shape: S4
     - shape: Z4
-
-

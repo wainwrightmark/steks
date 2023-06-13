@@ -340,22 +340,29 @@ fn handle_animations(
             // }
             _ => {}
         },
-        LevelUIComponent::Text => match current_level.completion {
-            LevelCompletion::Incomplete { stage } => {
-                const LEVEL_TEXT_SECONDS: u64 = 20;
-                commands.insert(Animator::new(Tween::new(
+        LevelUIComponent::Text => {
+            const DEFAULT_TEXT_FADE: u32 = 20;
+            let (seconds, end) = match current_level.completion {
+                LevelCompletion::Incomplete { stage } => {
+                    match &current_level.level {
+                        GameLevel::SetLevel {  level,.. } => (level.get_stage(&stage).and_then(|x|x.text_seconds).unwrap_or(DEFAULT_TEXT_FADE), Color::NONE),
+                        GameLevel::Infinite { .. } => (DEFAULT_TEXT_FADE, Color::NONE),
+                        GameLevel::Challenge => (DEFAULT_TEXT_FADE, Color::NONE),
+                    }
+                },
+                LevelCompletion::CompleteWithSplash { .. } => (1, SMALL_TEXT_COLOR),
+                LevelCompletion::CompleteNoSplash { .. } => (1, SMALL_TEXT_COLOR),
+            };
+
+            commands.insert(Animator::new(Tween::new(
                     EaseFunction::QuadraticInOut,
-                    Duration::from_secs(LEVEL_TEXT_SECONDS),
+                    Duration::from_secs(seconds as u64),
                     TextColorLens {
                         section: 0,
                         start: SMALL_TEXT_COLOR,
-                        end: Color::NONE,
+                        end,
                     },
                 )));
-            }
-            _ => {
-                commands.remove::<Animator<Text>>();
-            }
         },
         _ => {}
     }

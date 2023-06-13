@@ -33,7 +33,12 @@ pub struct SetLevel {
     #[serde(default)]
     pub stages: Vec<LevelStage>,
 
-    pub end_text: Option<String>
+    pub end_text: Option<String>,
+
+    #[serde(default)]
+    pub skip_end: bool
+
+
 }
 
 impl SetLevel{
@@ -52,6 +57,9 @@ impl SetLevel{
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LevelStage{
     pub text: String,
+    pub mouse_text: Option<String>,
+    #[serde(default)]
+    pub text_seconds: Option<u32>,
     pub shapes: Vec<LevelShape>,
 }
 
@@ -154,9 +162,11 @@ mod tests {
     pub fn test_deserialize_level() {
         let levels: Vec<SetLevel> = vec![SetLevel {
             end_text: None,
+            skip_end: true,
             initial_stage: LevelStage{
                 text: "abc".to_string(),
-
+                mouse_text: Some("Mouse text".to_string()),
+                text_seconds: Some(20),
                 shapes: vec![LevelShape {
                     shape: crate::set_level::LevelShapeForm::Circle,
                     x: Some(1.0),
@@ -168,6 +178,9 @@ mod tests {
             stages: vec![
                 LevelStage{
                     text: "Other Stage".to_string(),
+                    mouse_text: None,
+                    text_seconds: None,
+
                     shapes: vec![LevelShape {
                         shape: crate::set_level::LevelShapeForm::Circle,
                         ..Default::default()
@@ -179,22 +192,7 @@ mod tests {
 
         let str = serde_yaml::to_string(&levels).unwrap();
 
-        let expected = r#"- text: abc
-  shapes:
-  - shape: Circle
-    x: 1.0
-    y: 2.0
-    r: 3.0
-    locked: true
-  stages:
-  - text: Other Stage
-    shapes:
-    - shape: Circle
-      x: null
-      y: null
-      r: null
-      locked: false
-"#;
+        let expected = "- text: abc\n  mouse_text: Mouse text\n  text_seconds: 20\n  shapes:\n  - shape: Circle\n    x: 1.0\n    y: 2.0\n    r: 3.0\n    locked: true\n  stages:\n  - text: Other Stage\n    mouse_text: null\n    text_seconds: null\n    shapes:\n    - shape: Circle\n      x: null\n      y: null\n      r: null\n      locked: false\n  end_text: null\n  skip_end: true\n";
 
         assert_eq!(str, expected);
     }

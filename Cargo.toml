@@ -12,7 +12,7 @@ bevy_prototype_lyon = {version="0.8"}
 bevy_rapier2d = {version = "0.21"}
 
 strum = { version = "0.24.1", features = ["derive"] }
-bevy_tweening = { version = "0.7", default-features = false, features = ["bevy_text", "bevy_ui"] }
+bevy_tweening = { git = "https://github.com/wainwrightmark/bevy_tweening", default-features = false, features = ["bevy_text", "bevy_ui"] }
 chrono = {version="0.4", features = ["serde", "wasmbind"]}
 bevy_pkv = "0.7"
 

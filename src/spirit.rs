@@ -1,6 +1,7 @@
 use std::ops::Div;
 
 use crate::camera::TouchDragged;
+use crate::padlock::PadlockResource;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::shapes;
@@ -108,8 +109,9 @@ fn setup_spirit_lines(mut commands: Commands) {
 fn show_spirit_lines(
     added: Query<(), Added<TouchDragged>>,
     mut spirit_lines_query: Query<&mut Visibility, (With<SpiritLine>, Without<TouchDragged>)>,
+    padlock: Res<PadlockResource>
 ) {
-    if !added.is_empty() {
+    if !added.is_empty() && !padlock.is_locked() {
         for mut x in spirit_lines_query.iter_mut() {
             //info!("Show spirit line");
             *x = Visibility::Inherited;
@@ -134,14 +136,15 @@ fn control_spirit_main_line(
     mut line: Query<&mut Transform, (With<SpiritMarkerLine>, Without<TouchDragged>)>,
 ) {
     const LEEWAY: f32 = 0.1;
+    const FRAC_PI_16: f32 = std::f32::consts::PI / 16.0;
     for transform in touch_dragged.iter() {
         let Some(mut line) = line.iter_mut().next() else {return;};
         let mut angle = transform
             .rotation
             .z
             .acos()
-            .rem_euclid(std::f32::consts::FRAC_PI_4)
-            .div(std::f32::consts::FRAC_PI_8);
+            .rem_euclid(std::f32::consts::FRAC_PI_8)
+            .div(FRAC_PI_16);
 
         if angle > 1.0 - LEEWAY {
             if line.translation.x.is_sign_positive() {

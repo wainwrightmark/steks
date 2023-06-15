@@ -61,6 +61,8 @@ pub struct LevelStage{
     #[serde(default)]
     pub text_seconds: Option<u32>,
     pub shapes: Vec<LevelShape>,
+
+    pub gravity: Option<bevy::prelude::Vec2>
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
@@ -174,6 +176,7 @@ mod tests {
                     r: Some(3.0),
                     locked: true,
                 }],
+                gravity: None
             },
             stages: vec![
                 LevelStage{
@@ -185,14 +188,41 @@ mod tests {
                         shape: crate::set_level::LevelShapeForm::Circle,
                         ..Default::default()
                     }],
-                }
+                    gravity: Some(bevy::prelude::Vec2{x: 100.0, y: 200.0})
+                },
+
             ]
 
         }];
 
         let str = serde_yaml::to_string(&levels).unwrap();
 
-        let expected = "- text: abc\n  mouse_text: Mouse text\n  text_seconds: 20\n  shapes:\n  - shape: Circle\n    x: 1.0\n    y: 2.0\n    r: 3.0\n    locked: true\n  stages:\n  - text: Other Stage\n    mouse_text: null\n    text_seconds: null\n    shapes:\n    - shape: Circle\n      x: null\n      y: null\n      r: null\n      locked: false\n  end_text: null\n  skip_completion: true\n";
+        let expected = r#"- text: abc
+  mouse_text: Mouse text
+  text_seconds: 20
+  shapes:
+  - shape: Circle
+    x: 1.0
+    y: 2.0
+    r: 3.0
+    locked: true
+  gravity: null
+  stages:
+  - text: Other Stage
+    mouse_text: null
+    text_seconds: null
+    shapes:
+    - shape: Circle
+      x: null
+      y: null
+      r: null
+      locked: false
+    gravity:
+    - 100.0
+    - 200.0
+  end_text: null
+  skip_completion: true
+"#;
 
         assert_eq!(str, expected);
     }

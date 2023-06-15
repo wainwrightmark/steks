@@ -13,6 +13,7 @@ impl Plugin for LevelPlugin {
             .add_system(track_level_completion)
             .add_system(manage_level_shapes)
             .add_system(skip_tutorial_completion)
+            .add_system(adjust_gravity)
             .add_event::<ChangeLevelEvent>();
     }
 }
@@ -304,6 +305,33 @@ pub enum ChangeLevelEvent {
     StartInfinite,
     StartChallenge,
     Load(Vec<u8>),
+}
+
+fn adjust_gravity(
+    level: Res<CurrentLevel>,
+    mut rapier_config: ResMut<RapierConfiguration>
+){
+    if level.is_changed() {
+
+        let LevelCompletion::Incomplete { stage }  = level.completion  else{ return;};
+
+        let gravity =
+        match level.level.clone(){
+            GameLevel::SetLevel { level , ..} => {
+                if let Some(stage) = level.get_stage(&stage){
+                    stage.gravity.unwrap_or(GRAVITY)
+                }
+                else{
+                    GRAVITY
+                }
+
+            },
+             GameLevel::Infinite { .. } | GameLevel::Challenge => {
+                GRAVITY
+            },
+        };
+        rapier_config.gravity = gravity;
+    }
 }
 
 fn skip_tutorial_completion(

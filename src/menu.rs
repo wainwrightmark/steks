@@ -321,7 +321,7 @@ impl MenuButton {
             Share => "\u{f1e0}".to_string(),          // "Share",
             ShareSaved => "\u{f1e0}".to_string(),     // "Share",
             Levels => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
-            GotoLevel { level } => format!("{:2}", level + 1),
+            GotoLevel { level } => format!("{:2}", (*level as i32) - 1),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
         }

@@ -247,6 +247,9 @@
     - shape: T5
   stages:
   - text: "Nice try!"
+    gravity:
+    - 0.0
+    - 1000.0
     shapes:
     - shape: S4
     - shape: S4

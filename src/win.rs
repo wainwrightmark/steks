@@ -110,7 +110,7 @@ pub fn check_for_tower(
     draggable: Query<&Draggable>,
 
     mut collision_events: ResMut<Events<CollisionEvent>>,
-    rapier_context: ResMut<RapierContext>,
+    rapier_context: Res<RapierContext>,
     walls: Query<Entity, With<Wall>>,
 ) {
     if !end_drag_events.iter().any(|_| true) {

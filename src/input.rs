@@ -23,11 +23,11 @@ pub fn mousebutton_listener(
     q_camera: Query<(&Camera, &GlobalTransform)>,
     mut ew_drag_start: EventWriter<DragStartEvent>,
     mut ew_drag_move: EventWriter<DragMoveEvent>,
-    mut ew_drag_end: EventWriter<DragEndEvent>,
+    mut ew_drag_end: EventWriter<DragEndingEvent>,
 ) {
     if mouse_button_input.just_released(MouseButton::Left) {
         debug!("Sent mouse drag end event");
-        ew_drag_end.send(DragEndEvent {
+        ew_drag_end.send(DragEndingEvent {
             drag_source: DragSource::Mouse,
         })
     } else if mouse_button_input.just_pressed(MouseButton::Left) {
@@ -106,7 +106,7 @@ pub fn touch_listener(
 
     mut ew_drag_start: EventWriter<DragStartEvent>,
     mut ew_drag_move: EventWriter<DragMoveEvent>,
-    mut ew_drag_end: EventWriter<DragEndEvent>,
+    mut ew_drag_end: EventWriter<DragEndingEvent>,
 ) {
     for ev in touch_evr.iter() {
         debug!("Touch Event {:?}", ev);
@@ -137,13 +137,13 @@ pub fn touch_listener(
                 debug!("Touch {} moved to: {:?}", ev.id, ev.position);
             }
             TouchPhase::Ended => {
-                ew_drag_end.send(DragEndEvent {
+                ew_drag_end.send(DragEndingEvent {
                     drag_source: DragSource::Touch { touch_id: ev.id },
                 });
                 debug!("Touch {} ended at: {:?}", ev.id, ev.position);
             }
             TouchPhase::Cancelled => {
-                ew_drag_end.send(DragEndEvent {
+                ew_drag_end.send(DragEndingEvent {
                     drag_source: DragSource::Touch { touch_id: ev.id },
                 });
                 debug!("Touch {} cancelled at: {:?}", ev.id, ev.position);

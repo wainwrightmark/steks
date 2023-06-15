@@ -40,7 +40,7 @@ impl Plugin for DragPlugin {
             .add_event::<RotateEvent>()
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()
-            .add_event::<DragEndEvent>()
+            .add_event::<DragEndingEvent>()
             .add_event::<DragEndedEvent>();
     }
 }
@@ -73,11 +73,13 @@ fn round_z(q: Quat, multiple: f32) -> Quat {
 }
 
 pub fn drag_end(
-    mut er_drag_end: EventReader<DragEndEvent>,
+    mut er_drag_end: EventReader<DragEndingEvent>,
     padlock_resource: Res<PadlockResource>,
     mut draggables: Query<(Entity, &mut Draggable)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ew_end_drag: EventWriter<DragEndedEvent>,
+    rapier_context: ResMut<RapierContext>,
+    walls: Query<Entity, With<Wall>>,
 ) {
     for event in er_drag_end.iter() {
         info!("{:?}", event);
@@ -88,7 +90,15 @@ pub fn drag_end(
         {
             if let Draggable::Dragged(..) = draggable.as_ref() {
                 *draggable = if padlock_resource.has_entity(entity) {
-                    Draggable::Locked
+                    let collides_with_wall = rapier_context
+                        .contacts_with(entity)
+                        .any(|c| walls.contains(c.collider1()) || walls.contains(c.collider2()));
+
+                    if collides_with_wall {
+                        Draggable::Free
+                    } else {
+                        Draggable::Locked
+                    }
                 } else {
                     Draggable::Free
                 };
@@ -152,8 +162,14 @@ pub fn assign_padlock(
                 }
                 PadlockStatus::Locked { .. } => {} //unreachable
                 PadlockStatus::Visible { last_still, .. } => {
-                    if last_still + LINGER_DURATION > elapsed && velocity.linvel.length() < LOCK_BREAK_VELOCITY {
-                        padlock.status = PadlockStatus::Visible { entity, translation: transform.translation, last_still }
+                    if last_still + LINGER_DURATION > elapsed
+                        && velocity.linvel.length() < LOCK_BREAK_VELOCITY
+                    {
+                        padlock.status = PadlockStatus::Visible {
+                            entity,
+                            translation: transform.translation,
+                            last_still,
+                        }
                         //keep lingering
                     } else {
                         padlock.status = PadlockStatus::Invisible {
@@ -436,7 +452,7 @@ pub struct DragMoveEvent {
 }
 
 #[derive(Debug)]
-pub struct DragEndEvent {
+pub struct DragEndingEvent {
     pub drag_source: DragSource,
 }
 

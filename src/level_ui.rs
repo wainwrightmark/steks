@@ -408,7 +408,9 @@ fn animate_panel(
                 lens,
             )));
         }
-        _ => {}
+        LevelCompletion::Incomplete { .. } => {
+            commands.remove::<Animator<BackgroundColor>>();
+        }
     }
 }
 

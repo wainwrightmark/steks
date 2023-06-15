@@ -129,8 +129,7 @@ fn button_system(
 
                         match current_level.completion{
                             LevelCompletion::Incomplete { stage } => {},
-                            LevelCompletion::CompleteWithSplash { height } => current_level.completion = LevelCompletion::CompleteNoSplash { height },
-                            LevelCompletion::CompleteNoSplash { height } => current_level.completion = LevelCompletion::CompleteWithSplash { height },
+                            LevelCompletion::Complete { height, splash } => current_level.completion = LevelCompletion::Complete { height, splash: !splash },
                         }
                     }
                 }

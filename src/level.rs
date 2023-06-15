@@ -39,8 +39,7 @@ fn manage_level_shapes(
                 } else {
                     match previous.completion {
                         LevelCompletion::Incomplete { stage } => stage,
-                        LevelCompletion::CompleteWithSplash { .. } => 0,
-                        LevelCompletion::CompleteNoSplash { .. } => 0,
+                        LevelCompletion::Complete { .. } => 0,
                     }
                 };
                 if stage > 0 {
@@ -65,8 +64,7 @@ fn manage_level_shapes(
                     }
                 }
             }
-            LevelCompletion::CompleteWithSplash { .. } => {}
-            LevelCompletion::CompleteNoSplash { .. } => {}
+            LevelCompletion::Complete { .. } => {}
         }
     }
 }
@@ -168,7 +166,10 @@ impl CurrentLevel {
                 }
                 GameLevel::Challenge => Some("Daily Challenge".to_string()),
             },
-            LevelCompletion::CompleteWithSplash { height } => {
+            LevelCompletion::Complete { height, splash } => {
+                if !splash {
+                    return Some(format!("{height:.2}"));
+                }
                 let hash = shapes_vec::hash_shapes(shapes.iter());
 
                 let heights: LevelHeightRecords = StoreData::get_or_default(pkv);
@@ -202,7 +203,6 @@ impl CurrentLevel {
                 }
                 Some(text)
             }
-            LevelCompletion::CompleteNoSplash { height } => Some(format!("{height:.2}")),
         }
     }
 }
@@ -210,8 +210,7 @@ impl CurrentLevel {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LevelCompletion {
     Incomplete { stage: usize },
-    CompleteWithSplash { height: f32 },
-    CompleteNoSplash { height: f32 },
+    Complete { height: f32, splash: bool },
 }
 
 impl Default for LevelCompletion {
@@ -224,8 +223,7 @@ impl LevelCompletion {
     pub fn is_complete(&self) -> bool {
         match self {
             LevelCompletion::Incomplete { .. } => false,
-            LevelCompletion::CompleteWithSplash { .. } => true,
-            LevelCompletion::CompleteNoSplash { .. } => true,
+            LevelCompletion::Complete { .. } => true,
         }
     }
 }
@@ -236,12 +234,8 @@ impl LevelCompletion {
         use MenuButton::*;
         match self {
             Incomplete { .. } => false,
-            CompleteWithSplash { .. } => match button {
-                NextLevel | Share | ResetLevel | MinimizeCompletion => true,
-                _ => false,
-            },
-            CompleteNoSplash { .. } => match button {
-                NextLevel | Share | ResetLevel | MinimizeCompletion => true,
+            Complete { .. } => match button {
+                NextLevel | Share | MinimizeCompletion => true,
                 _ => false,
             },
         }
@@ -327,8 +321,7 @@ fn track_level_completion(
                 x.with_current_level((current, stage))
             });
         }
-        LevelCompletion::CompleteWithSplash { height }
-        | LevelCompletion::CompleteNoSplash { height } => {
+        LevelCompletion::Complete { height, .. } => {
             let hash = shapes_vec::hash_shapes(shapes.iter());
 
             StoreData::update(&mut pkv, |x: LevelHeightRecords| x.add_height(hash, height));

@@ -81,17 +81,13 @@ pub fn check_for_win(
                         } else {
                             let height = shapes.calculate_tower_height();
                             current_level.completion =
-                                LevelCompletion::CompleteWithSplash { height }
+                                LevelCompletion::Complete { height, splash: true }
                         }
                     }
 
-                    LevelCompletion::CompleteWithSplash { .. } => {
+                    LevelCompletion::Complete { splash, .. } => {
                         let height = shapes.calculate_tower_height();
-                        current_level.completion = LevelCompletion::CompleteWithSplash { height }
-                    }
-                    LevelCompletion::CompleteNoSplash { .. } => {
-                        let height = shapes.calculate_tower_height();
-                        current_level.completion = LevelCompletion::CompleteNoSplash { height }
+                        current_level.completion = LevelCompletion::Complete { height, splash }
                     }
                 }
             }

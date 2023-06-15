@@ -142,10 +142,9 @@ enum LevelUIComponent {
 
 impl LevelUIComponent {
     pub fn get_child_components(&self) -> &[Self] {
-        const BUTTONS: [LevelUIComponent; 4] = [
+        const BUTTONS: [LevelUIComponent; 3] = [
             LevelUIComponent::Button(MenuButton::NextLevel),
             LevelUIComponent::Button(MenuButton::Share),
-            LevelUIComponent::Button(MenuButton::ResetLevel),
             LevelUIComponent::Button(MenuButton::MinimizeCompletion),
         ];
 
@@ -163,7 +162,7 @@ impl LevelUIComponent {
 fn get_root_position(current_level: &CurrentLevel) -> UiRect {
     match current_level.completion {
 
-        LevelCompletion::CompleteNoSplash { height } => UiRect {
+        LevelCompletion::Complete { splash: false, height } => UiRect {
             top: Val::Px(MENU_OFFSET),
             left: Val::Px(MENU_OFFSET + BUTTON_WIDTH),
             ..Default::default()
@@ -202,18 +201,18 @@ fn get_border_bundle(
     shapes: &Query<&ShapeIndex>,
 ) -> NodeBundle {
     let background_color = match current_level.completion {
-        LevelCompletion::Incomplete { .. } | LevelCompletion::CompleteNoSplash { .. } => {
+        LevelCompletion::Incomplete { .. } | LevelCompletion::Complete { splash: false, .. } => {
             Color::NONE
         }
-        LevelCompletion::CompleteWithSplash { .. } => Color::BLACK,
+        LevelCompletion::Complete { splash: true, .. } => Color::BLACK,
     }
     .into();
 
     let border = match current_level.completion {
-        LevelCompletion::Incomplete { .. } | LevelCompletion::CompleteNoSplash { .. } => {
+        LevelCompletion::Incomplete { .. } | LevelCompletion::Complete { splash: false, .. } => {
             UiRect::DEFAULT
         }
-        LevelCompletion::CompleteWithSplash { .. } => UiRect::all(Val::Px(2.0)),
+        LevelCompletion::Complete { splash: true, .. } => UiRect::all(Val::Px(2.0)),
     }
     .into();
 
@@ -240,18 +239,18 @@ fn get_panel_bundle(
     shapes: &Query<&ShapeIndex>,
 ) -> NodeBundle {
     let background_color = match current_level.completion {
-        LevelCompletion::Incomplete { .. } | LevelCompletion::CompleteNoSplash { .. } => {
+        LevelCompletion::Incomplete { .. } | LevelCompletion::Complete { splash: false, .. } => {
             Color::NONE
         }
-        LevelCompletion::CompleteWithSplash { .. } => Color::ANTIQUE_WHITE,
+        LevelCompletion::Complete { splash:true, .. } => Color::ANTIQUE_WHITE,
     }
     .into();
 
     let flex_direction = match current_level.completion {
-        LevelCompletion::Incomplete { .. } | LevelCompletion::CompleteNoSplash { .. } => {
+        LevelCompletion::Incomplete { .. } | LevelCompletion::Complete { splash: false, .. } => {
             FlexDirection::RowReverse
         }
-        LevelCompletion::CompleteWithSplash { .. } => FlexDirection::Column,
+        LevelCompletion::Complete { splash: true, .. } => FlexDirection::Column,
     };
 
     NodeBundle {
@@ -279,7 +278,7 @@ fn get_button_panel(
 ) -> NodeBundle {
     let size = match current_level.completion {
         LevelCompletion::Incomplete { .. } => Size::new(Val::Px(0.0), Val::Px(0.0)),
-        LevelCompletion::CompleteWithSplash { .. } | LevelCompletion::CompleteNoSplash { .. } => {
+        LevelCompletion::Complete { .. }=> {
             Size::AUTO
         }
     };
@@ -359,8 +358,7 @@ fn handle_animations(
                         GameLevel::Challenge => (DEFAULT_TEXT_FADE, Color::NONE),
                     }
                 },
-                LevelCompletion::CompleteWithSplash { .. } => (1, SMALL_TEXT_COLOR),
-                LevelCompletion::CompleteNoSplash { .. } => (1, SMALL_TEXT_COLOR),
+                LevelCompletion::Complete { .. } => (1, SMALL_TEXT_COLOR),
             };
 
             commands.insert(Animator::new(Tween::new(

@@ -135,8 +135,7 @@ fn update_leaderboard_on_completion(
     if current_level.is_changed() {
         let height = match current_level.completion {
             LevelCompletion::Incomplete { .. } => return,
-            LevelCompletion::CompleteWithSplash { height } => height,
-            LevelCompletion::CompleteNoSplash { height } => height,
+            LevelCompletion::Complete { height,.. } => height,
         };
 
         let hash = shapes_vec::hash_shapes(shapes.iter());

@@ -170,7 +170,7 @@ fn main() {
     builder.add_plugin(wasm::WASMPlugin);
 
     if cfg!(debug_assertions) {
-        builder.add_plugin(RapierDebugRenderPlugin::default());
+        //builder.add_plugin(RapierDebugRenderPlugin::default());
         //builder.add_plugin(ScreenDiagsPlugin);
         // builder.add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
         // builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());

@@ -16,3 +16,20 @@ pub fn choose_color(index: usize) -> Color {
     let alpha = 1.0;
     Color::hsla(hue, saturation, lightness, alpha)
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::choose_color;
+
+
+    #[test]
+    pub fn show_colors(){
+        for index in 0..50{
+            let color = choose_color(index);
+            let [h,s,l,a] = color.as_hsla_f32();
+            println!("h: {h}, s: {s}, l: {l}, a: {a}");
+        }
+    }
+
+}

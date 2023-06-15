@@ -194,7 +194,7 @@ impl CurrentLevel {
 
                 let mut text = message.to_string();
 
-                text.push_str(format!("\nHeight {height:.2}").as_str());
+                text.push_str(format!("\n\nHeight {height:.2}").as_str());
                 if let Some(record) = record_height {
                     text.push_str(format!("\nRecord {record:.2}").as_str());
                 }

@@ -28,8 +28,9 @@ impl Plugin for WinPlugin {
     }
 }
 
-const SHORT_COUNTDOWN: f64 = 0.5;
+const SHORT_COUNTDOWN: f64 = 1.0;
 const COUNTDOWN: f64 = 5.0;
+const FUTURE_WATCH: f64 = 20.0;
 
 pub fn check_for_win(
     //TODO check tower height
@@ -137,7 +138,7 @@ pub fn check_for_tower(
     let will_collide_with_wall = check_future_collisions(
         &rapier_context,
         (COUNTDOWN * 2.) as f32,
-        (COUNTDOWN * 2. * 60.).floor() as usize,
+        (FUTURE_WATCH * 60.).floor() as usize,
         GRAVITY,
     );
 

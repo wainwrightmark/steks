@@ -36,7 +36,7 @@ pub struct SetLevel {
     pub end_text: Option<String>,
 
     #[serde(default)]
-    pub skip_end: bool
+    pub skip_completion: bool
 
 
 }
@@ -162,7 +162,7 @@ mod tests {
     pub fn test_deserialize_level() {
         let levels: Vec<SetLevel> = vec![SetLevel {
             end_text: None,
-            skip_end: true,
+            skip_completion: true,
             initial_stage: LevelStage{
                 text: "abc".to_string(),
                 mouse_text: Some("Mouse text".to_string()),
@@ -192,7 +192,7 @@ mod tests {
 
         let str = serde_yaml::to_string(&levels).unwrap();
 
-        let expected = "- text: abc\n  mouse_text: Mouse text\n  text_seconds: 20\n  shapes:\n  - shape: Circle\n    x: 1.0\n    y: 2.0\n    r: 3.0\n    locked: true\n  stages:\n  - text: Other Stage\n    mouse_text: null\n    text_seconds: null\n    shapes:\n    - shape: Circle\n      x: null\n      y: null\n      r: null\n      locked: false\n  end_text: null\n  skip_end: true\n";
+        let expected = "- text: abc\n  mouse_text: Mouse text\n  text_seconds: 20\n  shapes:\n  - shape: Circle\n    x: 1.0\n    y: 2.0\n    r: 3.0\n    locked: true\n  stages:\n  - text: Other Stage\n    mouse_text: null\n    text_seconds: null\n    shapes:\n    - shape: Circle\n      x: null\n      y: null\n      r: null\n      locked: false\n  end_text: null\n  skip_completion: true\n";
 
         assert_eq!(str, expected);
     }

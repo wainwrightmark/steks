@@ -2,6 +2,8 @@
 # https://en.wikipedia.org/wiki/Pentomino
 
 - text: "Welcome to steks!\r\nThe game where you build towers\r\nPut the square on the triangle"
+  text_seconds: 360
+  skip_completion: true
   shapes:
     - shape: Triangle
       x: 0.0
@@ -12,9 +14,12 @@
       x: 0
       y: -300
 - text: "Move the Square\r\nHold in place for a moment to lock it\r\nYou can only lock one shape"
+  text_seconds: 360
+  skip_completion: true
   shapes:
     - shape: O4
 - text: "You'll need to rotate that triangle\r\nUnlock it and rotate it using another finger"
+  text_seconds: 360
   end_text: "Time for some real levels"
   shapes:
     - shape: Triangle

@@ -12,6 +12,7 @@ impl Plugin for LevelPlugin {
             .add_system(handle_change_level_events.in_base_set(CoreSet::First))
             .add_system(track_level_completion)
             .add_system(manage_level_shapes)
+            .add_system(skip_tutorial_completion)
             .add_event::<ChangeLevelEvent>();
     }
 }
@@ -303,6 +304,19 @@ pub enum ChangeLevelEvent {
     StartInfinite,
     StartChallenge,
     Load(Vec<u8>),
+}
+
+fn skip_tutorial_completion(
+    level: Res<CurrentLevel>,
+    mut events: EventWriter<ChangeLevelEvent>
+){
+    if level.is_changed() {
+        if level.completion.is_complete(){
+            if matches!(level.level, GameLevel::SetLevel {  level: SetLevel {skip_completion: true, .. }, .. }) {
+                events.send(ChangeLevelEvent::Next);
+            }
+        }
+    }
 }
 
 fn track_level_completion(

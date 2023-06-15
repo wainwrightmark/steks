@@ -370,7 +370,9 @@ fn animate_root(
                 },
             )));
         }
-        _ => {}
+        LevelCompletion::Incomplete { .. } => {
+            commands.remove::<Animator<Style>>();
+        }
     }
 }
 

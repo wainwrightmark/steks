@@ -184,6 +184,7 @@ pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
     rapier_config.gravity = GRAVITY;
 }
 
+// About 400 is a good amount of wind
 pub const GRAVITY: Vec2 = Vec2::new(0.0, -1000.0);
 
 pub fn get_today_date() -> chrono::NaiveDate {

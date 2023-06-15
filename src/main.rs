@@ -38,6 +38,7 @@ pub mod shapes_vec;
 
 pub mod infinity;
 
+use lens::LensPlugin;
 use level_ui::LevelUiPlugin;
 //use menu_action::MenuActionPlugin;
 use padlock::*;
@@ -90,6 +91,8 @@ mod wasm;
 
 mod recording;
 
+mod lens;
+
 fn main() {
     // When building for WASM, print panics to the browser console
     #[cfg(target_arch = "wasm32")]
@@ -138,6 +141,7 @@ fn main() {
         .add_plugin(LeaderboardPlugin)
         .add_plugin(SpiritPlugin)
         .add_plugin(LevelUiPlugin)
+        .add_plugin(LensPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,

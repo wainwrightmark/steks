@@ -121,7 +121,7 @@ fn button_system(
                     Share => share_events.send(ShareEvent),
                     ShareSaved => share_saved_events.send(ShareSavedSvgEvent),
                     GotoLevel { level } => {
-                        change_level_events.send(ChangeLevelEvent::ChooseLevel(level))
+                        change_level_events.send(ChangeLevelEvent::ChooseLevel { index: level, stage: 0 })
                     }
                     Levels => menu_state.as_mut().toggle_levels(),
                     NextLevel => change_level_events.send(ChangeLevelEvent::Next),

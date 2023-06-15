@@ -1,38 +1,110 @@
-use bevy::prelude::ResMut;
+use std::collections::BTreeMap;
+
+use bevy::{log::Level, prelude::*};
 use bevy_pkv::PkvStore;
 use chrono::NaiveDate;
 use serde::*;
 
-use crate::{get_today_date, shapes_vec::ShapesVec};
+use crate::{
+    get_today_date,
+    level::{GameLevel, LevelLogData},
+    shapes_vec::ShapesVec,
+};
 
-#[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 
 pub struct SavedData {
-    pub tutorial_finished: bool,
     pub challenge_streak: usize,
     pub last_challenge: Option<NaiveDate>,
-    pub saved_infinite: Option<Vec<u8>>,
+    //pub saved_infinite: Option<Vec<u8>>,
+    pub current_level: (LevelLogData, usize),
+}
+
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct LevelHeightRecords(BTreeMap<i64, f32>);
+
+impl StoreData for LevelHeightRecords {
+    const KEY: &'static str = "scores";
+}
+
+impl LevelHeightRecords {
+    const KEY: &str = "scores";
+
+    pub fn add_height(mut self, hash: i64, height: f32) -> Self {
+        match self.0.entry(hash) {
+            std::collections::btree_map::Entry::Vacant(v) => {
+                v.insert(height);
+            }
+            std::collections::btree_map::Entry::Occupied(mut o) => {
+                if o.get() < &height {
+                    o.insert(height);
+                }
+            }
+        };
+        self
+    }
+
+    pub fn try_get(&self, hash: i64)-> Option<f32>{
+        self.0.get(&hash).cloned()
+    }
+}
+
+pub trait StoreData: Default + Serialize + for<'de> Deserialize<'de> {
+    const KEY: &'static str;
+
+    fn get_or_create(pkv: &mut ResMut<PkvStore>) -> Self {
+        if let Ok(data) = pkv.get::<Self>(Self::KEY) {
+            data
+        } else {
+            let data = Self::default();
+            pkv.set(Self::KEY, &data).expect("failed to store data");
+            data
+        }
+    }
+
+    fn get_or_default(pkv: &Res<PkvStore>) -> Self {
+        if let Ok(data) = pkv.get::<Self>(Self::KEY) {
+            data
+        } else {
+            Self::default()
+        }
+    }
+
+
+    fn update<F: FnOnce(Self) -> Self>(pkv: &mut ResMut<PkvStore>,f: F) -> Self {
+        let updated = if let Ok(user) = pkv.get::<Self>(Self::KEY) {
+            f(user)
+        } else {
+            let user = Self::default();
+            f(user)
+        };
+
+        pkv.set(Self::KEY, &updated).expect("failed to update data");
+        updated
+    }
+}
+
+impl StoreData for SavedData {
+    const KEY: &'static str = "user";
 }
 
 impl SavedData {
-    pub fn get_or_create(pkv: &mut ResMut<PkvStore>) -> Self {
-        if let Ok(user) = pkv.get::<SavedData>("user") {
-            user
-        } else {
-            let user = SavedData::default();
-            pkv.set("user", &user).expect("failed to store user");
-            user
-        }
-    }
-
-    pub fn save_game(&self, shapes: &ShapesVec) -> Self {
-        let encoded = crate::encoding::encode_shapes(&shapes.0);
-
+    pub fn with_current_level(&self, current_level: (LevelLogData, usize)) -> Self {
         Self {
-            saved_infinite: Some(encoded),
-            ..self.clone()
+            challenge_streak: self.challenge_streak,
+            last_challenge: self.last_challenge,
+            current_level,
         }
     }
+
+    // pub fn save_game(&self, shapes: &ShapesVec) -> Self {
+    //     let encoded = crate::encoding::encode_shapes(&shapes.0);
+
+    //     Self {
+    //         saved_infinite: Some(encoded),
+    //         ..self.clone()
+    //     }
+    // }
 
     pub fn with_todays_challenge_beat(&self) -> Self {
         let today = get_today_date();
@@ -40,35 +112,21 @@ impl SavedData {
         if let Some(previous) = self.last_challenge {
             if previous.checked_add_days(chrono::Days::new(1)) == Some(today) {
                 return Self {
-                    tutorial_finished: true,
+                    //tutorial_finished: true,
                     challenge_streak: self.challenge_streak + 1,
                     last_challenge: Some(today),
-                    saved_infinite: self.saved_infinite.clone(),
+                    //saved_infinite: self.saved_infinite.clone(),
+                    current_level: self.current_level.clone(),
                 };
             }
         }
         Self {
-            tutorial_finished: true,
+            //tutorial_finished: true,
             challenge_streak: 1,
             last_challenge: Some(today),
-            saved_infinite: self.saved_infinite.clone(),
+            //saved_infinite: self.saved_infinite.clone(),
+            current_level: self.current_level.clone(),
         }
-    }
-
-    pub fn update<F: FnOnce(SavedData) -> SavedData>(
-        pkv: &mut ResMut<PkvStore>,
-        f: F,
-    ) -> SavedData {
-        let updated_user = if let Ok(user) = pkv.get::<SavedData>("user") {
-            f(user)
-        } else {
-            let user = SavedData::default();
-            f(user)
-        };
-
-        pkv.set("user", &updated_user)
-            .expect("failed to store user");
-        updated_user
     }
 
     pub fn has_beat_todays_challenge(&self) -> bool {

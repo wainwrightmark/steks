@@ -21,23 +21,38 @@ fn manage_level_shapes(
     draggables: Query<((Entity, &ShapeIndex), With<Draggable>)>,
     current_level: Res<CurrentLevel>,
     mut event_writer: EventWriter<SpawnNewShapeEvent>,
+    mut previous: Local<CurrentLevel>,
 ) {
     if current_level.is_changed() {
+        let swap = previous.clone();
+        *previous = current_level.clone();
+        let previous = swap;
         match current_level.completion {
             LevelCompletion::Incomplete { stage } => {
-                if stage == 0 {
+                // TODO: spawn shapes for earlier stages if needed
+                let previous_stage = if stage == 0 || previous.level != current_level.level {
                     for ((e, _), _) in draggables.iter() {
                         commands.entity(e).despawn_recursive();
                     }
-                    shape_maker::create_initial_shapes(&current_level.level, event_writer);
+                    shape_maker::create_initial_shapes(&current_level.level, &mut event_writer);
+                    0
                 } else {
+                    match previous.completion {
+                        LevelCompletion::Incomplete { stage } => stage,
+                        LevelCompletion::CompleteWithSplash { .. } => 0,
+                        LevelCompletion::CompleteNoSplash { .. } => 0,
+                    }
+                };
+                if stage > 0 {
                     match &current_level.as_ref().level {
                         GameLevel::SetLevel { level, .. } => {
-                            if let Some(stage) = level.get_stage(&stage) {
-                                for shape in &stage.shapes {
-                                    event_writer.send(SpawnNewShapeEvent {
-                                        fixed_shape: (*shape).into(),
-                                    })
+                            for stage in (previous_stage + 1)..=(stage) {
+                                if let Some(stage) = level.get_stage(&stage) {
+                                    for shape in &stage.shapes {
+                                        event_writer.send(SpawnNewShapeEvent {
+                                            fixed_shape: (*shape).into(),
+                                        })
+                                    }
                                 }
                             }
                         }
@@ -61,7 +76,7 @@ fn handle_change_level_events(
     mut current_level: ResMut<CurrentLevel>,
 ) {
     if let Some(event) = change_level_events.iter().next() {
-        let level = event.get_new_level(&current_level.level);
+        let (level, stage) = event.get_new_level(&current_level.level);
 
         #[cfg(target_arch = "wasm32")]
         {
@@ -72,7 +87,7 @@ fn handle_change_level_events(
         }
 
         current_level.level = level;
-        current_level.completion = LevelCompletion::Incomplete { stage: 0 };
+        current_level.completion = LevelCompletion::Incomplete { stage };
     }
 }
 
@@ -99,22 +114,34 @@ fn choose_level_on_game_load(
     }
 
     let settings = SavedData::get_or_create(&mut pkv);
-    if settings.tutorial_finished {
-        if let Some(saved) = settings.saved_infinite {
-            change_level_events.send(ChangeLevelEvent::Load(saved));
-        } else if settings.has_beat_todays_challenge() {
-            //info!("Skip to infinite");
-            change_level_events.send(ChangeLevelEvent::StartInfinite);
-        } else {
-            change_level_events.send(ChangeLevelEvent::StartChallenge);
+
+    match settings.current_level.0 {
+        LevelLogData::SetLevel { index } => {
+            change_level_events.send(ChangeLevelEvent::ChooseLevel {
+                index,
+                stage: settings.current_level.1,
+            })
         }
-    } else {
-        info!("Do tutorial");
-        change_level_events.send(ChangeLevelEvent::StartTutorial);
+        LevelLogData::Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
+        LevelLogData::Challenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
     }
+
+    // if settings.tutorial_finished {
+    //     if let Some(saved) = settings.saved_infinite {
+    //         change_level_events.send(ChangeLevelEvent::Load(saved));
+    //     } else if settings.has_beat_todays_challenge() {
+    //         //info!("Skip to infinite");
+    //         change_level_events.send(ChangeLevelEvent::StartInfinite);
+    //     } else {
+    //         change_level_events.send(ChangeLevelEvent::StartChallenge);
+    //     }
+    // } else {
+    //     info!("Do tutorial");
+    //     change_level_events.send(ChangeLevelEvent::StartTutorial);
+    // }
 }
 
-#[derive(Default, Resource)]
+#[derive(Default, Resource, Clone)]
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
@@ -125,6 +152,7 @@ impl CurrentLevel {
         &self,
         score_store: &Res<ScoreStore>,
         shapes: &Query<&ShapeIndex>,
+        pkv: &Res<PkvStore>,
     ) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
@@ -141,7 +169,11 @@ impl CurrentLevel {
                 GameLevel::Challenge => Some("Daily Challenge".to_string()),
             },
             LevelCompletion::CompleteWithSplash { height } => {
-                let hash = leaderboard::ScoreStore::hash_shapes(shapes.iter());
+                let hash = shapes_vec::hash_shapes(shapes.iter());
+
+                let heights: LevelHeightRecords = StoreData::get_or_default(pkv);
+
+                let pb = heights.try_get(hash);
 
                 let record_height: Option<f32> = match &score_store.map {
                     Some(map) => map.get(&hash).copied(),
@@ -158,12 +190,17 @@ impl CurrentLevel {
                     GameLevel::Challenge => "Challenge Complete",
                 };
 
-                match record_height {
-                    Some(record_height) => Some(format!(
-                        "{message}\nHeight {height:.2}\nRecord {record_height:.2}"
-                    )),
-                    None => Some(format!("Level Complete\nHeight {height:.2}")),
+                let mut text = message.to_string();
+
+                text.push_str(format!("\nHeight {height:.2}").as_str());
+                if let Some(record) = record_height {
+                    text.push_str(format!("\nRecord {record:.2}").as_str());
                 }
+
+                if let Some(pb) = pb {
+                    text.push_str(format!("\nBest   {pb:.2}").as_str());
+                }
+                Some(text)
             }
             LevelCompletion::CompleteNoSplash { height } => Some(format!("{height:.2}")),
         }
@@ -235,6 +272,12 @@ pub enum LevelLogData {
     Challenge,
 }
 
+impl Default for LevelLogData {
+    fn default() -> Self {
+        Self::SetLevel { index: 0 }
+    }
+}
+
 impl From<GameLevel> for LevelLogData {
     fn from(value: GameLevel) -> Self {
         match value {
@@ -259,7 +302,7 @@ impl GameLevel {
 #[derive(Debug, Clone)]
 pub enum ChangeLevelEvent {
     Next,
-    ChooseLevel(u8),
+    ChooseLevel { index: u8, stage: usize },
     // Previous,
     ResetLevel,
     StartTutorial,
@@ -268,21 +311,34 @@ pub enum ChangeLevelEvent {
     Load(Vec<u8>),
 }
 
-fn track_level_completion(level: Res<CurrentLevel>, mut pkv: ResMut<PkvStore>) {
-    if level.is_changed() && level.completion.is_complete() {
-        match &level.level {
-            GameLevel::SetLevel { index, .. } => {
-                if *index == 3 {
-                    SavedData::update(&mut pkv, |x| {
-                        let mut y = x;
-                        y.tutorial_finished = true;
-                        y
-                    });
+fn track_level_completion(
+    level: Res<CurrentLevel>,
+    mut pkv: ResMut<PkvStore>,
+    shapes: Query<&ShapeIndex>,
+) {
+    if !level.is_changed() {
+        return;
+    }
+
+    match level.completion {
+        LevelCompletion::Incomplete { stage } => {
+            let current: LevelLogData = level.level.clone().into();
+            StoreData::update(&mut pkv, |x: SavedData| {
+                x.with_current_level((current, stage))
+            });
+        }
+        LevelCompletion::CompleteWithSplash { height }
+        | LevelCompletion::CompleteNoSplash { height } => {
+            let hash = shapes_vec::hash_shapes(shapes.iter());
+
+            StoreData::update(&mut pkv, |x: LevelHeightRecords| x.add_height(hash, height));
+
+            match &level.level {
+                GameLevel::SetLevel { .. } => {}
+                GameLevel::Infinite { .. } => {}
+                GameLevel::Challenge => {
+                    SavedData::update(&mut pkv, |x| x.with_todays_challenge_beat());
                 }
-            }
-            GameLevel::Infinite { .. } => {}
-            GameLevel::Challenge => {
-                SavedData::update(&mut pkv, |x| x.with_todays_challenge_beat());
             }
         }
     }
@@ -290,27 +346,32 @@ fn track_level_completion(level: Res<CurrentLevel>, mut pkv: ResMut<PkvStore>) {
 
 impl ChangeLevelEvent {
     #[must_use]
-    pub fn get_new_level(&self, level: &GameLevel) -> GameLevel {
+    pub fn get_new_level(&self, level: &GameLevel) -> (GameLevel, usize) {
         match self {
             ChangeLevelEvent::Next => match level {
                 GameLevel::SetLevel { index, .. } => {
                     if let Some(next) = get_set_level(index.saturating_add(1)) {
-                        next
+                        (next, 0)
                     } else {
-                        GameLevel::Infinite { bytes: None }
+                        (GameLevel::Infinite { bytes: None }, 0)
                     }
                 }
-                _ => GameLevel::Infinite { bytes: None },
+                _ => (GameLevel::Infinite { bytes: None }, 0),
             },
-            ChangeLevelEvent::ResetLevel => level.clone(),
-            ChangeLevelEvent::StartTutorial => get_set_level(0).unwrap(),
-            ChangeLevelEvent::StartInfinite => GameLevel::Infinite { bytes: None },
-            ChangeLevelEvent::StartChallenge => GameLevel::Challenge,
+            ChangeLevelEvent::ResetLevel => (level.clone(), 0),
+            ChangeLevelEvent::StartTutorial => (get_set_level(0).unwrap(), 0),
+            ChangeLevelEvent::StartInfinite => (GameLevel::Infinite { bytes: None }, 0),
+            ChangeLevelEvent::StartChallenge => (GameLevel::Challenge, 0),
 
-            ChangeLevelEvent::ChooseLevel(x) => get_set_level(*x).unwrap(),
-            ChangeLevelEvent::Load(bytes) => GameLevel::Infinite {
-                bytes: Some(bytes.clone()),
-            },
+            ChangeLevelEvent::ChooseLevel { index, stage } => {
+                (get_set_level(*index).unwrap(), *stage)
+            }
+            ChangeLevelEvent::Load(bytes) => (
+                GameLevel::Infinite {
+                    bytes: Some(bytes.clone()),
+                },
+                0,
+            ),
         }
     }
 }

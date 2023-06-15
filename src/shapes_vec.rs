@@ -15,6 +15,15 @@ use crate::{
 
 pub struct ShapesVec<'a>(pub Vec<(&'a GameShape, Location, bool)>);
 
+pub fn hash_shapes<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> i64 {
+    let mut code: i64 = 0;
+    for index in shapes.map(|x| x.0).sorted() {
+        code = code.wrapping_mul(31).wrapping_add(index as i64);
+    }
+
+    code
+}
+
 impl<'a> ShapesVec<'a> {
     pub fn calculate_tower_height(&self) -> f32 {
         let mut min = WINDOW_HEIGHT;

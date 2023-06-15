@@ -1,6 +1,6 @@
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use bevy_tweening::lens::{TextColorLens, TransformScaleLens, UiPositionLens};
+use bevy_tweening::lens::*;
 use bevy_tweening::{Animator, EaseFunction, Tween};
 
 use crate::level::LevelCompletion;
@@ -23,6 +23,7 @@ pub fn setup_level_ui(
     asset_server: Res<AssetServer>,
     score_store: Res<ScoreStore>,
     shapes: Query<&ShapeIndex>,
+    pkv: Res<PkvStore>
 ) {
     let component = LevelUIComponent::Root;
     let current_level = CurrentLevel {
@@ -40,6 +41,7 @@ pub fn setup_level_ui(
         &asset_server,
         &score_store,
         &shapes,
+        &pkv
     );
 
     ec.with_children(|builder| {
@@ -51,6 +53,7 @@ pub fn setup_level_ui(
                 &asset_server,
                 &score_store,
                 &shapes,
+                &pkv
             );
         }
     });
@@ -63,6 +66,7 @@ fn insert_component_and_children(
     asset_server: &Res<AssetServer>,
     score_store: &Res<ScoreStore>,
     shapes: &Query<&ShapeIndex>,
+    pkv: &Res<PkvStore>
 ) {
     let mut ec = commands.spawn_empty();
     insert_bundle(
@@ -73,6 +77,7 @@ fn insert_component_and_children(
         asset_server,
         score_store,
         shapes,
+        pkv
     );
     ec.insert(component.clone());
 
@@ -85,6 +90,7 @@ fn insert_component_and_children(
                 &asset_server,
                 score_store,
                 shapes,
+                pkv
             );
         }
     });
@@ -97,6 +103,7 @@ fn update_ui_on_level_change(
     asset_server: Res<AssetServer>,
     score_store: Res<ScoreStore>,
     shapes: Query<&ShapeIndex>,
+    pkv: Res<PkvStore>
 ) {
     if current_level.is_changed() {
         for (entity, transform, style, component) in level_ui.iter() {
@@ -109,6 +116,7 @@ fn update_ui_on_level_change(
                 &asset_server,
                 &score_store,
                 &shapes,
+                &pkv
             );
             handle_animations(
                 commands,
@@ -297,8 +305,9 @@ fn get_message_bundle(
     asset_server: &Res<AssetServer>,
     score_store: &Res<ScoreStore>,
     shapes: &Query<&ShapeIndex>,
+    pkv: &Res<PkvStore>
 ) -> TextBundle {
-    if let Some(text) = current_level.get_text(score_store, shapes) {
+    if let Some(text) = current_level.get_text(score_store, shapes, pkv) {
         TextBundle::from_section(
             text,
             TextStyle {
@@ -376,6 +385,7 @@ fn insert_bundle(
     asset_server: &Res<AssetServer>,
     score_store: &Res<ScoreStore>,
     shapes: &Query<&ShapeIndex>,
+    pkv: &Res<PkvStore>
 ) {
     match component {
         LevelUIComponent::Root => {
@@ -408,6 +418,7 @@ fn insert_bundle(
                 asset_server,
                 score_store,
                 shapes,
+                pkv
             ));
         }
         LevelUIComponent::ButtonPanel => {

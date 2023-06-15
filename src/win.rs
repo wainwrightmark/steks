@@ -38,7 +38,7 @@ pub fn check_for_win(
     shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), Without<WinTimer>>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
-    mut pkv: ResMut<PkvStore>,
+    //mut pkv: ResMut<PkvStore>,
     mut saves: ResMut<SavedShare>,
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
@@ -61,7 +61,7 @@ pub fn check_for_win(
                 GameLevel::Infinite { .. } => {
                     let title = "steks infinite".to_string();
                     share::save_svg(title, &shapes, &mut saves);
-                    SavedData::update(&mut pkv, |s| s.save_game(&shapes));
+                    //SavedData::update(&mut pkv, |s| s.save_game(&shapes));
                     true
                 }
                 GameLevel::Challenge => {

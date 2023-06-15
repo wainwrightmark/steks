@@ -7,7 +7,7 @@ use itertools::Itertools;
 
 use crate::{
     level::{CurrentLevel, LevelCompletion},
-    shape_maker::ShapeIndex,
+    shape_maker::ShapeIndex, shapes_vec,
 };
 
 pub struct LeaderboardPlugin;
@@ -29,14 +29,14 @@ pub struct ScoreStore {
 }
 
 impl ScoreStore {
-    pub fn hash_shapes<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> i64 {
-        let mut code: i64 = 0;
-        for index in shapes.map(|x| x.0).sorted() {
-            code = code.wrapping_mul(31).wrapping_add(index as i64);
-        }
+    // pub fn hash_shapes<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> i64 {
+    //     let mut code: i64 = 0;
+    //     for index in shapes.map(|x| x.0).sorted() {
+    //         code = code.wrapping_mul(31).wrapping_add(index as i64);
+    //     }
 
-        code
-    }
+    //     code
+    // }
 }
 
 #[derive(Resource, Debug)]
@@ -139,7 +139,7 @@ fn update_leaderboard_on_completion(
             LevelCompletion::CompleteNoSplash { height } => height,
         };
 
-        let hash = ScoreStore::hash_shapes(shapes.iter());
+        let hash = shapes_vec::hash_shapes(shapes.iter());
 
         match &mut score_store.map {
             Some(map) => {

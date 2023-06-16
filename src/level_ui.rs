@@ -1,6 +1,6 @@
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use bevy_tweening::lens::*;
+use bevy_tweening::{lens::*, Delay};
 use bevy_tweening::{Animator, EaseFunction, Tween};
 
 use crate::lens::BackgroundColorLens;
@@ -215,7 +215,7 @@ fn get_border_bundle(
         LevelCompletion::Incomplete { .. } | LevelCompletion::Complete { splash: false, .. } => {
             UiRect::DEFAULT
         }
-        LevelCompletion::Complete { splash: true, .. } => UiRect::all(Val::Px(2.0)),
+        LevelCompletion::Complete { splash: true, .. } => UiRect::all(Val::Px(3.0)),
     }
     .into();
 
@@ -416,7 +416,6 @@ fn animate_panel(
     }
 }
 
-
 fn animate_border(
     commands: &mut EntityCommands,
     current_level: &CurrentLevel,
@@ -429,13 +428,37 @@ fn animate_border(
 
     match current_level.completion {
         LevelCompletion::Complete { splash, .. } => {
+            //let millis = if splash{MINIMIZE_MILLIS * 5} else{MINIMIZE_MILLIS / 100};
 
-            let millis = if splash{MINIMIZE_MILLIS * 5} else{MINIMIZE_MILLIS / 100};
-            commands.insert(Animator::new(Tween::new(
-                EaseFunction::QuadraticInOut,
-                Duration::from_millis(millis),
-                lens,
-            )));
+            if splash {
+                commands.insert(Animator::new(
+                    Tween::new(
+                        EaseFunction::QuadraticInOut,
+                        Duration::from_millis(1),
+                        BackgroundColorLens {
+                            start: Color::NONE,
+                            end: Color::NONE,
+                        },
+                    )
+                    .then(Delay::new(Duration::from_millis(MINIMIZE_MILLIS)))
+                    .then(Tween::new(
+                        EaseFunction::QuadraticInOut,
+                        Duration::from_millis(MINIMIZE_MILLIS),
+                        lens,
+                    )),
+                ));
+            } else {
+                commands.insert(Animator::new(
+                    Tween::new(
+                        EaseFunction::QuadraticInOut,
+                        Duration::from_millis(MINIMIZE_MILLIS),
+                        BackgroundColorLens {
+                            start: Color::NONE,
+                            end: Color::NONE,
+                        },
+                    ),
+                ));
+            }
         }
         LevelCompletion::Incomplete { .. } => {
             commands.remove::<Animator<BackgroundColor>>();

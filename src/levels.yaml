@@ -24,7 +24,7 @@
     shapes:
     - shape: X5
 
-- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again to finish your tower"
+- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again and finish your tower"
   text_seconds: 360
   skip_completion: true
   shapes:
@@ -35,7 +35,7 @@
       locked: true
     - shape: O4
       x: 0.0
-      y: -150
+      y: -300
   stages:
   - text: "To complete your tower\n\nUse all shapes on the screen"
     text_seconds: 360

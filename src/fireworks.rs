@@ -118,10 +118,10 @@ fn queue_fireworks(
 
     let mut rng: ThreadRng = rand::thread_rng();
 
-    for _ in 0..NUMBER_OF_EXPLOSIONS{
+    for _ in 0..NUMBER_OF_EXPLOSIONS {
         let delay = rng.gen_range(0.0..2.0);
-        commands.spawn(SpawnFireWorksTimer{
-            timer: Timer::from_seconds(delay, TimerMode::Once)
+        commands.spawn(SpawnFireWorksTimer {
+            timer: Timer::from_seconds(delay, TimerMode::Once),
         });
     }
 }
@@ -135,15 +135,11 @@ const FIREWORK_SECONDS: f32 = 8.0;
 
 const FIREWORK_SIZE: f32 = 10.0;
 
-// const MIN_X: f32 = -300.0;
-// const MAX_X: f32 = 300.0;
-
-// const MIN_Y: f32 = 00.0;
-// const MAX_Y: f32 = 300.0;
-
 fn spawn_spark<R: Rng>(commands: &mut Commands, translation: Vec3, rng: &mut R) {
     let game_shape = game_shape::ALL_SHAPES.choose(rng).unwrap();
-    let shape_bundle = game_shape.body.get_shape_bundle(FIREWORK_SIZE);
+
+    let size = rng.gen_range(0.5..3.0) * FIREWORK_SIZE;
+    let shape_bundle = game_shape.body.get_shape_bundle(size);
     let angvel = rng.gen_range(-1.0..1.0);
     let x = rng.gen_range(-200.0..200.0);
     let y = rng.gen_range(-500.0..500.0);

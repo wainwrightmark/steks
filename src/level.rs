@@ -188,21 +188,24 @@ impl CurrentLevel {
                         .end_text
                         .as_ref()
                         .map(|x| x.as_str())
-                        .unwrap_or_else(|| "Level Complete"),
+                        .unwrap_or_else(|| "\nLevel Complete"),
                     GameLevel::Infinite { .. } => "",
-                    GameLevel::Challenge => "Challenge Complete",
+                    GameLevel::Challenge => "\nChallenge Complete",
                 };
 
                 let mut text = message.to_string();
 
-                text.push_str(format!("\n\nHeight {height:.2}").as_str());
-                if let Some(record) = record_height {
-                    text.push_str(format!("\nRecord {record:.2}").as_str());
-                }
+                text.push_str(format!("\n\nHeight    {height:.2}").as_str());
+
 
                 if let Some(pb) = pb {
-                    text.push_str(format!("\nBest   {pb:.2}").as_str());
+                    text.push_str(format!("\nYour Best {pb:.2}").as_str());
                 }
+
+                if let Some(record) = record_height {
+                    text.push_str(format!("\nRecord    {record:.2}").as_str());
+                }
+
                 Some(text)
             }
         }

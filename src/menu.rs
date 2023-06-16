@@ -216,7 +216,7 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer) {
         .insert(MenuComponent::Levels)
         .with_children(|parent| {
             let font = asset_server.load("fonts/FiraMono-Medium.ttf");
-            for level in 0..(set_level::set_levels_len() as u8) {
+            for level in 3..(set_level::set_levels_len() as u8) {
                 spawn_button(parent, MenuButton::GotoLevel { level }, font.clone())
             }
         });
@@ -321,7 +321,7 @@ impl MenuButton {
             Share => "\u{f1e0}".to_string(),          // "Share",
             ShareSaved => "\u{f1e0}".to_string(),     // "Share",
             Levels => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
-            GotoLevel { level } => format!("{:2}", (*level as i32) - 1),
+            GotoLevel { level } => format!("{:2}", (*level as i32) - 2),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
         }

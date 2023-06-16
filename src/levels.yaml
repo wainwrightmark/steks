@@ -1,7 +1,7 @@
 # https://en.wikipedia.org/wiki/Tetromino
 # https://en.wikipedia.org/wiki/Pentomino
 
-- text: "Welcome to steks\n\nThe game where you build towers\n\nLet's build your first tower\n\nGrab the square with your finger\n\nPlace it above the triangle"
+- text: "Welcome to steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with your finger\n\nPlace it above the triangle"
   text_seconds: 360
   skip_completion: true
   shapes:
@@ -13,17 +13,18 @@
     - shape: O4
       x: 0
       y: -300
-- text: "Towers cannot touch the ground\n\nYour tower will need a foundation\n\nGrab the square and lift it up\n\nHold it in place a moment to lock"
+- text: "Towers cannot touch the ground\n\nYour tower will need a foundation\n\n\nGrab the square and lift it up\n\nHold it in place a moment to lock"
   text_seconds: 360
   skip_completion: true
   shapes:
     - shape: O4
   stages:
-  - text: "You can only lock one shape at once\n\nComplete your tower\n\nBalance the X on top of the square"
+  - text: "You can only lock one shape at once\n\n\nBalance the X on top of the square"
+    text_seconds: 360
     shapes:
     - shape: X5
 
-- text: "You'll need to rotate the triangle\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again to finish your tower"
+- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again to finish your tower"
   text_seconds: 360
   skip_completion: true
   shapes:
@@ -37,26 +38,28 @@
       y: -150
   stages:
   - text: "To complete your tower\n\nUse all shapes on the screen"
+    text_seconds: 360
     shapes:
     - shape: L4
   - text: "Finger blocking your tower?\n\nUse the black outlines to guide you"
+    text_seconds: 360
     shapes:
     - shape: L4
 
-- text: "II.\nA gentle warmup"
+- text: "I.\nA gentle warmup"
   end_text: "Not bad for a beginner"
   shapes:
     - shape: U5
     - shape: U5
     - shape: U5
-- text: "III.\nReach for the sky"
+- text: "II.\nReach for the sky"
   end_text: "Nice one"
   shapes:
     - shape: O4
     - shape: L4
     - shape: L4
 
-- text: "IV.\nSteks appeal"
+- text: "III.\nSteks appeal"
   end_text: "Didn't see that one coming, eh?"
   shapes:
     - shape: S4
@@ -67,7 +70,7 @@
     shapes:
     - shape: Z4
 
-- text: "V.\nTri Hard"
+- text: "IV.\nTri Hard"
   end_text: "Welcome to the party!"
   shapes:
     - shape: J4
@@ -76,7 +79,7 @@
     - shape: Triangle
 
 
-- text: "VI.\nSteks with an X"
+- text: "V.\nSteks with an X"
   end_text: "Wow! That was quick!"
   shapes:
     - shape: Z5
@@ -94,7 +97,7 @@
 
 
 
-- text: "VII.\nNow you're thinking with pentominos"
+- text: "VI.\nNow you're thinking with pentominos"
   end_text: "This was a triumph!"
   shapes:
     - shape: I5
@@ -103,7 +106,7 @@
     - shape: P5
     - shape: U5
 
-- text: "VIII.\nThe Empire Steks Building"
+- text: "VII.\nThe Empire Steks Building"
   end_text: "Now, that's a tall tower"
   shapes:
     - shape: I5
@@ -113,7 +116,7 @@
     - shape: U5
 
 
-- text: "IX.\nThe Steks Factor"
+- text: "VIII.\nThe Steks Factor"
   end_text: "That was just the audition"
   shapes:
     - shape: O4
@@ -123,7 +126,7 @@
     - shape: S4
     - shape: Z4
 
-- text: "X.\nTri Hard II: Tri harder"
+- text: "IX.\nTri Hard II: Tri harder"
   end_text: "Yippee!"
   shapes:
     - shape: L4
@@ -133,7 +136,7 @@
     - shape: Triangle
     - shape: U5
 
-- text: "XI.\nWonkiness encouraged"
+- text: "X.\nWonkiness encouraged"
   end_text: "You're basically Picasso"
   shapes:
     - shape: P5
@@ -143,7 +146,7 @@
     - shape: S4
     - shape: Z4
 
-- text: "XII.\nThat's no moon..."
+- text: "XI.\nThat's no moon..."
   end_text: "Great shot, kid.\nThat was one in a million!"
   shapes:
     - shape: O4
@@ -156,7 +159,7 @@
     shapes:
     - shape: Circle
 
-- text: "XIII.\nBlock Party"
+- text: "XII.\nBlock Party"
   end_text: "and circle gets the square"
   shapes:
     - shape: O4
@@ -166,7 +169,7 @@
     - shape: Circle
     - shape: O4
 
-- text: "XIV.\nSteks robot"
+- text: "XIII.\nSteks robot"
   end_text: "You're a machine"
   shapes:
     - shape: Triangle
@@ -178,7 +181,7 @@
     - shape: L4
     - shape: L5
 
-- text: "XV.\nExcess"
+- text: "XIV.\nExcess"
   end_text: "Touchdown!"
   shapes:
     - shape: X5
@@ -192,7 +195,7 @@
     - shape: Circle
     - shape: Circle
 
-- text: "XVI.\nThe joy of Steks"
+- text: "XV.\nThe joy of Steks"
   end_text: "Extremely Satisfactory"
   shapes:
     - shape: P5
@@ -204,7 +207,7 @@
     - shape: J4
     - shape: J4
 
-- text: "XVII.\nDouble Trouble"
+- text: "XVI.\nDouble Trouble"
   end_text: "Two Thumbs Up!"
   shapes:
     - shape: T5
@@ -216,7 +219,7 @@
     - shape: W5
     - shape: W5
 
-- text: "XVIII.\nDeus Steks Machina"
+- text: "XVII.\nDeus Steks Machina"
   end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
   shapes:
     - shape: O4
@@ -232,7 +235,7 @@
     - shape: Z5
     - shape: F5
 
-- text: "XIX.\nCircular Logic"
+- text: "XVIII.\nCircular Logic"
   end_text: "You are amazing because you're amazing"
   shapes:
     - shape: L4
@@ -244,10 +247,17 @@
     - shape: Circle
     - shape: Circle
 
-- text: "XX.\nThings are looking up"
-  end_text: "Now buy the game!!!"
+- text: "XIX.\nTri Hard with a Vengeance"
+  end_text: "Just a fly in the ointment, Hans"
   shapes:
-    - shape: Circle
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+
+- text: "XX.\nThings are looking up"
+  end_text: "Now do the survey!!!"
+  shapes:
     - shape: L5
     - shape: W5
     - shape: F5
@@ -260,55 +270,5 @@
     - 0.0
     - 1000.0
     shapes:
-    - shape: S4
-    - shape: S4
-    - shape: Z4
-
-
-
-- text: "XXI.\nTri Hard with a Vengeance"
-  shapes:
-    - shape: Triangle
-    - shape: Triangle
-    - shape: Triangle
-    - shape: Triangle
-    - shape: Triangle
-
-- text: "Build a tower with all the shapes\nHave Fun!"
-  shapes:
-    - shape: Circle
-    - shape: Triangle
-    - shape: U5
-    - shape: U5
-    - shape: N5
-    - shape: T4
-    - shape: U5
-    - shape: U5
-    - shape: N5
-    - shape: T4
-    - shape: L4
-    - shape: L4
-    - shape: L4
-    - shape: L4
-    - shape: L5
-    - shape: L5
-    - shape: L5
-    - shape: L5
-    - shape: L5
-    - shape: O4
-    - shape: O4
-    - shape: F5
-    - shape: I5
-    - shape: N5
-    - shape: P5
-    - shape: T5
-    - shape: V5
-    - shape: W5
     - shape: X5
-    - shape: Y5
-    - shape: Z5
-    - shape: O4
-    - shape: T4
-    - shape: J4
-    - shape: S4
-    - shape: Z4
+    - shape: I5

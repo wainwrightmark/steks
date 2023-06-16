@@ -73,7 +73,6 @@ fn normalize_to_range(value: f32, range: RangeInclusive<f32>) -> u16 {
     let adjusted_value = clamped_value - range.start();
     let ratio = adjusted_value / (range.end() - range.start());
 
-    
     (ratio * u16::MAX as f32).floor() as u16
 }
 
@@ -96,7 +95,13 @@ mod tests {
     #[test]
     fn test_shape_encoding_roundtrip() {
         let fs = FixedShape::by_name("O")
-            .with_location(Vec2 { x: 41.99774, y: -108. }, std::f32::consts::FRAC_PI_2)
+            .with_location(
+                Vec2 {
+                    x: 41.99774,
+                    y: -108.,
+                },
+                std::f32::consts::FRAC_PI_2,
+            )
             .lock();
 
         let encoded = encode_shape(fs.shape, fs.fixed_location.unwrap(), fs.locked);

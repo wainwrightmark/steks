@@ -1,15 +1,11 @@
 use std::collections::BTreeMap;
 
-use bevy::{log::Level, prelude::*};
+use bevy::prelude::*;
 use bevy_pkv::PkvStore;
 use chrono::NaiveDate;
 use serde::*;
 
-use crate::{
-    get_today_date,
-    level::{GameLevel, LevelLogData},
-    shapes_vec::ShapesVec,
-};
+use crate::{get_today_date, level::LevelLogData};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 
@@ -28,8 +24,6 @@ impl StoreData for LevelHeightRecords {
 }
 
 impl LevelHeightRecords {
-    const KEY: &str = "scores";
-
     pub fn add_height(mut self, hash: i64, height: f32) -> Self {
         match self.0.entry(hash) {
             std::collections::btree_map::Entry::Vacant(v) => {
@@ -44,7 +38,7 @@ impl LevelHeightRecords {
         self
     }
 
-    pub fn try_get(&self, hash: i64)-> Option<f32>{
+    pub fn try_get(&self, hash: i64) -> Option<f32> {
         self.0.get(&hash).cloned()
     }
 }
@@ -70,8 +64,7 @@ pub trait StoreData: Default + Serialize + for<'de> Deserialize<'de> {
         }
     }
 
-
-    fn update<F: FnOnce(Self) -> Self>(pkv: &mut ResMut<PkvStore>,f: F) -> Self {
+    fn update<F: FnOnce(Self) -> Self>(pkv: &mut ResMut<PkvStore>, f: F) -> Self {
         let updated = if let Ok(user) = pkv.get::<Self>(Self::KEY) {
             f(user)
         } else {
@@ -129,12 +122,12 @@ impl SavedData {
         }
     }
 
-    pub fn has_beat_todays_challenge(&self) -> bool {
-        if let Some(last_win) = self.last_challenge {
-            let today = get_today_date();
-            last_win == today
-        } else {
-            false
-        }
-    }
+    // pub fn has_beat_todays_challenge(&self) -> bool {
+    //     if let Some(last_win) = self.last_challenge {
+    //         let today = get_today_date();
+    //         last_win == today
+    //     } else {
+    //         false
+    //     }
+    // }
 }

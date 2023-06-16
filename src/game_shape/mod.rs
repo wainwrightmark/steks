@@ -2,7 +2,10 @@ use std::fmt::Debug;
 
 use crate::{color::choose_color, fixed_shape::Location, shape_maker::ShapeIndex};
 
-use bevy::{prelude::{Color, Rect}, render::once_cell::sync::Lazy};
+use bevy::{
+    prelude::{Color, Rect},
+    render::once_cell::sync::Lazy,
+};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
@@ -21,7 +24,7 @@ pub trait GameShapeBody: Send + Sync {
     fn to_collider_shape(&self, shape_size: f32) -> Collider;
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle;
 
-    fn bounding_box(&self, size: f32, location: &Location)-> Rect;
+    fn bounding_box(&self, size: f32, location: &Location) -> Rect;
 }
 
 const SHAPE_RADIUS_RATIO: f32 = 0.1;
@@ -53,11 +56,9 @@ impl GameShape {
         Stroke::color(Color::BLACK)
     }
 
-
-    pub fn from_index(index: &usize)-> &Self{
+    pub fn from_index(index: &usize) -> &Self {
         &ALL_SHAPES[*index]
     }
-
 }
 
 impl Debug for GameShape {
@@ -89,7 +90,11 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .chain(tetrominos)
         .chain(pentominos)
         .enumerate()
-        .map(|(index, (body, name))| GameShape { name, body,  index: ShapeIndex(index) })
+        .map(|(index, (body, name))| GameShape {
+            name,
+            body,
+            index: ShapeIndex(index),
+        })
         .collect_vec()
 });
 

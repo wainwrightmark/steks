@@ -171,11 +171,9 @@ impl CurrentLevel {
                 }
 
                 let message = match &self.level {
-                    GameLevel::SetLevel { level, .. } => level
-                        .end_text
-                        .as_ref()
-                        .map(|x| x.as_str())
-                        .unwrap_or_else(|| "\nLevel Complete"),
+                    GameLevel::SetLevel { level, .. } => {
+                        level.end_text.as_deref().unwrap_or("\nLevel Complete")
+                    }
                     GameLevel::Infinite { .. } => "",
                     GameLevel::Challenge => "\nChallenge Complete",
                 };
@@ -185,18 +183,16 @@ impl CurrentLevel {
                 text.push_str(format!("\n\nHeight    {height:.2}").as_str());
 
                 if score_info.is_pb {
-                    text.push_str(format!("\nNew Personal Best").as_str());
+                    text.push_str("\nNew Personal Best");
                 } else {
                     let pb = score_info.pb;
                     text.push_str(format!("\nYour Best {pb:.2}").as_str());
                 }
 
                 if score_info.is_wr {
-                    text.push_str(format!("\nNew World Record").as_str());
-                } else {
-                    if let Some(record) = score_info.wr {
-                        text.push_str(format!("\nRecord    {record:.2}").as_str());
-                    }
+                    text.push_str("\nNew World Record");
+                } else if let Some(record) = score_info.wr {
+                    text.push_str(format!("\nRecord    {record:.2}").as_str());
                 }
 
                 Some(text)
@@ -222,15 +218,19 @@ pub struct ScoreInfo {
 }
 
 impl ScoreInfo {
-    pub fn generate(shapes: &ShapesVec, score_store: &Res<ScoreStore>, pkv: &Res<PkvStore>) -> Self {
+    pub fn generate(
+        shapes: &ShapesVec,
+        score_store: &Res<ScoreStore>,
+        pkv: &Res<PkvStore>,
+    ) -> Self {
         let height = shapes.calculate_tower_height();
         let hash = shapes.hash();
 
-        let wr: Option<f32> = match &score_store.map {
-            Some(map) => Some(map.get(&hash).copied().unwrap_or(0.0)),
-            None => None,
-        };
-        let heights: LevelHeightRecords = StoreData::get_or_default(&pkv);
+        let wr: Option<f32> = score_store
+            .map
+            .as_ref()
+            .map(|map| map.get(&hash).copied().unwrap_or(0.0));
+        let heights: LevelHeightRecords = StoreData::get_or_default(pkv);
 
         let pb = heights.try_get(hash).unwrap_or(0.0);
 
@@ -268,10 +268,7 @@ impl LevelCompletion {
         use MenuButton::*;
         match self {
             Incomplete { .. } => false,
-            Complete { .. } => match button {
-                NextLevel | Share | MinimizeCompletion => true,
-                _ => false,
-            },
+            Complete { .. } => matches!(button, NextLevel | Share | MinimizeCompletion),
         }
     }
 }
@@ -358,21 +355,20 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
 }
 
 fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
-    if level.is_changed() {
-        if level.completion.is_complete() {
-            if matches!(
-                level.level,
-                GameLevel::SetLevel {
-                    level: SetLevel {
-                        skip_completion: true,
-                        ..
-                    },
+    if level.is_changed()
+        && level.completion.is_complete()
+        && matches!(
+            level.level,
+            GameLevel::SetLevel {
+                level: SetLevel {
+                    skip_completion: true,
                     ..
-                }
-            ) {
-                events.send(ChangeLevelEvent::Next);
+                },
+                ..
             }
-        }
+        )
+    {
+        events.send(ChangeLevelEvent::Next);
     }
 }
 

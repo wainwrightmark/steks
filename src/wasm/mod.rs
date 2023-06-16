@@ -2,7 +2,10 @@ use crate::{logging::LogAppInfo, *};
 
 use web_sys::UrlSearchParams;
 
-use bevy::{window::{PrimaryWindow, WindowResized}, tasks::IoTaskPool};
+use bevy::{
+    tasks::IoTaskPool,
+    window::{PrimaryWindow, WindowResized},
+};
 use capacitor_bindings::{device::Device, share::ShareOptions};
 
 pub fn request_fullscreen() {
@@ -27,7 +30,9 @@ pub fn request_fullscreen() {
 }
 
 pub fn share_game(game: String) {
-    IoTaskPool::get().spawn(async move { share_game_async(game).await }).detach();
+    IoTaskPool::get()
+        .spawn(async move { share_game_async(game).await })
+        .detach();
 }
 
 pub async fn application_start() -> LoggableEvent {
@@ -187,9 +192,6 @@ fn has_touch() -> bool {
     navigator.max_touch_points() > 0
 }
 
-
-
-
 pub fn get_game_from_location() -> Option<String> {
     let window = web_sys::window()?;
     let location = window.location();
@@ -210,8 +212,6 @@ fn remove_spinner() {
     }
 }
 
-
-
 // #[wasm_bindgen(module="/recording.js")]
 // extern "C" {
 //     #[wasm_bindgen()]
@@ -220,7 +220,6 @@ fn remove_spinner() {
 //     #[wasm_bindgen()]
 //     pub fn stop_recording();
 // }
-
 
 pub struct WASMPlugin;
 

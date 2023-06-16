@@ -80,7 +80,7 @@ fn insert_component_and_children(
         shapes,
         pkv,
     );
-    ec.insert(component.clone());
+    ec.insert(*component);
 
     ec.with_children(|builder| {
         for child in component.get_child_components() {
@@ -88,7 +88,7 @@ fn insert_component_and_children(
                 builder,
                 current_level,
                 child,
-                &asset_server,
+                asset_server,
                 score_store,
                 shapes,
                 pkv,
@@ -112,7 +112,7 @@ fn update_ui_on_level_change(
         *previous = current_level.clone();
         let previous = swap;
 
-        for (entity, transform, style, component) in level_ui.iter() {
+        for (entity, _transform, _style, component) in level_ui.iter() {
             let commands = &mut commands.entity(entity);
             insert_bundle(
                 commands,
@@ -163,13 +163,12 @@ fn get_root_position(current_level: &CurrentLevel) -> UiRect {
     match current_level.completion {
         LevelCompletion::Complete {
             splash: false,
-            score_info,
+            score_info: _,
         } => UiRect {
             top: Val::Percent(10.0),
             left: Val::Percent(50.0),
             right: Val::Percent(50.0),
             bottom: Val::Percent(90.0),
-            ..Default::default()
         },
         _ => UiRect::new(
             Val::Percent(50.0),
@@ -205,9 +204,9 @@ fn get_root_bundle(
 
 fn get_border_bundle(
     current_level: &CurrentLevel,
-    asset_server: &Res<AssetServer>,
-    score_store: &Res<ScoreStore>,
-    shapes: &Query<&ShapeIndex>,
+    _asset_server: &Res<AssetServer>,
+    _score_store: &Res<ScoreStore>,
+    _shapes: &Query<&ShapeIndex>,
 ) -> NodeBundle {
     let background_color: BackgroundColor = get_border_color(current_level).into();
 
@@ -216,8 +215,7 @@ fn get_border_bundle(
             UiRect::DEFAULT
         }
         LevelCompletion::Complete { splash: true, .. } => UiRect::all(Val::Px(3.0)),
-    }
-    .into();
+    };
 
     NodeBundle {
         style: Style {
@@ -237,9 +235,9 @@ fn get_border_bundle(
 
 fn get_panel_bundle(
     current_level: &CurrentLevel,
-    asset_server: &Res<AssetServer>,
-    score_store: &Res<ScoreStore>,
-    shapes: &Query<&ShapeIndex>,
+    _asset_server: &Res<AssetServer>,
+    _score_store: &Res<ScoreStore>,
+    _shapes: &Query<&ShapeIndex>,
 ) -> NodeBundle {
     let background_color: BackgroundColor = get_panel_color(current_level).into();
 
@@ -269,9 +267,9 @@ fn get_panel_bundle(
 
 fn get_button_panel(
     current_level: &CurrentLevel,
-    asset_server: &Res<AssetServer>,
-    score_store: &Res<ScoreStore>,
-    shapes: &Query<&ShapeIndex>,
+    _asset_server: &Res<AssetServer>,
+    _score_store: &Res<ScoreStore>,
+    _shapes: &Query<&ShapeIndex>,
 ) -> NodeBundle {
     let size = match current_level.completion {
         LevelCompletion::Incomplete { .. } => Size::new(Val::Px(0.0), Val::Px(0.0)),
@@ -297,9 +295,9 @@ fn get_button_panel(
 fn get_message_bundle(
     current_level: &CurrentLevel,
     asset_server: &Res<AssetServer>,
-    score_store: &Res<ScoreStore>,
-    shapes: &Query<&ShapeIndex>,
-    pkv: &Res<PkvStore>,
+    _score_store: &Res<ScoreStore>,
+    _shapes: &Query<&ShapeIndex>,
+    _pkv: &Res<PkvStore>,
 ) -> TextBundle {
     if let Some(text) = current_level.get_text() {
         TextBundle::from_section(
@@ -323,7 +321,7 @@ fn get_message_bundle(
 fn animate_text(
     commands: &mut EntityCommands,
     current_level: &CurrentLevel,
-    previous: &CurrentLevel,
+    _previous: &CurrentLevel,
 ) {
     const DEFAULT_TEXT_FADE: u32 = 20;
     let (seconds, end) = match current_level.completion {
@@ -448,16 +446,14 @@ fn animate_border(
                     )),
                 ));
             } else {
-                commands.insert(Animator::new(
-                    Tween::new(
-                        EaseFunction::QuadraticInOut,
-                        Duration::from_millis(MINIMIZE_MILLIS),
-                        BackgroundColorLens {
-                            start: Color::NONE,
-                            end: Color::NONE,
-                        },
-                    ),
-                ));
+                commands.insert(Animator::new(Tween::new(
+                    EaseFunction::QuadraticInOut,
+                    Duration::from_millis(MINIMIZE_MILLIS),
+                    BackgroundColorLens {
+                        start: Color::NONE,
+                        end: Color::NONE,
+                    },
+                )));
             }
         }
         LevelCompletion::Incomplete { .. } => {
@@ -536,11 +532,11 @@ fn insert_bundle(
         LevelUIComponent::Button(menu_button) => {
             if first_time {
                 let font = asset_server.load("fonts/fontello.ttf");
-                commands.insert(menu_button.clone());
+                commands.insert(*menu_button);
                 commands.insert(button_bundle());
 
                 commands.with_children(|parent| {
-                    parent.spawn(button_text_bundle(&menu_button, font));
+                    parent.spawn(button_text_bundle(menu_button, font));
                 });
             }
 

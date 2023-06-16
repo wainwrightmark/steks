@@ -1,9 +1,6 @@
-use bevy::{prelude::*, time::Stopwatch};
+use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::ShapeBundle;
-use bevy_rapier2d::prelude::{
-    Collider, CollisionGroups, GravityScale, Group, MassProperties, ReadMassProperties, RigidBody,
-    Velocity,
-};
+use bevy_rapier2d::prelude::{Collider, CollisionGroups, GravityScale, Group, RigidBody, Velocity};
 use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 
 use crate::{
@@ -36,18 +33,15 @@ fn despawn_fireworks(
     time: Res<Time>,
     fireworks: Query<Entity, With<Firework>>,
 ) {
-    match timer_resource.timer.as_mut() {
-        Some(timer) => {
-            timer.tick(time.delta());
+    if let Some(timer) = timer_resource.timer.as_mut() {
+        timer.tick(time.delta());
 
-            if timer.finished() {
-                timer_resource.timer = None;
-                for firework in fireworks.iter() {
-                    commands.entity(firework).despawn();
-                }
+        if timer.finished() {
+            timer_resource.timer = None;
+            for firework in fireworks.iter() {
+                commands.entity(firework).despawn();
             }
         }
-        None => return,
     }
 }
 
@@ -115,10 +109,10 @@ fn spawn_firework<R: Rng>(commands: &mut Commands, rng: &mut R) {
             path: bevy_prototype_lyon::prelude::Path(shape_bundle.path.0.clone()),
             mesh: shape_bundle.mesh.clone(),
             material: shape_bundle.material.clone(),
-            transform: shape_bundle.transform.clone(),
-            global_transform: shape_bundle.global_transform.clone(),
-            visibility: shape_bundle.visibility.clone(),
-            computed_visibility: shape_bundle.computed_visibility.clone(),
+            transform: shape_bundle.transform,
+            global_transform: shape_bundle.global_transform,
+            visibility: shape_bundle.visibility,
+            computed_visibility: shape_bundle.computed_visibility,
         })
         .insert(GravityScale(0.5))
         .insert(game_shape.fill())

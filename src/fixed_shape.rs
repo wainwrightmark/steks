@@ -67,16 +67,14 @@ impl FixedShape {
         Self::random(&mut shape_rng)
     }
 
-    pub fn random<R: Rng>(shape_rng : &mut R)-> Self{
-        let shape = crate::game_shape::ALL_SHAPES
-            .choose(shape_rng)
-            .unwrap();
+    pub fn random<R: Rng>(shape_rng: &mut R) -> Self {
+        let shape = crate::game_shape::ALL_SHAPES.choose(shape_rng).unwrap();
 
-            Self {
-                shape,
-                fixed_location: None,
-                locked: false,
-                fixed_velocity: Some(Default::default()),
-            }
+        Self {
+            shape,
+            fixed_location: None,
+            locked: false,
+            fixed_velocity: Some(Default::default()),
+        }
     }
 }

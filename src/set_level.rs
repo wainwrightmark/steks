@@ -1,4 +1,4 @@
-use std::{ f32::consts};
+use std::f32::consts;
 
 use serde::{Deserialize, Serialize};
 
@@ -17,13 +17,15 @@ lazy_static::lazy_static! {
     };
 }
 
-pub fn set_levels_len()-> usize{
+pub fn set_levels_len() -> usize {
     LIST.len()
 }
 
-pub fn get_set_level(index: u8) -> Option<GameLevel>
-{
-    LIST.get(index as usize).map(|level| GameLevel::SetLevel { index, level: level.clone() })
+pub fn get_set_level(index: u8) -> Option<GameLevel> {
+    LIST.get(index as usize).map(|level| GameLevel::SetLevel {
+        index,
+        level: level.clone(),
+    })
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -36,33 +38,31 @@ pub struct SetLevel {
     pub end_text: Option<String>,
 
     #[serde(default)]
-    pub skip_completion: bool
-
-
+    pub skip_completion: bool,
 }
 
-impl SetLevel{
-    pub fn get_stage(&self, stage: &usize)-> Option<&LevelStage>{
+impl SetLevel {
+    pub fn get_stage(&self, stage: &usize) -> Option<&LevelStage> {
         match stage.checked_sub(1) {
             Some(index) => self.stages.get(index),
-            None =>Some( &self.initial_stage),
+            None => Some(&self.initial_stage),
         }
     }
 
-    pub fn total_stages(&self)-> usize{
+    pub fn total_stages(&self) -> usize {
         self.stages.len() + 1
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct LevelStage{
+pub struct LevelStage {
     pub text: String,
     pub mouse_text: Option<String>,
     #[serde(default)]
     pub text_seconds: Option<u32>,
     pub shapes: Vec<LevelShape>,
 
-    pub gravity: Option<bevy::prelude::Vec2>
+    pub gravity: Option<bevy::prelude::Vec2>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
@@ -124,7 +124,13 @@ pub enum LevelShapeForm {
     Triangle = 1,
 
     I4,
-    #[serde(alias="Square", alias="square", alias="SQUARE", alias = "o", alias = "O")]
+    #[serde(
+        alias = "Square",
+        alias = "square",
+        alias = "SQUARE",
+        alias = "o",
+        alias = "O"
+    )]
     O4,
     T4,
     J4,
@@ -159,13 +165,12 @@ mod tests {
 
     use super::SetLevel;
 
-
     #[test]
     pub fn test_deserialize_level() {
         let levels: Vec<SetLevel> = vec![SetLevel {
             end_text: None,
             skip_completion: true,
-            initial_stage: LevelStage{
+            initial_stage: LevelStage {
                 text: "abc".to_string(),
                 mouse_text: Some("Mouse text".to_string()),
                 text_seconds: Some(20),
@@ -176,23 +181,19 @@ mod tests {
                     r: Some(3.0),
                     locked: true,
                 }],
-                gravity: None
+                gravity: None,
             },
-            stages: vec![
-                LevelStage{
-                    text: "Other Stage".to_string(),
-                    mouse_text: None,
-                    text_seconds: None,
+            stages: vec![LevelStage {
+                text: "Other Stage".to_string(),
+                mouse_text: None,
+                text_seconds: None,
 
-                    shapes: vec![LevelShape {
-                        shape: crate::set_level::LevelShapeForm::Circle,
-                        ..Default::default()
-                    }],
-                    gravity: Some(bevy::prelude::Vec2{x: 100.0, y: 200.0})
-                },
-
-            ]
-
+                shapes: vec![LevelShape {
+                    shape: crate::set_level::LevelShapeForm::Circle,
+                    ..Default::default()
+                }],
+                gravity: Some(bevy::prelude::Vec2 { x: 100.0, y: 200.0 }),
+            }],
         }];
 
         let str = serde_yaml::to_string(&levels).unwrap();

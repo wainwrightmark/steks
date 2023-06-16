@@ -344,7 +344,6 @@ pub fn handle_drag_changes(
                         entity,
                         translation: transform.translation,
                     },
-                    ..Default::default()
                 };
                 *locked_axes = LockedAxes::all();
                 *gravity_scale = GravityScale(0.0);

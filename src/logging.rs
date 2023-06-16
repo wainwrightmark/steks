@@ -1,11 +1,13 @@
 use bevy::{log, tasks::IoTaskPool};
-use capacitor_bindings::{device::{Device, DeviceId, DeviceInfo, OperatingSystem, Platform}, app::AppInfo};
+use capacitor_bindings::{
+    app::AppInfo,
+    device::{Device, DeviceId, DeviceInfo, OperatingSystem, Platform},
+};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum::EnumDiscriminants;
 
 use crate::level::LevelLogData;
-
 
 #[must_use]
 #[skip_serializing_none]
@@ -103,18 +105,23 @@ pub struct LogAppInfo {
     version: String,
 }
 
-impl From<AppInfo> for LogAppInfo{
+impl From<AppInfo> for LogAppInfo {
     fn from(value: AppInfo) -> Self {
-        Self { build: value.build, version: value.version }
+        Self {
+            build: value.build,
+            version: value.version,
+        }
     }
 }
 
 impl LogAppInfo {
     pub async fn try_get_async() -> Option<LogAppInfo> {
-
         #[cfg(any(feature = "android", feature = "ios"))]
         {
-            capacitor_bindings::app::App::get_info().await.ok().map(|x|x.into())
+            capacitor_bindings::app::App::get_info()
+                .await
+                .ok()
+                .map(|x| x.into())
             // crate::capacitor_bindings::get_or_log_error_async()
             //     .await
             //     .map(|x| x.into())
@@ -235,9 +242,9 @@ impl LoggableEvent {
     }
 
     fn try_log(data: impl Into<Self> + 'static) {
-        IoTaskPool::get().spawn(async move {
-            Self::try_get_device_id_and_log_async(data).await
-        }).detach();
+        IoTaskPool::get()
+            .spawn(async move { Self::try_get_device_id_and_log_async(data).await })
+            .detach();
     }
 
     pub fn get_severity(&self) -> Severity {

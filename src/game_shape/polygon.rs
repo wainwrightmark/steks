@@ -1,6 +1,6 @@
 use super::{GameShapeBody, SHAPE_RADIUS_RATIO};
-use bevy::prelude::{Vec2, Rect, Transform, Quat};
-use bevy_prototype_lyon::{prelude::{*,}, shapes::RoundedPolygon};
+use bevy::prelude::{Quat, Rect, Transform, Vec2};
+use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
@@ -38,19 +38,20 @@ impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
         }
     }
 
-    fn bounding_box(&self, size: f32, location: &crate::fixed_shape::Location)-> bevy::prelude::Rect {
-
-        let rotation =  Transform::from_rotation(Quat::from_rotation_z(location.angle));
+    fn bounding_box(
+        &self,
+        size: f32,
+        location: &crate::fixed_shape::Location,
+    ) -> bevy::prelude::Rect {
+        let rotation = Transform::from_rotation(Quat::from_rotation_z(location.angle));
 
         let mut min_x = location.position.x;
         let mut max_x = location.position.x;
         let mut min_y = location.position.y;
         let mut max_y = location.position.y;
 
-
-
-        for (x,y) in self.0{
-            let p = Vec2::new(*x as f32 * size, *y as f32 * size) ;
+        for (x, y) in self.0 {
+            let p = Vec2::new(*x as f32 * size, *y as f32 * size);
             let p = rotation.transform_point(p.extend(0.0)).truncate() + location.position;
 
             min_x = min_x.min(p.x);

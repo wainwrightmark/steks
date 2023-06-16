@@ -130,7 +130,7 @@ fn button_system(
                     Levels => menu_state.as_mut().toggle_levels(),
                     NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                     MinimizeCompletion => match current_level.completion {
-                        LevelCompletion::Incomplete { stage } => {}
+                        LevelCompletion::Incomplete { stage: _ } => {}
                         LevelCompletion::Complete { splash, score_info } => {
                             current_level.completion = LevelCompletion::Complete {
                                 score_info,

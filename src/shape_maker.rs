@@ -10,7 +10,10 @@ use rand::{rngs::ThreadRng, Rng};
 
 pub const SHAPE_SIZE: f32 = 50f32;
 
-pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<SpawnNewShapeEvent>) {
+pub fn create_initial_shapes(
+    level: &GameLevel,
+    event_writer: &mut EventWriter<SpawnNewShapeEvent>,
+) {
     let shapes: Vec<FixedShape> = match level {
         GameLevel::SetLevel { level, .. } => match level.get_stage(&0) {
             Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),

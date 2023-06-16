@@ -9,8 +9,7 @@ use crate::*;
 pub struct InputPlugin;
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_system(touch_listener)
+        app.add_system(touch_listener)
             .add_system(keyboard_listener)
             .add_system(mousewheel_listener)
             .add_system(mousebutton_listener.after(touch_listener));
@@ -192,5 +191,3 @@ pub fn mousewheel_listener(
         ev_rotate.send(event);
     }
 }
-
-

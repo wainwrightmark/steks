@@ -109,7 +109,7 @@ fn setup_spirit_lines(mut commands: Commands) {
 fn show_spirit_lines(
     added: Query<(), Added<TouchDragged>>,
     mut spirit_lines_query: Query<&mut Visibility, (With<SpiritLine>, Without<TouchDragged>)>,
-    padlock: Res<PadlockResource>
+    padlock: Res<PadlockResource>,
 ) {
     if !added.is_empty() && !padlock.is_locked() {
         for mut x in spirit_lines_query.iter_mut() {
@@ -149,10 +149,10 @@ fn control_spirit_main_line(
         if angle > 1.0 - LEEWAY {
             if line.translation.x.is_sign_positive() {
                 if angle > 1.0 + LEEWAY {
-                    angle = angle - 2.0;
+                    angle -= 2.0;
                 }
             } else {
-                angle = angle - 2.0;
+                angle -= 2.0;
             }
         }
 

@@ -129,13 +129,13 @@ fn main() {
     builder
         .insert_resource(Msaa::Sample4)
         .insert_resource(ClearColor(color::BACKGROUND_COLOR))
-        .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin)
-        .build().add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
-
-
-
-
-    )
+        .add_plugins(
+            DefaultPlugins
+                .set(window_plugin)
+                .set(log_plugin)
+                .build()
+                .add_before::<bevy::asset::AssetPlugin, _>(EmbeddedAssetPlugin),
+        )
         .add_plugin(WallsPlugin)
         .add_plugin(ButtonPlugin)
         .add_plugin(ShapePlugin)
@@ -159,7 +159,6 @@ fn main() {
         .add_plugin(CollisionPlugin)
         .add_plugin(PadlockPlugin)
         //.add_plugin(RecordingPlugin)
-
         .insert_resource(PkvStore::new("Wainwrong", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
@@ -167,8 +166,7 @@ fn main() {
             unfocused_mode: bevy::winit::UpdateMode::ReactiveLowPower {
                 max_wait: Duration::from_secs(60),
             },
-        })
-        ;
+        });
 
     #[cfg(target_arch = "wasm32")]
     builder.add_plugin(wasm::WASMPlugin);

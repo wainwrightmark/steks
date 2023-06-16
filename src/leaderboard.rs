@@ -7,7 +7,8 @@ use itertools::Itertools;
 
 use crate::{
     level::{CurrentLevel, LevelCompletion},
-    shape_maker::ShapeIndex, shapes_vec,
+    shape_maker::ShapeIndex,
+    shapes_vec,
 };
 
 pub struct LeaderboardPlugin;
@@ -135,7 +136,7 @@ fn update_leaderboard_on_completion(
     if current_level.is_changed() {
         let height = match current_level.completion {
             LevelCompletion::Incomplete { .. } => return,
-            LevelCompletion::Complete { score_info,.. } => score_info.height,
+            LevelCompletion::Complete { score_info, .. } => score_info.height,
         };
 
         let hash = shapes_vec::hash_shapes(shapes.iter().cloned());

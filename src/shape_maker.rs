@@ -115,7 +115,7 @@ pub fn place_and_create_shape<RNG: Rng>(
     );
 }
 
-#[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub struct ShapeIndex(pub usize);
 
 impl ShapeIndex {
@@ -153,7 +153,7 @@ pub fn create_shape(
         .spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE))
         .insert(Friction::coefficient(1.0))
         .insert(game_shape.fill())
-        .insert(ShapeIndex(game_shape.index))
+        .insert(game_shape.index)
         .insert(RigidBody::Dynamic)
         .insert(collider_shape)
         .insert(Ccd::enabled())

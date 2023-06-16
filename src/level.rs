@@ -1,5 +1,6 @@
 use crate::set_level::get_set_level;
 use crate::shape_maker::ShapeIndex;
+use crate::shapes_vec::ShapesVec;
 use crate::*;
 use crate::{set_level::SetLevel, shape_maker::SpawnNewShapeEvent};
 use serde::{Deserialize, Serialize};
@@ -10,7 +11,7 @@ impl Plugin for LevelPlugin {
         app.init_resource::<CurrentLevel>()
             .add_startup_system(choose_level_on_game_load.in_base_set(StartupSet::PostStartup))
             .add_system(handle_change_level_events.in_base_set(CoreSet::First))
-            .add_system(track_level_completion)
+            .add_system(track_level_completion.in_base_set(CoreSet::Last))
             .add_system(manage_level_shapes)
             .add_system(skip_tutorial_completion)
             .add_system(adjust_gravity)
@@ -148,12 +149,7 @@ pub struct CurrentLevel {
 }
 
 impl CurrentLevel {
-    pub fn get_text(
-        &self,
-        score_store: &Res<ScoreStore>,
-        shapes: &Query<&ShapeIndex>,
-        pkv: &Res<PkvStore>,
-    ) -> Option<String> {
+    pub fn get_text(&self) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::SetLevel { level, .. } => {
@@ -168,20 +164,11 @@ impl CurrentLevel {
                 }
                 GameLevel::Challenge => Some("Daily Challenge".to_string()),
             },
-            LevelCompletion::Complete { height, splash } => {
+            LevelCompletion::Complete { splash, score_info } => {
+                let height = score_info.height;
                 if !splash {
-                    return Some(format!("{height:.2}"));
+                    return Some(format!("{height:.2}",));
                 }
-                let hash = shapes_vec::hash_shapes(shapes.iter());
-
-                let heights: LevelHeightRecords = StoreData::get_or_default(pkv);
-
-                let pb = heights.try_get(hash);
-
-                let record_height: Option<f32> = match &score_store.map {
-                    Some(map) => map.get(&hash).copied(),
-                    None => None,
-                };
 
                 let message = match &self.level {
                     GameLevel::SetLevel { level, .. } => level
@@ -197,13 +184,19 @@ impl CurrentLevel {
 
                 text.push_str(format!("\n\nHeight    {height:.2}").as_str());
 
-
-                if let Some(pb) = pb {
+                if score_info.is_pb {
+                    text.push_str(format!("\nNew Personal Best").as_str());
+                } else {
+                    let pb = score_info.pb;
                     text.push_str(format!("\nYour Best {pb:.2}").as_str());
                 }
 
-                if let Some(record) = record_height {
-                    text.push_str(format!("\nRecord    {record:.2}").as_str());
+                if score_info.is_wr {
+                    text.push_str(format!("\nNew World Record").as_str());
+                } else {
+                    if let Some(record) = score_info.wr {
+                        text.push_str(format!("\nRecord    {record:.2}").as_str());
+                    }
                 }
 
                 Some(text)
@@ -215,7 +208,43 @@ impl CurrentLevel {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LevelCompletion {
     Incomplete { stage: usize },
-    Complete { height: f32, splash: bool },
+    Complete { splash: bool, score_info: ScoreInfo },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ScoreInfo {
+    pub height: f32,
+    pub is_wr: bool,
+    pub is_pb: bool,
+
+    pub wr: Option<f32>,
+    pub pb: f32,
+}
+
+impl ScoreInfo {
+    pub fn generate(shapes: &ShapesVec, score_store: &Res<ScoreStore>, pkv: &Res<PkvStore>) -> Self {
+        let height = shapes.calculate_tower_height();
+        let hash = shapes.hash();
+
+        let wr: Option<f32> = match &score_store.map {
+            Some(map) => Some(map.get(&hash).copied().unwrap_or(0.0)),
+            None => None,
+        };
+        let heights: LevelHeightRecords = StoreData::get_or_default(&pkv);
+
+        let pb = heights.try_get(hash).unwrap_or(0.0);
+
+        let is_wr = wr.is_some_and(|x| x < height);
+        let is_pb = pb < height;
+
+        ScoreInfo {
+            height,
+            is_wr,
+            is_pb,
+            wr,
+            pb,
+        }
+    }
 }
 
 impl Default for LevelCompletion {
@@ -310,40 +339,37 @@ pub enum ChangeLevelEvent {
     Load(Vec<u8>),
 }
 
-fn adjust_gravity(
-    level: Res<CurrentLevel>,
-    mut rapier_config: ResMut<RapierConfiguration>
-){
+fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConfiguration>) {
     if level.is_changed() {
-
         let LevelCompletion::Incomplete { stage }  = level.completion  else{ return;};
 
-        let gravity =
-        match level.level.clone(){
-            GameLevel::SetLevel { level , ..} => {
-                if let Some(stage) = level.get_stage(&stage){
+        let gravity = match level.level.clone() {
+            GameLevel::SetLevel { level, .. } => {
+                if let Some(stage) = level.get_stage(&stage) {
                     stage.gravity.unwrap_or(GRAVITY)
-                }
-                else{
+                } else {
                     GRAVITY
                 }
-
-            },
-             GameLevel::Infinite { .. } | GameLevel::Challenge => {
-                GRAVITY
-            },
+            }
+            GameLevel::Infinite { .. } | GameLevel::Challenge => GRAVITY,
         };
         rapier_config.gravity = gravity;
     }
 }
 
-fn skip_tutorial_completion(
-    level: Res<CurrentLevel>,
-    mut events: EventWriter<ChangeLevelEvent>
-){
+fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
     if level.is_changed() {
-        if level.completion.is_complete(){
-            if matches!(level.level, GameLevel::SetLevel {  level: SetLevel {skip_completion: true, .. }, .. }) {
+        if level.completion.is_complete() {
+            if matches!(
+                level.level,
+                GameLevel::SetLevel {
+                    level: SetLevel {
+                        skip_completion: true,
+                        ..
+                    },
+                    ..
+                }
+            ) {
                 events.send(ChangeLevelEvent::Next);
             }
         }
@@ -366,10 +392,12 @@ fn track_level_completion(
                 x.with_current_level((current, stage))
             });
         }
-        LevelCompletion::Complete { height, .. } => {
-            let hash = shapes_vec::hash_shapes(shapes.iter());
+        LevelCompletion::Complete { score_info, .. } => {
+            let hash = shapes_vec::hash_shapes(shapes.iter().cloned());
 
-            StoreData::update(&mut pkv, |x: LevelHeightRecords| x.add_height(hash, height));
+            StoreData::update(&mut pkv, |x: LevelHeightRecords| {
+                x.add_height(hash, score_info.height)
+            });
 
             match &level.level {
                 GameLevel::SetLevel { .. } => {}

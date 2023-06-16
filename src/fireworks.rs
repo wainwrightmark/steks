@@ -1,7 +1,8 @@
 use bevy::{prelude::*, time::Stopwatch};
 use bevy_prototype_lyon::prelude::ShapeBundle;
 use bevy_rapier2d::prelude::{
-    CollisionGroups, GravityScale, Group, MassProperties, RigidBody, Velocity, ReadMassProperties, Collider,
+    Collider, CollisionGroups, GravityScale, Group, MassProperties, ReadMassProperties, RigidBody,
+    Velocity,
 };
 use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 
@@ -84,17 +85,11 @@ fn spawn_fireworks(
 
     let mut rng: ThreadRng = rand::thread_rng();
 
-    //let now = SystemTime::now();
-
     for _ in 0..NUMBER_OF_FIREWORKS {
         spawn_firework(&mut commands, &mut rng);
     }
 
     timer_resource.timer = Some(Timer::from_seconds(FIREWORK_SECONDS, TimerMode::Once));
-
-    //let time = SystemTime::now().duration_since(now);
-
-    //log::info!("Spawning Fireworks took {time:?}");
 }
 
 const NUMBER_OF_FIREWORKS: usize = 50;
@@ -105,12 +100,10 @@ const FIREWORK_SIZE: f32 = 10.0;
 
 fn spawn_firework<R: Rng>(commands: &mut Commands, rng: &mut R) {
     let game_shape = game_shape::ALL_SHAPES.choose(rng).unwrap();
-
-    //let collider_shape = game_shape.body.to_collider_shape(FIREWORK_SIZE);
     let shape_bundle = game_shape.body.get_shape_bundle(FIREWORK_SIZE);
     let angvel = rng.gen_range(-1.0..1.0);
     let x = rng.gen_range(-200.0..200.0);
-    let y = rng.gen_range(400.0..500.0);
+    let y = rng.gen_range(500.0..1000.0);
 
     let velocity: Velocity = Velocity {
         linvel: Vec2 { x, y },
@@ -135,12 +128,6 @@ fn spawn_firework<R: Rng>(commands: &mut Commands, rng: &mut R) {
             filters: Group::NONE,
         })
         .insert(Collider::ball(1.0))
-        // .insert(ReadMassProperties(MassProperties {
-        //     local_center_of_mass: Vec2::default(),
-        //     mass: 1.0,
-        //     principal_inertia: 0.0,
-        // }))
-        //.insert(collider_shape.clone())
         .insert(GravityScale::default())
         .insert(velocity)
         .insert(Firework)

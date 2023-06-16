@@ -15,7 +15,7 @@ pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup_level_ui)
-            .add_system(update_ui_on_level_change.in_base_set(CoreSet::First));
+            .add_system(update_ui_on_level_change.in_base_set(CoreSet::First)); //must be in first so tweening happens before the frame
     }
 }
 
@@ -163,7 +163,7 @@ fn get_root_position(current_level: &CurrentLevel) -> UiRect {
     match current_level.completion {
         LevelCompletion::Complete {
             splash: false,
-            height,
+            score_info,
         } => UiRect {
             top: Val::Percent(10.0),
             left: Val::Percent(50.0),
@@ -301,7 +301,7 @@ fn get_message_bundle(
     shapes: &Query<&ShapeIndex>,
     pkv: &Res<PkvStore>,
 ) -> TextBundle {
-    if let Some(text) = current_level.get_text(score_store, shapes, pkv) {
+    if let Some(text) = current_level.get_text() {
         TextBundle::from_section(
             text,
             TextStyle {

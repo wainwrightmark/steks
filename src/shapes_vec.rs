@@ -7,15 +7,16 @@ use itertools::Itertools;
 
 use crate::{
     draggable::Draggable,
+    encoding,
     fixed_shape::Location,
     game_shape::{GameShape, ALL_SHAPES},
     shape_maker::{ShapeIndex, SHAPE_SIZE},
-    WINDOW_HEIGHT, encoding,
+    WINDOW_HEIGHT,
 };
 
 pub struct ShapesVec<'a>(pub Vec<(&'a GameShape, Location, bool)>);
 
-pub fn hash_shapes<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> i64 {
+pub fn hash_shapes(shapes: impl Iterator<Item = ShapeIndex>) -> i64 {
     let mut code: i64 = 0;
     for index in shapes.map(|x| x.0).sorted() {
         code = code.wrapping_mul(31).wrapping_add(index as i64);
@@ -25,6 +26,10 @@ pub fn hash_shapes<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> i64 {
 }
 
 impl<'a> ShapesVec<'a> {
+    pub fn hash(&self) -> i64 {
+        hash_shapes(self.0.iter().map(|x| x.0.index))
+    }
+
     pub fn calculate_tower_height(&self) -> f32 {
         let mut min = WINDOW_HEIGHT;
         let mut max = -WINDOW_HEIGHT;
@@ -45,7 +50,7 @@ impl<'a> ShapesVec<'a> {
     }
 
     pub fn from_query<F: ReadOnlyWorldQuery>(
-        shapes_query: Query<(& ShapeIndex, & Transform, & Draggable), F>,
+        shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), F>,
     ) -> Self {
         let shapes: Vec<(&'a GameShape, Location, bool)> = shapes_query
             .iter()
@@ -63,7 +68,7 @@ impl<'a> ShapesVec<'a> {
 
     pub fn make_base64_data(&self) -> String {
         let bytes = encoding::encode_shapes(&self.0);
-        
+
         base64::engine::general_purpose::URL_SAFE.encode(bytes)
     }
 }

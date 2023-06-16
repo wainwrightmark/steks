@@ -1,8 +1,9 @@
 use strum::Display;
 
 use crate::{
+    level_ui::setup_level_ui,
     share::{ShareEvent, ShareSavedSvgEvent},
-    *, level_ui::setup_level_ui,
+    *,
 };
 
 pub struct ButtonPlugin;
@@ -121,17 +122,22 @@ fn button_system(
                     Share => share_events.send(ShareEvent),
                     ShareSaved => share_saved_events.send(ShareSavedSvgEvent),
                     GotoLevel { level } => {
-                        change_level_events.send(ChangeLevelEvent::ChooseLevel { index: level, stage: 0 })
+                        change_level_events.send(ChangeLevelEvent::ChooseLevel {
+                            index: level,
+                            stage: 0,
+                        })
                     }
                     Levels => menu_state.as_mut().toggle_levels(),
                     NextLevel => change_level_events.send(ChangeLevelEvent::Next),
-                    MinimizeCompletion => {
-
-                        match current_level.completion{
-                            LevelCompletion::Incomplete { stage } => {},
-                            LevelCompletion::Complete { height, splash } => current_level.completion = LevelCompletion::Complete { height, splash: !splash },
+                    MinimizeCompletion => match current_level.completion {
+                        LevelCompletion::Incomplete { stage } => {}
+                        LevelCompletion::Complete { splash, score_info } => {
+                            current_level.completion = LevelCompletion::Complete {
+                                score_info,
+                                splash: !splash,
+                            }
                         }
-                    }
+                    },
                 }
 
                 match *button {
@@ -247,7 +253,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     spawn_level_menu(&mut commands, asset_server.as_ref());
 }
 
-pub fn button_bundle()-> ButtonBundle{
+pub fn button_bundle() -> ButtonBundle {
     ButtonBundle {
         style: Style {
             size: Size::new(Val::Px(BUTTON_WIDTH), Val::Px(BUTTON_HEIGHT)),
@@ -264,7 +270,7 @@ pub fn button_bundle()-> ButtonBundle{
     }
 }
 
-pub fn button_text_bundle(menu_button: &MenuButton, font: Handle<Font>,)-> TextBundle{
+pub fn button_text_bundle(menu_button: &MenuButton, font: Handle<Font>) -> TextBundle {
     TextBundle {
         text: Text::from_section(
             menu_button.text(),

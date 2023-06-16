@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{color::choose_color, fixed_shape::Location};
+use crate::{color::choose_color, fixed_shape::Location, shape_maker::ShapeIndex};
 
 use bevy::{prelude::{Color, Rect}, render::once_cell::sync::Lazy};
 use bevy_prototype_lyon::prelude::*;
@@ -29,7 +29,7 @@ const SHAPE_RADIUS_RATIO: f32 = 0.1;
 pub struct GameShape {
     pub name: &'static str,
     pub body: &'static dyn GameShapeBody,
-    pub index: usize,
+    pub index: ShapeIndex,
 }
 
 impl Eq for GameShape {}
@@ -42,7 +42,7 @@ impl PartialEq for GameShape {
 
 impl GameShape {
     pub fn default_fill_color(&self) -> Color {
-        choose_color(self.index)
+        choose_color(self.index.0)
     }
 
     pub fn fill(&self) -> Fill {
@@ -89,7 +89,7 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .chain(tetrominos)
         .chain(pentominos)
         .enumerate()
-        .map(|(index, (body, name))| GameShape { name, body, index })
+        .map(|(index, (body, name))| GameShape { name, body,  index: ShapeIndex(index) })
         .collect_vec()
 });
 

@@ -20,7 +20,7 @@ const Y_RANGE: RangeInclusive<f32> = (MAX_WINDOW_HEIGHT * -0.5)..=(MAX_WINDOW_HE
 pub fn encode_shape(shape: &GameShape, location: Location, locked: bool) -> [u8; 6] {
     let mut arr = [0u8; 6];
 
-    arr[0] = ((shape.index as u8) * 2) + if locked { 1 } else { 0 };
+    arr[0] = ((shape.index.0 as u8) * 2) + if locked { 1 } else { 0 };
 
     let x = normalize_to_range(location.position.x, X_RANGE);
     let y = normalize_to_range(location.position.y, Y_RANGE);

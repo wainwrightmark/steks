@@ -33,14 +33,16 @@ const COUNTDOWN: f64 = 5.0;
 const FUTURE_WATCH: f64 = 20.0;
 
 pub fn check_for_win(
-    //TODO check tower height
     mut commands: Commands,
     mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
     shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), Without<WinTimer>>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
-    //mut pkv: ResMut<PkvStore>,
+
     mut saves: ResMut<SavedShare>,
+
+    score_store: Res<ScoreStore>,
+    pkv: Res<PkvStore>,
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
         let remaining = timer.win_time - time.elapsed_seconds_f64();
@@ -51,7 +53,6 @@ pub fn check_for_win(
             commands.entity(timer_entity).despawn();
 
             let shapes = ShapesVec::from_query(shapes_query);
-
 
             let set_complete = match &current_level.level {
                 GameLevel::SetLevel { index, .. } => {
@@ -80,15 +81,17 @@ pub fn check_for_win(
                             current_level.completion =
                                 LevelCompletion::Incomplete { stage: next_stage }
                         } else {
-                            let height = shapes.calculate_tower_height();
-                            current_level.completion =
-                                LevelCompletion::Complete { height, splash: true }
+                            let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
+                            current_level.completion = LevelCompletion::Complete {
+                                score_info,
+                                splash: true,
+                            }
                         }
                     }
 
                     LevelCompletion::Complete { splash, .. } => {
-                        let height = shapes.calculate_tower_height();
-                        current_level.completion = LevelCompletion::Complete { height, splash }
+                        let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
+                        current_level.completion = LevelCompletion::Complete { score_info, splash }
                     }
                 }
             }
@@ -99,8 +102,6 @@ pub fn check_for_win(
         }
     }
 }
-
-
 
 pub fn check_for_tower(
     mut commands: Commands,

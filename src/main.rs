@@ -38,6 +38,7 @@ pub mod shapes_vec;
 
 pub mod infinity;
 
+use fireworks::FireworksPlugin;
 use lens::LensPlugin;
 use level_ui::LevelUiPlugin;
 //use menu_action::MenuActionPlugin;
@@ -71,6 +72,8 @@ use collision::*;
 
 mod leaderboard;
 use leaderboard::*;
+
+mod fireworks;
 
 mod spirit;
 
@@ -142,6 +145,7 @@ fn main() {
         .add_plugin(SpiritPlugin)
         .add_plugin(LevelUiPlugin)
         .add_plugin(LensPlugin)
+        .add_plugin(FireworksPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,

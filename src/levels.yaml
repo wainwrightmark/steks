@@ -1,39 +1,48 @@
 # https://en.wikipedia.org/wiki/Tetromino
 # https://en.wikipedia.org/wiki/Pentomino
 
-- text: "Welcome to steks!\n\nThe game where you build towers\n\nPut the square on the triangle"
+- text: "Welcome to steks\n\nThe game where you build towers\n\nLet's build your first tower\n\nGrab the square with your finger\n\nPlace it above the triangle"
   text_seconds: 360
   skip_completion: true
   shapes:
     - shape: Triangle
       x: 0.0
-      y: -100.0
+      y: -150.0
       r: 0.125
       locked: true
     - shape: O4
       x: 0
       y: -300
-- text: "Move the Square\n\nHold in place for a moment to lock it\n\nYou can only lock one shape"
+- text: "Towers cannot touch the ground\n\nYour tower will need a foundation\n\nGrab the square and lift it up\n\nHold it in place a moment to lock"
   text_seconds: 360
   skip_completion: true
   shapes:
     - shape: O4
-- text: "You'll need to rotate that triangle\n\nUnlock it and rotate it using another finger"
+  stages:
+  - text: "You can only lock one shape at once\n\nComplete your tower\n\nBalance the X on top of the square"
+    shapes:
+    - shape: X5
+
+- text: "You'll need to rotate the triangle\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again to finish your tower"
   text_seconds: 360
-  end_text: "Time for some real levels"
+  skip_completion: true
   shapes:
     - shape: Triangle
       x: 0.0
-      y: -100.0
+      y: -150.0
       r: 0.625
       locked: true
     - shape: O4
-      x: 100
-      y: -100
+      x: 0.0
+      y: -150
   stages:
-  - text: "Can't see the shapes under your finger?\n\nUse the black outlines to build your tower"
+  - text: "To complete your tower\n\nUse all shapes on the screen"
     shapes:
-    - shape: Z4
+    - shape: L4
+  - text: "Finger blocking your tower?\n\nUse the black outlines to guide you"
+    shapes:
+    - shape: L4
+
 - text: "II.\nA gentle warmup"
   end_text: "Not bad for a beginner"
   shapes:

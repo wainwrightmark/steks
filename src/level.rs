@@ -234,7 +234,8 @@ impl ScoreInfo {
 
         let pb = heights.try_get(hash).unwrap_or(0.0);
 
-        let is_wr = wr.is_some_and(|x| x < height);
+        let is_wr = wr.map(|x| x < height).unwrap_or_default();
+        //TODO use is_some_and when netlify updates
         let is_pb = pb < height;
 
         ScoreInfo {

@@ -226,7 +226,7 @@ async fn disable_back_async<'a>() {
                 handle.leak();
             }
             Err(err) => {
-                bevy::log::error!("{err}")
+                crate::logging::try_log_error_message(format!("{err}"));
             }
         }
     }
@@ -238,7 +238,7 @@ async fn log_start_async<'a>(_user_exists: bool) {
         let device_id = match capacitor_bindings::device::Device::get_id().await {
             Ok(device_id) => device_id,
             Err(err) => {
-                bevy::log::error!("{err:?}");
+                crate::logging::try_log_error_message(format!("{err:?}"));
                 return;
             }
         };

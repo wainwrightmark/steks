@@ -161,6 +161,11 @@ impl From<DeviceInfo> for LogDeviceInfo {
     }
 }
 
+pub fn try_log_error_message(message: String) {
+    IoTaskPool::get().spawn(
+    async move { LoggableEvent::try_get_device_id_and_log_error_message_async(message).await }).detach();
+}
+
 impl LoggableEvent {
     pub async fn try_log_error_message_async(message: String, device_id: DeviceId) {
         log::error!("{}", message);
@@ -189,9 +194,9 @@ impl LoggableEvent {
         Self::try_log_error_message_async(err.into().to_string(), device_id).await
     }
 
-    // pub fn try_log_error(err: impl Into<anyhow::Error> + 'static) {
-    //     spawn_local(async move { Self::try_log_error_async(err).await })
-    // }
+    async fn try_get_device_id_and_log_error_message_async(message: String) {
+        Self::try_get_device_id_and_log_async(Self::Error{message: message.into()}).await
+    }
 
     pub async fn try_log_async1(self, device_id: DeviceId) {
         Self::try_log_async(self, device_id).await

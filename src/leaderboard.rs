@@ -66,14 +66,14 @@ impl ScoreStore {
             let hash: i64 = match hash.parse() {
                 Ok(hash) => hash,
                 Err(err) => {
-                    log::error!("Error parsing hash '{hash}': {err}");
+                    crate::logging::try_log_error_message(format!("Error parsing hash '{hash}': {err}") );
                     continue;
                 }
             };
             let height: f32 = match height.parse() {
                 Ok(height) => height,
                 Err(err) => {
-                    log::error!("Error parsing height '{height}': {err}");
+                    crate::logging::try_log_error_message(format!("Error parsing height '{height}': {err}"));
                     continue;
                 }
             };
@@ -88,7 +88,7 @@ fn poll_load_leaderboard_task(mut store_score: ResMut<ScoreStore>, channels: Res
     if let Ok(r) = channels.leaderboard_request_rx.try_recv() {
         match r {
             Ok(text) => store_score.set_from_string(&text),
-            Err(err) => log::error!("{err}"),
+            Err(err) => crate::logging::try_log_error_message(format!("{err}")),
         }
     }
 }
@@ -165,14 +165,14 @@ fn update_leaderboard_on_completion(
                         .spawn(async move {
                             match update_leaderboard(hash, height).await {
                                 Ok(_) => log::info!("Updated leaderboard"),
-                                Err(err) => log::error!("Could not update leaderboard: {err}"),
+                                Err(err) => crate::logging::try_log_error_message(format!("Could not update leaderboard: {err}")),
                             }
                         })
                         .detach();
                 }
             }
             None => {
-                log::error!("Score Store is not loaded");
+                crate::logging::try_log_error_message(format!("Score Store is not loaded"));
             }
         }
     }

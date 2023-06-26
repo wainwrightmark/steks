@@ -172,7 +172,7 @@ async fn minimize_app_async(){
 
             }
             Err(err) => {
-                bevy::log::error!("{err}")
+                crate::logging::try_log_error_message(format!("{err}"));
             }
         }
     }

@@ -212,6 +212,7 @@ pub struct ScoreInfo {
     pub height: f32,
     pub is_wr: bool,
     pub is_pb: bool,
+    pub is_first_win: bool,
 
     pub wr: Option<f32>,
     pub pb: f32,
@@ -232,7 +233,9 @@ impl ScoreInfo {
             .map(|map| map.get(&hash).copied().unwrap_or(0.0));
         let heights: LevelHeightRecords = StoreData::get_or_default(pkv);
 
-        let pb = heights.try_get(hash).unwrap_or(0.0);
+        let old_height = heights.try_get(hash);
+
+        let pb = old_height.unwrap_or(0.0);
 
         let is_wr = wr.map(|x| x < height).unwrap_or_default();
         //TODO use is_some_and when netlify updates
@@ -242,6 +245,7 @@ impl ScoreInfo {
             height,
             is_wr,
             is_pb,
+            is_first_win: old_height.is_none(),
             wr,
             pb,
         }

@@ -1,15 +1,15 @@
-use std::{borrow::BorrowMut, num};
-
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_prototype_lyon::prelude::{tess::math::Translation, ShapeBundle};
-use bevy_rapier2d::prelude::{Collider, CollisionGroups, GravityScale, Group, RigidBody, Velocity, RapierConfiguration};
+use bevy_prototype_lyon::prelude::ShapeBundle;
+use bevy_rapier2d::prelude::{
+    Collider, CollisionGroups, GravityScale, Group, RapierConfiguration, RigidBody, Velocity,
+};
 use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 
 use crate::{
     game_shape,
-    level::{CurrentLevel, GameLevel},
+    level::{CurrentLevel, GameLevel, ScoreInfo},
     set_level::SetLevel,
-    win, MAX_WINDOW_HEIGHT, MAX_WINDOW_WIDTH,
+    MAX_WINDOW_HEIGHT, MAX_WINDOW_WIDTH,
 };
 
 pub struct FireworksPlugin;
@@ -28,24 +28,34 @@ impl Plugin for FireworksPlugin {
 }
 
 #[derive(Debug, Resource)]
-struct FireworksCountdown(Timer);
+struct FireworksCountdown {
+    timer: Timer,
+    max_delay_seconds: f32,
+    sparks_min: usize,
+    sparks_max: usize
+}
 
-impl Default for FireworksCountdown{
+impl Default for FireworksCountdown {
     fn default() -> Self {
         let mut timer = Timer::from_seconds(0.0, TimerMode::Once);
         timer.pause();
-        Self(timer)
+        Self {
+            timer,
+            max_delay_seconds: 1.0,
+            sparks_max: 50,
+            sparks_min: 20
+        }
     }
 }
 
-const SPARKS_MIN: usize = 20;
-const SPARKS_MAX: usize = 50;
+//const SPARKS_MIN: usize = 20;
+//const SPARKS_MAX: usize = 50;
 
 const FIREWORK_SIZE: f32 = 10.0;
 const FIREWORK_VELOCITY: f32 = 500.0;
 const FIREWORK_GRAVITY: f32 = 0.3;
-const MAX_DELAY_SECONDS: f32 = 1.0;
-const FIREWORK_ANGULAR_VELOCITY : f32 = 10.0;
+//const MAX_DELAY_SECONDS: f32 = 1.0;
+const FIREWORK_ANGULAR_VELOCITY: f32 = 10.0;
 
 fn despawn_fireworks(
     mut commands: Commands,
@@ -78,34 +88,37 @@ fn spawn_fireworks(
     mut countdown: ResMut<FireworksCountdown>,
     time: Res<Time>,
     window: Query<&Window, With<PrimaryWindow>>,
-    rapier: Res<RapierConfiguration>
+    rapier: Res<RapierConfiguration>,
 ) {
-    if countdown.0.paused() {
+    if countdown.timer.paused() {
         return;
     }
 
-    countdown.0.tick(time.delta());
+    countdown.timer.tick(time.delta());
 
-    if countdown.0.just_finished() {
+    if countdown.timer.just_finished() {
         let mut rng: ThreadRng = rand::thread_rng();
-        countdown.0 = Timer::from_seconds(rng.gen_range(0.0..MAX_DELAY_SECONDS), TimerMode::Once);
+        countdown.timer = Timer::from_seconds(
+            rng.gen_range(0.0..=countdown.max_delay_seconds),
+            TimerMode::Once,
+        );
 
         let window = window.get_single().unwrap();
 
-        let sparks = rng.gen_range(SPARKS_MIN..=SPARKS_MAX);
+        let sparks = rng.gen_range(countdown.sparks_min..=countdown.sparks_max);
 
         let x = rng.gen_range((window.width() * -0.5)..=(window.width() * 0.5));
         let y = rng.gen_range(0.0..=(window.height() * 0.5));
         let translation = Vec2 { x, y }.extend(0.0);
         for _ in 0..sparks {
-            spawn_spark(&mut commands, translation, &mut rng, rapier.gravity.y.signum());
+            spawn_spark(
+                &mut commands,
+                translation,
+                &mut rng,
+                rapier.gravity.y.signum(),
+            );
         }
     }
-
-    // for (entity, mut timer) in queue.iter_mut() {
-    //     timer.timer.tick(time.delta());
-
-    // }
 }
 
 fn manage_fireworks(
@@ -123,35 +136,61 @@ fn manage_fireworks(
     match current_level.completion {
         crate::level::LevelCompletion::Incomplete { .. }
         | crate::level::LevelCompletion::Complete { splash: false, .. } => {
-            countdown.0.pause();
+            countdown.timer.pause();
         }
         crate::level::LevelCompletion::Complete {
             splash: true,
             score_info,
         } => {
-
-            if previous.completion.is_complete(){
-                countdown.0.pause();
-            }else{
-                if matches!(
-                    current_level.level,
-                    GameLevel::SetLevel {
-                        level: SetLevel {
-                            skip_completion: false,
-                            ..
-                        }, index : 22
+            if previous.completion.is_complete() && !score_info.is_pb && !score_info.is_wr {
+                countdown.timer.pause();
+            } else {
+                match get_new_fireworks(&current_level.level, &score_info) {
+                    Some(new_countdown) => {
+                        *countdown = new_countdown;
                     }
-                ) || score_info.is_wr {
-                    countdown.0 = Timer::from_seconds(0.0, TimerMode::Once)
+                    None => {}
                 }
             }
-
-
         }
     }
 }
 
-fn spawn_spark<R: Rng>(commands: &mut Commands, translation: Vec3, rng: &mut R, gravity_factor: f32) {
+fn get_new_fireworks(level: &GameLevel, info: &ScoreInfo) -> Option<FireworksCountdown> {
+    if info.is_wr {
+        return Some(FireworksCountdown { timer: Timer::from_seconds(0.0, TimerMode::Once), max_delay_seconds: 1.0, sparks_min: 20, sparks_max: 50 });
+    }
+
+    if matches!(
+        level,
+        GameLevel::SetLevel {
+            level: SetLevel {
+                skip_completion: false,
+                ..
+            },
+            index: 22
+        }
+    ) {
+        return Some(FireworksCountdown { timer: Timer::from_seconds(0.0, TimerMode::Once), max_delay_seconds: 1.5, sparks_min: 20, sparks_max: 40 });
+    }
+
+    if info.is_first_win{
+        return Some(FireworksCountdown { timer: Timer::from_seconds(4.0, TimerMode::Once), max_delay_seconds: 4.0, sparks_min: 5, sparks_max: 15 });
+    }
+
+    if info.is_pb {
+        return Some(FireworksCountdown { timer: Timer::from_seconds(0.0, TimerMode::Once), max_delay_seconds: 4.0, sparks_min: 20, sparks_max: 25 });
+    }
+
+    None
+}
+
+fn spawn_spark<R: Rng>(
+    commands: &mut Commands,
+    translation: Vec3,
+    rng: &mut R,
+    gravity_factor: f32,
+) {
     let game_shape = game_shape::ALL_SHAPES.choose(rng).unwrap();
 
     let size = rng.gen_range(0.5..3.0) * FIREWORK_SIZE;

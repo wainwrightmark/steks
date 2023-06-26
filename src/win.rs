@@ -96,6 +96,7 @@ pub fn check_for_win(
 
                     LevelCompletion::Complete { splash, .. } => {
                         let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
+                        let splash = splash | score_info.is_pb | score_info.is_wr;
                         current_level.completion = LevelCompletion::Complete { score_info, splash }
                     }
                 }

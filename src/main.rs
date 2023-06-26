@@ -178,6 +178,8 @@ fn main() {
         // builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
 
+    builder.add_startup_system(disable_back);
+
     builder.add_startup_system(log_start.in_base_set(StartupSet::PostStartup));
     builder.run();
 }
@@ -206,6 +208,28 @@ pub fn log_start(mut pkv: ResMut<PkvStore>) {
     bevy::tasks::IoTaskPool::get()
         .spawn(async move { log_start_async(user_exists).await })
         .detach();
+}
+
+fn disable_back() {
+    bevy::tasks::IoTaskPool::get()
+        .spawn(async move { disable_back_async().await })
+        .detach();
+}
+
+async fn disable_back_async<'a>() {
+    #[cfg(all(feature="android",target_arch = "wasm32" ))]
+    {
+        let result = capacitor_bindings::app::App::add_back_button_listener(|_| {}).await;
+
+        match result {
+            Ok(handle) => {
+                handle.leak();
+            }
+            Err(err) => {
+                bevy::log::error!("{err}")
+            }
+        }
+    }
 }
 
 async fn log_start_async<'a>(_user_exists: bool) {

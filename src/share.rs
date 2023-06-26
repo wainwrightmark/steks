@@ -25,10 +25,13 @@ fn handle_shares(
     _shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>,
 ) {
     if events.iter().next().is_some() {
+        bevy::log::debug!("Handling Share");
         #[cfg(target_arch = "wasm32")]
         {
+            bevy::log::debug!("Handling Share in wasm");
             let shapes = ShapesVec::from_query(_shapes_query);
             let data = shapes.make_base64_data();
+            bevy::log::debug!("Sharing game {data:?}");
             crate::wasm::share_game(data);
         }
     }

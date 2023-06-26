@@ -4,6 +4,5 @@
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
-  },
-  "bundledWebRuntime": false
+  }
 }

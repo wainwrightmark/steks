@@ -31,7 +31,7 @@ impl From<&Transform> for Location {
 }
 
 impl FixedShape {
-    pub fn by_name(s: &'static str) -> Self {
+    pub fn by_name(s: & str) -> Option<Self> {
         game_shape::shape_by_name(s)
             .map(|shape| Self {
                 shape,
@@ -39,7 +39,6 @@ impl FixedShape {
                 locked: false,
                 fixed_velocity: Some(Default::default()),
             })
-            .unwrap_or_else(|| panic!("Could not find shape with name '{s}'"))
     }
 
     pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {

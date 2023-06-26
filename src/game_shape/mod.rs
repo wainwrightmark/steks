@@ -80,11 +80,18 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
     let tetrominos = Polyomino::TETROMINOS
         .iter()
         .map(|x| x as &'static dyn GameShapeBody)
-        .zip(Polyomino::TETROMINO_NAMES);
+        .zip(Polyomino::TETROMINO_NAMES.map(|tn| {
+            let r: &'static str = Box::leak((tn.to_string() + "4").into_boxed_str());
+            r
+        }));
+
     let pentominos = Polyomino::FREE_PENTOMINOS
         .iter()
         .map(|x| x as &'static dyn GameShapeBody)
-        .zip(Polyomino::FREE_PENTOMINO_NAMES);
+        .zip(Polyomino::FREE_PENTOMINO_NAMES.map(|tn| {
+            let r: &'static str = Box::leak((tn.to_string() + "5").into_boxed_str());
+            r
+        }));
 
     v1.into_iter()
         .chain(tetrominos)
@@ -98,8 +105,12 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .collect_vec()
 });
 
-pub fn shape_by_name(name: &'static str) -> Option<&GameShape> {
-    ALL_SHAPES.iter().find(|x| x.name == name)
+pub fn shape_by_name(name: & str) -> Option<&'static GameShape> {
+    let result = ALL_SHAPES.iter().find(|x| x.name.eq_ignore_ascii_case(name));
+    if result.is_none(){
+        bevy::log::warn!("Could not find shape: {name}");
+    }
+    result
 }
 
 const TRIANGLE: PolygonBody<4, 3> = PolygonBody(&[(-1, -1), (-1, 2), (2, -1)]);

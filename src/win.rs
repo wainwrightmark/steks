@@ -71,6 +71,11 @@ pub fn check_for_win(
                     share::save_svg(title, &shapes, &mut saves);
                     true
                 }
+                GameLevel::Custom(_) => {
+                    let title = format!("steks custom {}", get_today_date());
+                    share::save_svg(title, &shapes, &mut saves);
+                    true
+                },
             };
 
             if set_complete {

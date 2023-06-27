@@ -165,7 +165,7 @@ pub fn check_for_tower(
             translation: Vec3::new(50.0, 200.0, 0.0),
             ..Default::default()
         })
-        .insert(Stroke::color(Color::BLACK));
+        .insert(Stroke::color(color::TIMER_COLOR));
 }
 
 fn check_future_collisions(

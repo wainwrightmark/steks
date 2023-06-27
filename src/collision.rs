@@ -99,7 +99,7 @@ fn display_collision_markers(
                                 ..Default::default()
                             })
                             .insert(Fill {
-                                color: Color::RED,
+                                color: crate::color::WARN_COLOR,
                                 options: Default::default(),
                             })
                             .insert(new_transform);

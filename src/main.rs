@@ -38,7 +38,6 @@ pub mod shapes_vec;
 
 pub mod infinity;
 
-use capacitor_bindings::status_bar::BackgroundColorOptions;
 use fireworks::FireworksPlugin;
 use lens::LensPlugin;
 use level_ui::LevelUiPlugin;
@@ -234,11 +233,11 @@ fn set_status_bar() {
     {
         use capacitor_bindings::status_bar::*;
         bevy::tasks::IoTaskPool::get()
-            .spawn(async move { StatusBar::set_style(Style::Light).await })
+            .spawn(async move { StatusBar::set_style(Style::Dark).await })
             .detach();
 
         bevy::tasks::IoTaskPool::get()
-            .spawn(async move { StatusBar::set_background_color("#86AEEA").await })
+            .spawn(async move { StatusBar::set_background_color("#5B8BE2").await })
             .detach();
 
         // bevy::tasks::IoTaskPool::get()

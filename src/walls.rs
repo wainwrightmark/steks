@@ -71,7 +71,7 @@ fn move_walls(
 }
 
 fn spawn_walls(mut commands: Commands) {
-    let color = Color::GRAY;
+    let color = color::ACCENT_COLOR;
 
     for wall in Wall::iter() {
         spawn_wall(&mut commands, color, wall);

@@ -34,6 +34,10 @@
                 <data android:host="steks.net" />
             </intent-filter>
 
+
+
+
+
         </activity>
 
         <provider

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-pub const BACKGROUND_COLOR: Color = Color::hsla(216., 0.7, 0.72, 1.0); //86AEEA
+pub const BACKGROUND_COLOR: Color = Color::hsla(216., 0.7, 0.72, 1.0); // #86AEEA
 
 pub fn choose_color(index: usize) -> Color {
     const SATURATIONS: [f32; 2] = [0.9, 0.28];

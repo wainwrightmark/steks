@@ -38,6 +38,7 @@ pub mod shapes_vec;
 
 pub mod infinity;
 
+use capacitor_bindings::status_bar::BackgroundColorOptions;
 use fireworks::FireworksPlugin;
 use lens::LensPlugin;
 use level_ui::LevelUiPlugin;
@@ -179,7 +180,8 @@ fn main() {
     }
 
     builder.add_startup_system(disable_back);
-
+    builder.add_startup_system(hide_splash);
+    builder.add_startup_system(set_status_bar);
     builder.add_startup_system(log_start.in_base_set(StartupSet::PostStartup));
     builder.run();
 }
@@ -216,8 +218,37 @@ fn disable_back() {
         .detach();
 }
 
+fn hide_splash() {
+    #[cfg(target_arch = "wasm32")]
+    {
+        bevy::tasks::IoTaskPool::get()
+            .spawn(
+                async move { capacitor_bindings::splash_screen::SplashScreen::hide(5000.0).await },
+            )
+            .detach();
+    }
+}
+
+fn set_status_bar() {
+    #[cfg(target_arch = "wasm32")]
+    {
+        use capacitor_bindings::status_bar::*;
+        bevy::tasks::IoTaskPool::get()
+            .spawn(async move { StatusBar::set_style(Style::Light).await })
+            .detach();
+
+        bevy::tasks::IoTaskPool::get()
+            .spawn(async move { StatusBar::set_background_color("#86AEEA").await })
+            .detach();
+
+        // bevy::tasks::IoTaskPool::get()
+        //     .spawn(async move { StatusBar::hide().await })
+        //     .detach();
+    }
+}
+
 async fn disable_back_async<'a>() {
-    #[cfg(all(feature="android",target_arch = "wasm32" ))]
+    #[cfg(all(feature = "android", target_arch = "wasm32"))]
     {
         let result = capacitor_bindings::app::App::add_back_button_listener(|_| {}).await;
 

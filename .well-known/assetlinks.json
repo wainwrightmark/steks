@@ -1,0 +1,14 @@
+[
+    {
+      "relation": [
+        "delegate_permission/common.handle_all_urls"
+      ],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.steks.app",
+        "sha256_cert_fingerprints": [
+          "E7:26:AE:68:E9:4E:2C:20:B0:10:68:17:D2:56:26:3F:6B:4D:C0:00:A1:D3:53:32:4D:D9:5C:17:51:55:8E:82"
+        ]
+      }
+    }
+  ]

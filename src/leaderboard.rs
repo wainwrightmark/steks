@@ -6,6 +6,7 @@ use bevy::{log, prelude::*, tasks::IoTaskPool};
 use itertools::Itertools;
 
 use crate::{
+    async_event_writer::*,
     level::{CurrentLevel, LevelCompletion},
     shape_maker::ShapeIndex,
     shapes_vec,
@@ -15,12 +16,11 @@ pub struct LeaderboardPlugin;
 
 impl Plugin for LeaderboardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.init_resource::<AsyncChannels>()
+        app.add_plugin(AsyncEventPlugin::<LeaderboardDataEvent>::default())
             .init_resource::<ScoreStore>()
-            .add_startup_system(spawn_load_leaderboard_task)
-            .add_system(poll_load_leaderboard_task)
+            .add_startup_system(load_leaderboard_data)
+            .add_system(hydrate_leaderboard)
             .add_system(update_leaderboard_on_completion);
-        //app.asy
     }
 }
 
@@ -29,35 +29,7 @@ pub struct ScoreStore {
     pub map: Option<BTreeMap<i64, f32>>,
 }
 
-impl ScoreStore {
-    // pub fn hash_shapes<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> i64 {
-    //     let mut code: i64 = 0;
-    //     for index in shapes.map(|x| x.0).sorted() {
-    //         code = code.wrapping_mul(31).wrapping_add(index as i64);
-    //     }
-
-    //     code
-    // }
-}
-
-#[derive(Resource, Debug)]
-pub struct AsyncChannels {
-    pub leaderboard_request_tx: async_channel::Sender<Result<String, reqwest::Error>>,
-    pub leaderboard_request_rx: async_channel::Receiver<Result<String, reqwest::Error>>,
-}
-
-impl Default for AsyncChannels {
-    fn default() -> Self {
-        let (leaderboard_request_tx, leaderboard_request_rx) = async_channel::unbounded();
-        Self {
-            leaderboard_request_tx,
-            leaderboard_request_rx,
-        }
-    }
-}
-
-// #[derive(Component)]
-// struct LoadLeaderboardTask(Task<Result<String, reqwest::Error>>);
+pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
 
 impl ScoreStore {
     pub fn set_from_string(&mut self, s: &str) {
@@ -66,14 +38,18 @@ impl ScoreStore {
             let hash: i64 = match hash.parse() {
                 Ok(hash) => hash,
                 Err(err) => {
-                    crate::logging::try_log_error_message(format!("Error parsing hash '{hash}': {err}") );
+                    crate::logging::try_log_error_message(format!(
+                        "Error parsing hash '{hash}': {err}"
+                    ));
                     continue;
                 }
             };
             let height: f32 = match height.parse() {
                 Ok(height) => height,
                 Err(err) => {
-                    crate::logging::try_log_error_message(format!("Error parsing height '{height}': {err}"));
+                    crate::logging::try_log_error_message(format!(
+                        "Error parsing height '{height}': {err}"
+                    ));
                     continue;
                 }
             };
@@ -84,36 +60,42 @@ impl ScoreStore {
     }
 }
 
-fn poll_load_leaderboard_task(mut store_score: ResMut<ScoreStore>, channels: Res<AsyncChannels>) {
-    if let Ok(r) = channels.leaderboard_request_rx.try_recv() {
-        match r {
+fn load_leaderboard_data(writer: AsyncEventWriter<LeaderboardDataEvent>) {
+    let task_pool = IoTaskPool::get();
+    task_pool
+        .spawn(async move {
+            let data_event = get_leaderboard_data().await;
+            writer
+                .send_async(data_event)
+                .await
+                .expect("Leaderboard event channel closed prematurely");
+        })
+        .detach();
+}
+
+fn hydrate_leaderboard(
+    mut store_score: ResMut<ScoreStore>,
+    mut events: EventReader<LeaderboardDataEvent>,
+) {
+    for ev in events.into_iter() {
+        match &ev.0 {
             Ok(text) => store_score.set_from_string(&text),
             Err(err) => crate::logging::try_log_error_message(format!("{err}")),
         }
     }
 }
 
-fn spawn_load_leaderboard_task(channels: Res<AsyncChannels>) {
-    let sender = channels.leaderboard_request_tx.clone();
-    let task_pool = IoTaskPool::get();
-    task_pool
-        .spawn(async move {
-            let result = load_leaderboard_text().await;
-            sender.send(result).await.unwrap();
-        })
-        .detach();
-}
-
-async fn load_leaderboard_text() -> Result<String, reqwest::Error> {
+async fn get_leaderboard_data() -> LeaderboardDataEvent {
     let client = reqwest::Client::new();
     let res = client
         .get("https://steks.net/.netlify/functions/leaderboard?command=get".to_string())
         .send()
-        .await?;
+        .await;
 
-    res.text().await
-
-    //Ok("3 55".to_string())
+    match res {
+        Ok(response) => LeaderboardDataEvent(response.text().await),
+        Err(err) => LeaderboardDataEvent(Result::Err(err)),
+    }
 }
 
 async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error> {
@@ -165,7 +147,9 @@ fn update_leaderboard_on_completion(
                         .spawn(async move {
                             match update_leaderboard(hash, height).await {
                                 Ok(_) => log::info!("Updated leaderboard"),
-                                Err(err) => crate::logging::try_log_error_message(format!("Could not update leaderboard: {err}")),
+                                Err(err) => crate::logging::try_log_error_message(format!(
+                                    "Could not update leaderboard: {err}"
+                                )),
                             }
                         })
                         .detach();

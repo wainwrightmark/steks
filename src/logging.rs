@@ -44,6 +44,8 @@ pub enum LoggableEvent {
     Internal {
         message: String,
     },
+
+    NotificationClick
 }
 
 #[derive(PartialEq, Eq, Clone, serde:: Serialize, serde::Deserialize, Debug)]

@@ -38,6 +38,8 @@ pub mod shapes_vec;
 
 pub mod infinity;
 
+pub mod async_event_writer;
+
 use fireworks::FireworksPlugin;
 use lens::LensPlugin;
 use level_ui::LevelUiPlugin;
@@ -233,7 +235,7 @@ fn hide_splash() {
 }
 
 fn set_status_bar() {
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
     {
         use capacitor_bindings::status_bar::*;
         bevy::tasks::IoTaskPool::get()

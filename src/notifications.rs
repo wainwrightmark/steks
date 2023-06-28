@@ -1,28 +1,40 @@
-use bevy::prelude::Plugin;
+use bevy::prelude::{Plugin, EventReader, EventWriter};
 use capacitor_bindings::local_notifications::*;
 
-use crate::logging::*;
+use crate::{logging::{*, self}, async_event_writer::{AsyncEventPlugin, AsyncEventWriter}, level::ChangeLevelEvent};
 
 const DAILY_CHALLENGE_CLICK_ACTION_ID: &'static str = "DailyChallengeClick";
 const DAILY_CHALLENGE_ACTION_TYPE_ID: &'static str = "DailyChallenge";
 
 pub struct NotificationPlugin;
 
+pub struct NotificationClickEvent;
+
 impl Plugin for NotificationPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_plugin(AsyncEventPlugin::<NotificationClickEvent>::default());
         app.add_startup_system(setup);
+        app.add_system(handle_notification_clicks);
     }
 }
 
-fn setup() {
+fn handle_notification_clicks(mut reader: EventReader<NotificationClickEvent>, mut writer: EventWriter<ChangeLevelEvent>){
+    for _ in reader.into_iter(){
+
+        logging::LoggableEvent::NotificationClick.try_log1();
+        writer.send(ChangeLevelEvent::StartChallenge);
+    }
+}
+
+fn setup(writer: AsyncEventWriter<NotificationClickEvent>) {
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
-            setup_notifications_async().await;
+            setup_notifications_async(writer).await;
         })
         .detach();
 }
 
-async fn setup_notifications_async() {
+async fn setup_notifications_async(writer: AsyncEventWriter<NotificationClickEvent>) {
     let schedule_options = LocalNotificationSchema::builder()
         .title("Steks daily challenge")
         .body("Beat your friends in the Steks daily challenge")
@@ -31,24 +43,16 @@ async fn setup_notifications_async() {
         .action_type_id(DAILY_CHALLENGE_ACTION_TYPE_ID)
         .small_icon("notification_icon")
         .large_icon("notification_icon")
-        .icon_color("#000000")
-        .schedule(ScheduleOn::builder().second(1).build())
+        .icon_color("#86AEEA")
+        .schedule(ScheduleOn::builder().hour(8).build())
         .auto_cancel(true)
         .build();
 
     let on_action = move |action: ActionPerformed| {
         if action.action_id == DAILY_CHALLENGE_ACTION_TYPE_ID || action.action_id == "tap" {
             bevy::log::info!("Clicked Action");
-            // Dispatch::<DataState>::new().apply(ChangeSpreadTypeMessage(
-            //     crate::data::prelude::SpreadType::DayAhead,
-            // ));
-            // let event = LoggableEvent::ViewDailyReading {};
-            // LoggableEvent::try_log(event);
 
-            // web_sys::window()
-            //     .expect("Could not get window")
-            //     .open_with_url("/question")
-            //     .expect("Could not open question page");
+            writer.send_blocking(NotificationClickEvent).expect("Channel closed prematurely");
         }
     };
 

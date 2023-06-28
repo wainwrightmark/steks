@@ -3,6 +3,7 @@
     "@capacitor/app": "./@capacitor/app.js",
     "@capacitor/core": "./@capacitor/core.js",
     "@capacitor/device": "./@capacitor/device.js",
+    "@capacitor/local-notifications": "./@capacitor/local-notifications.js",
     "@capacitor/share": "./@capacitor/share.js",
     "@capacitor/splash-screen": "./@capacitor/splash-screen.js",
     "@capacitor/status-bar": "./@capacitor/status-bar.js",

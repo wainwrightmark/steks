@@ -161,9 +161,26 @@ impl From<DeviceInfo> for LogDeviceInfo {
     }
 }
 
+pub async fn do_or_report_error_async<
+    Fut: std::future::Future<Output = Result<(), capacitor_bindings::helpers::Error>>,
+    F: Fn() -> Fut + 'static,
+>(
+    f: F,
+) {
+    let r = f().await;
+
+    match r {
+        Ok(_) => {}
+        Err(err) => {
+            log::error!("{err:?}");
+            LoggableEvent::try_log_error_message_async2(err.to_string()).await;
+        }
+    }
+}
+
 pub fn try_log_error_message(message: String) {
     IoTaskPool::get().spawn(
-    async move { LoggableEvent::try_get_device_id_and_log_error_message_async(message).await }).detach();
+    async move { LoggableEvent::try_log_error_message_async2(message).await }).detach();
 }
 
 impl LoggableEvent {
@@ -194,7 +211,7 @@ impl LoggableEvent {
         Self::try_log_error_message_async(err.into().to_string(), device_id).await
     }
 
-    async fn try_get_device_id_and_log_error_message_async(message: String) {
+    pub async fn try_log_error_message_async2(message: String) {
         Self::try_get_device_id_and_log_async(Self::Error{message: message.into()}).await
     }
 

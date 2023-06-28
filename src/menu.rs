@@ -138,7 +138,7 @@ fn button_system(
                             }
                         }
                     },
-                    MinimizeApp=>{
+                    MinimizeApp => {
                         bevy::tasks::IoTaskPool::get()
                             .spawn(async move { minimize_app_async().await })
                             .detach();
@@ -162,21 +162,11 @@ fn button_system(
     }
 }
 
-async fn minimize_app_async(){
-    #[cfg(all(feature="android",target_arch = "wasm32" ))]
+async fn minimize_app_async() {
+    #[cfg(all(feature = "android", target_arch = "wasm32"))]
     {
-        let result = capacitor_bindings::app::App::minimize_app().await;
-
-        match result {
-            Ok(()) => {
-
-            }
-            Err(err) => {
-                crate::logging::try_log_error_message(format!("{err}"));
-            }
-        }
+        logging::do_or_report_error_async(|| capacitor_bindings::app::App::minimize_app());
     }
-
 }
 
 fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
@@ -212,8 +202,8 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 #[cfg(target_arch = "wasm32")]
                 ShareSaved,
                 Levels,
-                #[cfg(all(feature="android",target_arch = "wasm32" ))]
-                MinimizeApp
+                #[cfg(all(feature = "android", target_arch = "wasm32"))]
+                MinimizeApp,
             ] {
                 spawn_button(parent, button, font.clone());
             }
@@ -336,7 +326,7 @@ pub enum MenuButton {
     GotoLevel { level: u8 },
     NextLevel,
     MinimizeCompletion,
-    MinimizeApp
+    MinimizeApp,
 }
 
 impl MenuButton {
@@ -355,7 +345,7 @@ impl MenuButton {
             GotoLevel { level } => format!("{:2}", (*level as i32) - 2),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
-            MinimizeApp => "\u{e814}".to_string(), //minus
+            MinimizeApp => "\u{e814}".to_string(),        //minus
         }
     }
 }

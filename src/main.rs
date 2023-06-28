@@ -77,9 +77,12 @@ mod fireworks;
 
 mod spirit;
 
+mod notifications;
+
 mod game_shape;
 use fixed_shape::*;
 use game_shape::*;
+use notifications::*;
 
 #[cfg(target_arch = "wasm32")]
 use crate::logging::LoggableEvent;
@@ -146,6 +149,7 @@ fn main() {
         .add_plugin(LevelUiPlugin)
         .add_plugin(LensPlugin)
         .add_plugin(FireworksPlugin)
+        .add_plugin(NotificationPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
@@ -233,23 +237,30 @@ fn set_status_bar() {
     {
         use capacitor_bindings::status_bar::*;
         bevy::tasks::IoTaskPool::get()
-            .spawn(async move { StatusBar::set_style(Style::Dark).await })
+            .spawn(async move {
+                logging::do_or_report_error_async(|| StatusBar::set_style(Style::Dark)).await;
+                logging::do_or_report_error_async(|| StatusBar::set_background_color("#5B8BE2"))
+                    .await;
+                //logging::do_or_report_error_async(|| StatusBar::hide()).await;
+            })
             .detach();
-
-        bevy::tasks::IoTaskPool::get()
-            .spawn(async move { StatusBar::set_background_color("#5B8BE2").await })
-            .detach();
-
-        // bevy::tasks::IoTaskPool::get()
-        //     .spawn(async move { StatusBar::hide().await })
-        //     .detach();
     }
 }
 
 async fn disable_back_async<'a>() {
     #[cfg(all(feature = "android", target_arch = "wasm32"))]
     {
-        let result = capacitor_bindings::app::App::add_back_button_listener(|_| {}).await;
+        let result = capacitor_bindings::app::App::add_back_button_listener(|_| {
+            bevy::tasks::IoTaskPool::get()
+                .spawn(async move {
+                    logging::do_or_report_error_async(|| {
+                        capacitor_bindings::app::App::minimize_app()
+                    })
+                    .await;
+                })
+                .detach();
+        })
+        .await;
 
         match result {
             Ok(handle) => {

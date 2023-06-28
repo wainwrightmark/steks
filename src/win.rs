@@ -6,7 +6,6 @@ use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 
 use crate::shape_maker::{ShapeIndex, SpawnNewShapeEvent};
 use crate::shapes_vec::ShapesVec;
-use crate::share::SavedShare;
 use crate::*;
 
 #[derive(Component)]
@@ -39,8 +38,6 @@ pub fn check_for_win(
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
 
-    mut saves: ResMut<SavedShare>,
-
     score_store: Res<ScoreStore>,
     pkv: Res<PkvStore>,
 ) {
@@ -55,27 +52,10 @@ pub fn check_for_win(
             let shapes = ShapesVec::from_query(shapes_query);
 
             let set_complete = match &current_level.level {
-                GameLevel::SetLevel { index, .. } => {
-                    let title = format!("steks level {}", index + 1);
-                    share::save_svg(title, &shapes, &mut saves);
-                    true
-                }
-                GameLevel::Infinite { .. } => {
-                    let title = "steks infinite".to_string();
-                    share::save_svg(title, &shapes, &mut saves);
-                    //SavedData::update(&mut pkv, |s| s.save_game(&shapes));
-                    true
-                }
-                GameLevel::Challenge => {
-                    let title = format!("steks challenge {}", get_today_date());
-                    share::save_svg(title, &shapes, &mut saves);
-                    true
-                }
-                GameLevel::Custom(_) => {
-                    let title = format!("steks custom {}", get_today_date());
-                    share::save_svg(title, &shapes, &mut saves);
-                    true
-                },
+                GameLevel::SetLevel { index, .. } => true,
+                GameLevel::Infinite { .. } => true,
+                GameLevel::Challenge => true,
+                GameLevel::Custom(_) => true,
             };
 
             if set_complete {

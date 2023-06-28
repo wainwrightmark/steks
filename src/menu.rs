@@ -2,7 +2,7 @@ use strum::Display;
 
 use crate::{
     level_ui::setup_level_ui,
-    share::{ShareEvent, ShareSavedSvgEvent},
+    share::{ShareEvent},
     *,
 };
 
@@ -96,7 +96,6 @@ fn button_system(
         (Changed<Interaction>, With<Button>),
     >,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
-    mut share_saved_events: EventWriter<ShareSavedSvgEvent>,
     mut share_events: EventWriter<ShareEvent>,
     mut menu_state: ResMut<MenuState>,
     mut current_level: ResMut<CurrentLevel>,
@@ -120,7 +119,6 @@ fn button_system(
                     DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
                     ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
                     Share => share_events.send(ShareEvent),
-                    ShareSaved => share_saved_events.send(ShareSavedSvgEvent),
                     GotoLevel { level } => {
                         change_level_events.send(ChangeLevelEvent::ChooseLevel {
                             index: level,
@@ -200,7 +198,7 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 Infinite,
                 DailyChallenge,
                 #[cfg(target_arch = "wasm32")]
-                ShareSaved,
+                Share,
                 Levels,
                 #[cfg(all(feature = "android", target_arch = "wasm32"))]
                 MinimizeApp,
@@ -320,7 +318,6 @@ pub enum MenuButton {
     Tutorial,
     Infinite,
     DailyChallenge,
-    ShareSaved,
     Share,
     Levels,
     GotoLevel { level: u8 },
@@ -340,12 +337,11 @@ impl MenuButton {
             Infinite => "\u{e802}".to_string(),       //"Infinite",
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
-            ShareSaved => "\u{f1e0}".to_string(),     // "Share",
             Levels => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
             GotoLevel { level } => format!("{:2}", (*level as i32) - 2),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
-            MinimizeApp => "\u{e814}".to_string(),        //minus
+            MinimizeApp => "\u{e813}".to_string(),        //minus
         }
     }
 }

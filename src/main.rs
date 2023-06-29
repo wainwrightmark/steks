@@ -228,7 +228,7 @@ fn disable_back() {
 }
 
 fn hide_splash() {
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
     {
         bevy::tasks::IoTaskPool::get()
             .spawn(

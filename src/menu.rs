@@ -341,7 +341,7 @@ impl MenuButton {
             GotoLevel { level } => format!("{:2}", (*level as i32) - 2),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
-            MinimizeApp => "\u{e813}".to_string(),        //minus
+            MinimizeApp => "\u{e813}".to_string(),        //logout
         }
     }
 }

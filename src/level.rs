@@ -1,3 +1,4 @@
+use crate::async_event_writer::AsyncEventPlugin;
 use crate::set_level::get_set_level;
 use crate::shape_maker::ShapeIndex;
 use crate::shapes_vec::ShapesVec;
@@ -16,7 +17,7 @@ impl Plugin for LevelPlugin {
             .add_system(manage_level_shapes)
             .add_system(skip_tutorial_completion)
             .add_system(adjust_gravity)
-            .add_event::<ChangeLevelEvent>();
+            .add_plugin(AsyncEventPlugin::<ChangeLevelEvent>::default());
     }
 }
 
@@ -65,9 +66,7 @@ fn manage_level_shapes(
                             event_writer.send(SpawnNewShapeEvent { fixed_shape });
                         }
                         GameLevel::Challenge => {}
-                        GameLevel::Custom(_) => {
-
-                        },
+                        GameLevel::Custom(_) => {}
                     }
                 }
             }
@@ -124,20 +123,6 @@ fn choose_level_on_game_load(
         LevelLogData::Challenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
         LevelLogData::Custom => change_level_events.send(ChangeLevelEvent::StartChallenge),
     }
-
-    // if settings.tutorial_finished {
-    //     if let Some(saved) = settings.saved_infinite {
-    //         change_level_events.send(ChangeLevelEvent::Load(saved));
-    //     } else if settings.has_beat_todays_challenge() {
-    //         //info!("Skip to infinite");
-    //         change_level_events.send(ChangeLevelEvent::StartInfinite);
-    //     } else {
-    //         change_level_events.send(ChangeLevelEvent::StartChallenge);
-    //     }
-    // } else {
-    //     info!("Do tutorial");
-    //     change_level_events.send(ChangeLevelEvent::StartTutorial);
-    // }
 }
 
 #[derive(Default, Resource, Clone)]
@@ -283,7 +268,7 @@ pub enum GameLevel {
     SetLevel { index: u8, level: SetLevel },
     Infinite { bytes: Option<Vec<u8>> },
     Challenge,
-    Custom(Vec<FixedShape>)
+    Custom(Vec<FixedShape>),
 }
 
 impl GameLevel {
@@ -292,7 +277,7 @@ impl GameLevel {
             GameLevel::SetLevel { level, .. } => level.total_stages() > *stage,
             GameLevel::Infinite { .. } => true,
             GameLevel::Challenge => false,
-            GameLevel::Custom(_)=> false
+            GameLevel::Custom(_) => false,
         }
     }
 }
@@ -302,7 +287,7 @@ pub enum LevelLogData {
     SetLevel { index: u8 },
     Infinite,
     Challenge,
-    Custom
+    Custom,
 }
 
 impl Default for LevelLogData {
@@ -344,7 +329,31 @@ pub enum ChangeLevelEvent {
     StartChallenge,
     Load(Vec<u8>),
 
-    Custom(Vec<FixedShape>)
+    Custom(Vec<FixedShape>),
+}
+
+impl ChangeLevelEvent {
+    pub fn try_from_path(path: String) -> Option<Self> {
+        use base64::Engine;
+        if path.to_ascii_lowercase().starts_with("/game") {
+            let data = path[6..].to_string();
+            match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data) {
+                Ok(bytes) => {
+                    return Some(ChangeLevelEvent::Load(bytes));
+                }
+                Err(err) => warn!("{err}"),
+            }
+        }
+
+        if path.to_ascii_lowercase().starts_with("/custom") {
+            let data = path[8..].to_string();
+            return ChangeLevelEvent::make_custom(data.as_str());
+        }
+
+        bevy::log::warn!("Could not get game from path: {path}");
+
+        return None;
+    }
 }
 
 fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConfiguration>) {
@@ -450,12 +459,13 @@ impl ChangeLevelEvent {
         }
     }
 
-
-    pub fn make_custom(data: &str)-> Option<Self>{
-
+    pub fn make_custom(data: &str) -> Option<Self> {
         bevy::log::info!("Making custom level with data {data}");
 
-        let shapes = data.split_terminator(',').filter_map(|x| FixedShape::by_name(x)).collect_vec();
+        let shapes = data
+            .split_terminator(',')
+            .filter_map(|x| FixedShape::by_name(x))
+            .collect_vec();
         Some(ChangeLevelEvent::Custom(shapes))
     }
 }

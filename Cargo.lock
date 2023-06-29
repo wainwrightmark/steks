@@ -1024,9 +1024,7 @@ dependencies = [
 
 [[package]]
 name = "capacitor_bindings"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd4cda2167f5e56de23fc2bb6bac17268938d0ef3c06404d51a705d69ff211cb"
+version = "0.9.0"
 dependencies = [
  "js-sys",
  "serde",

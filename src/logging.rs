@@ -164,7 +164,7 @@ impl From<DeviceInfo> for LogDeviceInfo {
 }
 
 pub async fn do_or_report_error_async<
-    Fut: std::future::Future<Output = Result<(), capacitor_bindings::helpers::Error>>,
+    Fut: std::future::Future<Output = Result<(), capacitor_bindings::error::Error>>,
     F: Fn() -> Fut + 'static,
 >(
     f: F,

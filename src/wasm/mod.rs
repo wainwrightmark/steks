@@ -186,36 +186,18 @@ fn resizer(
     }
 }
 
-fn has_touch() -> bool {
-    let window = web_sys::window().unwrap();
-    let navigator = window.navigator();
-    navigator.max_touch_points() > 0
-}
+// fn has_touch() -> bool {
+//     let window = web_sys::window().unwrap();
+//     let navigator = window.navigator();
+//     navigator.max_touch_points() > 0
+// }
 
 pub fn get_game_from_location() -> Option<ChangeLevelEvent> {
-    use base64::Engine;
     let window = web_sys::window()?;
     let location = window.location();
     let path = location.pathname().ok()?;
 
-    if path.to_ascii_lowercase().starts_with("/game") {
-        let data = path[6..].to_string();
-        match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data) {
-            Ok(bytes) => {
-                return Some(ChangeLevelEvent::Load(bytes));
-            }
-            Err(err) => warn!("{err}"),
-        }
-    }
-
-    if path.to_ascii_lowercase().starts_with("/custom"){
-        let data = path[8..].to_string();
-        return ChangeLevelEvent::make_custom(data.as_str());
-    }
-
-
-
-    return None;
+    ChangeLevelEvent::try_from_path(path)
 }
 
 fn remove_spinner() {

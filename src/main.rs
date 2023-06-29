@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use app_redirect::AppUrlPlugin;
 use bevy::log::*;
 use bevy::prelude::*;
 
@@ -31,6 +32,8 @@ pub mod padlock;
 mod saved_data;
 pub mod set_level;
 pub mod share;
+
+pub mod app_redirect;
 
 pub mod level_ui;
 
@@ -152,6 +155,7 @@ fn main() {
         .add_plugin(LensPlugin)
         .add_plugin(FireworksPlugin)
         .add_plugin(NotificationPlugin)
+        .add_plugin(AppUrlPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
@@ -186,7 +190,7 @@ fn main() {
 
     builder.add_startup_system(disable_back);
     builder.add_startup_system(hide_splash);
-    builder.add_startup_system(set_status_bar);
+    builder.add_startup_system(set_status_bar.after(hide_splash));
     builder.add_startup_system(log_start.in_base_set(StartupSet::PostStartup));
     builder.run();
 }

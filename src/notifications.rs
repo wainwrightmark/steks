@@ -1,32 +1,20 @@
-use bevy::prelude::{Plugin, EventReader, EventWriter};
+use bevy::prelude::*;
 use capacitor_bindings::local_notifications::*;
 
-use crate::{logging::{*, self}, async_event_writer::{AsyncEventPlugin, AsyncEventWriter}, level::ChangeLevelEvent};
+use crate::{async_event_writer::AsyncEventWriter, level::ChangeLevelEvent, logging::*};
 
 const DAILY_CHALLENGE_CLICK_ACTION_ID: &'static str = "DailyChallengeClick";
 const DAILY_CHALLENGE_ACTION_TYPE_ID: &'static str = "DailyChallenge";
 
 pub struct NotificationPlugin;
 
-pub struct NotificationClickEvent;
-
 impl Plugin for NotificationPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(AsyncEventPlugin::<NotificationClickEvent>::default());
         app.add_startup_system(setup);
-        app.add_system(handle_notification_clicks);
     }
 }
 
-fn handle_notification_clicks(mut reader: EventReader<NotificationClickEvent>, mut writer: EventWriter<ChangeLevelEvent>){
-    for _ in reader.into_iter(){
-
-        logging::LoggableEvent::NotificationClick.try_log1();
-        writer.send(ChangeLevelEvent::StartChallenge);
-    }
-}
-
-fn setup(writer: AsyncEventWriter<NotificationClickEvent>) {
+fn setup(writer: AsyncEventWriter<ChangeLevelEvent>) {
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
             setup_notifications_async(writer).await;
@@ -34,7 +22,7 @@ fn setup(writer: AsyncEventWriter<NotificationClickEvent>) {
         .detach();
 }
 
-async fn setup_notifications_async(writer: AsyncEventWriter<NotificationClickEvent>) {
+async fn setup_notifications_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
     let schedule_options = LocalNotificationSchema::builder()
         .title("Steks daily challenge")
         .body("Beat your friends in the Steks daily challenge")
@@ -52,7 +40,9 @@ async fn setup_notifications_async(writer: AsyncEventWriter<NotificationClickEve
         if action.action_id == DAILY_CHALLENGE_ACTION_TYPE_ID || action.action_id == "tap" {
             bevy::log::info!("Clicked Action");
 
-            writer.send_blocking(NotificationClickEvent).expect("Channel closed prematurely");
+            writer
+                .send_blocking(ChangeLevelEvent::StartChallenge)
+                .expect("Channel closed prematurely");
         }
     };
 

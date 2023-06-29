@@ -39,7 +39,7 @@ pub fn create_initial_shapes(
                 .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
                 .collect_vec()
         }
-        GameLevel::Custom { shapes, gravity, message } => shapes.clone(),
+        GameLevel::Custom { shapes, .. } => shapes.clone(),
     };
 
     for fixed_shape in shapes {
@@ -116,6 +116,7 @@ pub fn place_and_create_shape<RNG: Rng>(
         angle,
         fixed_shape.locked,
         velocity,
+        fixed_shape.friction,
     );
 }
 
@@ -129,6 +130,9 @@ impl ShapeIndex {
     }
 }
 
+pub const DEFAULT_FRICTION: f32 = 1.0;
+pub const DEFAULT_RESTITUTION: f32 = 0.6;
+
 pub fn create_shape(
     commands: &mut Commands,
     game_shape: &game_shape::GameShape,
@@ -136,6 +140,7 @@ pub fn create_shape(
     angle: f32,
     locked: bool,
     velocity: Velocity,
+    friction: Option<f32>,
 ) {
     debug!("Creating {game_shape} angle {angle} position {position} locked {locked}");
 
@@ -153,9 +158,12 @@ pub fn create_shape(
         crate::Draggable::Free
     };
 
-    commands
-        .spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE))
-        .insert(Friction::coefficient(1.0))
+    let mut ec = commands.spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE));
+
+    ec.insert(Friction::coefficient(friction.unwrap_or(DEFAULT_FRICTION)))
+        .insert(Restitution::coefficient(
+            DEFAULT_RESTITUTION
+        ))
         .insert(game_shape.fill())
         .insert(game_shape.index)
         .insert(RigidBody::Dynamic)
@@ -168,26 +176,45 @@ pub fn create_shape(
         .insert(ExternalForce::default())
         .insert(ColliderMassProperties::default())
         .insert(draggable)
-        .insert(transform)
-        .with_children(|x| {
-            x.spawn_empty()
-                .insert(Shadow)
-                // .insert(bevy::render::view::visibility::RenderLayers::layer(ZOOM_ENTITY_LAYER))
-                .insert(
-                    game_shape
-                        .body
-                        .get_shape_bundle(SHAPE_SIZE * camera::ZOOM_LEVEL),
-                )
-                .insert(Transform {
-                    translation: Vec3::new(0., 0., 10.),
-                    ..Default::default()
-                })
-                .insert(Visibility::Hidden)
-                .insert(Stroke {
-                    color: Color::BLACK,
-                    options: StrokeOptions::default().with_line_width(camera::ZOOM_LEVEL),
-                });
+        .insert(transform);
+
+    ec.with_children(|x| {
+        x.spawn_empty()
+            .insert(Shadow)
+            // .insert(bevy::render::view::visibility::RenderLayers::layer(ZOOM_ENTITY_LAYER))
+            .insert(
+                game_shape
+                    .body
+                    .get_shape_bundle(SHAPE_SIZE * camera::ZOOM_LEVEL),
+            )
+            .insert(Transform {
+                translation: Vec3::new(0., 0., 10.),
+                ..Default::default()
+            })
+            .insert(Visibility::Hidden)
+            .insert(Stroke {
+                color: Color::BLACK,
+                options: StrokeOptions::default().with_line_width(camera::ZOOM_LEVEL),
+            });
+    });
+
+    if friction.is_some_and(|x| x < DEFAULT_FRICTION) {
+        ec.with_children(|x| {
+            x.spawn_empty().insert(
+                game_shape
+                    .body
+                    .get_shape_bundle(SHAPE_SIZE),
+            )
+            .insert(Stroke {
+                color: Color::WHITE,
+                options: StrokeOptions::default().with_line_width(1.0),
+            })
+            .insert(Transform {
+                translation: Vec3::new(0., 0., 5.),
+                ..Default::default()
+            });
         });
+    }
 }
 
 #[derive(Component)]

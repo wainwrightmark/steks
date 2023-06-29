@@ -53,6 +53,7 @@ pub fn decode_shape(arr: &[u8]) -> FixedShape {
         fixed_location: Some(location),
         locked,
         fixed_velocity: Some(Velocity::default()),
+        friction: None,
     }
 }
 

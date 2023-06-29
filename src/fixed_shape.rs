@@ -7,6 +7,7 @@ pub struct FixedShape {
     pub fixed_location: Option<Location>,
     pub locked: bool,
     pub fixed_velocity: Option<Velocity>,
+    pub friction: Option<f32>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -37,6 +38,8 @@ impl FixedShape {
             fixed_location: None,
             locked: false,
             fixed_velocity: Some(Default::default()),
+            friction: None,
+
         })
     }
 
@@ -73,6 +76,7 @@ impl FixedShape {
             fixed_location: None,
             locked: false,
             fixed_velocity: Some(Default::default()),
+            friction: None,
         }
     }
 }

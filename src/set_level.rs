@@ -80,6 +80,9 @@ pub struct LevelShape {
 
     #[serde(default)]
     pub locked: bool,
+
+    #[serde(default)]
+    pub friction: Option<f32>,
 }
 
 impl From<LevelShape> for FixedShape {
@@ -110,6 +113,7 @@ impl From<LevelShape> for FixedShape {
             } else {
                 None
             },
+            friction: val.friction,
         }
     }
 }
@@ -180,6 +184,7 @@ mod tests {
                     y: Some(2.0),
                     r: Some(3.0),
                     locked: true,
+                    friction: Some(0.5)
                 }],
                 gravity: None,
             },
@@ -207,6 +212,7 @@ mod tests {
     y: 2.0
     r: 3.0
     locked: true
+    friction: 0.5
   gravity: null
   stages:
   - text: Other Stage
@@ -218,6 +224,7 @@ mod tests {
       y: null
       r: null
       locked: false
+      friction: null
     gravity:
     - 100.0
     - 200.0

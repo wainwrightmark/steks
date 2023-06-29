@@ -350,7 +350,7 @@ pub fn handle_drag_changes(
                 *velocity = Velocity::zero();
                 *dominance = Dominance::group(10);
                 *mass = Default::default();
-                const FRAC_PI_128 : f32 = std::f32::consts::PI / 128.0;
+                const FRAC_PI_128: f32 = std::f32::consts::PI / 128.0;
                 transform.rotation = round_z(transform.rotation, FRAC_PI_128);
             }
             Draggable::Dragged(dragged) => {

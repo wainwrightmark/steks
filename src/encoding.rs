@@ -94,7 +94,8 @@ mod tests {
 
     #[test]
     fn test_shape_encoding_roundtrip() {
-        let fs = FixedShape::by_name("O").unwrap_or_else(|| panic!("Could not find shape with name 'O'"))
+        let fs = FixedShape::by_name("O")
+            .unwrap_or_else(|| panic!("Could not find shape with name 'O'"))
             .with_location(
                 Vec2 {
                     x: 41.99774,

@@ -32,7 +32,7 @@ impl<T: Event> AsyncEventWriter<T> {
         self.0.send(event).await
     }
 
-    pub fn send_blocking(&self, event: T)-> Result<(), SendError<T>> {
+    pub fn send_blocking(&self, event: T) -> Result<(), SendError<T>> {
         self.0.send_blocking(event)
     }
 }
@@ -54,7 +54,9 @@ unsafe impl<T: Event> SystemParam for AsyncEventWriter<T> {
         world: &'world World,
         _change_tick: u32,
     ) -> Self::Item<'world, 'state> {
-        let resource = world.get_resource::<AsyncEventResource<T>>().expect("Event is not registered as an async event");
+        let resource = world
+            .get_resource::<AsyncEventResource<T>>()
+            .expect("Event is not registered as an async event");
         Self(resource.sender.clone())
     }
 }

@@ -3,8 +3,8 @@ use capacitor_bindings::local_notifications::*;
 
 use crate::{async_event_writer::AsyncEventWriter, level::ChangeLevelEvent, logging::*};
 
-const DAILY_CHALLENGE_CLICK_ACTION_ID: &'static str = "DailyChallengeClick";
-const DAILY_CHALLENGE_ACTION_TYPE_ID: &'static str = "DailyChallenge";
+const DAILY_CHALLENGE_CLICK_ACTION_ID: &str = "DailyChallengeClick";
+const DAILY_CHALLENGE_ACTION_TYPE_ID: &str = "DailyChallenge";
 
 pub struct NotificationPlugin;
 

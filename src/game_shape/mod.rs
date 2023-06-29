@@ -105,9 +105,11 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .collect_vec()
 });
 
-pub fn shape_by_name(name: & str) -> Option<&'static GameShape> {
-    let result = ALL_SHAPES.iter().find(|x| x.name.eq_ignore_ascii_case(name));
-    if result.is_none(){
+pub fn shape_by_name(name: &str) -> Option<&'static GameShape> {
+    let result = ALL_SHAPES
+        .iter()
+        .find(|x| x.name.eq_ignore_ascii_case(name));
+    if result.is_none() {
         bevy::log::warn!("Could not find shape: {name}");
     }
     result

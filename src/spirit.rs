@@ -167,10 +167,8 @@ fn control_spirit_main_line(
         angle = (angle * SPIRIT_ROUNDING).round() / SPIRIT_ROUNDING;
         let x = angle * SPIRIT_HALF_WIDTH;
 
-
         line.translation.x = x;
     }
 }
-
 
 pub const SPIRIT_ROUNDING: f32 = 16.0;

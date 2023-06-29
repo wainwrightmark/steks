@@ -128,7 +128,7 @@
     - shape: T4
     - shape: S4
     - shape: Z4
-    - shape: circle
+    - shape: F5
 
 - text: "IX.\nTri Hard II: Tri harder"
   end_text: "Yippee!"

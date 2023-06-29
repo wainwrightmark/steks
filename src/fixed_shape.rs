@@ -31,14 +31,13 @@ impl From<&Transform> for Location {
 }
 
 impl FixedShape {
-    pub fn by_name(s: & str) -> Option<Self> {
-        game_shape::shape_by_name(s)
-            .map(|shape| Self {
-                shape,
-                fixed_location: None,
-                locked: false,
-                fixed_velocity: Some(Default::default()),
-            })
+    pub fn by_name(s: &str) -> Option<Self> {
+        game_shape::shape_by_name(s).map(|shape| Self {
+            shape,
+            fixed_location: None,
+            locked: false,
+            fixed_velocity: Some(Default::default()),
+        })
     }
 
     pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {

@@ -38,25 +38,23 @@ pub fn share_game(game: String) {
 pub async fn application_start() -> LoggableEvent {
     let search_params = get_url_search_params().await;
 
-    let ref_param = search_params.clone().map(|x| x.get("ref")).flatten();
-    let gclid = search_params.map(|x| x.get("gclid")).flatten();
+    let ref_param = search_params.clone().and_then(|x| x.get("ref"));
+    let gclid = search_params.and_then(|x| x.get("gclid"));
     let referrer = get_referrer();
 
-    let event = LoggableEvent::ApplicationStart {
+    //info!("{:?}",event);
+    LoggableEvent::ApplicationStart {
         ref_param,
         referrer,
         gclid,
-    };
-
-    //info!("{:?}",event);
-    event
+    }
 }
 
 pub async fn new_user_async() -> LoggableEvent {
     let search_params = get_url_search_params().await;
 
-    let ref_param = search_params.clone().map(|x| x.get("ref")).flatten();
-    let gclid = search_params.map(|x| x.get("gclid")).flatten();
+    let ref_param = search_params.clone().and_then(|x| x.get("ref"));
+    let gclid = search_params.and_then(|x| x.get("gclid"));
     let referrer = get_referrer();
 
     let language = Device::get_language_tag().await.map(|x| x.value).ok();

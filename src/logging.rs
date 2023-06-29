@@ -45,7 +45,7 @@ pub enum LoggableEvent {
         message: String,
     },
 
-    NotificationClick
+    NotificationClick,
 }
 
 #[derive(PartialEq, Eq, Clone, serde:: Serialize, serde::Deserialize, Debug)]
@@ -181,8 +181,9 @@ pub async fn do_or_report_error_async<
 }
 
 pub fn try_log_error_message(message: String) {
-    IoTaskPool::get().spawn(
-    async move { LoggableEvent::try_log_error_message_async2(message).await }).detach();
+    IoTaskPool::get()
+        .spawn(async move { LoggableEvent::try_log_error_message_async2(message).await })
+        .detach();
 }
 
 impl LoggableEvent {
@@ -214,7 +215,7 @@ impl LoggableEvent {
     }
 
     pub async fn try_log_error_message_async2(message: String) {
-        Self::try_get_device_id_and_log_async(Self::Error{message: message.into()}).await
+        Self::try_get_device_id_and_log_async(Self::Error { message }).await
     }
 
     pub async fn try_log_async1(self, device_id: DeviceId) {

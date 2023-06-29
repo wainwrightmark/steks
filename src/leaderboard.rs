@@ -79,7 +79,7 @@ fn hydrate_leaderboard(
 ) {
     for ev in events.into_iter() {
         match &ev.0 {
-            Ok(text) => store_score.set_from_string(&text),
+            Ok(text) => store_score.set_from_string(text),
             Err(err) => crate::logging::try_log_error_message(format!("{err}")),
         }
     }
@@ -156,7 +156,7 @@ fn update_leaderboard_on_completion(
                 }
             }
             None => {
-                crate::logging::try_log_error_message(format!("Score Store is not loaded"));
+                crate::logging::try_log_error_message("Score Store is not loaded".to_string());
             }
         }
     }

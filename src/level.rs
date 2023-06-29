@@ -352,7 +352,7 @@ impl ChangeLevelEvent {
 
         bevy::log::warn!("Could not get game from path: {path}");
 
-        return None;
+        None
     }
 }
 
@@ -464,7 +464,7 @@ impl ChangeLevelEvent {
 
         let shapes = data
             .split_terminator(',')
-            .filter_map(|x| FixedShape::by_name(x))
+            .filter_map(FixedShape::by_name)
             .collect_vec();
         Some(ChangeLevelEvent::Custom(shapes))
     }

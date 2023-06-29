@@ -1,10 +1,6 @@
 use strum::Display;
 
-use crate::{
-    level_ui::setup_level_ui,
-    share::{ShareEvent},
-    *,
-};
+use crate::{level_ui::setup_level_ui, share::ShareEvent, *};
 
 pub struct ButtonPlugin;
 

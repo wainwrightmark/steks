@@ -52,7 +52,7 @@ pub fn check_for_win(
             let shapes = ShapesVec::from_query(shapes_query);
 
             let set_complete = match &current_level.level {
-                GameLevel::SetLevel { index, .. } => true,
+                GameLevel::SetLevel { .. } => true,
                 GameLevel::Infinite { .. } => true,
                 GameLevel::Challenge => true,
                 GameLevel::Custom(_) => true,

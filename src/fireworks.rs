@@ -32,7 +32,7 @@ struct FireworksCountdown {
     timer: Timer,
     max_delay_seconds: f32,
     sparks_min: usize,
-    sparks_max: usize
+    sparks_max: usize,
 }
 
 impl Default for FireworksCountdown {
@@ -43,7 +43,7 @@ impl Default for FireworksCountdown {
             timer,
             max_delay_seconds: 1.0,
             sparks_max: 50,
-            sparks_min: 20
+            sparks_min: 20,
         }
     }
 }
@@ -75,10 +75,8 @@ fn max_window_contains(v: &Vec3) -> bool {
         false
     } else if v.y < MAX_WINDOW_HEIGHT * -0.5 {
         false
-    } else if v.y > MAX_WINDOW_HEIGHT * 0.5 {
-        false
     } else {
-        true
+        v.y <= MAX_WINDOW_HEIGHT * 0.5
     }
 }
 
@@ -144,13 +142,9 @@ fn manage_fireworks(
         } => {
             if previous.completion.is_complete() && !score_info.is_pb && !score_info.is_wr {
                 countdown.timer.pause();
-            } else {
-                match get_new_fireworks(&current_level.level, &score_info) {
-                    Some(new_countdown) => {
-                        *countdown = new_countdown;
-                    }
-                    None => {}
-                }
+            } else if let Some(new_countdown) = get_new_fireworks(&current_level.level, &score_info)
+            {
+                *countdown = new_countdown;
             }
         }
     }
@@ -158,7 +152,12 @@ fn manage_fireworks(
 
 fn get_new_fireworks(level: &GameLevel, info: &ScoreInfo) -> Option<FireworksCountdown> {
     if info.is_wr {
-        return Some(FireworksCountdown { timer: Timer::from_seconds(0.0, TimerMode::Once), max_delay_seconds: 1.0, sparks_min: 20, sparks_max: 50 });
+        return Some(FireworksCountdown {
+            timer: Timer::from_seconds(0.0, TimerMode::Once),
+            max_delay_seconds: 1.0,
+            sparks_min: 20,
+            sparks_max: 50,
+        });
     }
 
     if matches!(
@@ -171,15 +170,30 @@ fn get_new_fireworks(level: &GameLevel, info: &ScoreInfo) -> Option<FireworksCou
             index: 22
         }
     ) {
-        return Some(FireworksCountdown { timer: Timer::from_seconds(0.0, TimerMode::Once), max_delay_seconds: 1.5, sparks_min: 20, sparks_max: 40 });
+        return Some(FireworksCountdown {
+            timer: Timer::from_seconds(0.0, TimerMode::Once),
+            max_delay_seconds: 1.5,
+            sparks_min: 20,
+            sparks_max: 40,
+        });
     }
 
-    if info.is_first_win{
-        return Some(FireworksCountdown { timer: Timer::from_seconds(4.0, TimerMode::Once), max_delay_seconds: 4.0, sparks_min: 5, sparks_max: 15 });
+    if info.is_first_win {
+        return Some(FireworksCountdown {
+            timer: Timer::from_seconds(4.0, TimerMode::Once),
+            max_delay_seconds: 4.0,
+            sparks_min: 5,
+            sparks_max: 15,
+        });
     }
 
     if info.is_pb {
-        return Some(FireworksCountdown { timer: Timer::from_seconds(0.0, TimerMode::Once), max_delay_seconds: 4.0, sparks_min: 20, sparks_max: 25 });
+        return Some(FireworksCountdown {
+            timer: Timer::from_seconds(0.0, TimerMode::Once),
+            max_delay_seconds: 4.0,
+            sparks_min: 20,
+            sparks_max: 25,
+        });
     }
 
     None

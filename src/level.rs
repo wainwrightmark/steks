@@ -4,7 +4,6 @@ use crate::shape_maker::ShapeIndex;
 use crate::shapes_vec::ShapesVec;
 use crate::*;
 use crate::{set_level::SetLevel, shape_maker::SpawnNewShapeEvent};
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 pub struct LevelPlugin;
@@ -66,7 +65,7 @@ fn manage_level_shapes(
                             event_writer.send(SpawnNewShapeEvent { fixed_shape });
                         }
                         GameLevel::Challenge => {}
-                        GameLevel::Custom(_) => {}
+                        GameLevel::Custom { .. } => {}
                     }
                 }
             }
@@ -146,7 +145,7 @@ impl CurrentLevel {
                     }
                 }
                 GameLevel::Challenge => Some("Daily Challenge".to_string()),
-                GameLevel::Custom(_) => Some("Custom Level".to_string()),
+                GameLevel::Custom { message,.. } => Some(message.clone()),
             },
             LevelCompletion::Complete { splash, score_info } => {
                 let height = score_info.height;
@@ -160,7 +159,7 @@ impl CurrentLevel {
                     }
                     GameLevel::Infinite { .. } => "",
                     GameLevel::Challenge => "\nChallenge Complete",
-                    GameLevel::Custom(_) => "\nCustom Level Complete",
+                    GameLevel::Custom { .. } => "\nCustom Level Complete",
                 };
 
                 let mut text = message.to_string();
@@ -265,10 +264,19 @@ impl LevelCompletion {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameLevel {
-    SetLevel { index: u8, level: SetLevel },
-    Infinite { bytes: Option<Vec<u8>> },
+    SetLevel {
+        index: u8,
+        level: SetLevel,
+    },
+    Infinite {
+        bytes: Option<Vec<u8>>,
+    },
     Challenge,
-    Custom(Vec<FixedShape>),
+    Custom {
+        shapes: Vec<FixedShape>,
+        gravity: Vec2,
+        message: String,
+    },
 }
 
 impl GameLevel {
@@ -277,7 +285,7 @@ impl GameLevel {
             GameLevel::SetLevel { level, .. } => level.total_stages() > *stage,
             GameLevel::Infinite { .. } => true,
             GameLevel::Challenge => false,
-            GameLevel::Custom(_) => false,
+            GameLevel::Custom { .. } => false,
         }
     }
 }
@@ -302,7 +310,7 @@ impl From<GameLevel> for LevelLogData {
             GameLevel::SetLevel { index, .. } => Self::SetLevel { index },
             GameLevel::Infinite { .. } => Self::Infinite,
             GameLevel::Challenge => Self::Challenge,
-            GameLevel::Custom(_) => Self::Custom,
+            GameLevel::Custom { .. } => Self::Custom,
         }
     }
 }
@@ -321,7 +329,10 @@ impl GameLevel {
 #[derive(Debug, Clone)]
 pub enum ChangeLevelEvent {
     Next,
-    ChooseLevel { index: u8, stage: usize },
+    ChooseLevel {
+        index: u8,
+        stage: usize,
+    },
     // Previous,
     ResetLevel,
     StartTutorial,
@@ -329,7 +340,11 @@ pub enum ChangeLevelEvent {
     StartChallenge,
     Load(Vec<u8>),
 
-    Custom(Vec<FixedShape>),
+    Custom {
+        shapes: Vec<FixedShape>,
+        gravity: Vec2,
+        message: String,
+    },
 }
 
 impl ChangeLevelEvent {
@@ -368,7 +383,8 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
                     GRAVITY
                 }
             }
-            GameLevel::Infinite { .. } | GameLevel::Challenge | GameLevel::Custom(_) => GRAVITY,
+            GameLevel::Custom { gravity, .. } => gravity,
+            GameLevel::Infinite { .. } | GameLevel::Challenge => GRAVITY,
         };
         rapier_config.gravity = gravity;
     }
@@ -455,17 +471,79 @@ impl ChangeLevelEvent {
                 },
                 0,
             ),
-            ChangeLevelEvent::Custom(v) => (GameLevel::Custom(v.clone()), 0),
+            ChangeLevelEvent::Custom {
+                shapes,
+                gravity,
+                message,
+            } => (
+                GameLevel::Custom {
+                    shapes: shapes.clone(),
+                    gravity: gravity.clone(),
+                    message: message.clone(),
+                },
+                0,
+            ),
         }
     }
 
     pub fn make_custom(data: &str) -> Option<Self> {
         bevy::log::info!("Making custom level with data {data}");
 
-        let shapes = data
-            .split_terminator(',')
-            .filter_map(FixedShape::by_name)
-            .collect_vec();
-        Some(ChangeLevelEvent::Custom(shapes))
+        let mut shapes: Vec<FixedShape> = vec![];
+        let mut gravity: Vec2 = GRAVITY.clone();
+        let mut dodgy_params: Vec<&str> = vec![];
+
+        for param in data.split_terminator(',') {
+            if let Some(param) = CustomParam::try_from_text(param) {
+                match param {
+                    CustomParam::Shape(s) => shapes.push(s),
+                    CustomParam::GravityX(x) => gravity.x = x,
+                    CustomParam::GravityY(y) => gravity.y = y,
+                }
+            } else {
+                dodgy_params.push(param);
+            }
+        }
+
+        let message = if dodgy_params.len() == 0 {
+            "Custom Level".to_string()
+        } else {
+            let joined = dodgy_params.join(", ");
+            format!("Could not parse: {}", joined)
+        };
+
+        Some(ChangeLevelEvent::Custom {
+            shapes,
+            gravity,
+            message,
+        })
+    }
+}
+
+pub enum CustomParam {
+    Shape(FixedShape),
+    GravityX(f32),
+    GravityY(f32),
+}
+
+impl CustomParam {
+    pub fn try_from_text(text: &str) -> Option<Self> {
+        if let Some(gravity_x) = text.to_ascii_lowercase().strip_prefix("gravx:") {
+            if let Ok(x) = gravity_x.parse() {
+                return Some(Self::GravityX(x));
+            } else {
+                return None;
+            }
+        }
+
+        if let Some(gravity_y) = text.to_ascii_lowercase().strip_prefix("gravy:") {
+            if let Ok(y) = gravity_y.parse() {
+                return Some(Self::GravityY(y));
+            } else {
+                return None;
+            }
+        }
+
+        FixedShape::by_name(text).map(|shape| Self::Shape(shape))
     }
 }

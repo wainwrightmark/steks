@@ -55,7 +55,7 @@ pub fn check_for_win(
                 GameLevel::SetLevel { .. } => true,
                 GameLevel::Infinite { .. } => true,
                 GameLevel::Challenge => true,
-                GameLevel::Custom(_) => true,
+                GameLevel::Custom{..} => true,
             };
 
             if set_complete {

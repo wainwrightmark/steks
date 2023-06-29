@@ -39,7 +39,7 @@ pub fn create_initial_shapes(
                 .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
                 .collect_vec()
         }
-        GameLevel::Custom(v) => v.clone(),
+        GameLevel::Custom { shapes, gravity, message } => shapes.clone(),
     };
 
     for fixed_shape in shapes {

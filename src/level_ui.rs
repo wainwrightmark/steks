@@ -335,9 +335,9 @@ fn animate_text(
             ),
             GameLevel::Infinite { .. } => (DEFAULT_TEXT_FADE, Color::NONE),
             GameLevel::Challenge => (DEFAULT_TEXT_FADE, Color::NONE),
-            GameLevel::Custom(_) => (DEFAULT_TEXT_FADE, Color::NONE),
+            GameLevel::Custom{..} => (DEFAULT_TEXT_FADE, Color::NONE),
         },
-        LevelCompletion::Complete { .. } => (1, SMALL_TEXT_COLOR),
+        LevelCompletion::Complete { .. } => (DEFAULT_TEXT_FADE, SMALL_TEXT_COLOR),
     };
 
     commands.insert(Animator::new(Tween::new(

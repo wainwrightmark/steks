@@ -302,7 +302,7 @@ pub fn handle_drag_changes(
     mut query: Query<
         (
             Entity,
-            &Transform,
+            &mut Transform,
             &Draggable,
             &mut LockedAxes,
             &mut GravityScale,
@@ -317,7 +317,7 @@ pub fn handle_drag_changes(
 ) {
     for (
         entity,
-        transform,
+        mut transform,
         draggable,
         mut locked_axes,
         mut gravity_scale,
@@ -350,6 +350,8 @@ pub fn handle_drag_changes(
                 *velocity = Velocity::zero();
                 *dominance = Dominance::group(10);
                 *mass = Default::default();
+                const FRAC_PI_128 : f32 = std::f32::consts::PI / 128.0;
+                transform.rotation = round_z(transform.rotation, FRAC_PI_128);
             }
             Draggable::Dragged(dragged) => {
                 if padlock_resource.has_entity(entity) {

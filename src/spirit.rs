@@ -65,7 +65,15 @@ fn setup_spirit_lines(mut commands: Commands) {
                 visibility: Visibility::Hidden,
                 ..default()
             },
-            Stroke::new(Color::RED, LINE_WIDTH),
+            Stroke::new(
+                Color::Rgba {
+                    red: 0.9,
+                    green: 0.1,
+                    blue: 0.0,
+                    alpha: 0.9,
+                },
+                LINE_WIDTH,
+            ),
         ))
         .insert(SpiritMarkerLine)
         .insert(SpiritLine);
@@ -156,8 +164,13 @@ fn control_spirit_main_line(
             }
         }
 
+        angle = (angle * SPIRIT_ROUNDING).round() / SPIRIT_ROUNDING;
         let x = angle * SPIRIT_HALF_WIDTH;
+
 
         line.translation.x = x;
     }
 }
+
+
+pub const SPIRIT_ROUNDING: f32 = 16.0;

@@ -140,9 +140,10 @@ fn update_leaderboard_on_completion(
                     }
                 };
 
-                log::info!("Updating leaderboard {hash} {height}");
+
 
                 if changed {
+                    log::info!("Updating leaderboard {hash} {height}");
                     IoTaskPool::get()
                         .spawn(async move {
                             match update_leaderboard(hash, height).await {

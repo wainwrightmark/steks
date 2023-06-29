@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     fixed_shape::{FixedShape, Location},
     game_shape::{self, GameShape},
-    level::GameLevel,
+    level::{GameLevel, LevelCompletion}, rain::RaindropSettings,
 };
 
 lazy_static::lazy_static! {
@@ -49,6 +49,13 @@ impl SetLevel {
         }
     }
 
+    pub fn get_current_stage(&self, completion: LevelCompletion)-> &LevelStage{
+        match completion{
+            LevelCompletion::Incomplete { stage } => self.get_stage(&stage).unwrap_or(self.stages.first().unwrap()),
+            LevelCompletion::Complete { splash, score_info } => &self.stages.last().unwrap(),
+        }
+    }
+
     pub fn total_stages(&self) -> usize {
         self.stages.len() + 1
     }
@@ -63,6 +70,7 @@ pub struct LevelStage {
     pub shapes: Vec<LevelShape>,
 
     pub gravity: Option<bevy::prelude::Vec2>,
+    pub rainfall: Option<RaindropSettings>
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
@@ -184,9 +192,10 @@ mod tests {
                     y: Some(2.0),
                     r: Some(3.0),
                     locked: true,
-                    friction: Some(0.5)
+                    friction: Some(0.5),
                 }],
                 gravity: None,
+                rainfall: Some(RaindropSettings { intensity: 2 })
             },
             stages: vec![LevelStage {
                 text: "Other Stage".to_string(),
@@ -198,6 +207,7 @@ mod tests {
                     ..Default::default()
                 }],
                 gravity: Some(bevy::prelude::Vec2 { x: 100.0, y: 200.0 }),
+                rainfall: None
             }],
         }];
 

@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{shape_maker::DEFAULT_RESTITUTION, *};
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
@@ -310,6 +310,8 @@ pub fn handle_drag_changes(
             &mut Dominance,
             &mut ColliderMassProperties,
             &mut ExternalForce,
+            &mut Restitution,
+            &mut CollisionGroups,
         ),
         Changed<Draggable>,
     >,
@@ -325,6 +327,8 @@ pub fn handle_drag_changes(
         mut dominance,
         mut mass,
         mut external_force,
+        mut restitution,
+        mut collision_groups,
     ) in query.iter_mut()
     {
         match draggable {
@@ -336,6 +340,9 @@ pub fn handle_drag_changes(
                 *gravity_scale = GravityScale::default();
                 *dominance = Dominance::default();
                 *mass = Default::default();
+                restitution.coefficient = DEFAULT_RESTITUTION;
+
+                collision_groups.filters = SHAPE_COLLISION_FILTERS;
             }
 
             Draggable::Locked => {
@@ -350,8 +357,11 @@ pub fn handle_drag_changes(
                 *velocity = Velocity::zero();
                 *dominance = Dominance::group(10);
                 *mass = Default::default();
+                restitution.coefficient = DEFAULT_RESTITUTION;
                 const FRAC_PI_128: f32 = std::f32::consts::PI / 128.0;
                 transform.rotation = round_z(transform.rotation, FRAC_PI_128);
+
+                collision_groups.filters = SHAPE_COLLISION_FILTERS;
             }
             Draggable::Dragged(dragged) => {
                 if padlock_resource.has_entity(entity) {
@@ -371,6 +381,9 @@ pub fn handle_drag_changes(
                 *gravity_scale = GravityScale(0.0);
                 *velocity = Velocity::zero();
                 *dominance = Dominance::default();
+                restitution.coefficient = 0.0;
+
+                collision_groups.filters = DRAGGED_SHAPE_COLLISION_FILTERS;
             }
         }
 

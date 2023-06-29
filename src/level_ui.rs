@@ -335,7 +335,7 @@ fn animate_text(
             ),
             GameLevel::Infinite { .. } => (DEFAULT_TEXT_FADE, Color::NONE),
             GameLevel::Challenge => (DEFAULT_TEXT_FADE, Color::NONE),
-            GameLevel::Custom{..} => (DEFAULT_TEXT_FADE, Color::NONE),
+            GameLevel::Custom { .. } => (DEFAULT_TEXT_FADE, Color::NONE),
         },
         LevelCompletion::Complete { .. } => (DEFAULT_TEXT_FADE, SMALL_TEXT_COLOR),
     };

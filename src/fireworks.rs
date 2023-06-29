@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_prototype_lyon::prelude::ShapeBundle;
 use bevy_rapier2d::prelude::{
-    Collider, CollisionGroups, GravityScale, Group, RapierConfiguration, RigidBody, Velocity,
+    Collider, CollisionGroups, GravityScale, RapierConfiguration, RigidBody, Velocity,
 };
 use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 
@@ -9,7 +9,7 @@ use crate::{
     game_shape,
     level::{CurrentLevel, GameLevel, ScoreInfo},
     set_level::SetLevel,
-    MAX_WINDOW_HEIGHT, MAX_WINDOW_WIDTH,
+    FIREWORK_COLLISION_FILTERS, FIREWORK_COLLISION_GROUP, MAX_WINDOW_HEIGHT, MAX_WINDOW_WIDTH,
 };
 
 pub struct FireworksPlugin;
@@ -232,8 +232,8 @@ fn spawn_spark<R: Rng>(
         .insert(game_shape.fill())
         .insert(RigidBody::Dynamic)
         .insert(CollisionGroups {
-            memberships: Group::NONE,
-            filters: Group::NONE,
+            memberships: FIREWORK_COLLISION_GROUP,
+            filters: FIREWORK_COLLISION_FILTERS,
         })
         .insert(Collider::ball(1.0))
         .insert(velocity)

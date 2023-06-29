@@ -1,5 +1,5 @@
 use crate::async_event_writer::AsyncEventPlugin;
-use crate::set_level::get_set_level;
+use crate::set_level::{get_set_level, LevelStage};
 use crate::shape_maker::ShapeIndex;
 use crate::shapes_vec::ShapesVec;
 use crate::*;
@@ -145,7 +145,7 @@ impl CurrentLevel {
                     }
                 }
                 GameLevel::Challenge => Some("Daily Challenge".to_string()),
-                GameLevel::Custom { message,.. } => Some(message.clone()),
+                GameLevel::Custom { message, .. } => Some(message.clone()),
             },
             LevelCompletion::Complete { splash, score_info } => {
                 let height = score_info.height;
@@ -275,6 +275,7 @@ pub enum GameLevel {
     Custom {
         shapes: Vec<FixedShape>,
         gravity: Vec2,
+        raindrop_settings: Option<RaindropSettings>,
         message: String,
     },
 }
@@ -344,6 +345,7 @@ pub enum ChangeLevelEvent {
         shapes: Vec<FixedShape>,
         gravity: Vec2,
         message: String,
+        raindrop_settings: Option<RaindropSettings>,
     },
 }
 
@@ -475,11 +477,13 @@ impl ChangeLevelEvent {
                 shapes,
                 gravity,
                 message,
+                raindrop_settings,
             } => (
                 GameLevel::Custom {
                     shapes: shapes.clone(),
-                    gravity: gravity.clone(),
+                    gravity: *gravity,
                     message: message.clone(),
+                    raindrop_settings: raindrop_settings.clone(),
                 },
                 0,
             ),
@@ -490,8 +494,9 @@ impl ChangeLevelEvent {
         bevy::log::info!("Making custom level with data {data}");
 
         let mut shapes: Vec<FixedShape> = vec![];
-        let mut gravity: Vec2 = GRAVITY.clone();
+        let mut gravity: Vec2 = GRAVITY;
         let mut dodgy_params: Vec<&str> = vec![];
+        let mut raindrop_settings: Option<RaindropSettings> = None;
 
         for param in data.split_terminator(',') {
             if let Some(param) = CustomParam::try_from_text(param) {
@@ -499,13 +504,14 @@ impl ChangeLevelEvent {
                     CustomParam::Shape(s) => shapes.push(s),
                     CustomParam::GravityX(x) => gravity.x = x,
                     CustomParam::GravityY(y) => gravity.y = y,
+                    CustomParam::RainfallIntensity(intensity) => raindrop_settings = Some(RaindropSettings { intensity }),
                 }
             } else {
                 dodgy_params.push(param);
             }
         }
 
-        let message = if dodgy_params.len() == 0 {
+        let message = if dodgy_params.is_empty() {
             "Custom Level".to_string()
         } else {
             let joined = dodgy_params.join(", ");
@@ -516,6 +522,7 @@ impl ChangeLevelEvent {
             shapes,
             gravity,
             message,
+            raindrop_settings,
         })
     }
 }
@@ -524,11 +531,13 @@ pub enum CustomParam {
     Shape(FixedShape),
     GravityX(f32),
     GravityY(f32),
+    RainfallIntensity(usize),
 }
 
 impl CustomParam {
     pub fn try_from_text(text: &str) -> Option<Self> {
-        if let Some(gravity_x) = text.to_ascii_lowercase().strip_prefix("gravx:") {
+        let lc = text.to_ascii_lowercase();
+        if let Some(gravity_x) = lc.strip_prefix("gravx:") {
             if let Ok(x) = gravity_x.parse() {
                 return Some(Self::GravityX(x));
             } else {
@@ -536,7 +545,7 @@ impl CustomParam {
             }
         }
 
-        if let Some(gravity_y) = text.to_ascii_lowercase().strip_prefix("gravy:") {
+        if let Some(gravity_y) = lc.strip_prefix("gravy:") {
             if let Ok(y) = gravity_y.parse() {
                 return Some(Self::GravityY(y));
             } else {
@@ -544,6 +553,14 @@ impl CustomParam {
             }
         }
 
-        FixedShape::by_name(text).map(|shape| Self::Shape(shape))
+        if let Some(rainfall) = lc.strip_prefix("rain:") {
+            if let Ok(rain) = rainfall.parse() {
+                return Some(Self::RainfallIntensity(rain));
+            } else {
+                return None;
+            }
+        }
+
+        FixedShape::by_name(text).map(Self::Shape)
     }
 }

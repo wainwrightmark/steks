@@ -12,17 +12,6 @@ use bevy_pkv::PkvStore;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-pub const WINDOW_WIDTH: f32 = 360f32;
-
-pub const WINDOW_HEIGHT: f32 = 520f32;
-
-//Be aware that changing these will mess with the saved and shared data
-pub const MAX_WINDOW_WIDTH: f32 = 1920f32;
-pub const MAX_WINDOW_HEIGHT: f32 = 1080f32;
-
-pub const WALL_WIDTH: f32 = 1920f32;
-
-pub const PHYSICS_SCALE: f32 = 64f32;
 mod camera;
 mod color;
 mod draggable;
@@ -32,6 +21,9 @@ pub mod padlock;
 mod saved_data;
 pub mod set_level;
 pub mod share;
+
+pub mod rain;
+use rain::*;
 
 pub mod app_redirect;
 
@@ -47,7 +39,9 @@ use fireworks::FireworksPlugin;
 use lens::LensPlugin;
 use level_ui::LevelUiPlugin;
 //use menu_action::MenuActionPlugin;
+pub use constants::*;
 use padlock::*;
+mod constants;
 
 use bevy_tweening::TweeningPlugin;
 use camera::*;
@@ -156,6 +150,7 @@ fn main() {
         .add_plugin(FireworksPlugin)
         .add_plugin(NotificationPlugin)
         .add_plugin(AppUrlPlugin)
+        .add_plugin(RainPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
@@ -257,14 +252,14 @@ async fn disable_back_async<'a>() {
     #[cfg(all(feature = "android", target_arch = "wasm32"))]
     {
         let result = capacitor_bindings::app::App::add_back_button_listener(|_| {
-            bevy::tasks::IoTaskPool::get()
-                .spawn(async move {
-                    logging::do_or_report_error_async(|| {
-                        capacitor_bindings::app::App::minimize_app()
-                    })
-                    .await;
-                })
-                .detach();
+            // bevy::tasks::IoTaskPool::get()
+            //     .spawn(async move {
+            //         logging::do_or_report_error_async(|| {
+            //             capacitor_bindings::app::App::minimize_app()
+            //         })
+            //         .await;
+            //     })
+            //     .detach();
         })
         .await;
 

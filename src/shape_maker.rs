@@ -131,7 +131,7 @@ impl ShapeIndex {
 }
 
 pub const DEFAULT_FRICTION: f32 = 1.0;
-pub const DEFAULT_RESTITUTION: f32 = 0.6;
+pub const DEFAULT_RESTITUTION: f32 = 0.3;
 
 pub fn create_shape(
     commands: &mut Commands,
@@ -161,9 +161,10 @@ pub fn create_shape(
     let mut ec = commands.spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE));
 
     ec.insert(Friction::coefficient(friction.unwrap_or(DEFAULT_FRICTION)))
-        .insert(Restitution::coefficient(
-            DEFAULT_RESTITUTION
-        ))
+        .insert(Restitution {
+            coefficient: DEFAULT_RESTITUTION,
+            combine_rule: CoefficientCombineRule::Min,
+        })
         .insert(game_shape.fill())
         .insert(game_shape.index)
         .insert(RigidBody::Dynamic)
@@ -175,6 +176,10 @@ pub fn create_shape(
         .insert(Dominance::default())
         .insert(ExternalForce::default())
         .insert(ColliderMassProperties::default())
+        .insert(CollisionGroups {
+            memberships: SHAPE_COLLISION_GROUP,
+            filters: SHAPE_COLLISION_FILTERS,
+        })
         .insert(draggable)
         .insert(transform);
 
@@ -200,19 +205,16 @@ pub fn create_shape(
 
     if friction.is_some_and(|x| x < DEFAULT_FRICTION) {
         ec.with_children(|x| {
-            x.spawn_empty().insert(
-                game_shape
-                    .body
-                    .get_shape_bundle(SHAPE_SIZE),
-            )
-            .insert(Stroke {
-                color: Color::WHITE,
-                options: StrokeOptions::default().with_line_width(1.0),
-            })
-            .insert(Transform {
-                translation: Vec3::new(0., 0., 5.),
-                ..Default::default()
-            });
+            x.spawn_empty()
+                .insert(game_shape.body.get_shape_bundle(SHAPE_SIZE))
+                .insert(Stroke {
+                    color: Color::WHITE,
+                    options: StrokeOptions::default().with_line_width(1.0),
+                })
+                .insert(Transform {
+                    translation: Vec3::new(0., 0., 5.),
+                    ..Default::default()
+                });
         });
     }
 }

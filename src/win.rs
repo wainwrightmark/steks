@@ -55,7 +55,7 @@ pub fn check_for_win(
                 GameLevel::SetLevel { .. } => true,
                 GameLevel::Infinite { .. } => true,
                 GameLevel::Challenge => true,
-                GameLevel::Custom{..} => true,
+                GameLevel::Custom { .. } => true,
             };
 
             if set_complete {
@@ -165,6 +165,26 @@ fn check_future_collisions(
     let mut multibody_joints = context.multibody_joints.clone();
     let mut ccd_solver = context.ccd_solver.clone();
 
+    let bodies_to_remove: Vec<_> = colliders
+        .iter()
+        .filter(|x| {
+            x.1.collision_groups().memberships.bits() == RAIN_COLLISION_GROUP.bits()
+                || x.1.collision_groups().memberships.bits() == FIREWORK_COLLISION_GROUP.bits()
+        })
+        .flat_map(|x| x.1.parent())
+        .collect();
+
+    for rbh in bodies_to_remove {
+        bodies.remove(
+            rbh,
+            &mut islands,
+            &mut colliders,
+            &mut impulse_joints,
+            &mut multibody_joints,
+            true,
+        );
+    }
+
     let mut substep_integration_parameters = context.integration_parameters;
     substep_integration_parameters.dt = dt / (substeps as Real);
     let event_handler = SensorCollisionHandler::default();
@@ -186,12 +206,9 @@ fn check_future_collisions(
         );
 
         if event_handler.collisions_found.load() {
-            //      info!("Collision detected after {_i} substeps");
             return true;
         }
     }
-
-    //info!("No collision detected after {substeps}");
     false
 }
 
@@ -232,8 +249,9 @@ impl EventHandler for SensorCollisionHandler {
 fn check_for_collisions(
     mut commands: Commands,
     win_timer: Query<(Entity, &WinTimer)>,
-    collision_events: EventReader<CollisionEvent>,
+    mut collision_events: EventReader<CollisionEvent>,
     draggables: Query<&Draggable>,
+    walls: Query<(), With<WallSensor>>,
 ) {
     if win_timer.is_empty() {
         return; // no need to check
@@ -241,8 +259,27 @@ fn check_for_collisions(
 
     let mut fail: Option<&str> = None;
 
-    if !collision_events.is_empty() {
-        fail = Some("Intersection Found");
+    for ce in collision_events.iter() {
+        //bevy::log::info!("Checking collisions");
+        let (&e1, &e2) = match ce {
+            CollisionEvent::Started(e1, e2, _) => (e1, e2),
+            CollisionEvent::Stopped(e1, e2, _) => (e1, e2),
+        };
+
+        // let e1_draggable = draggables.contains(e1);
+        // let e2_draggable = draggables.contains(e2);
+        // let e1_wall = walls.contains(e1);
+        // let e2_wall = walls.contains(e2);
+
+        //bevy::log::info!("{e1_draggable} {e2_draggable} {e1_wall} {e2_wall}");
+
+        if (draggables.contains(e1) && walls.contains(e2))
+            || (draggables.contains(e2) && walls.contains(e1))
+        {
+            //bevy::log::info!("Wall-Draggable Collision found");
+            fail = Some("Intersection Found");
+            break;
+        }
     }
 
     if fail.is_none() && draggables.iter().any(|x| x.is_dragged()) {

@@ -159,7 +159,7 @@
     - shape: X5
     - shape: I5
 
-- text: "XI.\nGame of Steks"
+- text: "XI.\nA song of ice and steks"
   end_text: "You know nothing John Steks"
   shapes:
     - shape: L5
@@ -174,20 +174,11 @@
       friction: 0.1
     - shape: T5
       friction: 0.1
-
-- text: "XI.\nBouncy Castle"
-  end_text: "Boing!"
-  shapes:
-    - shape: L5
-      restitution: 1.1
-    - shape: W5
-      restitution: 1.1
+  stages:
+  - text: "Winter is Coming!"
+    rainfall:
+      intensity: 2
+    shapes:
     - shape: F5
-      restitution: 1.1
-    - shape: Z5
-      restitution: 1.1
-    - shape: N5
-      restitution: 1.1
-    - shape: T5
-      restitution: 1.1
+      friction: 0.1
 

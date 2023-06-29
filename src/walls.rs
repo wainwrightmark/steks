@@ -2,7 +2,7 @@ use bevy::window::WindowResized;
 use bevy_prototype_lyon::shapes::Rectangle;
 use strum::{Display, EnumIter, IntoEnumIterator};
 
-use crate::*;
+use crate::{shape_maker::DEFAULT_RESTITUTION, *};
 
 #[derive(Component, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
 pub enum Wall {
@@ -11,6 +11,9 @@ pub enum Wall {
     Left,
     Right,
 }
+
+#[derive(Debug, Component)]
+pub struct WallSensor;
 
 impl Wall {
     pub fn horizontal(&self) -> bool {
@@ -103,14 +106,21 @@ fn spawn_wall(commands: &mut Commands, color: Color, wall: Wall) {
         .insert(Fill::color(color))
         .insert(RigidBody::Fixed)
         .insert(Transform::from_translation(point))
+        .insert(Restitution {
+            coefficient: DEFAULT_RESTITUTION,
+            combine_rule: CoefficientCombineRule::Min,
+        })
         .insert(collider_shape.clone())
-        // .insert(Name::new(name.to_string()))
+        .insert(CollisionGroups {
+            memberships: WALL_COLLISION_GROUP,
+            filters: WALL_COLLISION_FILTERS,
+        })
         .insert(wall)
         .with_children(|f| {
             f.spawn(collider_shape)
                 .insert(Sensor {})
                 .insert(ActiveEvents::COLLISION_EVENTS)
-                // .insert(Name::new(name))
+                .insert(WallSensor)
                 ;
         });
 }

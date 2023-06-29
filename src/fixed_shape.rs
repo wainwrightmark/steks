@@ -39,7 +39,6 @@ impl FixedShape {
             locked: false,
             fixed_velocity: Some(Default::default()),
             friction: None,
-
         })
     }
 

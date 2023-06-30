@@ -51,34 +51,24 @@ pub fn check_for_win(
 
             let shapes = ShapesVec::from_query(shapes_query);
 
-            let set_complete = match &current_level.level {
-                GameLevel::SetLevel { .. } => true,
-                GameLevel::Infinite { .. } => true,
-                GameLevel::Challenge => true,
-                GameLevel::Custom { .. } => true,
-            };
-
-            if set_complete {
-                match current_level.completion {
-                    LevelCompletion::Incomplete { stage } => {
-                        let next_stage = stage + 1;
-                        if current_level.level.has_stage(&next_stage) {
-                            current_level.completion =
-                                LevelCompletion::Incomplete { stage: next_stage }
-                        } else {
-                            let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
-                            current_level.completion = LevelCompletion::Complete {
-                                score_info,
-                                splash: true,
-                            }
+            match current_level.completion {
+                LevelCompletion::Incomplete { stage } => {
+                    let next_stage = stage + 1;
+                    if current_level.level.has_stage(&next_stage) {
+                        current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
+                    } else {
+                        let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
+                        current_level.completion = LevelCompletion::Complete {
+                            score_info,
+                            splash: true,
                         }
                     }
+                }
 
-                    LevelCompletion::Complete { splash, .. } => {
-                        let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
-                        let splash = splash | score_info.is_pb | score_info.is_wr;
-                        current_level.completion = LevelCompletion::Complete { score_info, splash }
-                    }
+                LevelCompletion::Complete { splash, .. } => {
+                    let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
+                    let splash = splash | score_info.is_pb | score_info.is_wr;
+                    current_level.completion = LevelCompletion::Complete { score_info, splash }
                 }
             }
         } else {

@@ -1,5 +1,5 @@
 use crate::async_event_writer::AsyncEventPlugin;
-use crate::set_level::{get_set_level};
+use crate::set_level::get_set_level;
 use crate::shape_maker::ShapeIndex;
 use crate::shapes_vec::ShapesVec;
 use crate::*;
@@ -48,7 +48,7 @@ fn manage_level_shapes(
                 };
                 if stage > 0 {
                     match &current_level.as_ref().level {
-                        GameLevel::SetLevel { level, .. } => {
+                        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level,.. } => {
                             for stage in (previous_stage + 1)..=(stage) {
                                 if let Some(stage) = level.get_stage(&stage) {
                                     for shape in &stage.shapes {
@@ -65,7 +65,6 @@ fn manage_level_shapes(
                             event_writer.send(SpawnNewShapeEvent { fixed_shape });
                         }
                         GameLevel::Challenge => {}
-                        GameLevel::Custom { .. } => {}
                     }
                 }
             }
@@ -145,7 +144,13 @@ impl CurrentLevel {
                     }
                 }
                 GameLevel::Challenge => Some("Daily Challenge".to_string()),
-                GameLevel::Custom { message, .. } => Some(message.clone()),
+                GameLevel::Custom { message, level } => {
+                    if stage == 0 {
+                        Some(message.clone())
+                    } else {
+                        level.get_stage(&stage).map(|x| x.text.to_string())
+                    }
+                }
             },
             LevelCompletion::Complete { splash, score_info } => {
                 let height = score_info.height;
@@ -264,27 +269,20 @@ impl LevelCompletion {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameLevel {
-    SetLevel {
-        index: u8,
-        level: SetLevel,
-    },
-    Infinite {
-        bytes: Option<Vec<u8>>,
-    },
+    SetLevel { index: u8, level: SetLevel },
+    Infinite { bytes: Option<Vec<u8>> },
     Challenge,
-    Custom {
-        level: SetLevel,
-        message: String
-    },
+    Custom { level: SetLevel, message: String },
 }
 
 impl GameLevel {
     pub fn has_stage(&self, stage: &usize) -> bool {
         match self {
-            GameLevel::SetLevel { level, .. } => level.total_stages() > *stage,
+            GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
+                level.total_stages() > *stage
+            }
             GameLevel::Infinite { .. } => true,
             GameLevel::Challenge => false,
-            GameLevel::Custom { .. } => false,
         }
     }
 }
@@ -328,10 +326,7 @@ impl GameLevel {
 #[derive(Debug, Clone)]
 pub enum ChangeLevelEvent {
     Next,
-    ChooseLevel {
-        index: u8,
-        stage: usize,
-    },
+    ChooseLevel { index: u8, stage: usize },
     // Previous,
     ResetLevel,
     StartTutorial,
@@ -339,10 +334,7 @@ pub enum ChangeLevelEvent {
     StartChallenge,
     Load(Vec<u8>),
 
-    Custom {
-        level: SetLevel,
-        message: String,
-    },
+    Custom { level: SetLevel, message: String },
 }
 
 impl ChangeLevelEvent {
@@ -380,7 +372,7 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
                 } else {
                     GRAVITY
                 }
-            },
+            }
             GameLevel::Infinite { .. } | GameLevel::Challenge => GRAVITY,
         };
         rapier_config.gravity = gravity;
@@ -468,10 +460,7 @@ impl ChangeLevelEvent {
                 },
                 0,
             ),
-            ChangeLevelEvent::Custom {
-                level,
-                message,
-            } => (
+            ChangeLevelEvent::Custom { level, message } => (
                 GameLevel::Custom {
                     level: level.clone(),
                     message: message.clone(),
@@ -481,14 +470,17 @@ impl ChangeLevelEvent {
         }
     }
 
-    pub fn make_custom(data: &str)-> Self{
+    pub fn make_custom(data: &str) -> Self {
         match Self::try_make_custom(data) {
-            Ok(x)=> x,
-            Err(message)=> ChangeLevelEvent::Custom { level: SetLevel::default(), message: message.to_string() }
+            Ok(x) => x,
+            Err(message) => ChangeLevelEvent::Custom {
+                level: SetLevel::default(),
+                message: message.to_string(),
+            },
         }
     }
 
-    pub fn try_make_custom(data: &str) -> anyhow::Result<Self>{
+    pub fn try_make_custom(data: &str) -> anyhow::Result<Self> {
         bevy::log::info!("Making custom level with data {data}");
         use base64::Engine;
         let decoded = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data)?;
@@ -497,10 +489,13 @@ impl ChangeLevelEvent {
 
         let levels: Vec<SetLevel> = serde_yaml::from_str(str)?;
 
-        let level = levels.into_iter().next().ok_or(anyhow::anyhow!("No levels Found"))?;
-        let message =level.initial_stage.text.clone();
+        let level = levels
+            .into_iter()
+            .next()
+            .ok_or(anyhow::anyhow!("No levels Found"))?;
+        let message = level.initial_stage.text.clone();
 
-        Ok(ChangeLevelEvent::Custom { level , message  })
+        Ok(ChangeLevelEvent::Custom { level, message })
 
         // let mut shapes: Vec<ShapeWithData> = vec![];
         // let mut gravity: Vec2 = GRAVITY;
@@ -526,7 +521,6 @@ impl ChangeLevelEvent {
         //     let joined = dodgy_params.join(", ");
         //     format!("Could not parse: {}", joined)
         // };
-
     }
 }
 

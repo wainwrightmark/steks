@@ -49,7 +49,7 @@ impl GameShape {
     }
 
     pub fn fill(&self) -> Fill {
-        let mut color = self.default_fill_color();
+        let color = self.default_fill_color();
         Fill::color(color)
     }
 

@@ -1,5 +1,5 @@
 use crate::async_event_writer::AsyncEventPlugin;
-use crate::set_level::{get_set_level, LevelStage};
+use crate::set_level::{get_set_level};
 use crate::shape_maker::ShapeIndex;
 use crate::shapes_vec::ShapesVec;
 use crate::*;
@@ -273,10 +273,8 @@ pub enum GameLevel {
     },
     Challenge,
     Custom {
-        shapes: Vec<ShapeWithData>,
-        gravity: Vec2,
-        raindrop_settings: Option<RaindropSettings>,
-        message: String,
+        level: SetLevel,
+        message: String
     },
 }
 
@@ -342,10 +340,8 @@ pub enum ChangeLevelEvent {
     Load(Vec<u8>),
 
     Custom {
-        shapes: Vec<ShapeWithData>,
-        gravity: Vec2,
+        level: SetLevel,
         message: String,
-        raindrop_settings: Option<RaindropSettings>,
     },
 }
 
@@ -364,7 +360,7 @@ impl ChangeLevelEvent {
 
         if path.to_ascii_lowercase().starts_with("/custom") {
             let data = path[8..].to_string();
-            return ChangeLevelEvent::make_custom(data.as_str());
+            return Some(ChangeLevelEvent::make_custom(data.as_str()));
         }
 
         bevy::log::warn!("Could not get game from path: {path}");
@@ -378,14 +374,13 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
         let LevelCompletion::Incomplete { stage }  = level.completion  else{ return;};
 
         let gravity = match level.level.clone() {
-            GameLevel::SetLevel { level, .. } => {
+            GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
                 if let Some(stage) = level.get_stage(&stage) {
                     stage.gravity.unwrap_or(GRAVITY)
                 } else {
                     GRAVITY
                 }
-            }
-            GameLevel::Custom { gravity, .. } => gravity,
+            },
             GameLevel::Infinite { .. } | GameLevel::Challenge => GRAVITY,
         };
         rapier_config.gravity = gravity;
@@ -474,93 +469,101 @@ impl ChangeLevelEvent {
                 0,
             ),
             ChangeLevelEvent::Custom {
-                shapes,
-                gravity,
+                level,
                 message,
-                raindrop_settings,
             } => (
                 GameLevel::Custom {
-                    shapes: shapes.clone(),
-                    gravity: *gravity,
+                    level: level.clone(),
                     message: message.clone(),
-                    raindrop_settings: raindrop_settings.clone(),
                 },
                 0,
             ),
         }
     }
 
-    pub fn make_custom(data: &str) -> Option<Self> {
+    pub fn make_custom(data: &str)-> Self{
+        match Self::try_make_custom(data) {
+            Ok(x)=> x,
+            Err(message)=> ChangeLevelEvent::Custom { level: SetLevel::default(), message: message.to_string() }
+        }
+    }
+
+    pub fn try_make_custom(data: &str) -> anyhow::Result<Self>{
         bevy::log::info!("Making custom level with data {data}");
+        use base64::Engine;
+        let decoded = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data)?;
 
-        let mut shapes: Vec<ShapeWithData> = vec![];
-        let mut gravity: Vec2 = GRAVITY;
-        let mut dodgy_params: Vec<&str> = vec![];
-        let mut raindrop_settings: Option<RaindropSettings> = None;
+        let str = std::str::from_utf8(decoded.as_slice())?;
 
-        for param in data.split_terminator(',') {
-            if let Some(param) = CustomParam::try_from_text(param) {
-                match param {
-                    CustomParam::Shape(s) => shapes.push(s),
-                    CustomParam::GravityX(x) => gravity.x = x,
-                    CustomParam::GravityY(y) => gravity.y = y,
-                    CustomParam::RainfallIntensity(intensity) => raindrop_settings = Some(RaindropSettings { intensity }),
-                }
-            } else {
-                dodgy_params.push(param);
-            }
-        }
+        let levels: Vec<SetLevel> = serde_yaml::from_str(str)?;
 
-        let message = if dodgy_params.is_empty() {
-            "Custom Level".to_string()
-        } else {
-            let joined = dodgy_params.join(", ");
-            format!("Could not parse: {}", joined)
-        };
+        let level = levels.into_iter().next().ok_or(anyhow::anyhow!("No levels Found"))?;
+        let message =level.initial_stage.text.clone();
 
-        Some(ChangeLevelEvent::Custom {
-            shapes,
-            gravity,
-            message,
-            raindrop_settings,
-        })
+        Ok(ChangeLevelEvent::Custom { level , message  })
+
+        // let mut shapes: Vec<ShapeWithData> = vec![];
+        // let mut gravity: Vec2 = GRAVITY;
+        // let mut dodgy_params: Vec<&str> = vec![];
+        // let mut raindrop_settings: Option<RaindropSettings> = None;
+
+        // for param in data.split_terminator(',') {
+        //     if let Some(param) = CustomParam::try_from_text(param) {
+        //         match param {
+        //             CustomParam::Shape(s) => shapes.push(s),
+        //             CustomParam::GravityX(x) => gravity.x = x,
+        //             CustomParam::GravityY(y) => gravity.y = y,
+        //             CustomParam::RainfallIntensity(intensity) => raindrop_settings = Some(RaindropSettings { intensity }),
+        //         }
+        //     } else {
+        //         dodgy_params.push(param);
+        //     }
+        // }
+
+        // let message = if dodgy_params.is_empty() {
+        //     "Custom Level".to_string()
+        // } else {
+        //     let joined = dodgy_params.join(", ");
+        //     format!("Could not parse: {}", joined)
+        // };
+
     }
 }
 
-pub enum CustomParam {
-    Shape(ShapeWithData),
-    GravityX(f32),
-    GravityY(f32),
-    RainfallIntensity(usize),
-}
+// pub enum CustomParam {
+//     Shape(ShapeWithData),
+//     GravityX(f32),
+//     GravityY(f32),
+//     RainfallIntensity(usize),
+// }
 
-impl CustomParam {
-    pub fn try_from_text(text: &str) -> Option<Self> {
-        let lc = text.to_ascii_lowercase();
-        if let Some(gravity_x) = lc.strip_prefix("gravx:") {
-            if let Ok(x) = gravity_x.parse() {
-                return Some(Self::GravityX(x));
-            } else {
-                return None;
-            }
-        }
+// impl CustomParam {
+//     pub fn try_from_text(text: &str) -> Option<Self> {
+//         let lc = text.to_ascii_lowercase();
+//         if let Some(gravity_x) = lc.strip_prefix("gravx:") {
+//             if let Ok(x) = gravity_x.parse() {
+//                 return Some(Self::GravityX(x));
+//             } else {
+//                 return None;
+//             }
+//         }
 
-        if let Some(gravity_y) = lc.strip_prefix("gravy:") {
-            if let Ok(y) = gravity_y.parse() {
-                return Some(Self::GravityY(y));
-            } else {
-                return None;
-            }
-        }
+//         if let Some(gravity_y) = lc.strip_prefix("gravy:") {
+//             if let Ok(y) = gravity_y.parse() {
+//                 return Some(Self::GravityY(y));
+//             } else {
+//                 return None;
+//             }
+//         }
 
-        if let Some(rainfall) = lc.strip_prefix("rain:") {
-            if let Ok(rain) = rainfall.parse() {
-                return Some(Self::RainfallIntensity(rain));
-            } else {
-                return None;
-            }
-        }
+//         if let Some(rainfall) = lc.strip_prefix("rain:") {
+//             if let Ok(rain) = rainfall.parse() {
+//                 return Some(Self::RainfallIntensity(rain));
+//             } else {
+//                 return None;
+//             }
+//         }
 
-        ShapeWithData::by_name(text).map(Self::Shape)
-    }
-}
+//         ShapeWithData::by_name(text).map(Self::Shape)
+//     }
+// }

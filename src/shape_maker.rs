@@ -15,7 +15,7 @@ pub fn create_initial_shapes(
     event_writer: &mut EventWriter<SpawnNewShapeEvent>,
 ) {
     let mut shapes: Vec<ShapeWithData> = match level {
-        GameLevel::SetLevel { level, .. } => match level.get_stage(&0) {
+        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level,.. } => match level.get_stage(&0) {
             Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
             None => vec![],
         },
@@ -39,7 +39,6 @@ pub fn create_initial_shapes(
                 .map(|i| ShapeWithData::from_seed(seed + i as u64).with_random_velocity())
                 .collect_vec()
         }
-        GameLevel::Custom { shapes, .. } => shapes.clone(),
     };
 
     shapes.sort_by_key(|x| x.fixed_location.is_some());

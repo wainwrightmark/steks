@@ -28,7 +28,7 @@ pub fn get_set_level(index: u8) -> Option<GameLevel> {
     })
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct SetLevel {
     #[serde(flatten)]
     pub initial_stage: LevelStage,
@@ -67,7 +67,7 @@ impl SetLevel {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LevelStage {
     pub text: String,
     pub mouse_text: Option<String>,

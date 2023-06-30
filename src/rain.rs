@@ -4,9 +4,10 @@ use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 use serde::{Deserialize, Serialize};
 
+
 use crate::{
     game_shape::{self, GameShapeBody},
-    level::CurrentLevel,
+    level::*,
     MAX_WINDOW_HEIGHT, MAX_WINDOW_WIDTH, RAIN_COLLISION_FILTERS, RAIN_COLLISION_GROUP,
 };
 pub struct RainPlugin;
@@ -136,19 +137,14 @@ fn manage_raindrops(
     let _previous = swap;
 
     let settings = match &current_level.level {
-        crate::level::GameLevel::SetLevel { index, level } => {
+        GameLevel::SetLevel {  level,.. } | GameLevel::Custom { level, .. } => {
             level
                 .get_current_stage(current_level.completion)
                 .rainfall
         }
-        crate::level::GameLevel::Infinite { bytes } => None,
-        crate::level::GameLevel::Challenge => None,
-        crate::level::GameLevel::Custom {
-            shapes,
-            gravity,
-            raindrop_settings,
-            message,
-        } => raindrop_settings.clone(),
+        GameLevel::Infinite { .. } => None,
+        GameLevel::Challenge => None,
+
     };
 
     match settings {

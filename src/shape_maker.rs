@@ -243,6 +243,11 @@ pub fn create_shape(
                 .insert(ActiveEvents::COLLISION_EVENTS)
                 .insert(WallSensor);
         });
+
+        ec.insert(Stroke {
+            color: color::WARN_COLOR,
+            options: StrokeOptions::default().with_line_width(1.0),
+        });
     }
 
     if state == InitialState::Fixed {
@@ -250,7 +255,7 @@ pub fn create_shape(
             color: Color::BLACK,
             options: StrokeOptions::default().with_line_width(1.0),
         });
-    } else if friction.is_some_and(|x| x < DEFAULT_FRICTION) {
+    } else if  friction.map(|x| x < DEFAULT_FRICTION).unwrap_or_default() {
         ec.insert(Stroke {
             color: Color::WHITE,
             options: StrokeOptions::default().with_line_width(1.0),

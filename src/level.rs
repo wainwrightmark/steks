@@ -273,7 +273,7 @@ pub enum GameLevel {
     },
     Challenge,
     Custom {
-        shapes: Vec<FixedShape>,
+        shapes: Vec<ShapeWithData>,
         gravity: Vec2,
         raindrop_settings: Option<RaindropSettings>,
         message: String,
@@ -342,7 +342,7 @@ pub enum ChangeLevelEvent {
     Load(Vec<u8>),
 
     Custom {
-        shapes: Vec<FixedShape>,
+        shapes: Vec<ShapeWithData>,
         gravity: Vec2,
         message: String,
         raindrop_settings: Option<RaindropSettings>,
@@ -493,7 +493,7 @@ impl ChangeLevelEvent {
     pub fn make_custom(data: &str) -> Option<Self> {
         bevy::log::info!("Making custom level with data {data}");
 
-        let mut shapes: Vec<FixedShape> = vec![];
+        let mut shapes: Vec<ShapeWithData> = vec![];
         let mut gravity: Vec2 = GRAVITY;
         let mut dodgy_params: Vec<&str> = vec![];
         let mut raindrop_settings: Option<RaindropSettings> = None;
@@ -528,7 +528,7 @@ impl ChangeLevelEvent {
 }
 
 pub enum CustomParam {
-    Shape(FixedShape),
+    Shape(ShapeWithData),
     GravityX(f32),
     GravityY(f32),
     RainfallIntensity(usize),
@@ -561,6 +561,6 @@ impl CustomParam {
             }
         }
 
-        FixedShape::by_name(text).map(Self::Shape)
+        ShapeWithData::by_name(text).map(Self::Shape)
     }
 }

@@ -1,9 +1,8 @@
-use crate::{shape_maker::DEFAULT_RESTITUTION, *};
+use crate::*;
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
 const MAX_FORCE: f32 = 800.0;
-const DRAGGED_DENSITY: f32 = 0.10;
 
 pub struct DragPlugin;
 impl Plugin for DragPlugin {
@@ -84,6 +83,8 @@ pub fn drag_end(
     for event in er_drag_end.iter() {
         info!("{:?}", event);
 
+        let any_fixed = draggables.iter().any(|x| x.1.is_fixed());
+
         for (entity, mut draggable) in draggables
             .iter_mut()
             .filter(|x| x.1.has_drag_source(event.drag_source))
@@ -94,7 +95,7 @@ pub fn drag_end(
                         .contacts_with(entity)
                         .any(|c| walls.contains(c.collider1()) || walls.contains(c.collider2()));
 
-                    if collides_with_wall {
+                    if collides_with_wall || any_fixed {
                         Draggable::Free
                     } else {
                         Draggable::Locked
@@ -124,6 +125,7 @@ pub struct BeingDragged {
 pub fn assign_padlock(
     time: Res<Time>,
     being_dragged: Query<(Entity, &Velocity, &Transform), With<BeingDragged>>,
+    draggables: Query<&Draggable>,
     mut padlock: ResMut<PadlockResource>,
 ) {
     const PAUSE_DURATION: Duration = Duration::from_millis(100);
@@ -131,7 +133,7 @@ pub fn assign_padlock(
     pub const LOCK_VELOCITY: f32 = 50.0;
     pub const LOCK_BREAK_VELOCITY: f32 = 3000.0;
 
-    if padlock.is_locked() {
+    if padlock.is_locked() || draggables.iter().filter(|x| x.is_fixed()).next().is_some() {
         return;
     }
     let elapsed = time.elapsed();
@@ -271,6 +273,10 @@ pub fn drag_start(
                 if let Ok((mut draggable, transform)) = draggables.get_mut(entity) {
                     info!("{:?} found intersection with {:?}", event, draggable);
 
+                    if draggable.is_fixed() {
+                        return true; //ignore this and keep looking
+                    }
+
                     let origin = transform.translation.truncate();
                     let offset = origin - event.position;
 
@@ -331,70 +337,47 @@ pub fn handle_drag_changes(
         mut collision_groups,
     ) in query.iter_mut()
     {
-        match draggable {
-            Draggable::Free => {
-                if padlock_resource.has_entity(entity) {
-                    *padlock_resource = Default::default();
-                }
-                *locked_axes = LockedAxes::default();
-                *gravity_scale = GravityScale::default();
-                *dominance = Dominance::default();
-                *mass = Default::default();
-                restitution.coefficient = DEFAULT_RESTITUTION;
+        *locked_axes = draggable.locked_axes();
+        *mass = draggable.collider_mass_properties();
+        *gravity_scale = draggable.gravity_scale();
+        *dominance = draggable.dominance();
+        restitution.coefficient = draggable.restitution_coefficient();
+        collision_groups.filters = draggable.collision_group_filters();
 
-                collision_groups.filters = SHAPE_COLLISION_FILTERS;
-            }
+        if !draggable.is_free() {
+            *velocity = Velocity::zero();
+        }
 
-            Draggable::Locked => {
-                *padlock_resource = PadlockResource {
-                    status: PadlockStatus::Locked {
-                        entity,
-                        translation: transform.translation,
-                    },
-                };
-                *locked_axes = LockedAxes::all();
-                *gravity_scale = GravityScale(0.0);
-                *velocity = Velocity::zero();
-                *dominance = Dominance::group(10);
-                *mass = Default::default();
-                restitution.coefficient = DEFAULT_RESTITUTION;
-                const FRAC_PI_128: f32 = std::f32::consts::PI / 128.0;
-                transform.rotation = round_z(transform.rotation, FRAC_PI_128);
-
-                collision_groups.filters = SHAPE_COLLISION_FILTERS;
-            }
-            Draggable::Dragged(dragged) => {
-                if padlock_resource.has_entity(entity) {
-                    *padlock_resource = Default::default();
-                }
-                let mut builder = commands.entity(entity);
-                builder.insert(BeingDragged {
-                    desired_position: transform.translation.truncate(),
-                });
-
-                if let DragSource::Touch { touch_id: _ } = dragged.drag_source {
-                    builder.insert(TouchDragged);
-                }
-
-                *mass = ColliderMassProperties::Density(DRAGGED_DENSITY);
-                *locked_axes = LockedAxes::ROTATION_LOCKED;
-                *gravity_scale = GravityScale(0.0);
-                *velocity = Velocity::zero();
-                *dominance = Dominance::default();
-                restitution.coefficient = 0.0;
-
-                collision_groups.filters = DRAGGED_SHAPE_COLLISION_FILTERS;
+        if draggable.is_locked() {
+            *padlock_resource = PadlockResource {
+                status: PadlockStatus::Locked {
+                    entity,
+                    translation: transform.translation,
+                },
+            };
+            const FRAC_PI_128: f32 = std::f32::consts::PI / 128.0;
+            transform.rotation = round_z(transform.rotation, FRAC_PI_128);
+        } else {
+            if padlock_resource.has_entity(entity) {
+                *padlock_resource = Default::default();
             }
         }
 
-        if !draggable.is_dragged() {
+        if let Draggable::Dragged(dragged) = draggable {
+            let mut builder = commands.entity(entity);
+            builder.insert(BeingDragged {
+                desired_position: transform.translation.truncate(),
+            });
+
+            if let DragSource::Touch { touch_id: _ } = dragged.drag_source {
+                builder.insert(TouchDragged);
+            }
+        } else {
             *external_force = Default::default();
             commands
                 .entity(entity)
-                // .remove::<DesiredTranslation>()
                 .remove::<BeingDragged>()
                 .remove::<TouchDragged>();
-            //info!("Entity is no longer dragged");
         }
     }
 }
@@ -403,6 +386,7 @@ pub fn handle_drag_changes(
 pub enum Draggable {
     Free,
     Locked,
+    Fixed,
     Dragged(Dragged),
 }
 
@@ -416,8 +400,16 @@ impl Draggable {
         dragged.drag_source.touch_id()
     }
 
+    pub fn is_free(&self) -> bool {
+        matches!(self, Draggable::Free)
+    }
+
     pub fn is_locked(&self) -> bool {
         matches!(self, Draggable::Locked)
+    }
+
+    pub fn is_fixed(&self) -> bool {
+        matches!(self, Draggable::Fixed)
     }
 
     pub fn has_drag_source(&self, drag_source: DragSource) -> bool {
@@ -483,5 +475,61 @@ impl DragSource {
     pub fn touch_id(&self) -> Option<u64> {
         let DragSource::Touch { touch_id } = self else{return None};
         Some(*touch_id)
+    }
+}
+
+impl Draggable {
+    pub fn locked_axes(&self) -> LockedAxes {
+        match self {
+            Draggable::Dragged(_) => LockedAxes::ROTATION_LOCKED,
+            Draggable::Free => LockedAxes::default(),
+            Draggable::Fixed => LockedAxes::all(),
+            Draggable::Locked => LockedAxes::all(),
+        }
+    }
+
+    pub fn collider_mass_properties(&self) -> ColliderMassProperties {
+        match self {
+            Draggable::Free => ColliderMassProperties::default(),
+            Draggable::Fixed => ColliderMassProperties::default(),
+            Draggable::Dragged(_) => ColliderMassProperties::Density(DRAGGED_DENSITY),
+            Draggable::Locked => ColliderMassProperties::default(),
+        }
+    }
+
+    pub fn gravity_scale(&self) -> GravityScale {
+        match self {
+            Draggable::Free => GravityScale::default(),
+            Draggable::Fixed => GravityScale(0.0),
+            Draggable::Dragged(_) => GravityScale(0.0),
+            Draggable::Locked => GravityScale(0.0),
+        }
+    }
+
+    pub fn dominance(&self) -> Dominance {
+        match self {
+            Draggable::Free => Dominance::default(),
+            Draggable::Fixed => Dominance::group(10),
+            Draggable::Dragged(_) => Dominance::default(),
+            Draggable::Locked => Dominance::group(10),
+        }
+    }
+
+    pub fn restitution_coefficient(&self) -> f32 {
+        match self {
+            Draggable::Free => DEFAULT_RESTITUTION,
+            Draggable::Fixed => DEFAULT_RESTITUTION,
+            Draggable::Dragged(_) => 0.0,
+            Draggable::Locked => DEFAULT_RESTITUTION,
+        }
+    }
+
+    pub fn collision_group_filters(&self) -> Group {
+        match self {
+            Draggable::Free => SHAPE_COLLISION_FILTERS,
+            Draggable::Fixed => SHAPE_COLLISION_FILTERS,
+            Draggable::Dragged(_) => DRAGGED_SHAPE_COLLISION_FILTERS,
+            Draggable::Locked => SHAPE_COLLISION_FILTERS,
+        }
     }
 }

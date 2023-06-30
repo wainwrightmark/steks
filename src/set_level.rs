@@ -1,11 +1,11 @@
 use std::f32::consts;
-
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    fixed_shape::{FixedShape, Location},
+    fixed_shape::{ShapeWithData, Location},
     game_shape::{self, GameShape},
-    level::{GameLevel, LevelCompletion}, rain::RaindropSettings,
+    level::{GameLevel, LevelCompletion},
+    rain::RaindropSettings,
 };
 
 lazy_static::lazy_static! {
@@ -49,10 +49,16 @@ impl SetLevel {
         }
     }
 
-    pub fn get_current_stage(&self, completion: LevelCompletion)-> &LevelStage{
-        match completion{
-            LevelCompletion::Incomplete { stage } => self.get_stage(&stage).unwrap_or(self.stages.first().unwrap()),
-            LevelCompletion::Complete { splash, score_info } => &self.stages.last().unwrap(),
+    pub fn get_last_stage(&self)-> &LevelStage{
+        self.stages.last().unwrap_or(&self.initial_stage)
+    }
+
+    pub fn get_current_stage(&self, completion: LevelCompletion) -> &LevelStage {
+        match completion {
+            LevelCompletion::Incomplete { stage } => self
+                .get_stage(&stage)
+                .unwrap_or(&self.initial_stage),
+            LevelCompletion::Complete { .. } => &self.get_last_stage(),
         }
     }
 
@@ -70,7 +76,7 @@ pub struct LevelStage {
     pub shapes: Vec<LevelShape>,
 
     pub gravity: Option<bevy::prelude::Vec2>,
-    pub rainfall: Option<RaindropSettings>
+    pub rainfall: Option<RaindropSettings>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
@@ -87,13 +93,25 @@ pub struct LevelShape {
     pub r: Option<f32>,
 
     #[serde(default)]
-    pub locked: bool,
+    pub state: InitialState,
 
     #[serde(default)]
     pub friction: Option<f32>,
 }
 
-impl From<LevelShape> for FixedShape {
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
+pub enum InitialState {
+    #[serde(alias = "normal")]
+    #[default]
+    Normal,
+    #[serde(alias = "locked")]
+    Locked,
+    #[serde(alias = "fixed")]
+    Fixed,
+}
+
+impl From<LevelShape> for ShapeWithData {
     fn from(val: LevelShape) -> Self {
         let mut fixed_location: Location = Default::default();
         let mut fl_set = false;
@@ -112,15 +130,16 @@ impl From<LevelShape> for FixedShape {
 
         let fixed_location = fl_set.then_some(fixed_location);
 
-        FixedShape {
+        let fixed_velocity = match val.state {
+            InitialState::Locked | InitialState::Fixed => Some(Default::default()),
+            InitialState::Normal => None,
+        };
+
+        ShapeWithData {
             shape: val.shape.into(),
             fixed_location,
-            locked: val.locked,
-            fixed_velocity: if val.locked {
-                Some(Default::default())
-            } else {
-                None
-            },
+            state: val.state,
+            fixed_velocity,
             friction: val.friction,
         }
     }
@@ -191,11 +210,11 @@ mod tests {
                     x: Some(1.0),
                     y: Some(2.0),
                     r: Some(3.0),
-                    locked: true,
+                    state: InitialState::Locked,
                     friction: Some(0.5),
                 }],
                 gravity: None,
-                rainfall: Some(RaindropSettings { intensity: 2 })
+                rainfall: Some(RaindropSettings { intensity: 2 }),
             },
             stages: vec![LevelStage {
                 text: "Other Stage".to_string(),
@@ -207,7 +226,7 @@ mod tests {
                     ..Default::default()
                 }],
                 gravity: Some(bevy::prelude::Vec2 { x: 100.0, y: 200.0 }),
-                rainfall: None
+                rainfall: None,
             }],
         }];
 
@@ -233,7 +252,7 @@ mod tests {
       x: null
       y: null
       r: null
-      locked: false
+      state: Locked
       friction: null
     gravity:
     - 100.0

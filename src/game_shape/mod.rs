@@ -49,7 +49,8 @@ impl GameShape {
     }
 
     pub fn fill(&self) -> Fill {
-        Fill::color(self.default_fill_color())
+        let mut color = self.default_fill_color();
+        Fill::color(color)
     }
 
     pub fn stroke(&self) -> Stroke {

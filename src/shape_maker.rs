@@ -4,7 +4,7 @@ use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
 
-use crate::*;
+use crate::{set_level::InitialState, *};
 
 use rand::{rngs::ThreadRng, Rng};
 
@@ -14,7 +14,7 @@ pub fn create_initial_shapes(
     level: &GameLevel,
     event_writer: &mut EventWriter<SpawnNewShapeEvent>,
 ) {
-    let shapes: Vec<FixedShape> = match level {
+    let mut shapes: Vec<ShapeWithData> = match level {
         GameLevel::SetLevel { level, .. } => match level.get_stage(&0) {
             Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
             None => vec![],
@@ -24,9 +24,9 @@ pub fn create_initial_shapes(
                 encoding::decode_shapes(bytes)
             } else {
                 let mut rng: ThreadRng = ThreadRng::default();
-                let mut shapes: Vec<FixedShape> = vec![];
+                let mut shapes: Vec<ShapeWithData> = vec![];
                 for _ in 0..infinity::STARTING_SHAPES {
-                    shapes.push(FixedShape::random(&mut rng).with_random_velocity());
+                    shapes.push(ShapeWithData::random(&mut rng).with_random_velocity());
                 }
                 shapes
             }
@@ -36,11 +36,13 @@ pub fn create_initial_shapes(
             let seed =
                 ((today.year().unsigned_abs() * 2000) + (today.month() * 100) + today.day()) as u64;
             (0..GameLevel::CHALLENGE_SHAPES)
-                .map(|i| FixedShape::from_seed(seed + i as u64).with_random_velocity())
+                .map(|i| ShapeWithData::from_seed(seed + i as u64).with_random_velocity())
                 .collect_vec()
         }
         GameLevel::Custom { shapes, .. } => shapes.clone(),
     };
+
+    shapes.sort_by_key(|x|x.fixed_location.is_some());
 
     for fixed_shape in shapes {
         event_writer.send(SpawnNewShapeEvent { fixed_shape })
@@ -48,14 +50,14 @@ pub fn create_initial_shapes(
 }
 
 pub struct SpawnNewShapeEvent {
-    pub fixed_shape: FixedShape,
+    pub fixed_shape: ShapeWithData,
 }
 
 pub fn spawn_shapes(
     mut commands: Commands,
     mut events: EventReader<SpawnNewShapeEvent>,
     rapier_context: Res<RapierContext>,
-    mut queue: Local<Vec<FixedShape>>,
+    mut queue: Local<Vec<ShapeWithData>>,
 ) {
     queue.extend(events.iter().map(|x| x.fixed_shape));
 
@@ -68,11 +70,17 @@ pub fn spawn_shapes(
 
 pub fn place_and_create_shape<RNG: Rng>(
     commands: &mut Commands,
-    fixed_shape: FixedShape,
+    fixed_shape: ShapeWithData,
     rapier_context: &Res<RapierContext>,
     rng: &mut RNG,
 ) {
-    let Location { position, angle } = fixed_shape.fixed_location.unwrap_or_else(|| {
+
+    let Location{position, angle} =
+    if let Some(l) = fixed_shape.fixed_location{
+        bevy::log::debug!("Placed fixed shape {} at {}", fixed_shape.shape.name, l.position);
+        l
+    }
+    else{
         let collider = fixed_shape.shape.body.to_collider_shape(SHAPE_SIZE);
         let mut tries = 0;
         loop {
@@ -86,7 +94,7 @@ pub fn place_and_create_shape<RNG: Rng>(
             let position = Vec2 { x, y };
 
             if tries >= 20 {
-                //log::info!("Placed shape without checking after {tries} tries at {position}");
+                bevy::log::debug!("Placed shape {} without checking after {tries} tries at {position}", fixed_shape.shape.name);
                 break Location { position, angle };
             }
 
@@ -94,12 +102,12 @@ pub fn place_and_create_shape<RNG: Rng>(
                 .intersection_with_shape(position, angle, &collider, QueryFilter::new())
                 .is_none()
             {
-                //log::info!("Placed shape after {tries} tries at {position}");
+                bevy::log::debug!("Placed shape {} after {tries} tries at {position}", fixed_shape.shape.name);
                 break Location { position, angle };
             }
             tries += 1;
         }
-    });
+    };
 
     let velocity = fixed_shape.fixed_velocity.unwrap_or_else(|| Velocity {
         linvel: Vec2 {
@@ -114,7 +122,7 @@ pub fn place_and_create_shape<RNG: Rng>(
         fixed_shape.shape,
         position,
         angle,
-        fixed_shape.locked,
+        fixed_shape.state,
         velocity,
         fixed_shape.friction,
     );
@@ -131,18 +139,17 @@ impl ShapeIndex {
 }
 
 pub const DEFAULT_FRICTION: f32 = 1.0;
-pub const DEFAULT_RESTITUTION: f32 = 0.3;
 
 pub fn create_shape(
     commands: &mut Commands,
     game_shape: &game_shape::GameShape,
     position: Vec2,
     angle: f32,
-    locked: bool,
+    state: InitialState,
     velocity: Velocity,
     friction: Option<f32>,
 ) {
-    debug!("Creating {game_shape} angle {angle} position {position} locked {locked}");
+    debug!("Creating {game_shape} angle {angle} position {position} state {state:?}");
 
     let collider_shape = game_shape.body.to_collider_shape(SHAPE_SIZE);
 
@@ -152,33 +159,42 @@ pub fn create_shape(
         scale: Vec3::ONE,
     };
 
-    let draggable = if locked {
-        crate::Draggable::Locked
-    } else {
-        crate::Draggable::Free
+    let draggable = match state {
+        InitialState::Normal => crate::Draggable::Free,
+        InitialState::Locked => crate::Draggable::Locked,
+        InitialState::Fixed => crate::Draggable::Fixed,
     };
 
     let mut ec = commands.spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE));
 
+    let fill = if draggable.is_fixed(){
+        Fill{
+            options:FillOptions::DEFAULT,color: Color::WHITE
+        }
+    }
+    else{
+        game_shape.fill()
+    };
+
     ec.insert(Friction::coefficient(friction.unwrap_or(DEFAULT_FRICTION)))
         .insert(Restitution {
-            coefficient: DEFAULT_RESTITUTION,
+            coefficient: draggable.restitution_coefficient(),
             combine_rule: CoefficientCombineRule::Min,
         })
-        .insert(game_shape.fill())
+        .insert(fill)
         .insert(game_shape.index)
         .insert(RigidBody::Dynamic)
         .insert(collider_shape)
         .insert(Ccd::enabled())
-        .insert(LockedAxes::default())
-        .insert(GravityScale::default())
+        .insert(draggable.locked_axes())
+        .insert(draggable.gravity_scale())
         .insert(velocity)
-        .insert(Dominance::default())
+        .insert(draggable.dominance())
         .insert(ExternalForce::default())
-        .insert(ColliderMassProperties::default())
+        .insert(draggable.collider_mass_properties())
         .insert(CollisionGroups {
             memberships: SHAPE_COLLISION_GROUP,
-            filters: SHAPE_COLLISION_FILTERS,
+            filters: draggable.collision_group_filters(),
         })
         .insert(draggable)
         .insert(transform);
@@ -203,18 +219,15 @@ pub fn create_shape(
             });
     });
 
-    if friction.is_some_and(|x| x < DEFAULT_FRICTION) {
-        ec.with_children(|x| {
-            x.spawn_empty()
-                .insert(game_shape.body.get_shape_bundle(SHAPE_SIZE))
-                .insert(Stroke {
-                    color: Color::WHITE,
-                    options: StrokeOptions::default().with_line_width(1.0),
-                })
-                .insert(Transform {
-                    translation: Vec3::new(0., 0., 5.),
-                    ..Default::default()
-                });
+    if state == InitialState::Fixed {
+        ec.insert(Stroke {
+            color: Color::BLACK,
+            options: StrokeOptions::default().with_line_width(1.0),
+        });
+    } else if friction.is_some_and(|x| x < DEFAULT_FRICTION) {
+        ec.insert(Stroke {
+            color: Color::WHITE,
+            options: StrokeOptions::default().with_line_width(1.0),
         });
     }
 }

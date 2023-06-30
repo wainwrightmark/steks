@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use std::ops::RangeInclusive;
 
-use crate::*;
+use crate::{set_level::InitialState, *};
 
 pub fn encode_shapes(shapes: &[(&GameShape, Location, bool)]) -> Vec<u8> {
     shapes
@@ -10,7 +10,7 @@ pub fn encode_shapes(shapes: &[(&GameShape, Location, bool)]) -> Vec<u8> {
         .collect_vec()
 }
 
-pub fn decode_shapes(data: &[u8]) -> Vec<FixedShape> {
+pub fn decode_shapes(data: &[u8]) -> Vec<ShapeWithData> {
     data.chunks_exact(6).map(decode_shape).collect_vec()
 }
 
@@ -35,9 +35,14 @@ pub fn encode_shape(shape: &GameShape, location: Location, locked: bool) -> [u8;
     arr
 }
 
-pub fn decode_shape(arr: &[u8]) -> FixedShape {
+pub fn decode_shape(arr: &[u8]) -> ShapeWithData {
     let shape_index = ((arr[0]) as usize) / 2;
     let locked = arr[0] % 2 > 0;
+    let state = if locked {
+        InitialState::Locked
+    } else {
+        InitialState::Normal
+    };
 
     let shape = &game_shape::ALL_SHAPES[shape_index % game_shape::ALL_SHAPES.len()];
     let x_u16 = u16::from_be_bytes([arr[1], arr[2]]);
@@ -48,10 +53,10 @@ pub fn decode_shape(arr: &[u8]) -> FixedShape {
     let position = Vec2 { x, y };
     let location = Location { position, angle };
 
-    FixedShape {
+    ShapeWithData {
         shape,
         fixed_location: Some(location),
-        locked,
+        state,
         fixed_velocity: Some(Velocity::default()),
         friction: None,
     }
@@ -95,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_shape_encoding_roundtrip() {
-        let fs = FixedShape::by_name("O")
+        let fs = ShapeWithData::by_name("O")
             .unwrap_or_else(|| panic!("Could not find shape with name 'O'"))
             .with_location(
                 Vec2 {
@@ -106,7 +111,7 @@ mod tests {
             )
             .lock();
 
-        let encoded = encode_shape(fs.shape, fs.fixed_location.unwrap(), fs.locked);
+        let encoded = encode_shape(fs.shape, fs.fixed_location.unwrap(), fs.state == InitialState::Locked);
 
         let decoded = decode_shape(&encoded);
 

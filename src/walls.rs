@@ -2,7 +2,7 @@ use bevy::window::WindowResized;
 use bevy_prototype_lyon::shapes::Rectangle;
 use strum::{Display, EnumIter, IntoEnumIterator};
 
-use crate::{shape_maker::DEFAULT_RESTITUTION, *};
+use crate::*;
 
 #[derive(Component, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
 pub enum Wall {

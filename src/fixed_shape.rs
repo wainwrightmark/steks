@@ -1,11 +1,11 @@
-use crate::*;
+use crate::{*, set_level::InitialState};
 use rand::{rngs::StdRng, seq::SliceRandom, Rng};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct FixedShape {
+pub struct ShapeWithData {
     pub shape: &'static GameShape,
     pub fixed_location: Option<Location>,
-    pub locked: bool,
+    pub state: InitialState,
     pub fixed_velocity: Option<Velocity>,
     pub friction: Option<f32>,
 }
@@ -31,12 +31,12 @@ impl From<&Transform> for Location {
     }
 }
 
-impl FixedShape {
+impl ShapeWithData {
     pub fn by_name(s: &str) -> Option<Self> {
         game_shape::shape_by_name(s).map(|shape| Self {
             shape,
             fixed_location: None,
-            locked: false,
+            state: InitialState::Normal,
             fixed_velocity: Some(Default::default()),
             friction: None,
         })
@@ -48,7 +48,7 @@ impl FixedShape {
     }
 
     pub fn lock(mut self) -> Self {
-        self.locked = true;
+        self.state = InitialState::Locked;
         self
     }
 
@@ -73,7 +73,7 @@ impl FixedShape {
         Self {
             shape,
             fixed_location: None,
-            locked: false,
+            state: InitialState::Normal,
             fixed_velocity: Some(Default::default()),
             friction: None,
         }

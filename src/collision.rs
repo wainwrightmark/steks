@@ -32,7 +32,7 @@ fn display_collision_markers(
 
     //info!("dcm markers: {}", markers_map.len());
 
-    for (wall_entity, wall_transform, wall) in walls.iter().filter(|x| x.2 != &Wall::Bottom) {
+    for (wall_entity, wall_transform, wall) in walls.iter().filter(|x| x.2.show_marker()) {
         for contact in rapier_context
             .contacts_with(wall_entity)
             .filter(|contact| contact.has_any_active_contacts())
@@ -51,7 +51,7 @@ fn display_collision_markers(
                         wall_entity,
                         other_entity,
                         index,
-                        horizontal: wall.horizontal(),
+                        horizontal: wall.marker_horizontal(),
                     };
                     let mut new_transform = *wall_transform;
                     //new_transform.
@@ -67,7 +67,7 @@ fn display_collision_markers(
                         //  info!("dcm updated");
                         *transform = new_transform;
                     } else {
-                        let (xr, yr) = if wall.horizontal() {
+                        let (xr, yr) = if wall.marker_horizontal() {
                             (
                                 SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
                                 SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,

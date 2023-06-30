@@ -34,7 +34,7 @@ const FUTURE_WATCH: f64 = 20.0;
 pub fn check_for_win(
     mut commands: Commands,
     mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), Without<WinTimer>>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent), Without<WinTimer>>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
 
@@ -94,7 +94,7 @@ pub fn check_for_tower(
     mut end_drag_events: EventReader<crate::DragEndedEvent>,
     win_timer: Query<&WinTimer>,
     time: Res<Time>,
-    draggable: Query<&Draggable>,
+    draggable: Query<&ShapeComponent>,
 
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
@@ -250,7 +250,7 @@ fn check_for_collisions(
     mut commands: Commands,
     win_timer: Query<(Entity, &WinTimer)>,
     mut collision_events: EventReader<CollisionEvent>,
-    draggables: Query<&Draggable>,
+    draggables: Query<&ShapeComponent>,
     walls: Query<(), With<WallSensor>>,
 ) {
     if win_timer.is_empty() {

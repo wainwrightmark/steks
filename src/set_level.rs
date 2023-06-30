@@ -109,6 +109,8 @@ pub enum InitialState {
     Locked,
     #[serde(alias = "fixed")]
     Fixed,
+    #[serde(alias = "void")]
+    Void
 }
 
 impl From<LevelShape> for ShapeWithData {
@@ -131,7 +133,7 @@ impl From<LevelShape> for ShapeWithData {
         let fixed_location = fl_set.then_some(fixed_location);
 
         let fixed_velocity = match val.state {
-            InitialState::Locked | InitialState::Fixed => Some(Default::default()),
+            InitialState::Locked | InitialState::Fixed | InitialState::Void => Some(Default::default()),
             InitialState::Normal => None,
         };
 

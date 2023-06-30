@@ -4,8 +4,35 @@ use strum::{Display, EnumIter, IntoEnumIterator};
 
 use crate::*;
 
-#[derive(Component, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
+#[derive(Component, PartialEq, Eq, Clone, Copy, Debug, Display)]
 pub enum Wall {
+    Positioned(WallPosition),
+    Void,
+}
+
+impl Wall{
+    pub fn show_marker(&self)-> bool{
+        match self {
+            Wall::Void=>true,
+            Wall::Positioned(position)=>{
+                position != &WallPosition::Bottom
+            }
+        }
+    }
+
+    pub fn marker_horizontal(&self)-> bool{
+        match self {
+            Wall::Void=>true, //true
+            Wall::Positioned(position)=>{
+                position.is_horizontal()
+            }
+        }
+    }
+}
+
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
+pub enum WallPosition {
     Top,
     Bottom,
     Left,
@@ -15,23 +42,23 @@ pub enum Wall {
 #[derive(Debug, Component)]
 pub struct WallSensor;
 
-impl Wall {
-    pub fn horizontal(&self) -> bool {
+impl WallPosition {
+    pub fn is_horizontal(&self) -> bool {
         match self {
-            Wall::Top => true,
-            Wall::Bottom => true,
-            Wall::Left => false,
-            Wall::Right => false,
+            WallPosition::Top => true,
+            WallPosition::Bottom => true,
+            WallPosition::Left => false,
+            WallPosition::Right => false,
         }
     }
 
     pub fn get_position(&self, height: f32, width: f32) -> Vec3 {
         const OFFSET: f32 = crate::WALL_WIDTH / 2.0;
         match self {
-            Wall::Top => Vec2::new(0.0, height / 2.0 + OFFSET),
-            Wall::Bottom => Vec2::new(0.0, -height / 2.0 - OFFSET) + 10.0,
-            Wall::Left => Vec2::new(-width / 2.0 - OFFSET, 0.0),
-            Wall::Right => Vec2::new(width / 2.0 + OFFSET, 0.0),
+            WallPosition::Top => Vec2::new(0.0, height / 2.0 + OFFSET),
+            WallPosition::Bottom => Vec2::new(0.0, -height / 2.0 - OFFSET) + 10.0,
+            WallPosition::Left => Vec2::new(-width / 2.0 - OFFSET, 0.0),
+            WallPosition::Right => Vec2::new(width / 2.0 + OFFSET, 0.0),
         }
         .extend(1.0)
     }
@@ -48,13 +75,15 @@ impl Plugin for WallsPlugin {
 
 fn move_walls(
     mut window_resized_events: EventReader<WindowResized>,
-    mut walls_query: Query<(&Wall, &mut Transform), Without<Draggable>>,
-    mut draggables_query: Query<&mut Transform, With<Draggable>>,
+    mut walls_query: Query<(&Wall, &mut Transform), Without<ShapeComponent>>,
+    mut draggables_query: Query<&mut Transform, With<ShapeComponent>>,
 ) {
     for ev in window_resized_events.iter() {
         for (wall, mut transform) in walls_query.iter_mut() {
-            let p = wall.get_position(ev.height, ev.width);
-            transform.translation = p;
+            if let Wall::Positioned(position) = wall {
+                let p: Vec3 = position.get_position(ev.height, ev.width);
+                transform.translation = p;
+            }
         }
 
         for mut transform in draggables_query.iter_mut() {
@@ -76,16 +105,16 @@ fn move_walls(
 fn spawn_walls(mut commands: Commands) {
     let color = color::ACCENT_COLOR;
 
-    for wall in Wall::iter() {
+    for wall in WallPosition::iter() {
         spawn_wall(&mut commands, color, wall);
     }
 }
 
-fn spawn_wall(commands: &mut Commands, color: Color, wall: Wall) {
+fn spawn_wall(commands: &mut Commands, color: Color, wall: WallPosition) {
     const EXTRA_WIDTH: f32 = crate::WALL_WIDTH * 2.0;
     let point = wall.get_position(crate::WINDOW_HEIGHT, crate::WINDOW_WIDTH);
 
-    let (width, height) = if wall.horizontal() {
+    let (width, height) = if wall.is_horizontal() {
         (crate::MAX_WINDOW_WIDTH + EXTRA_WIDTH, crate::WALL_WIDTH)
     } else {
         (crate::WALL_WIDTH, crate::MAX_WINDOW_HEIGHT)
@@ -115,12 +144,11 @@ fn spawn_wall(commands: &mut Commands, color: Color, wall: Wall) {
             memberships: WALL_COLLISION_GROUP,
             filters: WALL_COLLISION_FILTERS,
         })
-        .insert(wall)
+        .insert(Wall::Positioned(wall))
         .with_children(|f| {
             f.spawn(collider_shape)
                 .insert(Sensor {})
                 .insert(ActiveEvents::COLLISION_EVENTS)
-                .insert(WallSensor)
-                ;
+                .insert(WallSensor);
         });
 }

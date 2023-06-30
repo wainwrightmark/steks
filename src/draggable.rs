@@ -74,7 +74,7 @@ fn round_z(q: Quat, multiple: f32) -> Quat {
 pub fn drag_end(
     mut er_drag_end: EventReader<DragEndingEvent>,
     padlock_resource: Res<PadlockResource>,
-    mut draggables: Query<(Entity, &mut Draggable)>,
+    mut draggables: Query<(Entity, &mut ShapeComponent)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ew_end_drag: EventWriter<DragEndedEvent>,
     rapier_context: ResMut<RapierContext>,
@@ -89,19 +89,19 @@ pub fn drag_end(
             .iter_mut()
             .filter(|x| x.1.has_drag_source(event.drag_source))
         {
-            if let Draggable::Dragged(..) = draggable.as_ref() {
+            if let ShapeComponent::Dragged(..) = draggable.as_ref() {
                 *draggable = if padlock_resource.has_entity(entity) {
                     let collides_with_wall = rapier_context
                         .contacts_with(entity)
                         .any(|c| walls.contains(c.collider1()) || walls.contains(c.collider2()));
 
                     if collides_with_wall || any_fixed {
-                        Draggable::Free
+                        ShapeComponent::Free
                     } else {
-                        Draggable::Locked
+                        ShapeComponent::Locked
                     }
                 } else {
-                    Draggable::Free
+                    ShapeComponent::Free
                 };
                 ew_end_drag.send(DragEndedEvent {});
             }
@@ -125,7 +125,7 @@ pub struct BeingDragged {
 pub fn assign_padlock(
     time: Res<Time>,
     being_dragged: Query<(Entity, &Velocity, &Transform), With<BeingDragged>>,
-    draggables: Query<&Draggable>,
+    draggables: Query<&ShapeComponent>,
     mut padlock: ResMut<PadlockResource>,
 ) {
     const PAUSE_DURATION: Duration = Duration::from_millis(100);
@@ -213,7 +213,7 @@ fn apply_forces(
 pub fn drag_move(
     mut er_drag_move: EventReader<DragMoveEvent>,
 
-    mut dragged_entities: Query<(&Draggable, &mut BeingDragged)>,
+    mut dragged_entities: Query<(&ShapeComponent, &mut BeingDragged)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ev_rotate: EventWriter<RotateEvent>,
 ) {
@@ -262,7 +262,7 @@ pub fn drag_move(
 pub fn drag_start(
     mut er_drag_start: EventReader<DragStartEvent>,
     rapier_context: Res<RapierContext>,
-    mut draggables: Query<(&mut Draggable, &Transform), Without<ZoomCamera>>,
+    mut draggables: Query<(&mut ShapeComponent, &Transform), Without<ZoomCamera>>,
     mut touch_rotate: ResMut<TouchRotateResource>,
 ) {
     for event in er_drag_start.iter() {
@@ -280,7 +280,7 @@ pub fn drag_start(
                     let origin = transform.translation.truncate();
                     let offset = origin - event.position;
 
-                    *draggable = Draggable::Dragged(Dragged {
+                    *draggable = ShapeComponent::Dragged(Dragged {
                         origin,
                         offset,
                         drag_source: event.drag_source,
@@ -309,7 +309,7 @@ pub fn handle_drag_changes(
         (
             Entity,
             &mut Transform,
-            &Draggable,
+            &ShapeComponent,
             &mut LockedAxes,
             &mut GravityScale,
             &mut Velocity,
@@ -319,7 +319,7 @@ pub fn handle_drag_changes(
             &mut Restitution,
             &mut CollisionGroups,
         ),
-        Changed<Draggable>,
+        Changed<ShapeComponent>,
     >,
     mut padlock_resource: ResMut<PadlockResource>,
 ) {
@@ -363,7 +363,7 @@ pub fn handle_drag_changes(
             }
         }
 
-        if let Draggable::Dragged(dragged) = draggable {
+        if let ShapeComponent::Dragged(dragged) = draggable {
             let mut builder = commands.entity(entity);
             builder.insert(BeingDragged {
                 desired_position: transform.translation.truncate(),
@@ -383,42 +383,47 @@ pub fn handle_drag_changes(
 }
 
 #[derive(Component, Debug, Clone, PartialEq)]
-pub enum Draggable {
+pub enum ShapeComponent {
     Free,
     Locked,
     Fixed,
+    Void,
     Dragged(Dragged),
 }
 
-impl Draggable {
+impl ShapeComponent {
     pub fn is_dragged(&self) -> bool {
-        matches!(self, Draggable::Dragged { .. })
+        matches!(self, ShapeComponent::Dragged { .. })
     }
 
     pub fn touch_id(&self) -> Option<u64> {
-        let Draggable::Dragged(dragged) = self else {return  None;};
+        let ShapeComponent::Dragged(dragged) = self else {return  None;};
         dragged.drag_source.touch_id()
     }
 
     pub fn is_free(&self) -> bool {
-        matches!(self, Draggable::Free)
+        matches!(self, ShapeComponent::Free)
     }
 
     pub fn is_locked(&self) -> bool {
-        matches!(self, Draggable::Locked)
+        matches!(self, ShapeComponent::Locked)
     }
 
     pub fn is_fixed(&self) -> bool {
-        matches!(self, Draggable::Fixed)
+        matches!(self, ShapeComponent::Fixed)
+    }
+
+    pub fn is_void(&self)-> bool{
+        matches!(self, ShapeComponent::Void)
     }
 
     pub fn has_drag_source(&self, drag_source: DragSource) -> bool {
-        let Draggable::Dragged(dragged) = self else {return  false;};
+        let ShapeComponent::Dragged(dragged) = self else {return  false;};
         dragged.drag_source == drag_source
     }
 
     pub fn get_offset(&self) -> Vec2 {
-        let Draggable::Dragged(dragged) = self else {return  Default::default();};
+        let ShapeComponent::Dragged(dragged) = self else {return  Default::default();};
         dragged.offset
     }
 }
@@ -478,58 +483,64 @@ impl DragSource {
     }
 }
 
-impl Draggable {
+impl ShapeComponent {
     pub fn locked_axes(&self) -> LockedAxes {
         match self {
-            Draggable::Dragged(_) => LockedAxes::ROTATION_LOCKED,
-            Draggable::Free => LockedAxes::default(),
-            Draggable::Fixed => LockedAxes::all(),
-            Draggable::Locked => LockedAxes::all(),
+            ShapeComponent::Dragged(_) => LockedAxes::ROTATION_LOCKED,
+            ShapeComponent::Free => LockedAxes::default(),
+            ShapeComponent::Fixed => LockedAxes::all(),
+            ShapeComponent::Locked => LockedAxes::all(),
+            ShapeComponent::Void => LockedAxes::all(),
         }
     }
 
     pub fn collider_mass_properties(&self) -> ColliderMassProperties {
         match self {
-            Draggable::Free => ColliderMassProperties::default(),
-            Draggable::Fixed => ColliderMassProperties::default(),
-            Draggable::Dragged(_) => ColliderMassProperties::Density(DRAGGED_DENSITY),
-            Draggable::Locked => ColliderMassProperties::default(),
+            ShapeComponent::Free => ColliderMassProperties::default(),
+            ShapeComponent::Fixed => ColliderMassProperties::default(),
+            ShapeComponent::Dragged(_) => ColliderMassProperties::Density(DRAGGED_DENSITY),
+            ShapeComponent::Locked => ColliderMassProperties::default(),
+            ShapeComponent::Void => ColliderMassProperties::default(),
         }
     }
 
     pub fn gravity_scale(&self) -> GravityScale {
         match self {
-            Draggable::Free => GravityScale::default(),
-            Draggable::Fixed => GravityScale(0.0),
-            Draggable::Dragged(_) => GravityScale(0.0),
-            Draggable::Locked => GravityScale(0.0),
+            ShapeComponent::Free => GravityScale::default(),
+            ShapeComponent::Fixed => GravityScale(0.0),
+            ShapeComponent::Dragged(_) => GravityScale(0.0),
+            ShapeComponent::Locked => GravityScale(0.0),
+            ShapeComponent::Void => GravityScale(0.0),
         }
     }
 
     pub fn dominance(&self) -> Dominance {
         match self {
-            Draggable::Free => Dominance::default(),
-            Draggable::Fixed => Dominance::group(10),
-            Draggable::Dragged(_) => Dominance::default(),
-            Draggable::Locked => Dominance::group(10),
+            ShapeComponent::Free => Dominance::default(),
+            ShapeComponent::Fixed => Dominance::group(10),
+            ShapeComponent::Dragged(_) => Dominance::default(),
+            ShapeComponent::Locked => Dominance::group(10),
+            ShapeComponent::Void => Dominance::group(10),
         }
     }
 
     pub fn restitution_coefficient(&self) -> f32 {
         match self {
-            Draggable::Free => DEFAULT_RESTITUTION,
-            Draggable::Fixed => DEFAULT_RESTITUTION,
-            Draggable::Dragged(_) => 0.0,
-            Draggable::Locked => DEFAULT_RESTITUTION,
+            ShapeComponent::Free => DEFAULT_RESTITUTION,
+            ShapeComponent::Fixed => DEFAULT_RESTITUTION,
+            ShapeComponent::Dragged(_) => 0.0,
+            ShapeComponent::Locked => DEFAULT_RESTITUTION,
+            ShapeComponent::Void => DEFAULT_RESTITUTION,
         }
     }
 
     pub fn collision_group_filters(&self) -> Group {
         match self {
-            Draggable::Free => SHAPE_COLLISION_FILTERS,
-            Draggable::Fixed => SHAPE_COLLISION_FILTERS,
-            Draggable::Dragged(_) => DRAGGED_SHAPE_COLLISION_FILTERS,
-            Draggable::Locked => SHAPE_COLLISION_FILTERS,
+            ShapeComponent::Free => SHAPE_COLLISION_FILTERS,
+            ShapeComponent::Fixed => SHAPE_COLLISION_FILTERS,
+            ShapeComponent::Dragged(_) => DRAGGED_SHAPE_COLLISION_FILTERS,
+            ShapeComponent::Locked => SHAPE_COLLISION_FILTERS,
+            ShapeComponent::Void => SHAPE_COLLISION_FILTERS,
         }
     }
 }

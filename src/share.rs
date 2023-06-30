@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{draggable::Draggable, shape_maker::ShapeIndex, shapes_vec::ShapesVec};
+use crate::{draggable::ShapeComponent, shape_maker::ShapeIndex, shapes_vec::ShapesVec};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ShareEvent;
@@ -16,7 +16,7 @@ impl Plugin for SharePlugin {
 
 fn handle_shares(
     mut events: EventReader<ShareEvent>,
-    _shapes_query: Query<(&ShapeIndex, &Transform, &Draggable)>,
+    _shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent)>,
 ) {
     if events.iter().next().is_some() {
         bevy::log::debug!("Handling Share");

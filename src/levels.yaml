@@ -190,8 +190,26 @@
       x: 0.0
       y: -150.0
       r: 0.125
-      state: Frozen
+      state: Fixed
     - shape: W5
+    - shape: F5
+    - shape: Z5
+    - shape: N5
+    - shape: T5
+
+- text: "XIII.\nSteks of Cthulu"
+  end_text: "The dreamer waits..."
+  shapes:
+    - shape: I5
+      x: 0.0
+      y: -150.0
+      r: 0.25
+      state: Fixed
+    - shape: X5
+      x: 25.0
+      y: -100.0
+      r: 0.125
+      state: Void
     - shape: F5
     - shape: Z5
     - shape: N5

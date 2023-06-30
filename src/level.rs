@@ -22,7 +22,7 @@ impl Plugin for LevelPlugin {
 
 fn manage_level_shapes(
     mut commands: Commands,
-    draggables: Query<((Entity, &ShapeIndex), With<Draggable>)>,
+    draggables: Query<((Entity, &ShapeIndex), With<ShapeComponent>)>,
     current_level: Res<CurrentLevel>,
     mut event_writer: EventWriter<SpawnNewShapeEvent>,
     mut previous: Local<CurrentLevel>,

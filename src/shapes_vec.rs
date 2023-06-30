@@ -6,7 +6,7 @@ use bevy::{
 use itertools::Itertools;
 
 use crate::{
-    draggable::Draggable,
+    draggable::ShapeComponent,
     encoding,
     fixed_shape::Location,
     game_shape::{GameShape, ALL_SHAPES},
@@ -50,7 +50,7 @@ impl<'a> ShapesVec<'a> {
     }
 
     pub fn from_query<F: ReadOnlyWorldQuery>(
-        shapes_query: Query<(&ShapeIndex, &Transform, &Draggable), F>,
+        shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent), F>,
     ) -> Self {
         let shapes: Vec<(&'a GameShape, Location, bool)> = shapes_query
             .iter()

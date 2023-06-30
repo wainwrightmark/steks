@@ -42,7 +42,7 @@ pub fn create_initial_shapes(
         GameLevel::Custom { shapes, .. } => shapes.clone(),
     };
 
-    shapes.sort_by_key(|x|x.fixed_location.is_some());
+    shapes.sort_by_key(|x| x.fixed_location.is_some());
 
     for fixed_shape in shapes {
         event_writer.send(SpawnNewShapeEvent { fixed_shape })
@@ -74,13 +74,14 @@ pub fn place_and_create_shape<RNG: Rng>(
     rapier_context: &Res<RapierContext>,
     rng: &mut RNG,
 ) {
-
-    let Location{position, angle} =
-    if let Some(l) = fixed_shape.fixed_location{
-        bevy::log::debug!("Placed fixed shape {} at {}", fixed_shape.shape.name, l.position);
+    let Location { position, angle } = if let Some(l) = fixed_shape.fixed_location {
+        bevy::log::debug!(
+            "Placed fixed shape {} at {}",
+            fixed_shape.shape.name,
+            l.position
+        );
         l
-    }
-    else{
+    } else {
         let collider = fixed_shape.shape.body.to_collider_shape(SHAPE_SIZE);
         let mut tries = 0;
         loop {
@@ -94,7 +95,10 @@ pub fn place_and_create_shape<RNG: Rng>(
             let position = Vec2 { x, y };
 
             if tries >= 20 {
-                bevy::log::debug!("Placed shape {} without checking after {tries} tries at {position}", fixed_shape.shape.name);
+                bevy::log::debug!(
+                    "Placed shape {} without checking after {tries} tries at {position}",
+                    fixed_shape.shape.name
+                );
                 break Location { position, angle };
             }
 
@@ -102,7 +106,10 @@ pub fn place_and_create_shape<RNG: Rng>(
                 .intersection_with_shape(position, angle, &collider, QueryFilter::new())
                 .is_none()
             {
-                bevy::log::debug!("Placed shape {} after {tries} tries at {position}", fixed_shape.shape.name);
+                bevy::log::debug!(
+                    "Placed shape {} after {tries} tries at {position}",
+                    fixed_shape.shape.name
+                );
                 break Location { position, angle };
             }
             tries += 1;
@@ -159,44 +166,52 @@ pub fn create_shape(
         scale: Vec3::ONE,
     };
 
-    let draggable = match state {
-        InitialState::Normal => crate::Draggable::Free,
-        InitialState::Locked => crate::Draggable::Locked,
-        InitialState::Fixed => crate::Draggable::Fixed,
+    let shape_component = match state {
+        InitialState::Normal => crate::ShapeComponent::Free,
+        InitialState::Locked => crate::ShapeComponent::Locked,
+        InitialState::Fixed => crate::ShapeComponent::Fixed,
+        InitialState::Void => crate::ShapeComponent::Void,
     };
 
     let mut ec = commands.spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE));
 
-    let fill = if draggable.is_fixed(){
-        Fill{
-            options:FillOptions::DEFAULT,color: Color::WHITE
+    let fill = if shape_component.is_fixed() {
+        Fill {
+            options: FillOptions::DEFAULT,
+            color: Color::WHITE,
         }
     }
-    else{
+    else if shape_component.is_void(){
+        Fill {
+            options: FillOptions::DEFAULT,
+            color: Color::BLACK,
+        }
+    }
+    else {
         game_shape.fill()
     };
 
     ec.insert(Friction::coefficient(friction.unwrap_or(DEFAULT_FRICTION)))
         .insert(Restitution {
-            coefficient: draggable.restitution_coefficient(),
+            coefficient: shape_component.restitution_coefficient(),
             combine_rule: CoefficientCombineRule::Min,
         })
         .insert(fill)
         .insert(game_shape.index)
         .insert(RigidBody::Dynamic)
-        .insert(collider_shape)
+        .insert(collider_shape.clone())
         .insert(Ccd::enabled())
-        .insert(draggable.locked_axes())
-        .insert(draggable.gravity_scale())
+        .insert(shape_component.locked_axes())
+        .insert(shape_component.gravity_scale())
         .insert(velocity)
-        .insert(draggable.dominance())
+        .insert(shape_component.dominance())
         .insert(ExternalForce::default())
-        .insert(draggable.collider_mass_properties())
+        .insert(shape_component.collider_mass_properties())
         .insert(CollisionGroups {
             memberships: SHAPE_COLLISION_GROUP,
-            filters: draggable.collision_group_filters(),
+            filters: shape_component.collision_group_filters(),
         })
-        .insert(draggable)
+        .insert(shape_component)
         .insert(transform);
 
     ec.with_children(|x| {
@@ -218,6 +233,17 @@ pub fn create_shape(
                 options: StrokeOptions::default().with_line_width(camera::ZOOM_LEVEL),
             });
     });
+
+    if state == InitialState::Void{
+        ec.insert(Wall::Void);
+
+        ec.with_children(|f| {
+            f.spawn(collider_shape)
+                .insert(Sensor {})
+                .insert(ActiveEvents::COLLISION_EVENTS)
+                .insert(WallSensor);
+        });
+    }
 
     if state == InitialState::Fixed {
         ec.insert(Stroke {

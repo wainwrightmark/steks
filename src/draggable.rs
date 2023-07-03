@@ -1,4 +1,4 @@
-use crate::{*, shape_maker::FixedShape};
+use crate::{*, shape_maker::{FixedShape, VoidShape}};
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
@@ -263,7 +263,7 @@ pub fn drag_move(
 pub fn drag_start(
     mut er_drag_start: EventReader<DragStartEvent>,
     rapier_context: Res<RapierContext>,
-    mut draggables: Query<(&mut ShapeComponent, &Transform), Without<ZoomCamera>>,
+    mut draggables: Query<(&mut ShapeComponent, &Transform), (Without<ZoomCamera>, Without<FixedShape>, Without<VoidShape>)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
 ) {
     for event in er_drag_start.iter() {
@@ -274,9 +274,6 @@ pub fn drag_start(
                 if let Ok((mut draggable, transform)) = draggables.get_mut(entity) {
                     info!("{:?} found intersection with {:?}", event, draggable);
 
-                    if draggable.is_fixed() {
-                        return true; //ignore this and keep looking
-                    }
 
                     let origin = transform.translation.truncate();
                     let offset = origin - event.position;

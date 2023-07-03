@@ -2,7 +2,7 @@ use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::RapierContext;
 
-use crate::{shape_maker::SHAPE_SIZE, walls::*};
+use crate::{shape_maker::SHAPE_SIZE, walls::*, PHYSICS_SCALE};
 
 pub struct CollisionPlugin;
 
@@ -17,12 +17,12 @@ pub struct CollisionMarker {
     pub wall_entity: Entity,
     pub other_entity: Entity,
     pub index: usize,
-    pub horizontal: bool,
+    pub marker_type: MarkerType,
 }
 
 fn display_collision_markers(
     mut commands: Commands,
-    rapier_context: ResMut<RapierContext>,
+    rapier_context: Res<RapierContext>,
     walls: Query<(Entity, &Transform, &Wall), Without<CollisionMarker>>,
     mut markers: Query<(Entity, &mut Transform, &CollisionMarker), Without<Wall>>,
 ) {
@@ -41,56 +41,67 @@ fn display_collision_markers(
 
             for manifold in contact.manifolds() {
                 for point in manifold.points().filter(|x| x.dist() < 0.) {
-                    let (other_entity, wall_local_point) = if contact.collider1() == wall_entity {
-                        (contact.collider2(), point.local_p1())
-                    } else {
-                        (contact.collider1(), point.local_p2())
-                    };
+                    let (other_entity, wall_local_point, handle) =
+                        if contact.collider1() == wall_entity {
+                            (contact.collider2(), point.local_p1(), contact.raw.collider2)
+                        } else {
+                            (contact.collider1(), point.local_p2(), contact.raw.collider1)
+                        };
 
                     let cm = CollisionMarker {
                         wall_entity,
                         other_entity,
                         index,
-                        horizontal: wall.marker_horizontal(),
+                        marker_type: wall.marker_type(),
                     };
                     let mut new_transform = *wall_transform;
-                    //new_transform.
-                    new_transform.translation +=
-                        wall_local_point.extend(0.0) * rapier_context.physics_scale();
+
+                    //let t = rapier_context.colliders.get(handle).map(|x|x  x.translation()).map(|m| Vec2{x:m.x, y: m.y}).unwrap_or_default();
+
+                    let offset = wall_transform
+                        .rotation
+                        .mul_vec3((wall_local_point * rapier_context.physics_scale()).extend(0.0));
+
+                    new_transform.translation += offset;
                     new_transform.translation.z = 2.0;
-
-                    //info!("dcm shape {:?} + {:?} = {:?}", wall_transform, wall_local_point, new_transform.translation);
-
-                    //info!("{:?}", point.dist());
 
                     if let Some((_, mut transform)) = markers_map.remove(&cm) {
                         //  info!("dcm updated");
                         *transform = new_transform;
                     } else {
-                        let (xr, yr) = if wall.marker_horizontal() {
-                            (
-                                SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
-                                SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,
-                            )
-                        } else {
-                            (
-                                SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,
-                                SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
-                            )
+                        let path: Path = match cm.marker_type {
+                            MarkerType::Horizontal | MarkerType::Vertical => {
+                                let (xr, yr) = if cm.marker_type == MarkerType::Horizontal {
+                                    (
+                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
+                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,
+                                    )
+                                } else {
+                                    (
+                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,
+                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
+                                    )
+                                };
+
+                                let points = vec![
+                                    Vec2::new(-xr, -yr),
+                                    Vec2::new(xr, -yr),
+                                    Vec2::new(xr, yr),
+                                    Vec2::new(-xr, yr),
+                                ];
+
+                                let path = GeometryBuilder::build_as(&shapes::RoundedPolygon {
+                                    points,
+                                    closed: true,
+                                    radius: 5.0,
+                                });
+                                path
+                            }
+                            MarkerType::Void => GeometryBuilder::build_as(&shapes::Circle {
+                                radius: 5.0,
+                                center: Default::default(),
+                            }),
                         };
-
-                        let points = vec![
-                            Vec2::new(-xr, -yr),
-                            Vec2::new(xr, -yr),
-                            Vec2::new(xr, yr),
-                            Vec2::new(-xr, yr),
-                        ];
-
-                        let path = GeometryBuilder::build_as(&shapes::RoundedPolygon {
-                            points,
-                            closed: true,
-                            radius: 5.0,
-                        });
 
                         commands
                             .spawn(cm)

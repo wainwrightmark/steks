@@ -20,14 +20,26 @@ impl Wall{
         }
     }
 
-    pub fn marker_horizontal(&self)-> bool{
+    pub fn marker_type(&self)-> MarkerType{
         match self {
-            Wall::Void=>true, //true
+            Wall::Void=>MarkerType::Void,
             Wall::Positioned(position)=>{
-                position.is_horizontal()
+                if position.is_horizontal(){
+                    MarkerType::Horizontal
+                }
+                else{
+                    MarkerType::Vertical
+                }
             }
         }
     }
+}
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display, Hash)]
+pub enum MarkerType{
+    Horizontal,
+    Vertical,
+    Void
 }
 
 

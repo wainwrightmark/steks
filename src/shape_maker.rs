@@ -243,7 +243,7 @@ pub fn create_shape(
         ec.insert(Wall::Void);
 
         ec.with_children(|f| {
-            f.spawn(collider_shape)
+            f.spawn_empty()
                 .insert(Sensor {})
                 .insert(ActiveEvents::COLLISION_EVENTS)
                 .insert(WallSensor);

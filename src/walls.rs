@@ -158,7 +158,8 @@ fn spawn_wall(commands: &mut Commands, color: Color, wall: WallPosition) {
         })
         .insert(Wall::Positioned(wall))
         .with_children(|f| {
-            f.spawn(collider_shape)
+            f.spawn_empty()
+            //.spawn(collider_shape)
                 .insert(Sensor {})
                 .insert(ActiveEvents::COLLISION_EVENTS)
                 .insert(WallSensor);

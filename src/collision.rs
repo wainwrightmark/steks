@@ -26,56 +26,51 @@ fn display_collision_markers(
     walls: Query<(Entity, &Transform, &Wall), Without<CollisionMarker>>,
     mut markers: Query<(Entity, &mut Transform, &CollisionMarker), Without<Wall>>,
 ) {
-    //info!("dcm1");
-
     let mut markers_map = HashMap::from_iter(markers.iter_mut().map(|x| (x.2, (x.0, x.1))));
 
-    //info!("dcm markers: {}", markers_map.len());
 
-    for (wall_entity, wall_transform, wall) in walls.iter().filter(|x| x.2.show_marker()) {
+    for (sensor_entity, wall_transform, wall) in walls.iter().filter(|x| x.2.show_marker()) {
         for contact in rapier_context
-            .contacts_with(wall_entity)
+            .contacts_with(sensor_entity)
             .filter(|contact| contact.has_any_active_contacts())
         {
             let mut index = 0;
 
             for manifold in contact.manifolds() {
                 for point in manifold.points().filter(|x| x.dist() < 0.) {
-                    let (other_entity, wall_local_point, wall_collider_handle) =
-                        if contact.collider1() == wall_entity {
+                    let (other_entity, local_point, collider_handle) =
+                        if contact.collider1() == sensor_entity {
                             (contact.collider2(), point.local_p1(), contact.raw.collider1)
                         } else {
                             (contact.collider1(), point.local_p2(), contact.raw.collider2)
                         };
 
-                    let (shape_t, shape_rot) = rapier_context
+                    let (collider_transform, collider_rot) = rapier_context
                         .colliders
-                        .get(wall_collider_handle)
-                        .map(|m| {
-
-
-                            //let p_w_p = m.position_wrt_parent().map(|i|(i.translation)) .unwrap_or_default();
-                            let rotation = Quat::from_rotation_z(m.rotation().angle());
+                        .get(collider_handle)
+                        .map(|collider| {
+                            let rotation = Quat::from_rotation_z(collider.rotation().angle());
                             let translation = Vec2 {
-                                x: m.translation().x,// - p_w_p.x,
-                                y: m.translation().y,// - p_w_p.y,
+                                x: collider.translation().x,
+                                y: collider.translation().y,
                             };
                             (translation, rotation)
                         })
                         .unwrap_or_default();
 
-                    let offset = (shape_t.extend(0.0)
-                        + shape_rot.mul_vec3(wall_local_point.extend(0.0)))
+                    let translation = (collider_transform.extend(0.0)
+                        + collider_rot.mul_vec3(local_point.extend(0.0)))
                         * rapier_context.physics_scale();
+
                     let cm = CollisionMarker {
-                        wall_entity,
+                        wall_entity: sensor_entity,
                         other_entity,
                         index,
                         marker_type: wall.marker_type(),
                     };
                     let mut new_transform = *wall_transform;
 
-                    new_transform.translation = offset;
+                    new_transform.translation = translation;
                     new_transform.translation.z = 2.0;
 
                     if let Some((_, mut transform)) = markers_map.remove(&cm) {

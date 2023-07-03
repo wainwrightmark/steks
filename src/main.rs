@@ -23,6 +23,7 @@ pub mod set_level;
 pub mod share;
 
 pub mod rain;
+pub mod import;
 use rain::*;
 
 pub mod app_redirect;
@@ -43,6 +44,7 @@ pub use constants::*;
 use padlock::*;
 mod constants;
 
+use import::*;
 use bevy_tweening::TweeningPlugin;
 use camera::*;
 use draggable::*;
@@ -151,6 +153,7 @@ fn main() {
         .add_plugin(NotificationPlugin)
         .add_plugin(AppUrlPlugin)
         .add_plugin(RainPlugin)
+        .add_plugin(ImportPlugin)
         //.add_plugin(MenuActionPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,

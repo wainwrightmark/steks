@@ -48,6 +48,12 @@ pub enum LoggableEvent {
     NotificationClick,
 }
 
+impl From<capacitor_bindings::error::Error> for LoggableEvent{
+    fn from(value: capacitor_bindings::error::Error) -> Self {
+        Self::Error { message: value.to_string() }
+    }
+}
+
 #[derive(PartialEq, Eq, Clone, serde:: Serialize, serde::Deserialize, Debug)]
 #[serde(transparent)]
 pub struct DeviceIdentifier(pub String);
@@ -239,7 +245,7 @@ impl LoggableEvent {
         message.send_log_async().await;
     }
 
-    async fn try_get_device_id_and_log_async(data: impl Into<Self>) {
+    pub async fn try_get_device_id_and_log_async(data: impl Into<Self>) {
         let device_id: DeviceId;
 
         #[cfg(target_arch = "wasm32")]

@@ -1,3 +1,4 @@
+use capacitor_bindings::clipboard::Clipboard;
 use strum::Display;
 
 use crate::{level_ui::setup_level_ui, share::ShareEvent, *};
@@ -93,6 +94,7 @@ fn button_system(
     >,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
     mut share_events: EventWriter<ShareEvent>,
+    mut import_events: EventWriter<ImportEvent>,
     mut menu_state: ResMut<MenuState>,
     mut current_level: ResMut<CurrentLevel>,
 ) {
@@ -109,6 +111,9 @@ fn button_system(
                         {
                             crate::wasm::request_fullscreen();
                         }
+                    }
+                    Import => {
+                        import_events.send(ImportEvent)
                     }
                     Tutorial => change_level_events.send(ChangeLevelEvent::StartTutorial),
                     Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
@@ -196,6 +201,7 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 #[cfg(target_arch = "wasm32")]
                 Share,
                 Levels,
+                Import,
                 #[cfg(all(feature = "android", target_arch = "wasm32"))]
                 MinimizeApp,
             ] {
@@ -316,10 +322,12 @@ pub enum MenuButton {
     DailyChallenge,
     Share,
     Levels,
+    Import,
     GotoLevel { level: u8 },
     NextLevel,
     MinimizeCompletion,
     MinimizeApp,
+
 }
 
 impl MenuButton {
@@ -338,6 +346,7 @@ impl MenuButton {
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
             MinimizeApp => "\u{e813}".to_string(),        //logout
+            Import => "\u{e818}".to_string(),             //clipboard
         }
     }
 }

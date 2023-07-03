@@ -1,6 +1,7 @@
 {
   "imports": {
     "@capacitor/app": "./@capacitor/app.js",
+    "@capacitor/clipboard": "./@capacitor/clipboard.js",
     "@capacitor/core": "./@capacitor/core.js",
     "@capacitor/device": "./@capacitor/device.js",
     "@capacitor/local-notifications": "./@capacitor/local-notifications.js",

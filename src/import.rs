@@ -11,7 +11,6 @@ pub struct ImportPlugin;
 impl Plugin for ImportPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ImportEvent>()
-            //.add_plugin(AsyncEventPlugin::<ChangeLevelEvent>::default())
             .add_system(handle_import_events);
     }
 }
@@ -32,7 +31,7 @@ async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {
     let data = capacitor_bindings::clipboard::Clipboard::read()
         .await
         .map_err(|x| anyhow!("{}", x.to_string()))?;
-    let list: Vec<SetLevel> = serde_yaml::from_str(data.value.as_str())?;
+    let list: Vec<SetLevel> = serde_yaml::from_str(data.value.replace(" ", " ") .as_str())?;
 
     let level = list.first().ok_or(anyhow::anyhow!("No Level Found"))?;
 

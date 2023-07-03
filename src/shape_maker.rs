@@ -145,7 +145,9 @@ impl ShapeIndex {
 }
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
-pub struct VoidShape;
+pub struct VoidShape{
+    pub highlighted: bool
+}
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub struct FixedShape;
@@ -240,10 +242,10 @@ pub fn create_shape(
     });
 
     if state == InitialState::Void{
-        ec.insert(Wall::Void);
+        ec.insert(CollisionNaughty);
 
         ec.with_children(|f| {
-            f.spawn_empty()
+            f.spawn(collider_shape)
                 .insert(Sensor {})
                 .insert(ActiveEvents::COLLISION_EVENTS)
                 .insert(WallSensor);
@@ -253,7 +255,7 @@ pub fn create_shape(
             color: color::WARN_COLOR,
             options: StrokeOptions::default().with_line_width(1.0),
         });
-        ec.insert(VoidShape);
+        ec.insert(VoidShape{highlighted: false});
     }
 
     else if state == InitialState::Fixed {

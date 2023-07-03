@@ -2,13 +2,17 @@ use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::RapierContext;
 
-use crate::{shape_maker::SHAPE_SIZE, walls::*, PHYSICS_SCALE};
+use crate::{
+    shape_maker::{VoidShape, SHAPE_SIZE},
+    walls::*,
+};
 
 pub struct CollisionPlugin;
 
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(display_collision_markers.in_base_set(CoreSet::PreUpdate));
+        app.add_system(display_collision_markers.in_base_set(CoreSet::PreUpdate))
+            .add_system(highlight_voids.in_base_set(CoreSet::PreUpdate));
     }
 }
 
@@ -20,14 +24,40 @@ pub struct CollisionMarker {
     pub marker_type: MarkerType,
 }
 
+
+fn highlight_voids(
+    rapier_context: Res<RapierContext>,
+    mut voids: Query<(Entity, &mut Stroke, &mut VoidShape)>,
+) {
+    for (entity, mut stroke, mut shape) in voids.iter_mut() {
+        let has_contact = rapier_context
+            .contacts_with(entity)
+            .filter(|contact| contact.has_any_active_contacts())
+            .next()
+            .is_some();
+
+        if has_contact {
+            if !shape.highlighted{
+                shape.highlighted = true;
+                stroke.options.line_width = 5.0;
+            }
+
+        } else {
+            if shape.highlighted{
+                shape.highlighted = false;
+                stroke.options.line_width = 1.0;
+            }
+        }
+    }
+}
+
 fn display_collision_markers(
     mut commands: Commands,
     rapier_context: Res<RapierContext>,
-    walls: Query<(Entity, &Transform, &Wall), Without<CollisionMarker>>,
-    mut markers: Query<(Entity, &mut Transform, &CollisionMarker), Without<Wall>>,
+    walls: Query<(Entity, &Transform, &WallPosition), Without<CollisionMarker>>,
+    mut markers: Query<(Entity, &mut Transform, &CollisionMarker), Without<WallPosition>>,
 ) {
     let mut markers_map = HashMap::from_iter(markers.iter_mut().map(|x| (x.2, (x.0, x.1))));
-
 
     for (sensor_entity, wall_transform, wall) in walls.iter().filter(|x| x.2.show_marker()) {
         for contact in rapier_context
@@ -105,10 +135,6 @@ fn display_collision_markers(
                                 });
                                 path
                             }
-                            MarkerType::Void => GeometryBuilder::build_as(&shapes::Circle {
-                                radius: 5.0,
-                                center: Default::default(),
-                            }),
                         };
 
                         commands

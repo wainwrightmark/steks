@@ -78,7 +78,7 @@ pub fn drag_end(
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ew_end_drag: EventWriter<DragEndedEvent>,
     rapier_context: ResMut<RapierContext>,
-    walls: Query<Entity, With<Wall>>,
+    walls: Query<Entity, With<CollisionNaughty>>,
     fixed_shapes: Query<(), With<FixedShape>>
 ) {
     for event in er_drag_end.iter() {

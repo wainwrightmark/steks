@@ -88,7 +88,7 @@ pub fn check_for_tower(
 
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
-    walls: Query<Entity, With<Wall>>,
+    walls: Query<Entity, With<CollisionNaughty>>,
 ) {
     if !end_drag_events.iter().any(|_| true) {
         return;

@@ -4,46 +4,31 @@ use strum::{Display, EnumIter, IntoEnumIterator};
 
 use crate::*;
 
-#[derive(Component, PartialEq, Eq, Clone, Copy, Debug, Display)]
-pub enum Wall {
-    Positioned(WallPosition),
-    Void,
-}
-
-impl Wall{
-    pub fn show_marker(&self)-> bool{
-        match self {
-            Wall::Void=>true,
-            Wall::Positioned(position)=>{
-                position != &WallPosition::Bottom
-            }
-        }
+impl WallPosition {
+    pub fn show_marker(&self) -> bool {
+        self != &WallPosition::Bottom
     }
 
-    pub fn marker_type(&self)-> MarkerType{
-        match self {
-            Wall::Void=>MarkerType::Void,
-            Wall::Positioned(position)=>{
-                if position.is_horizontal(){
-                    MarkerType::Horizontal
-                }
-                else{
-                    MarkerType::Vertical
-                }
-            }
+    pub fn marker_type(&self) -> MarkerType {
+        if self.is_horizontal() {
+            MarkerType::Horizontal
+        } else {
+            MarkerType::Vertical
         }
     }
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display, Hash)]
-pub enum MarkerType{
+pub enum MarkerType {
     Horizontal,
     Vertical,
-    Void
 }
 
+/// Collisions with this prevent you from winning the level
+#[derive(Component, PartialEq, Eq, Clone, Copy, Debug,)]
+pub struct CollisionNaughty;
 
-#[derive(PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
+#[derive(Component, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
 pub enum WallPosition {
     Top,
     Bottom,
@@ -87,15 +72,13 @@ impl Plugin for WallsPlugin {
 
 fn move_walls(
     mut window_resized_events: EventReader<WindowResized>,
-    mut walls_query: Query<(&Wall, &mut Transform), Without<ShapeComponent>>,
+    mut walls_query: Query<(&WallPosition, &mut Transform), Without<ShapeComponent>>,
     mut draggables_query: Query<&mut Transform, With<ShapeComponent>>,
 ) {
     for ev in window_resized_events.iter() {
         for (wall, mut transform) in walls_query.iter_mut() {
-            if let Wall::Positioned(position) = wall {
-                let p: Vec3 = position.get_position(ev.height, ev.width);
-                transform.translation = p;
-            }
+            let p: Vec3 = wall.get_position(ev.height, ev.width);
+            transform.translation = p;
         }
 
         for mut transform in draggables_query.iter_mut() {
@@ -156,10 +139,12 @@ fn spawn_wall(commands: &mut Commands, color: Color, wall: WallPosition) {
             memberships: WALL_COLLISION_GROUP,
             filters: WALL_COLLISION_FILTERS,
         })
-        .insert(Wall::Positioned(wall))
+        .insert(wall)
+        .insert(CollisionNaughty)
+
         .with_children(|f| {
-            f.spawn_empty()
-            //.spawn(collider_shape)
+            f
+                .spawn(collider_shape)
                 .insert(Sensor {})
                 .insert(ActiveEvents::COLLISION_EVENTS)
                 .insert(WallSensor);

@@ -119,8 +119,7 @@ fn show_spirit_lines(
     added: Query<(), Added<TouchDragged>>,
     mut spirit_lines_query: Query<&mut Visibility, (With<SpiritLine>, Without<TouchDragged>)>,
     padlock: Res<PadlockResource>,
-    fixed_shapes: Query<(), With<FixedShape>>
-
+    fixed_shapes: Query<(), With<FixedShape>>,
 ) {
     if !added.is_empty() && !padlock.is_locked() && fixed_shapes.is_empty() {
         for mut x in spirit_lines_query.iter_mut() {

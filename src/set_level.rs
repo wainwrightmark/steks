@@ -69,7 +69,7 @@ impl SetLevel {
             LevelCompletion::Incomplete { stage } => {
                 self.get_stage(&stage).unwrap_or(&self.initial_stage)
             }
-            LevelCompletion::Complete { .. } => &self.get_last_stage(),
+            LevelCompletion::Complete { .. } => self.get_last_stage(),
         }
     }
 

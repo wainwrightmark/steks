@@ -25,7 +25,7 @@ pub enum MarkerType {
 }
 
 /// Collisions with this prevent you from winning the level
-#[derive(Component, PartialEq, Eq, Clone, Copy, Debug,)]
+#[derive(Component, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct CollisionNaughty;
 
 #[derive(Component, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
@@ -141,10 +141,8 @@ fn spawn_wall(commands: &mut Commands, color: Color, wall: WallPosition) {
         })
         .insert(wall)
         .insert(CollisionNaughty)
-
         .with_children(|f| {
-            f
-                .spawn(collider_shape)
+            f.spawn(collider_shape)
                 .insert(Sensor {})
                 .insert(ActiveEvents::COLLISION_EVENTS)
                 .insert(WallSensor);

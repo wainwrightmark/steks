@@ -15,10 +15,12 @@ pub fn create_initial_shapes(
     event_writer: &mut EventWriter<SpawnNewShapeEvent>,
 ) {
     let mut shapes: Vec<ShapeWithData> = match level {
-        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level,.. } => match level.get_stage(&0) {
-            Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
-            None => vec![],
-        },
+        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
+            match level.get_stage(&0) {
+                Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
+                None => vec![],
+            }
+        }
         GameLevel::Infinite { bytes } => {
             if let Some(bytes) = bytes {
                 encoding::decode_shapes(bytes)
@@ -145,8 +147,8 @@ impl ShapeIndex {
 }
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
-pub struct VoidShape{
-    pub highlighted: bool
+pub struct VoidShape {
+    pub highlighted: bool,
 }
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
@@ -187,14 +189,12 @@ pub fn create_shape(
             options: FillOptions::DEFAULT,
             color: Color::WHITE,
         }
-    }
-    else if shape_component.is_void(){
+    } else if shape_component.is_void() {
         Fill {
             options: FillOptions::DEFAULT,
             color: Color::BLACK,
         }
-    }
-    else {
+    } else {
         game_shape.fill()
     };
 
@@ -241,7 +241,7 @@ pub fn create_shape(
             });
     });
 
-    if state == InitialState::Void{
+    if state == InitialState::Void {
         ec.insert(CollisionNaughty);
 
         ec.with_children(|f| {
@@ -255,16 +255,14 @@ pub fn create_shape(
             color: color::WARN_COLOR,
             options: StrokeOptions::default().with_line_width(1.0),
         });
-        ec.insert(VoidShape{highlighted: false});
-    }
-
-    else if state == InitialState::Fixed {
+        ec.insert(VoidShape { highlighted: false });
+    } else if state == InitialState::Fixed {
         ec.insert(Stroke {
             color: Color::BLACK,
             options: StrokeOptions::default().with_line_width(1.0),
         });
         ec.insert(FixedShape);
-    } else if  friction.map(|x| x < DEFAULT_FRICTION).unwrap_or_default() {
+    } else if friction.map(|x| x < DEFAULT_FRICTION).unwrap_or_default() {
         ec.insert(Stroke {
             color: Color::WHITE,
             options: StrokeOptions::default().with_line_width(1.0),

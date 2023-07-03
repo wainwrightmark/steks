@@ -1,7 +1,6 @@
-use capacitor_bindings::clipboard::Clipboard;
 use strum::Display;
 
-use crate::{level_ui::setup_level_ui, share::ShareEvent, *, set_level::SetLevel};
+use crate::{level_ui::setup_level_ui, share::ShareEvent, *};
 
 pub struct ButtonPlugin;
 
@@ -112,9 +111,7 @@ fn button_system(
                             crate::wasm::request_fullscreen();
                         }
                     }
-                    Import => {
-                        import_events.send(ImportEvent)
-                    }
+                    Import => import_events.send(ImportEvent),
                     Tutorial => change_level_events.send(ChangeLevelEvent::StartTutorial),
                     Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
                     DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
@@ -327,7 +324,6 @@ pub enum MenuButton {
     NextLevel,
     MinimizeCompletion,
     MinimizeApp,
-
 }
 
 impl MenuButton {

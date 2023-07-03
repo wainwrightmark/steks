@@ -111,7 +111,11 @@ mod tests {
             )
             .lock();
 
-        let encoded = encode_shape(fs.shape, fs.fixed_location.unwrap(), fs.state == InitialState::Locked);
+        let encoded = encode_shape(
+            fs.shape,
+            fs.fixed_location.unwrap(),
+            fs.state == InitialState::Locked,
+        );
 
         let decoded = decode_shape(&encoded);
 

@@ -1,5 +1,5 @@
 use crate::async_event_writer::AsyncEventPlugin;
-use crate::set_level::{get_set_level, get_numeral, TUTORIAL_LEVELS};
+use crate::set_level::{get_numeral, get_set_level, TUTORIAL_LEVELS};
 use crate::shape_maker::ShapeIndex;
 use crate::shapes_vec::ShapesVec;
 use crate::*;
@@ -132,16 +132,22 @@ pub struct CurrentLevel {
 impl CurrentLevel {
     pub fn get_title(&self) -> Option<String> {
         match &self.level {
-            GameLevel::SetLevel {  level,.. } => level.title.clone(),
+            GameLevel::SetLevel { level, .. } => level.title.clone(),
             GameLevel::Infinite { .. } => None,
             GameLevel::Challenge => Some("Daily Challenge".to_string()),
             GameLevel::Custom { level, .. } => level.title.clone(),
         }
     }
 
-    pub fn get_level_number_text(&self)-> Option<String>{
-        match &self.level{
-            GameLevel::SetLevel { index, .. } => if (*index as i16) >= TUTORIAL_LEVELS {Some(get_numeral(index))} else { None} ,
+    pub fn get_level_number_text(&self) -> Option<String> {
+        match &self.level {
+            GameLevel::SetLevel { index, .. } => {
+                if (*index as i16) >= TUTORIAL_LEVELS {
+                    Some(get_numeral(index))
+                } else {
+                    None
+                }
+            }
             GameLevel::Infinite { .. } => None,
             GameLevel::Challenge => None,
             GameLevel::Custom { .. } => None,

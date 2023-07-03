@@ -1,4 +1,7 @@
-use crate::{*, shape_maker::{FixedShape, VoidShape}};
+use crate::{
+    shape_maker::{FixedShape, VoidShape},
+    *,
+};
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
@@ -79,7 +82,7 @@ pub fn drag_end(
     mut ew_end_drag: EventWriter<DragEndedEvent>,
     rapier_context: ResMut<RapierContext>,
     walls: Query<Entity, With<CollisionNaughty>>,
-    fixed_shapes: Query<(), With<FixedShape>>
+    fixed_shapes: Query<(), With<FixedShape>>,
 ) {
     for event in er_drag_end.iter() {
         info!("{:?}", event);
@@ -134,7 +137,7 @@ pub fn assign_padlock(
     pub const LOCK_VELOCITY: f32 = 50.0;
     pub const LOCK_BREAK_VELOCITY: f32 = 3000.0;
 
-    if padlock.is_locked() || draggables.iter().filter(|x| x.is_fixed()).next().is_some() {
+    if padlock.is_locked() || draggables.iter().any(|x| x.is_fixed()) {
         return;
     }
     let elapsed = time.elapsed();
@@ -263,7 +266,10 @@ pub fn drag_move(
 pub fn drag_start(
     mut er_drag_start: EventReader<DragStartEvent>,
     rapier_context: Res<RapierContext>,
-    mut draggables: Query<(&mut ShapeComponent, &Transform), (Without<ZoomCamera>, Without<FixedShape>, Without<VoidShape>)>,
+    mut draggables: Query<
+        (&mut ShapeComponent, &Transform),
+        (Without<ZoomCamera>, Without<FixedShape>, Without<VoidShape>),
+    >,
     mut touch_rotate: ResMut<TouchRotateResource>,
 ) {
     for event in er_drag_start.iter() {
@@ -273,7 +279,6 @@ pub fn drag_start(
             rapier_context.intersections_with_point(event.position, default(), |entity| {
                 if let Ok((mut draggable, transform)) = draggables.get_mut(entity) {
                     info!("{:?} found intersection with {:?}", event, draggable);
-
 
                     let origin = transform.translation.truncate();
                     let offset = origin - event.position;
@@ -355,10 +360,8 @@ pub fn handle_drag_changes(
             };
             const FRAC_PI_128: f32 = std::f32::consts::PI / 128.0;
             transform.rotation = round_z(transform.rotation, FRAC_PI_128);
-        } else {
-            if padlock_resource.has_entity(entity) {
-                *padlock_resource = Default::default();
-            }
+        } else if padlock_resource.has_entity(entity) {
+            *padlock_resource = Default::default();
         }
 
         if let ShapeComponent::Dragged(dragged) = draggable {
@@ -411,7 +414,7 @@ impl ShapeComponent {
         matches!(self, ShapeComponent::Fixed)
     }
 
-    pub fn is_void(&self)-> bool{
+    pub fn is_void(&self) -> bool {
         matches!(self, ShapeComponent::Void)
     }
 

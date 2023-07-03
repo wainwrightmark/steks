@@ -1,6 +1,6 @@
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use bevy::render::view::visibility;
+
 use bevy_tweening::{lens::*, Delay};
 use bevy_tweening::{Animator, EaseFunction, Tween};
 
@@ -155,7 +155,7 @@ impl LevelUIComponent {
         match self {
             Root => &[Self::Border],
             Border => &[Self::MainPanel],
-            MainPanel => &[Self::AllText,  Self::ButtonPanel],
+            MainPanel => &[Self::AllText, Self::ButtonPanel],
             AllText => &[Self::LevelNumber, Self::Title, Self::Message],
             Message => &[],
             LevelNumber => &[],
@@ -246,16 +246,20 @@ fn get_all_text_bundle(
     _score_store: &Res<ScoreStore>,
     _shapes: &Query<&ShapeIndex>,
 ) -> NodeBundle {
-
     let show = match current_level.completion {
         LevelCompletion::Incomplete { .. } => true,
-        LevelCompletion::Complete { splash,.. } => splash,
+        LevelCompletion::Complete { splash, .. } => splash,
     };
-    let size = if show{ Size::AUTO
-    } else{
+    let size = if show {
+        Size::AUTO
+    } else {
         Size::new(Val::Px(0.0), Val::Px(0.0))
     };
-    let visibility = if show{Visibility::Inherited} else{Visibility::Hidden};
+    let visibility = if show {
+        Visibility::Inherited
+    } else {
+        Visibility::Hidden
+    };
 
     NodeBundle {
         style: Style {
@@ -340,8 +344,7 @@ fn get_title_bundle(
     _shapes: &Query<&ShapeIndex>,
     _pkv: &Res<PkvStore>,
 ) -> TextBundle {
-
-    if current_level.completion != (LevelCompletion::Incomplete { stage: 0 }){
+    if current_level.completion != (LevelCompletion::Incomplete { stage: 0 }) {
         return TextBundle::default();
     }
 
@@ -371,11 +374,17 @@ fn get_level_number_bundle(
     _shapes: &Query<&ShapeIndex>,
     _pkv: &Res<PkvStore>,
 ) -> TextBundle {
-
-
-    match current_level.completion{
-        LevelCompletion::Incomplete { stage } => if stage != 0{ return TextBundle::default();},
-        LevelCompletion::Complete { splash, .. } => if !splash{ return TextBundle::default();},
+    match current_level.completion {
+        LevelCompletion::Incomplete { stage } => {
+            if stage != 0 {
+                return TextBundle::default();
+            }
+        }
+        LevelCompletion::Complete { splash, .. } => {
+            if !splash {
+                return TextBundle::default();
+            }
+        }
     }
 
     if let Some(text) = current_level.get_level_number_text() {
@@ -663,7 +672,22 @@ fn insert_bundle(
                 commands.insert(Visibility::Hidden);
             }
         }
-        LevelUIComponent::AllText => {commands.insert(get_all_text_bundle(current_level, asset_server, score_store, shapes));},
-        LevelUIComponent::LevelNumber => {commands.insert(get_level_number_bundle(current_level, asset_server, score_store, shapes, pkv));},
+        LevelUIComponent::AllText => {
+            commands.insert(get_all_text_bundle(
+                current_level,
+                asset_server,
+                score_store,
+                shapes,
+            ));
+        }
+        LevelUIComponent::LevelNumber => {
+            commands.insert(get_level_number_bundle(
+                current_level,
+                asset_server,
+                score_store,
+                shapes,
+                pkv,
+            ));
+        }
     };
 }

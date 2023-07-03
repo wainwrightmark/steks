@@ -24,7 +24,6 @@ pub struct CollisionMarker {
     pub marker_type: MarkerType,
 }
 
-
 fn highlight_voids(
     rapier_context: Res<RapierContext>,
     mut voids: Query<(Entity, &mut Stroke, &mut VoidShape)>,
@@ -32,21 +31,16 @@ fn highlight_voids(
     for (entity, mut stroke, mut shape) in voids.iter_mut() {
         let has_contact = rapier_context
             .contacts_with(entity)
-            .filter(|contact| contact.has_any_active_contacts())
-            .next()
-            .is_some();
+            .any(|contact| contact.has_any_active_contacts());
 
         if has_contact {
-            if !shape.highlighted{
+            if !shape.highlighted {
                 shape.highlighted = true;
                 stroke.options.line_width = 5.0;
             }
-
-        } else {
-            if shape.highlighted{
-                shape.highlighted = false;
-                stroke.options.line_width = 1.0;
-            }
+        } else if shape.highlighted {
+            shape.highlighted = false;
+            stroke.options.line_width = 1.0;
         }
     }
 }
@@ -128,12 +122,11 @@ fn display_collision_markers(
                                     Vec2::new(-xr, yr),
                                 ];
 
-                                let path = GeometryBuilder::build_as(&shapes::RoundedPolygon {
+                                GeometryBuilder::build_as(&shapes::RoundedPolygon {
                                     points,
                                     closed: true,
                                     radius: 5.0,
-                                });
-                                path
+                                })
                             }
                         };
 

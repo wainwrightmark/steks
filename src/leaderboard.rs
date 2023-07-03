@@ -140,8 +140,6 @@ fn update_leaderboard_on_completion(
                     }
                 };
 
-
-
                 if changed {
                     log::info!("Updating leaderboard {hash} {height}");
                     IoTaskPool::get()

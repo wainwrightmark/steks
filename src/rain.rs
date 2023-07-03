@@ -4,7 +4,6 @@ use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 use serde::{Deserialize, Serialize};
 
-
 use crate::{
     game_shape::{self, GameShapeBody},
     level::*,
@@ -28,8 +27,6 @@ pub struct Raindrop {
 
 #[derive(Debug, Resource)]
 struct RaindropCountdown {
-
-
     timer: Timer,
     settings: RaindropSettings,
 }
@@ -137,26 +134,21 @@ fn manage_raindrops(
     let _previous = swap;
 
     let settings = match &current_level.level {
-        GameLevel::SetLevel {  level,.. } | GameLevel::Custom { level, .. } => {
-            level
-                .get_current_stage(current_level.completion)
-                .rainfall
+        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
+            level.get_current_stage(current_level.completion).rainfall
         }
         GameLevel::Infinite { .. } => None,
         GameLevel::Challenge => None,
-
     };
 
     match settings {
         Some(settings) => {
-            *countdown = RaindropCountdown{
+            *countdown = RaindropCountdown {
                 timer: Timer::from_seconds(RAINDROP_INTERVAL_SECONDS, TimerMode::Once),
                 settings,
             }
-        },
-        None => {
-            countdown.timer.pause()
         }
+        None => countdown.timer.pause(),
     }
 }
 
@@ -193,7 +185,7 @@ fn spawn_drop<R: Rng>(
             visibility: shape_bundle.visibility,
             computed_visibility: shape_bundle.computed_visibility,
         })
-        .insert(collider_shape.clone())
+        .insert(collider_shape)
         .insert(ColliderMassProperties::Density(RAIN_DENSITY))
         //.insert(GravityScale(FIREWORK_GRAVITY * gravity_factor * -1.0))
         .insert(Stroke {

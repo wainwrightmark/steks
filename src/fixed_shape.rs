@@ -1,4 +1,4 @@
-use crate::{*, set_level::InitialState};
+use crate::{set_level::InitialState, *};
 use rand::{rngs::StdRng, seq::SliceRandom, Rng};
 
 #[derive(Debug, Clone, Copy, PartialEq)]

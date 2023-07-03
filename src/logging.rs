@@ -48,9 +48,11 @@ pub enum LoggableEvent {
     NotificationClick,
 }
 
-impl From<capacitor_bindings::error::Error> for LoggableEvent{
+impl From<capacitor_bindings::error::Error> for LoggableEvent {
     fn from(value: capacitor_bindings::error::Error) -> Self {
-        Self::Error { message: value.to_string() }
+        Self::Error {
+            message: value.to_string(),
+        }
     }
 }
 

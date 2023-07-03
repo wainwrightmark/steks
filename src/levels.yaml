@@ -46,20 +46,21 @@
     shapes:
     - shape: L4
 
-- text: "I.\nA gentle warmup"
+- text: "First level Text"
+  title: "A gentle warmup"
   end_text: "Not bad for a beginner"
   shapes:
     - shape: U5
     - shape: U5
     - shape: U5
-- text: "II.\nReach for the sky"
+- title: "Reach for the sky"
   end_text: "Nice one"
   shapes:
     - shape: O4
     - shape: L4
     - shape: L4
 
-- text: "III.\nSteks appeal"
+- title: "Steks appeal"
   end_text: "Didn't see that one coming, eh?"
   shapes:
     - shape: S4
@@ -70,7 +71,7 @@
     shapes:
     - shape: Z4
 
-- text: "IV.\nSteks with an X"
+- title: "Steks with an X"
   end_text: "Wow! That was quick!"
   shapes:
     - shape: Z5
@@ -86,7 +87,7 @@
       x: 150.0
       y: -100.0
 
-- text: "V.\nNow you're thinking with pentominos"
+- title: "Now you're thinking with pentominos"
   end_text: "This was a triumph!"
   shapes:
     - shape: I5
@@ -96,7 +97,8 @@
     - shape: U5
     - shape: U5
 
-- text: "VI.\nThat's no moon..."
+- title: "The Empire Steks back"
+  text: "That's no moon..."
   end_text: "Great shot, kid.\nThat was one in a million!"
   shapes:
     - shape: O4
@@ -109,7 +111,7 @@
     shapes:
     - shape: Circle
 
-- text: "VII.\nTri Hard"
+- title: "Tri Hard"
   end_text: "Welcome to the party!"
   shapes:
     - shape: J4
@@ -119,7 +121,7 @@
     - shape: X5
     - shape: S4
 
-- text: "VIII.\nWonkiness encouraged"
+- title: "Wonkiness encouraged"
   end_text: "You're basically Picasso"
   shapes:
     - shape: P5
@@ -130,7 +132,7 @@
     - shape: Z4
     - shape: F5
 
-- text: "IX.\nTri Hard II: Tri harder"
+- title: "Tri Hard II: Tri harder"
   end_text: "Yippee!"
   shapes:
     - shape: L4
@@ -141,7 +143,7 @@
     - shape: U5
     - shape: Triangle
 
-- text: "X.\nThings are looking up"
+- title: "Things are looking up"
   end_text: "Now do the survey!!!"
   shapes:
     - shape: L5
@@ -159,7 +161,7 @@
     - shape: X5
     - shape: I5
 
-- text: "XI.\nA song of ice and steks"
+- title: "A song of ice and steks"
   end_text: "You know nothing John Steks"
   shapes:
     - shape: L5
@@ -183,7 +185,7 @@
       friction: 0.1
 
 
-- text: "XII.\nLocked Steks and two Polyominos"
+- title: "Locked Steks and two Polyominos"
   end_text: "Boom"
   shapes:
     - shape: Triangle
@@ -197,7 +199,7 @@
     - shape: N5
     - shape: T5
 
-- text: "XIII.\nSteks of Cthulu"
+- title: "Steks of Cthulu"
   end_text: "The dreamer waits..."
   shapes:
     - shape: I5

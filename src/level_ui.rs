@@ -1,5 +1,6 @@
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
+use bevy::render::view::visibility;
 use bevy_tweening::{lens::*, Delay};
 use bevy_tweening::{Animator, EaseFunction, Tween};
 
@@ -134,27 +135,33 @@ enum LevelUIComponent {
     Root,
     Border,
     MainPanel,
-
-    Text,
+    AllText,
+    LevelNumber,
+    Title,
+    Message,
     ButtonPanel,
     Button(MenuButton),
 }
 
 impl LevelUIComponent {
     pub fn get_child_components(&self) -> &[Self] {
+        use LevelUIComponent::*;
         const BUTTONS: [LevelUIComponent; 3] = [
-            LevelUIComponent::Button(MenuButton::NextLevel),
-            LevelUIComponent::Button(MenuButton::Share),
-            LevelUIComponent::Button(MenuButton::MinimizeCompletion),
+            Button(MenuButton::NextLevel),
+            Button(MenuButton::Share),
+            Button(MenuButton::MinimizeCompletion),
         ];
 
         match self {
-            LevelUIComponent::Root => &[Self::Border],
-            LevelUIComponent::Border => &[Self::MainPanel],
-            LevelUIComponent::MainPanel => &[Self::Text, Self::ButtonPanel],
-            LevelUIComponent::Text => &[],
-            LevelUIComponent::Button(_) => &[],
-            LevelUIComponent::ButtonPanel => &BUTTONS,
+            Root => &[Self::Border],
+            Border => &[Self::MainPanel],
+            MainPanel => &[Self::AllText,  Self::ButtonPanel],
+            AllText => &[Self::LevelNumber, Self::Title, Self::Message],
+            Message => &[],
+            LevelNumber => &[],
+            Button(_) => &[],
+            ButtonPanel => &BUTTONS,
+            Title => &[],
         }
     }
 }
@@ -233,6 +240,40 @@ fn get_border_bundle(
     }
 }
 
+fn get_all_text_bundle(
+    current_level: &CurrentLevel,
+    _asset_server: &Res<AssetServer>,
+    _score_store: &Res<ScoreStore>,
+    _shapes: &Query<&ShapeIndex>,
+) -> NodeBundle {
+
+    let show = match current_level.completion {
+        LevelCompletion::Incomplete { .. } => true,
+        LevelCompletion::Complete { splash,.. } => splash,
+    };
+    let size = if show{ Size::AUTO
+    } else{
+        Size::new(Val::Px(0.0), Val::Px(0.0))
+    };
+    let visibility = if show{Visibility::Inherited} else{Visibility::Hidden};
+
+    NodeBundle {
+        style: Style {
+            display: Display::Flex,
+            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Column,
+            // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
+            margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
+            justify_content: JustifyContent::Center,
+            size,
+
+            ..Default::default()
+        },
+        visibility,
+        ..Default::default()
+    }
+}
+
 fn get_panel_bundle(
     current_level: &CurrentLevel,
     _asset_server: &Res<AssetServer>,
@@ -289,6 +330,70 @@ fn get_button_panel(
             ..Default::default()
         },
         ..Default::default()
+    }
+}
+
+fn get_title_bundle(
+    current_level: &CurrentLevel,
+    asset_server: &Res<AssetServer>,
+    _score_store: &Res<ScoreStore>,
+    _shapes: &Query<&ShapeIndex>,
+    _pkv: &Res<PkvStore>,
+) -> TextBundle {
+
+    if current_level.completion != (LevelCompletion::Incomplete { stage: 0 }){
+        return TextBundle::default();
+    }
+
+    if let Some(text) = current_level.get_title() {
+        TextBundle::from_section(
+            text,
+            TextStyle {
+                font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                font_size: 30.0,
+                color: SMALL_TEXT_COLOR,
+            },
+        )
+        .with_text_alignment(TextAlignment::Center)
+        .with_style(Style {
+            align_self: AlignSelf::Center,
+            ..Default::default()
+        })
+    } else {
+        TextBundle::default()
+    }
+}
+
+fn get_level_number_bundle(
+    current_level: &CurrentLevel,
+    asset_server: &Res<AssetServer>,
+    _score_store: &Res<ScoreStore>,
+    _shapes: &Query<&ShapeIndex>,
+    _pkv: &Res<PkvStore>,
+) -> TextBundle {
+
+
+    match current_level.completion{
+        LevelCompletion::Incomplete { stage } => if stage != 0{ return TextBundle::default();},
+        LevelCompletion::Complete { splash, .. } => if !splash{ return TextBundle::default();},
+    }
+
+    if let Some(text) = current_level.get_level_number_text() {
+        TextBundle::from_section(
+            text,
+            TextStyle {
+                font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                font_size: 30.0,
+                color: SMALL_TEXT_COLOR,
+            },
+        )
+        .with_text_alignment(TextAlignment::Center)
+        .with_style(Style {
+            align_self: AlignSelf::Center,
+            ..Default::default()
+        })
+    } else {
+        TextBundle::default()
     }
 }
 
@@ -471,9 +576,11 @@ fn handle_animations(
 ) {
     match component {
         LevelUIComponent::Root => animate_root(commands, current_level, previous),
-        LevelUIComponent::Text => animate_text(commands, current_level, previous),
+        LevelUIComponent::Message => animate_text(commands, current_level, previous),
         LevelUIComponent::MainPanel => animate_panel(commands, current_level, previous),
         LevelUIComponent::Border => animate_border(commands, current_level, previous),
+        LevelUIComponent::Title => animate_text(commands, current_level, previous),
+        LevelUIComponent::LevelNumber => animate_text(commands, current_level, previous),
         _ => {}
     }
 }
@@ -513,8 +620,17 @@ fn insert_bundle(
                 shapes,
             ));
         }
-        LevelUIComponent::Text => {
+        LevelUIComponent::Message => {
             commands.insert(get_message_bundle(
+                current_level,
+                asset_server,
+                score_store,
+                shapes,
+                pkv,
+            ));
+        }
+        LevelUIComponent::Title => {
+            commands.insert(get_title_bundle(
                 current_level,
                 asset_server,
                 score_store,
@@ -547,5 +663,7 @@ fn insert_bundle(
                 commands.insert(Visibility::Hidden);
             }
         }
+        LevelUIComponent::AllText => {commands.insert(get_all_text_bundle(current_level, asset_server, score_store, shapes));},
+        LevelUIComponent::LevelNumber => {commands.insert(get_level_number_bundle(current_level, asset_server, score_store, shapes, pkv));},
     };
 }

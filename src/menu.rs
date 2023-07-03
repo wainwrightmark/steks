@@ -1,7 +1,7 @@
 use capacitor_bindings::clipboard::Clipboard;
 use strum::Display;
 
-use crate::{level_ui::setup_level_ui, share::ShareEvent, *};
+use crate::{level_ui::setup_level_ui, share::ShareEvent, *, set_level::SetLevel};
 
 pub struct ButtonPlugin;
 
@@ -342,7 +342,7 @@ impl MenuButton {
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
             Levels => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
-            GotoLevel { level } => format!("{:2}", (*level as i32) - 2),
+            GotoLevel { level } => crate::set_level::get_numeral(level),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
             MinimizeApp => "\u{e813}".to_string(),        //logout

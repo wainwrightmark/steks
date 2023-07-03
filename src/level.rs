@@ -1,5 +1,5 @@
 use crate::async_event_writer::AsyncEventPlugin;
-use crate::set_level::get_set_level;
+use crate::set_level::{get_set_level, get_numeral, TUTORIAL_LEVELS};
 use crate::shape_maker::ShapeIndex;
 use crate::shapes_vec::ShapesVec;
 use crate::*;
@@ -48,7 +48,7 @@ fn manage_level_shapes(
                 };
                 if stage > 0 {
                     match &current_level.as_ref().level {
-                        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level,.. } => {
+                        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
                             for stage in (previous_stage + 1)..=(stage) {
                                 if let Some(stage) = level.get_stage(&stage) {
                                     for shape in &stage.shapes {
@@ -130,11 +130,29 @@ pub struct CurrentLevel {
 }
 
 impl CurrentLevel {
+    pub fn get_title(&self) -> Option<String> {
+        match &self.level {
+            GameLevel::SetLevel {  level,.. } => level.title.clone(),
+            GameLevel::Infinite { .. } => None,
+            GameLevel::Challenge => Some("Daily Challenge".to_string()),
+            GameLevel::Custom { level, .. } => level.title.clone(),
+        }
+    }
+
+    pub fn get_level_number_text(&self)-> Option<String>{
+        match &self.level{
+            GameLevel::SetLevel { index, .. } => if (*index as i16) >= TUTORIAL_LEVELS {Some(get_numeral(index))} else { None} ,
+            GameLevel::Infinite { .. } => None,
+            GameLevel::Challenge => None,
+            GameLevel::Custom { .. } => None,
+        }
+    }
+
     pub fn get_text(&self) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::SetLevel { level, .. } => {
-                    level.get_stage(&stage).map(|x| x.text.to_string())
+                    level.get_stage(&stage).map(|x| x.text.clone()).flatten()
                 }
                 GameLevel::Infinite { bytes } => {
                     if stage == 0 && bytes.is_some() {
@@ -143,12 +161,12 @@ impl CurrentLevel {
                         None
                     }
                 }
-                GameLevel::Challenge => Some("Daily Challenge".to_string()),
+                GameLevel::Challenge => None,
                 GameLevel::Custom { message, level } => {
-                    if stage == 0 {
-                        Some(message.clone())
+                    if message.is_some() {
+                        message.clone()
                     } else {
-                        level.get_stage(&stage).map(|x| x.text.to_string())
+                        level.get_stage(&stage).map(|x| x.text.clone()).flatten()
                     }
                 }
             },
@@ -269,10 +287,18 @@ impl LevelCompletion {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameLevel {
-    SetLevel { index: u8, level: SetLevel },
-    Infinite { bytes: Option<Vec<u8>> },
+    SetLevel {
+        index: u8,
+        level: SetLevel,
+    },
+    Infinite {
+        bytes: Option<Vec<u8>>,
+    },
     Challenge,
-    Custom { level: SetLevel, message: String },
+    Custom {
+        level: SetLevel,
+        message: Option<String>,
+    },
 }
 
 impl GameLevel {
@@ -326,7 +352,10 @@ impl GameLevel {
 #[derive(Debug, Clone)]
 pub enum ChangeLevelEvent {
     Next,
-    ChooseLevel { index: u8, stage: usize },
+    ChooseLevel {
+        index: u8,
+        stage: usize,
+    },
     // Previous,
     ResetLevel,
     StartTutorial,
@@ -334,7 +363,10 @@ pub enum ChangeLevelEvent {
     StartChallenge,
     Load(Vec<u8>),
 
-    Custom { level: SetLevel, message: String },
+    Custom {
+        level: SetLevel,
+        message: Option<String>,
+    },
 }
 
 impl ChangeLevelEvent {
@@ -475,7 +507,7 @@ impl ChangeLevelEvent {
             Ok(x) => x,
             Err(message) => ChangeLevelEvent::Custom {
                 level: SetLevel::default(),
-                message: message.to_string(),
+                message: Some(message.to_string()),
             },
         }
     }
@@ -493,71 +525,10 @@ impl ChangeLevelEvent {
             .into_iter()
             .next()
             .ok_or(anyhow::anyhow!("No levels Found"))?;
-        let message = level.initial_stage.text.clone();
 
-        Ok(ChangeLevelEvent::Custom { level, message })
-
-        // let mut shapes: Vec<ShapeWithData> = vec![];
-        // let mut gravity: Vec2 = GRAVITY;
-        // let mut dodgy_params: Vec<&str> = vec![];
-        // let mut raindrop_settings: Option<RaindropSettings> = None;
-
-        // for param in data.split_terminator(',') {
-        //     if let Some(param) = CustomParam::try_from_text(param) {
-        //         match param {
-        //             CustomParam::Shape(s) => shapes.push(s),
-        //             CustomParam::GravityX(x) => gravity.x = x,
-        //             CustomParam::GravityY(y) => gravity.y = y,
-        //             CustomParam::RainfallIntensity(intensity) => raindrop_settings = Some(RaindropSettings { intensity }),
-        //         }
-        //     } else {
-        //         dodgy_params.push(param);
-        //     }
-        // }
-
-        // let message = if dodgy_params.is_empty() {
-        //     "Custom Level".to_string()
-        // } else {
-        //     let joined = dodgy_params.join(", ");
-        //     format!("Could not parse: {}", joined)
-        // };
+        Ok(ChangeLevelEvent::Custom {
+            level,
+            message: None,
+        })
     }
 }
-
-// pub enum CustomParam {
-//     Shape(ShapeWithData),
-//     GravityX(f32),
-//     GravityY(f32),
-//     RainfallIntensity(usize),
-// }
-
-// impl CustomParam {
-//     pub fn try_from_text(text: &str) -> Option<Self> {
-//         let lc = text.to_ascii_lowercase();
-//         if let Some(gravity_x) = lc.strip_prefix("gravx:") {
-//             if let Ok(x) = gravity_x.parse() {
-//                 return Some(Self::GravityX(x));
-//             } else {
-//                 return None;
-//             }
-//         }
-
-//         if let Some(gravity_y) = lc.strip_prefix("gravy:") {
-//             if let Ok(y) = gravity_y.parse() {
-//                 return Some(Self::GravityY(y));
-//             } else {
-//                 return None;
-//             }
-//         }
-
-//         if let Some(rainfall) = lc.strip_prefix("rain:") {
-//             if let Ok(rain) = rainfall.parse() {
-//                 return Some(Self::RainfallIntensity(rain));
-//             } else {
-//                 return None;
-//             }
-//         }
-
-//         ShapeWithData::by_name(text).map(Self::Shape)
-//     }
-// }

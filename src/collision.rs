@@ -2,7 +2,7 @@ use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::RapierContext;
 
-use crate::{shape_maker::SHAPE_SIZE, walls::*};
+use crate::{shape_maker::SHAPE_SIZE, walls::*, PHYSICS_SCALE};
 
 pub struct CollisionPlugin;
 
@@ -52,20 +52,21 @@ fn display_collision_markers(
                         .colliders
                         .get(wall_collider_handle)
                         .map(|m| {
-                            (
-                                Vec2 {
-                                    x: m.translation().x,
-                                    y: m.translation().y,
-                                },
-                                Quat::from_rotation_z(m.rotation().angle()),
-                            )
+
+
+                            //let p_w_p = m.position_wrt_parent().map(|i|(i.translation)) .unwrap_or_default();
+                            let rotation = Quat::from_rotation_z(m.rotation().angle());
+                            let translation = Vec2 {
+                                x: m.translation().x,// - p_w_p.x,
+                                y: m.translation().y,// - p_w_p.y,
+                            };
+                            (translation, rotation)
                         })
                         .unwrap_or_default();
 
                     let offset = (shape_t.extend(0.0)
                         + shape_rot.mul_vec3(wall_local_point.extend(0.0)))
                         * rapier_context.physics_scale();
-
                     let cm = CollisionMarker {
                         wall_entity,
                         other_entity,
@@ -74,7 +75,7 @@ fn display_collision_markers(
                     };
                     let mut new_transform = *wall_transform;
 
-                    new_transform.translation += offset;
+                    new_transform.translation = offset;
                     new_transform.translation.z = 2.0;
 
                     if let Some((_, mut transform)) = markers_map.remove(&cm) {

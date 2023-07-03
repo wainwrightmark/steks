@@ -1,11 +1,10 @@
 use anyhow::anyhow;
 use bevy::prelude::*;
-use capacitor_bindings::clipboard::ReadResult;
 
 use crate::{
-    async_event_writer::{AsyncEventPlugin, AsyncEventWriter},
+    async_event_writer::*,
     level::ChangeLevelEvent,
-    logging, set_level::{self, SetLevel},
+    set_level::{ SetLevel},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -39,13 +38,13 @@ async fn get_imported_level_async()-> Result<ChangeLevelEvent, anyhow::Error>{
 
     let level = list.first().ok_or(anyhow::anyhow!("No Level Found"))?;
 
-    Ok(ChangeLevelEvent::Custom { level: level.clone(), message: level.initial_stage.text.clone() })
+    Ok(ChangeLevelEvent::Custom { level: level.clone(), message: None })
 }
 
 async fn handle_import_event_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
     let cle = match get_imported_level_async().await{
         Ok(cle) => cle,
-        Err(e) => ChangeLevelEvent::Custom { level: SetLevel::default(), message: e.to_string() },
+        Err(e) => ChangeLevelEvent::Custom { level: SetLevel::default(), message: Some(e.to_string()) },
     };
 
     writer.send_async(cle).await.unwrap()

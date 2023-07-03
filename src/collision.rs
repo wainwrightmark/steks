@@ -1,8 +1,8 @@
 use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::prelude::RapierContext;
+use bevy_rapier2d::{prelude::RapierContext};
 
-use crate::{shape_maker::SHAPE_SIZE, walls::*, PHYSICS_SCALE};
+use crate::{shape_maker::SHAPE_SIZE, walls::*};
 
 pub struct CollisionPlugin;
 
@@ -40,12 +40,13 @@ fn display_collision_markers(
             let mut index = 0;
 
             for manifold in contact.manifolds() {
+
                 for point in manifold.points().filter(|x| x.dist() < 0.) {
-                    let (other_entity, wall_local_point, handle) =
+                    let (other_entity, wall_local_point, wall_collider_handle) =
                         if contact.collider1() == wall_entity {
-                            (contact.collider2(), point.local_p1(), contact.raw.collider2)
+                            (contact.collider2(), point.local_p1(), contact.raw.collider1)
                         } else {
-                            (contact.collider1(), point.local_p2(), contact.raw.collider1)
+                            (contact.collider1(), point.local_p2(), contact.raw.collider2)
                         };
 
                     let cm = CollisionMarker {
@@ -56,11 +57,22 @@ fn display_collision_markers(
                     };
                     let mut new_transform = *wall_transform;
 
-                    //let t = rapier_context.colliders.get(handle).map(|x|x  x.translation()).map(|m| Vec2{x:m.x, y: m.y}).unwrap_or_default();
+                    let (shape_t, shape_rot) = rapier_context
+                        .colliders
+                        .get(wall_collider_handle)
+                        .map(|m| {
+                            (
 
-                    let offset = wall_transform
-                        .rotation
-                        .mul_vec3((wall_local_point * rapier_context.physics_scale()).extend(0.0));
+                                Vec2 {
+                                    x: m.translation().x,
+                                    y: m.translation().y,
+                                },
+                                Quat::from_rotation_z(m.rotation().angle()),
+                            )
+                        })
+                        .unwrap_or_default();
+
+                    let offset =  (shape_t.extend(0.0) + shape_rot.mul_vec3(wall_local_point.extend(0.0))) * rapier_context.physics_scale();
 
                     new_transform.translation += offset;
                     new_transform.translation.z = 2.0;

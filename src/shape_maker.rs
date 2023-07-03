@@ -144,6 +144,12 @@ impl ShapeIndex {
     }
 }
 
+#[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
+pub struct VoidShape;
+
+#[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
+pub struct FixedShape;
+
 pub const DEFAULT_FRICTION: f32 = 1.0;
 
 pub fn create_shape(
@@ -247,13 +253,15 @@ pub fn create_shape(
             color: color::WARN_COLOR,
             options: StrokeOptions::default().with_line_width(1.0),
         });
+        ec.insert(VoidShape);
     }
 
-    if state == InitialState::Fixed {
+    else if state == InitialState::Fixed {
         ec.insert(Stroke {
             color: Color::BLACK,
             options: StrokeOptions::default().with_line_width(1.0),
         });
+        ec.insert(FixedShape);
     } else if  friction.map(|x| x < DEFAULT_FRICTION).unwrap_or_default() {
         ec.insert(Stroke {
             color: Color::WHITE,

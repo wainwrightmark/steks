@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{*, shape_maker::FixedShape};
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
@@ -79,11 +79,12 @@ pub fn drag_end(
     mut ew_end_drag: EventWriter<DragEndedEvent>,
     rapier_context: ResMut<RapierContext>,
     walls: Query<Entity, With<Wall>>,
+    fixed_shapes: Query<(), With<FixedShape>>
 ) {
     for event in er_drag_end.iter() {
         info!("{:?}", event);
 
-        let any_fixed = draggables.iter().any(|x| x.1.is_fixed());
+        let any_fixed = !fixed_shapes.is_empty();
 
         for (entity, mut draggable) in draggables
             .iter_mut()

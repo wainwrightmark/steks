@@ -2,6 +2,7 @@ use std::ops::Div;
 
 use crate::camera::TouchDragged;
 use crate::padlock::PadlockResource;
+use crate::shape_maker::FixedShape;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_prototype_lyon::shapes;
@@ -118,8 +119,10 @@ fn show_spirit_lines(
     added: Query<(), Added<TouchDragged>>,
     mut spirit_lines_query: Query<&mut Visibility, (With<SpiritLine>, Without<TouchDragged>)>,
     padlock: Res<PadlockResource>,
+    fixed_shapes: Query<(), With<FixedShape>>
+
 ) {
-    if !added.is_empty() && !padlock.is_locked() {
+    if !added.is_empty() && !padlock.is_locked() && fixed_shapes.is_empty() {
         for mut x in spirit_lines_query.iter_mut() {
             //info!("Show spirit line");
             *x = Visibility::Inherited;

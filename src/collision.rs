@@ -1,6 +1,6 @@
 use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::{prelude::RapierContext};
+use bevy_rapier2d::prelude::RapierContext;
 
 use crate::{shape_maker::SHAPE_SIZE, walls::*};
 
@@ -40,7 +40,6 @@ fn display_collision_markers(
             let mut index = 0;
 
             for manifold in contact.manifolds() {
-
                 for point in manifold.points().filter(|x| x.dist() < 0.) {
                     let (other_entity, wall_local_point, wall_collider_handle) =
                         if contact.collider1() == wall_entity {
@@ -49,20 +48,11 @@ fn display_collision_markers(
                             (contact.collider1(), point.local_p2(), contact.raw.collider2)
                         };
 
-                    let cm = CollisionMarker {
-                        wall_entity,
-                        other_entity,
-                        index,
-                        marker_type: wall.marker_type(),
-                    };
-                    let mut new_transform = *wall_transform;
-
                     let (shape_t, shape_rot) = rapier_context
                         .colliders
                         .get(wall_collider_handle)
                         .map(|m| {
                             (
-
                                 Vec2 {
                                     x: m.translation().x,
                                     y: m.translation().y,
@@ -72,7 +62,17 @@ fn display_collision_markers(
                         })
                         .unwrap_or_default();
 
-                    let offset =  (shape_t.extend(0.0) + shape_rot.mul_vec3(wall_local_point.extend(0.0))) * rapier_context.physics_scale();
+                    let offset = (shape_t.extend(0.0)
+                        + shape_rot.mul_vec3(wall_local_point.extend(0.0)))
+                        * rapier_context.physics_scale();
+
+                    let cm = CollisionMarker {
+                        wall_entity,
+                        other_entity,
+                        index,
+                        marker_type: wall.marker_type(),
+                    };
+                    let mut new_transform = *wall_transform;
 
                     new_transform.translation += offset;
                     new_transform.translation.z = 2.0;

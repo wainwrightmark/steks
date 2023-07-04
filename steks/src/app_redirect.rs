@@ -10,7 +10,7 @@ impl bevy::prelude::Plugin for AppUrlPlugin {
 }
 
 fn subscribe_to_app_url_events(_writer: AsyncEventWriter<ChangeLevelEvent>) {
-    #[cfg(any(feature = "android", feature = "ios"))]
+    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")) )]
     {
         bevy::tasks::IoTaskPool::get()
             .spawn(async move { subscribe_to_app_url_events_async(_writer).await })

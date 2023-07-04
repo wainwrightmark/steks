@@ -1,7 +1,7 @@
 {
   "appId": "com.steks.app",
   "appName": "steks",
-  "webDir": "dist",
+  "webDir": "steks/dist",
   "server": {
     "androidScheme": "https"
   },

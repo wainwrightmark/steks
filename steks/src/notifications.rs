@@ -3,6 +3,7 @@ use capacitor_bindings::local_notifications::*;
 
 use crate::{async_event_writer::AsyncEventWriter, level::ChangeLevelEvent, logging::*};
 
+#[cfg(any(feature = "ios", feature = "android"))]
 const DAILY_CHALLENGE_CLICK_ACTION_ID: &str = "DailyChallengeClick";
 const DAILY_CHALLENGE_ACTION_TYPE_ID: &str = "DailyChallenge";
 
@@ -49,7 +50,6 @@ async fn setup_notifications_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
     #[cfg(any(feature = "ios", feature = "android"))]
     {
         bevy::log::info!("Registering Action Types");
-
         crate::logging::do_or_report_error_async(|| {
             let action_type_options = RegisterActionTypesOptions {
                 types: vec![ActionType {

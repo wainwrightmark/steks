@@ -1,6 +1,6 @@
 [build]
-target = "index.html"
-dist = "dist"
+target = "steks/index.html"
+dist = "steks/dist"
 
 [serve]
 # address = "192.168.68.126"

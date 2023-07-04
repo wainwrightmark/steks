@@ -8,8 +8,8 @@
   path = "/game/*"
 
 [build]
-  publish = "dist"
-  command = "cargo install trunk --locked; trunk build index.html --release"
+  publish = "steks/dist"
+  command = "cargo install trunk --locked; trunk build steks/index.html --release"
 
 
 [context.production]

@@ -205,7 +205,7 @@
     - shape: I5
       x: 0.0
       y: -150.0
-      r: 0.25
+      r: 0.0
       state: Fixed
     - shape: X5
       x: 25.0

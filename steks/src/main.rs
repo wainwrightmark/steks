@@ -39,7 +39,6 @@ pub mod async_event_writer;
 use fireworks::FireworksPlugin;
 use lens::LensPlugin;
 use level_ui::LevelUiPlugin;
-//use menu_action::MenuActionPlugin;
 pub use constants::*;
 use padlock::*;
 mod constants;
@@ -48,7 +47,6 @@ use bevy_tweening::TweeningPlugin;
 use camera::*;
 use draggable::*;
 use import::*;
-//use recording::RecordingPlugin;
 use saved_data::*;
 mod level;
 use level::*;
@@ -78,11 +76,13 @@ mod fireworks;
 
 mod spirit;
 
+#[cfg(target_arch = "wasm32")]
 mod notifications;
 
 mod game_shape;
 use fixed_shape::*;
 use game_shape::*;
+#[cfg(target_arch = "wasm32")]
 use notifications::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -150,7 +150,7 @@ fn main() {
         .add_plugin(LevelUiPlugin)
         .add_plugin(LensPlugin)
         .add_plugin(FireworksPlugin)
-        .add_plugin(NotificationPlugin)
+
         .add_plugin(AppUrlPlugin)
         .add_plugin(RainPlugin)
         .add_plugin(ImportPlugin)
@@ -177,7 +177,11 @@ fn main() {
         });
 
     #[cfg(target_arch = "wasm32")]
-    builder.add_plugin(wasm::WASMPlugin);
+    {
+        builder.add_plugin(wasm::WASMPlugin);
+        builder.add_plugin(NotificationPlugin);
+    }
+
 
     if cfg!(debug_assertions) {
         //builder.add_plugin(RapierDebugRenderPlugin::default());

@@ -19,12 +19,16 @@ fn handle_import_events(
     mut events: EventReader<ImportEvent>,
     writer: AsyncEventWriter<ChangeLevelEvent>,
 ) {
-    for _ in events.iter() {
-        let writer = writer.clone();
-        bevy::tasks::IoTaskPool::get()
-            .spawn(async move { handle_import_event_async(writer).await })
-            .detach();
+    #[cfg(target_arch = "wasm32" )]
+    {
+        for _ in events.iter() {
+            let writer = writer.clone();
+            bevy::tasks::IoTaskPool::get()
+                .spawn(async move { handle_import_event_async(writer).await })
+                .detach();
+        }
     }
+
 }
 
 async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {

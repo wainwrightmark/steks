@@ -3,7 +3,7 @@ use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 use geometrid::{
     polyomino::Polyomino,
-    prelude::{HasCenter, Location},
+    prelude::{HasCenter, Point},
     shape::Shape,
 };
 
@@ -18,7 +18,7 @@ fn get_vertices<const S: usize>(
     shape_size: f32,
 ) -> impl Iterator<Item = Vec2> {
     let u = shape_size / (1.0 * f32::sqrt(S as f32));
-    let Location {
+    let Point {
         x: x_offset,
         y: y_offset,
     } = shape.get_center(1.0);
@@ -33,7 +33,7 @@ fn get_vertices<const S: usize>(
 impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn to_collider_shape(&self, shape_size: f32) -> Collider {
         let u = shape_size / (1.0 * f32::sqrt(S as f32));
-        let Location {
+        let Point {
             x: x_offset,
             y: y_offset,
         } = self.get_center(1.0);

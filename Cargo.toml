@@ -19,7 +19,7 @@ bevy_pkv = "0.7"
 serde = { version = "1", features = ["derive"] }
 anyhow = "1"
 base64 = "0.21"
-geometrid = "0.1"
+geometrid = "0.2.0"
 serde_with = "3"
 reqwest = { version = "0.11",default-features = false, features = ["json"] }
 capacitor_bindings = {  features = ["web"], git = "https://github.com/wainwrightmark/capacitor_bindings" }

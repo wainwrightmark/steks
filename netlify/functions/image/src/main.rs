@@ -2,7 +2,6 @@ pub mod color;
 pub mod encoding;
 pub mod fixed_shape;
 pub mod game_shape;
-pub mod point;
 pub mod svg;
 
 use aws_lambda_events::encodings::Body;

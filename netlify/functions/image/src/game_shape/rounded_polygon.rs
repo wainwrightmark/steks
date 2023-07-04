@@ -1,4 +1,4 @@
-use crate::point::Point;
+use geometrid::prelude::Point;
 
 /// Adds a sub-path from a polygon but rounds the corners.
 ///
@@ -70,14 +70,14 @@ fn clamp_radius(radius: f32, p_previous: Point, p_current: Point, p_next: Point)
 }
 
 fn get_point_between(p1: Point, p2: Point, radius: f32) -> Point {
-    let dist = p1.distance_to(p2);
+    let dist = p1.distance_to(&p2);
     let ratio = radius / dist;
 
     p1.lerp(p2, ratio)
 }
 
 fn get_winding(p0: Point, p1: Point, p2: Point) -> Winding {
-    let cross = (p2 - p0).cross(p1 - p0);
+    let cross = (p2 - p0).cross_product(p1 - p0);
     if cross.is_sign_positive() {
         Winding::Positive
     } else {

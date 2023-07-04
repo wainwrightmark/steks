@@ -1,6 +1,8 @@
 
 use std::ops::RangeInclusive;
-use crate::{*, fixed_shape::{FixedShape, Location}, point::Point};
+use geometrid::prelude::Point;
+
+use crate::{*, fixed_shape::{FixedShape, Location}};
 
 pub fn decode_shapes(data: &[u8]) -> Vec<FixedShape> {
     data.chunks_exact(6).map(decode_shape).collect()

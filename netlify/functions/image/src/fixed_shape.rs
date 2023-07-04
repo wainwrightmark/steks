@@ -1,5 +1,6 @@
+use geometrid::prelude::Point;
+
 use crate::game_shape::*;
-use crate::point::Point;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FixedShape {

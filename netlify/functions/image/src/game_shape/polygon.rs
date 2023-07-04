@@ -1,6 +1,8 @@
 use std::format;
 
-use crate::{game_shape::rounded_polygon, point::Point};
+use geometrid::prelude::Point;
+
+use crate::{game_shape::rounded_polygon};
 
 use super::GameShapeBody;
 

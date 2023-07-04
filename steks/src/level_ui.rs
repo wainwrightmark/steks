@@ -224,7 +224,6 @@ fn get_border_bundle(
         style: Style {
             display: Display::Flex,
             align_items: AlignItems::Center,
-            // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
             margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
             justify_content: JustifyContent::Center,
             border,
@@ -242,20 +241,20 @@ fn get_all_text_bundle(
     _score_store: &Res<ScoreStore>,
     _shapes: &Query<&ShapeIndex>,
 ) -> NodeBundle {
-    let show = match current_level.completion {
-        LevelCompletion::Incomplete { .. } => true,
-        LevelCompletion::Complete { splash, .. } => splash,
-    };
-    let size = if show {
-        Size::AUTO
-    } else {
-        Size::new(Val::Px(0.0), Val::Px(0.0))
-    };
-    let visibility = if show {
-        Visibility::Inherited
-    } else {
-        Visibility::Hidden
-    };
+    // let show = match current_level.completion {
+    //     LevelCompletion::Incomplete { .. } => true,
+    //     LevelCompletion::Complete { splash, .. } => splash,
+    // };
+    // let size = if show {
+    //     Size::AUTO
+    // } else {
+    //     Size::new(Val::Px(0.0), Val::Px(0.0))
+    // };
+    // let visibility = if show {
+    //     Visibility::Inherited
+    // } else {
+    //     Visibility::Hidden
+    // };
 
     NodeBundle {
         style: Style {
@@ -265,11 +264,11 @@ fn get_all_text_bundle(
             // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
             margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
             justify_content: JustifyContent::Center,
-            size,
+            //size,
 
             ..Default::default()
         },
-        visibility,
+        //visibility,
         ..Default::default()
     }
 }

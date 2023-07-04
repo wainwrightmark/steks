@@ -32,11 +32,11 @@ impl ScoreStore {
         for (hash, height) in s.split_ascii_whitespace().tuples() {
             let hash: i64 = match hash.parse() {
                 Ok(hash) => hash,
-                Err(err) => {
+                Err(_err) => {
                     #[cfg(target_arch = "wasm32")]
                     {
                         crate::logging::try_log_error_message(format!(
-                            "Error parsing hash '{hash}': {err}"
+                            "Error parsing hash '{hash}': {_err}"
                         ));
                     }
 
@@ -45,11 +45,11 @@ impl ScoreStore {
             };
             let height: f32 = match height.parse() {
                 Ok(height) => height,
-                Err(err) => {
+                Err(_err) => {
                     #[cfg(target_arch = "wasm32")]
                     {
                         crate::logging::try_log_error_message(format!(
-                            "Error parsing height '{height}': {err}"
+                            "Error parsing height '{height}': {_err}"
                         ));
                     }
 
@@ -83,10 +83,10 @@ fn hydrate_leaderboard(
     for ev in events.into_iter() {
         match &ev.0 {
             Ok(text) => store_score.set_from_string(text),
-            Err(err) => {
+            Err(_err) => {
                 #[cfg(target_arch = "wasm32")]
                 {
-                    crate::logging::try_log_error_message(format!("{err}"));
+                    crate::logging::try_log_error_message(format!("{_err}"));
                 }
             }
         }
@@ -114,13 +114,11 @@ async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error
             .await?;
 
     res.error_for_status().map(|_| ())
-
-    // Ok(())
 }
 
 fn update_leaderboard_on_completion(
     current_level: Res<CurrentLevel>,
-    shapes: Query<&ShapeIndex>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     mut score_store: ResMut<ScoreStore>,
 ) {
     if current_level.is_changed() {
@@ -129,7 +127,7 @@ fn update_leaderboard_on_completion(
             LevelCompletion::Complete { score_info, .. } => score_info.height,
         };
 
-        let hash = hash_shapes(shapes.iter().cloned());
+        let hash = ShapesVec::from_query(shapes_query).hash();
 
         match &mut score_store.map {
             Some(map) => {
@@ -154,11 +152,11 @@ fn update_leaderboard_on_completion(
                         .spawn(async move {
                             match update_leaderboard(hash, height).await {
                                 Ok(_) => log::info!("Updated leaderboard"),
-                                Err(err) => {
+                                Err(_err) => {
                                     #[cfg(target_arch = "wasm32")]
                                     {
                                         crate::logging::try_log_error_message(format!(
-                                            "Could not update leaderboard: {err}"
+                                            "Could not update leaderboard: {_err}"
                                         ));
                                     }
                                 }

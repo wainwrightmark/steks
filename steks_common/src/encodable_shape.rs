@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_shape_encoding_roundtrip() {
-        let shape = GameShape::by_name("O").unwrap();
+        let shape = GameShape::by_name("O4").unwrap();
 
         let fs = EncodableShape {
             shape,

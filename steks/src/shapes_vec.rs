@@ -9,18 +9,23 @@ use crate::prelude::*;
 
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
-pub fn hash_shapes(shapes: impl Iterator<Item = ShapeIndex>) -> i64 {
-    let mut code: i64 = 0;
-    for index in shapes.map(|x| x.0).sorted() {
-        code = code.wrapping_mul(31).wrapping_add(index as i64);
-    }
-
-    code
-}
 
 impl ShapesVec {
     pub fn hash(&self) -> i64 {
-        hash_shapes(self.0.iter().map(|x| x.shape.index))
+        let mut code: i64 = 0;
+        for EncodableShape {
+            shape,
+            location: _,
+            state,
+            modifiers,
+        } in self.0.iter().sorted_by_cached_key(|x| (x.shape.index, x.state, x.modifiers))
+        {
+            code = code.wrapping_mul(29).wrapping_add(*state as i64);
+            code = code.wrapping_mul(31).wrapping_add(*modifiers as i64);
+            code = code.wrapping_mul(37).wrapping_add(shape.index.0 as i64);
+        }
+
+        code
     }
 
     pub fn calculate_tower_height(&self) -> f32 {
@@ -31,7 +36,7 @@ impl ShapesVec {
             shape,
             location,
             state,
-            modifiers,
+            modifiers: _,
         } in self.0.iter()
         {
             if state == &ShapeState::Void {

@@ -236,7 +236,7 @@ fn get_border_bundle(
 }
 
 fn get_all_text_bundle(
-    current_level: &CurrentLevel,
+    _current_level: &CurrentLevel,
     _asset_server: &Res<AssetServer>,
     _score_store: &Res<ScoreStore>,
     _shapes: &Query<&ShapeIndex>,

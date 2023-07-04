@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
     Serialize,
     IntoPrimitive,
     TryFromPrimitive,
+    Ord,PartialOrd
 )]
 #[repr(u8)]
 
@@ -38,6 +39,7 @@ pub enum ShapeState {
     Serialize,
     IntoPrimitive,
     TryFromPrimitive,
+    Ord,PartialOrd
 )]
 #[repr(u8)]
 pub enum ShapeModifiers {

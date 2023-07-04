@@ -435,7 +435,7 @@ fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<Ch
 fn track_level_completion(
     level: Res<CurrentLevel>,
     mut pkv: ResMut<PkvStore>,
-    shapes: Query<&ShapeIndex>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
 ) {
     if !level.is_changed() {
         return;
@@ -449,7 +449,7 @@ fn track_level_completion(
             });
         }
         LevelCompletion::Complete { score_info, .. } => {
-            let hash = hash_shapes(shapes.iter().cloned());
+            let hash = ShapesVec::from_query(shapes_query).hash();
 
             StoreData::update(&mut pkv, |x: LevelHeightRecords| {
                 x.add_height(hash, score_info.height)

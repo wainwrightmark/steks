@@ -19,7 +19,7 @@ fn handle_import_events(
     mut events: EventReader<ImportEvent>,
     writer: AsyncEventWriter<ChangeLevelEvent>,
 ) {
-    #[cfg(target_arch = "wasm32" )]
+    #[cfg(target_arch = "wasm32")]
     {
         for _ in events.iter() {
             let writer = writer.clone();
@@ -28,14 +28,13 @@ fn handle_import_events(
                 .detach();
         }
     }
-
 }
 
 async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {
     let data = capacitor_bindings::clipboard::Clipboard::read()
         .await
         .map_err(|x| anyhow!("{}", x.to_string()))?;
-    let list: Vec<SetLevel> = serde_yaml::from_str(data.value.replace(" ", " ") .as_str())?;
+    let list: Vec<SetLevel> = serde_yaml::from_str(data.value.replace(" ", " ").as_str())?;
 
     let level = list.first().ok_or(anyhow::anyhow!("No Level Found"))?;
 

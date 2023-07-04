@@ -12,7 +12,12 @@ pub struct ShapeWithData {
 
 impl From<EncodableShape> for ShapeWithData {
     fn from(value: EncodableShape) -> Self {
-        let EncodableShape { shape, location, state, modifiers } = value;
+        let EncodableShape {
+            shape,
+            location,
+            state,
+            modifiers,
+        } = value;
 
         let friction = match modifiers {
             ShapeModifiers::Normal => None,

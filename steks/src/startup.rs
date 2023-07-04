@@ -40,7 +40,9 @@ pub fn main() {
                 .set(window_plugin)
                 .set(log_plugin)
                 .build()
-                .add_before::<bevy::asset::AssetPlugin, _>(bevy_embedded_assets::EmbeddedAssetPlugin),
+                .add_before::<bevy::asset::AssetPlugin, _>(
+                    bevy_embedded_assets::EmbeddedAssetPlugin,
+                ),
         )
         .add_plugin(WallsPlugin)
         .add_plugin(ButtonPlugin)
@@ -52,7 +54,6 @@ pub fn main() {
         .add_plugin(LevelUiPlugin)
         .add_plugin(LensPlugin)
         .add_plugin(FireworksPlugin)
-
         .add_plugin(AppUrlPlugin)
         .add_plugin(RainPlugin)
         .add_plugin(ImportPlugin)
@@ -73,7 +74,7 @@ pub fn main() {
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,
-            unfocused_mode: bevy::winit::UpdateMode::Reactive  {
+            unfocused_mode: bevy::winit::UpdateMode::Reactive {
                 max_wait: Duration::from_secs(60),
             },
         });
@@ -83,7 +84,6 @@ pub fn main() {
         builder.add_plugin(WASMPlugin);
         builder.add_plugin(NotificationPlugin);
     }
-
 
     if cfg!(debug_assertions) {
         //builder.add_plugin(RapierDebugRenderPlugin::default());
@@ -102,8 +102,6 @@ pub fn main() {
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
     rapier_config.gravity = GRAVITY;
 }
-
-
 
 pub fn get_today_date() -> chrono::NaiveDate {
     let today = chrono::offset::Utc::now();

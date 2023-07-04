@@ -1,5 +1,5 @@
-use bevy_rapier2d::prelude::Group;
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::Group;
 
 pub const WINDOW_WIDTH: f32 = 360f32;
 

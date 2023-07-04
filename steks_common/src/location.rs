@@ -1,4 +1,4 @@
-use bevy::prelude::{Vec2, Transform, Quat};
+use bevy::prelude::{Quat, Transform, Vec2};
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Location {

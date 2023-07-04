@@ -31,10 +31,10 @@ impl ShapesVec {
             shape,
             location,
             state,
-            modifiers
+            modifiers,
         } in self.0.iter()
         {
-            if state == &ShapeState::Void{
+            if state == &ShapeState::Void {
                 continue;
             }
             let bb = shape.body.bounding_box(SHAPE_SIZE, location);
@@ -54,12 +54,18 @@ impl ShapesVec {
     ) -> Self {
         let shapes: Vec<EncodableShape> = shapes_query
             .iter()
-            .map(|(index, transform, shape_component, friction)| EncodableShape {
-                shape: &ALL_SHAPES[index.0],
-                location: transform.into(),
-                state: shape_component.into(),
-                modifiers: if friction.coefficient < DEFAULT_FRICTION { ShapeModifiers::LowFriction} else {ShapeModifiers::Normal}
-            })
+            .map(
+                |(index, transform, shape_component, friction)| EncodableShape {
+                    shape: &ALL_SHAPES[index.0],
+                    location: transform.into(),
+                    state: shape_component.into(),
+                    modifiers: if friction.coefficient < DEFAULT_FRICTION {
+                        ShapeModifiers::LowFriction
+                    } else {
+                        ShapeModifiers::Normal
+                    },
+                },
+            )
             .collect_vec();
 
         Self(shapes)

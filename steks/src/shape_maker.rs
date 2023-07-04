@@ -10,8 +10,6 @@ use crate::{prelude::*, startup::get_today_date};
 
 use rand::{rngs::ThreadRng, Rng};
 
-
-
 pub fn create_initial_shapes(
     level: &GameLevel,
     event_writer: &mut EventWriter<SpawnNewShapeEvent>,
@@ -25,7 +23,10 @@ pub fn create_initial_shapes(
         }
         GameLevel::Infinite { bytes } => {
             if let Some(bytes) = bytes {
-                decode_shapes(bytes).into_iter().map(|x| ShapeWithData::from(x)).collect_vec()
+                decode_shapes(bytes)
+                    .into_iter()
+                    .map(|x| ShapeWithData::from(x))
+                    .collect_vec()
             } else {
                 let mut rng: ThreadRng = ThreadRng::default();
                 let mut shapes: Vec<ShapeWithData> = vec![];
@@ -138,8 +139,6 @@ pub fn place_and_create_shape<RNG: Rng>(
     );
 }
 
-
-
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub struct VoidShape {
     pub highlighted: bool,
@@ -181,7 +180,7 @@ pub fn create_shape(
     let fill = if shape_component.is_fixed() {
         Fill {
             options: FillOptions::DEFAULT,
-            color: FIXED_SHAPE_FILL
+            color: FIXED_SHAPE_FILL,
         }
     } else if shape_component.is_void() {
         Fill {
@@ -219,11 +218,7 @@ pub fn create_shape(
         x.spawn_empty()
             .insert(Shadow)
             // .insert(bevy::render::view::visibility::RenderLayers::layer(ZOOM_ENTITY_LAYER))
-            .insert(
-                game_shape
-                    .body
-                    .get_shape_bundle(SHAPE_SIZE * ZOOM_LEVEL),
-            )
+            .insert(game_shape.body.get_shape_bundle(SHAPE_SIZE * ZOOM_LEVEL))
             .insert(Transform {
                 translation: Vec3::new(0., 0., 10.),
                 ..Default::default()

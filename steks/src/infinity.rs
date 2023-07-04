@@ -11,5 +11,3 @@ pub fn get_next_shape<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> Shape
 
     ShapeWithData::from_seed(hash)
 }
-
-

@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 use super::{GameShapeBody, SHAPE_RADIUS_RATIO};
-use bevy::prelude::{Quat, Rect, Transform, Vec2, Color};
+use bevy::prelude::{Color, Quat, Rect, Transform, Vec2};
 use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 
@@ -68,8 +68,13 @@ impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
             .0
             .map(|(x, y)| Vec2::new((x as f32) * u, (y as f32) * u));
 
-        let path = crate::game_shape::rounded_polygon::make_rounded_polygon_path(&points, size / 10.0);
-        let stroke_width = if stroke.is_some() {"stroke-width=\"1\""} else {"stroke-width=\"0\""};
+        let path =
+            crate::game_shape::rounded_polygon::make_rounded_polygon_path(&points, size / 10.0);
+        let stroke_width = if stroke.is_some() {
+            "stroke-width=\"1\""
+        } else {
+            "stroke-width=\"0\""
+        };
         let fill = color_to_svg_fill(fill);
         let stroke = color_to_svg_stroke(stroke);
 

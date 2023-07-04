@@ -265,7 +265,6 @@ fn get_all_text_bundle(
             margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
             justify_content: JustifyContent::Center,
             //size,
-
             ..Default::default()
         },
         //visibility,

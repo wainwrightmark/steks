@@ -83,10 +83,10 @@ fn draw_image(game: &str) -> Vec<u8> {
     let mut pixmap =
         resvg::tiny_skia::Pixmap::new(RESOLUTION, RESOLUTION).expect("Could not create pixmap");
 
-    let [r,g,b,a] = steks_common::color::BACKGROUND_COLOR.as_rgba_u32().to_le_bytes();
-    pixmap.fill(resvg::tiny_skia::Color::from_rgba8(
-        r,g,b,a
-    ));
+    let [r, g, b, a] = steks_common::color::BACKGROUND_COLOR
+        .as_rgba_u32()
+        .to_le_bytes();
+    pixmap.fill(resvg::tiny_skia::Color::from_rgba8(r, g, b, a));
 
     const SPACE_RATIO: f32 = 1.1;
 

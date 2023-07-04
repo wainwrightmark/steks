@@ -12,9 +12,6 @@ pub const FIXED_SHAPE_STROKE: Color = Color::BLACK;
 pub const VOID_SHAPE_STROKE: Color = WARN_COLOR;
 pub const ICE_SHAPE_STROKE: Color = Color::WHITE;
 
-
-
-
 pub fn choose_color(index: usize) -> Color {
     const SATURATIONS: [f32; 2] = [0.9, 0.28];
     const LIGHTNESSES: [f32; 2] = [0.28, 0.49];
@@ -30,32 +27,27 @@ pub fn choose_color(index: usize) -> Color {
     Color::hsla(hue, saturation, lightness, alpha)
 }
 
-
 pub fn color_to_rgba(color: Color) -> String {
-
-    let [r,g,b,a] = color.as_rgba_u32().to_le_bytes();
-    format!(
-        "#{:02X}{:02X}{:02X}{:02X}",
-        r,g,b,a
-    )
+    let [r, g, b, a] = color.as_rgba_u32().to_le_bytes();
+    format!("#{:02X}{:02X}{:02X}{:02X}", r, g, b, a)
 }
 
-pub fn color_to_svg_fill(color: Option<Color>)-> String{
-    match color{
+pub fn color_to_svg_fill(color: Option<Color>) -> String {
+    match color {
         Some(color) => {
             let rgba = color_to_rgba(color);
             format!("fill=\"{rgba}\"")
-        },
+        }
         None => "".to_string(),
     }
 }
 
-pub fn color_to_svg_stroke(color: Option<Color>)-> String{
-    match color{
+pub fn color_to_svg_stroke(color: Option<Color>) -> String {
+    match color {
         Some(color) => {
             let rgba = color_to_rgba(color);
             format!("stroke=\"{rgba}\"")
-        },
+        }
         None => "".to_string(),
     }
 }

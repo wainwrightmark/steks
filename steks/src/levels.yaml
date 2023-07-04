@@ -1,75 +1,16 @@
-# https://en.wikipedia.org/wiki/Tetromino
-# https://en.wikipedia.org/wiki/Pentomino
-
-- text: "Welcome to steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with your finger\n\nPlace it above the triangle"
-  text_seconds: 360
-  skip_completion: true
-  shapes:
-    - shape: Triangle
-      x: 0.0
-      y: -150.0
-      r: 0.125
-      state: locked
-    - shape: O4
-      x: 0
-      y: -300
-- text: "Towers cannot touch the ground\n\nYour tower will need a foundation\n\n\nGrab the square and lift it up\n\nHold it in place a moment to lock"
-  text_seconds: 360
-  skip_completion: true
-  shapes:
-    - shape: O4
-  stages:
-  - text: "You can only lock one shape at once\n\n\nBalance the X on top of the square"
-    text_seconds: 360
-    shapes:
-    - shape: X5
-
-- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again and finish your tower"
-  text_seconds: 360
-  skip_completion: true
-  shapes:
-    - shape: Triangle
-      x: 0.0
-      y: -150.0
-      r: 0.625
-      state: locked
-    - shape: O4
-      x: 0.0
-      y: -300
-  stages:
-  - text: "To complete your tower\n\nUse all shapes on the screen"
-    text_seconds: 360
-    shapes:
-    - shape: L4
-  - text: "Finger blocking your tower?\n\nUse the black outlines to guide you"
-    text_seconds: 360
-    shapes:
-    - shape: L4
-
-- text: "First level Text"
-  title: "A gentle warmup"
+- title: "A gentle warmup"
   end_text: "Not bad for a beginner"
   shapes:
     - shape: U5
     - shape: U5
     - shape: U5
+
 - title: "Reach for the sky"
   end_text: "Nice one"
   shapes:
     - shape: O4
     - shape: L4
     - shape: L4
-
-- title: "Steks appeal"
-  end_text: "Didn't see that one coming, eh?"
-  shapes:
-    - shape: S4
-    - shape: S4
-    - shape: Z4
-  stages:
-  - text: "Whoops"
-    shapes:
-    - shape: Z4
 
 - title: "Steks with an X"
   end_text: "Wow! That was quick!"
@@ -86,6 +27,10 @@
     - shape: X5
       x: 150.0
       y: -100.0
+  stages:
+  - text: "and another"
+    shapes:
+    - shape: X5
 
 - title: "Now you're thinking with pentominos"
   end_text: "This was a triumph!"
@@ -97,7 +42,7 @@
     - shape: U5
     - shape: U5
 
-- title: "The Empire Steks back"
+- title: "The Empire Steks Back"
   text: "That's no moon..."
   end_text: "Great shot, kid.\nThat was one in a million!"
   shapes:
@@ -132,6 +77,27 @@
     - shape: Z4
     - shape: F5
 
+- title: "Avoid the Void"
+  end_text: "Void Avoided"
+  shapes:
+    - shape: I5
+      x: 0.0
+      y: -150.0
+      r: 0.25
+      state: Fixed
+    - shape: X5
+      x: 25.0
+      y: -20.0
+      r: 0.125
+      state: Void
+    - shape: F5
+    - shape: Z5
+    - shape: N5
+    - shape: T5
+    - shape: T4
+    - shape: Z4
+
+
 - title: "Tri Hard II: Tri harder"
   end_text: "Yippee!"
   shapes:
@@ -153,13 +119,282 @@
     - shape: N5
     - shape: T5
   stages:
-  - text: "Nice try!"
+  - text: "oh no, it's the evil Dr. Gravity!"
     gravity:
     - 0.0
     - 1000.0
     shapes:
     - shape: X5
     - shape: I5
+
+- title: "The Empire Steks Building"
+  end_text: "Now, that's a tall tower"
+  shapes:
+    - shape: I5
+    - shape: L4
+    - shape: J4
+    - shape: P5
+    - shape: U5
+    - shape: I5
+    - shape: L4
+    - shape: J4
+
+- title: "The Steks Factor"
+  end_text: "That was just the audition"
+  shapes:
+    - shape: O4
+    - shape: F5
+    - shape: I5
+    - shape: T4
+    - shape: S4
+    - shape: Z4
+    - shape: circle
+    - shape: triangle
+
+- title: "Excess"
+  end_text: "Touchdown!"
+  shapes:
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+    - shape: X5
+  stages:
+  - text: "Balls!"
+    shapes:
+    - shape: Circle
+    - shape: Circle
+
+- title: "The joy of Steks"
+  end_text: "Extremely Satisfactory"
+  shapes:
+    - shape: P5
+    - shape: F5
+    - shape: S4
+    - shape: Y5
+    - shape: L4
+    - shape: T4
+    - shape: J4
+    - shape: J4
+
+
+- text: Baby's first ice level
+  mouse_text: COLD COLD COLD
+  text_seconds: 20
+  shapes:
+  - shape: Z4
+    friction: 0.1
+  - shape: Z4
+    friction: 0.1
+  - shape: S4
+    friction: 0.1
+  - shape: U5
+    friction: 0.1
+  - shape: F5
+    friction: 0.1
+  - shape: V5
+    friction: 0.1
+  - shape: X5
+    friction: 0.1
+  End_text: Nice Nice Baby
+
+
+
+- title: "Double Trouble"
+  end_text: "Two Thumbs Up!"
+  shapes:
+    - shape: T5
+    - shape: T5
+    - shape: P5
+    - shape: P5
+    - shape: F5
+    - shape: F5
+    - shape: W5
+    - shape: W5
+
+- title: "Deus Steks Machina"
+  end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
+  shapes:
+    - shape: O4
+    - shape: O4
+    - shape: J4
+    - shape: L4
+    - shape: T4
+    - shape: W5
+    - shape: Circle
+  stages:
+  - text: "Plot Twist!"
+    shapes:
+    - shape: Z5
+    - shape: F5
+
+- title: "Uneven Foundations"
+  end_text: "Boom"
+  shapes:
+    - shape: Triangle
+      x: 0.0
+      y: -150.0
+      r: 0.195
+      state: Fixed
+    - shape: W5
+    - shape: F5
+    - shape: Z5
+    - shape: N5
+    - shape: T5
+    - shape: S4
+    - shape: J4
+    - shape: T4
+
+
+- text: "XIX\nCircular Logic"
+  end_text: "You are amazing because you're amazing"
+  shapes:
+    - shape: L4
+    - shape: T4
+    - shape: T5
+    - shape: I4
+    - shape: I5
+    - shape: X5
+    - shape: Circle
+    - shape: Circle
+
+- title: "Tri Hard with a Vengeance"
+  end_text: "Just a fly in the ointment, Hans"
+  shapes:
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+    - shape: Triangle
+  stages:
+  - text: "ho ho ho"
+    shapes:
+    - shape: Triangle
+
+- title: "The Paranoid and Void - TEST LEVEL"
+  end_text: "Marvellous"
+  shapes:
+    - shape: I5
+      x: 0.0
+      y: -150.0
+      r: 0.0
+      state: Fixed
+    - shape: I4
+      x: 0.0
+      y: 50.0
+      r: 0.25
+      state: Void
+    - shape: F5
+    - shape: Z5
+    - shape: N5
+    - shape: T5
+    - shape: S4
+    - shape: Z4
+    - shape: T4
+
+
+- title: " These blocks are made for building"
+  end_text: "That's so beautiful I wanna take a picture"
+  shapes:
+   -  shape: P5
+   - shape: F5
+   - shape: Y5
+   - shape: T4
+   - shape: S4
+   - shape: Z4
+   - shape: F5
+   - shape: Z4
+   - shape: F5
+
+- title: " Steks Storm"
+  end_text: "You weathered that ok"
+  rainfall:
+      intensity: 2
+
+  shapes:
+   -  shape: P5
+   - shape: Triangle
+   - shape: Y5
+   - shape: J4
+   - shape: S4
+   - shape: Z4
+   - shape: I5
+   - shape: Z4
+   - shape: L4
+
+
+- title: " This one is easy no tricks we promise"
+  end_text: "That was probably the work of Dr. Gravity somehow"
+  shapes:
+    - shape: L5
+    - shape: W5
+    - shape: F5
+
+  stages:
+  - text: "ok, one trick"
+    shapes:
+    - shape: S4
+  - text: "fine, two tricks"
+    shapes:
+    - shape: Z4
+    - shape: U5
+  - text: "final one we promise"
+    shapes:
+    - shape: X5
+  - text: "uh-oh, we lied"
+    shapes:
+    - shape: circle
+    - shape: z5
+
+- title: " TEST LEVEL MAYBE ICE AND VOID?"
+  end_text: ""
+  shapes:
+   -  shape: P5
+
+- title: " Ten"
+  end_text: ""
+  shapes:
+   -  shape: P5
+   - shape: F5
+   - shape: Y5
+   - shape: I5
+   - shape: T5
+   - shape: T4
+   - shape: S4
+   - shape: Z4
+   - shape: J4
+   - shape: circle
+
+
+- title: " TEST LEVEL MAYBE JUST 11 SHAPES?"
+  end_text: "yo"
+  shapes:
+   -  shape: P5
+   -  shape: F5
+
+
+- title: "Steks of Cthulu"
+  end_text: "The dreamer waits..."
+  shapes:
+    - shape: I4
+      x: 0.0
+      y: -150.0
+      r: 0.0
+      state: Fixed
+    - shape: X5
+      x: 0.0
+      y: 50.0
+      r: 0.125
+      state: Void
+    - shape: F5
+    - shape: Z5
+    - shape: N5
+    - shape: T5
+    - shape: F5
+    - shape: O4
+    - shape: S4
+    - shape: T4
+    - shape: T4
+
 
 - title: "A song of ice and steks"
   end_text: "You know nothing John Steks"
@@ -168,13 +403,13 @@
       friction: 0.1
     - shape: W5
       friction: 0.1
-    - shape: F5
-      friction: 0.1
     - shape: Z5
       friction: 0.1
-    - shape: N5
+    - shape: X5
       friction: 0.1
     - shape: T5
+      friction: 0.1
+    - shape: U5
       friction: 0.1
   stages:
   - text: "Winter is Coming!"
@@ -184,35 +419,27 @@
     - shape: F5
       friction: 0.1
 
-
-- title: "Locked Steks and two Polyominos"
-  end_text: "Boom"
+- title: " In Steks no one can hear you scream - TEST LEVEL"
+  end_text: ""
   shapes:
-    - shape: Triangle
-      x: 0.0
-      y: -150.0
-      r: 0.125
-      state: Fixed
+    - shape: L5
     - shape: W5
     - shape: F5
     - shape: Z5
     - shape: N5
-    - shape: T5
+    - shape: T4
+    - shape: L4
 
-- title: "Steks of Cthulu"
-  end_text: "The dreamer waits..."
-  shapes:
-    - shape: I5
-      x: 0.0
-      y: -150.0
-      r: 0.0
-      state: Fixed
+  stages:
+  - text: "You thought you had defeated me?/nI am Dr. Gravity!"
+    gravity:
+    - 0.0
+    - 1000.0
+    shapes:
     - shape: X5
-      x: 25.0
-      y: -100.0
-      r: 0.125
-      state: Void
-    - shape: F5
-    - shape: Z5
-    - shape: N5
-    - shape: T5
+    - shape: s4
+
+
+
+
+

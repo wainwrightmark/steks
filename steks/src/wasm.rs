@@ -3,9 +3,9 @@ use crate::prelude::*;
 use web_sys::UrlSearchParams;
 
 use bevy::{
+    log::info,
     tasks::IoTaskPool,
     window::{PrimaryWindow, WindowResized},
-    log::info
 };
 use capacitor_bindings::{device::Device, share::ShareOptions};
 

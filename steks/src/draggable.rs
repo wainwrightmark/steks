@@ -1,5 +1,5 @@
-use crate::prelude::*;
 use crate::input;
+use crate::prelude::*;
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
@@ -392,7 +392,7 @@ pub enum ShapeComponent {
 
 impl Into<ShapeState> for &ShapeComponent {
     fn into(self) -> ShapeState {
-        match self{
+        match self {
             ShapeComponent::Free => ShapeState::Normal,
             ShapeComponent::Locked => ShapeState::Locked,
             ShapeComponent::Fixed => ShapeState::Fixed,

@@ -1,4 +1,4 @@
-use crate::{prelude::*, shape_maker, infinity};
+use crate::{infinity, prelude::*, shape_maker};
 use serde::{Deserialize, Serialize};
 
 pub struct LevelPlugin;
@@ -99,7 +99,9 @@ fn choose_level_on_game_load(
                 change_level_events.send(level);
                 return;
             }
-            None => info!("No url game to load"),
+            None => {
+                //info!("No url game to load")
+            }
         }
     }
 

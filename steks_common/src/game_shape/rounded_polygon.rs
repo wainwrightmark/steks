@@ -77,7 +77,7 @@ fn get_point_between(p1: Vec2, p2: Vec2, radius: f32) -> Vec2 {
 }
 
 fn get_winding(p0: Vec2, p1: Vec2, p2: Vec2) -> Winding {
-    let cross = cross_product(p2 - p0,p1 - p0);
+    let cross = cross_product(p2 - p0, p1 - p0);
     if cross.is_sign_positive() {
         Winding::Positive
     } else {

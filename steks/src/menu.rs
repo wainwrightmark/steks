@@ -99,7 +99,7 @@ fn button_system(
 ) {
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
         use MenuButton::*;
-        info!("{:?}", interaction);
+        //info!("{:?}", interaction);
         match *interaction {
             Interaction::Clicked => {
                 *bg_color = PRESSED_BUTTON.into();

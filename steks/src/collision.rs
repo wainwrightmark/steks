@@ -1,8 +1,8 @@
+use crate::prelude::*;
 use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::RapierContext;
 use steks_common::prelude::*;
-use crate::prelude::*;
 
 pub struct CollisionPlugin;
 

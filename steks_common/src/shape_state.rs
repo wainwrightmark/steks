@@ -1,8 +1,18 @@
-use serde::{Deserialize, Serialize};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use serde::{Deserialize, Serialize};
 
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize,IntoPrimitive, TryFromPrimitive )]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Default,
+    Deserialize,
+    Serialize,
+    IntoPrimitive,
+    TryFromPrimitive,
+)]
 #[repr(u8)]
 
 pub enum ShapeState {
@@ -17,12 +27,22 @@ pub enum ShapeState {
     Void = 3,
 }
 
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize, IntoPrimitive, TryFromPrimitive)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Default,
+    Deserialize,
+    Serialize,
+    IntoPrimitive,
+    TryFromPrimitive,
+)]
 #[repr(u8)]
-pub enum ShapeModifiers{
+pub enum ShapeModifiers {
     #[serde(alias = "normal")]
     #[default]
     Normal = 0,
-    LowFriction = 1
+    LowFriction = 1,
 }

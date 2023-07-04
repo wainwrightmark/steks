@@ -33,12 +33,12 @@ pub mod win;
 
 pub mod prelude {
 
+    pub use bevy::log::{debug, error, info, warn};
     pub use bevy::prelude::*;
     pub use bevy_pkv::PkvStore;
-    pub use bevy::log::{info,warn,debug,error};
-    pub use steks_common::prelude::*;
     pub use bevy_rapier2d::prelude::*;
     pub use std::time::Duration;
+    pub use steks_common::prelude::*;
 
     pub use crate::app_redirect::*;
     pub use crate::async_event_writer::*;
@@ -66,7 +66,6 @@ pub mod prelude {
     pub use crate::walls::*;
     pub use crate::win::*;
 
-
     #[cfg(target_arch = "wasm32")]
     pub use crate::logging::*;
     #[cfg(target_arch = "wasm32")]
@@ -75,7 +74,6 @@ pub mod prelude {
     pub use crate::wasm::*;
 }
 
-
-pub fn main(){
+pub fn main() {
     crate::startup::main()
 }

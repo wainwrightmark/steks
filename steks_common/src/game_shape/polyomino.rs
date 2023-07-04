@@ -1,11 +1,7 @@
-use bevy::prelude::{Quat, Rect, Transform, Vec2, Color};
+use bevy::prelude::{Color, Quat, Rect, Transform, Vec2};
 use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
-use geometrid::{
-    polyomino::Polyomino,
-    prelude::*,
-    shape::Shape,
-};
+use geometrid::{polyomino::Polyomino, prelude::*, shape::Shape};
 
 use crate::prelude::*;
 
@@ -76,11 +72,7 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
         }
     }
 
-    fn bounding_box(
-        &self,
-        size: f32,
-        location: &Location,
-    ) -> bevy::prelude::Rect {
+    fn bounding_box(&self, size: f32, location: &Location) -> bevy::prelude::Rect {
         let rotation = Transform::from_rotation(Quat::from_rotation_z(location.angle));
 
         let mut min_x = location.position.x;
@@ -108,7 +100,11 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
             points.as_slice(),
             size * SHAPE_RADIUS_RATIO,
         );
-        let stroke_width = if stroke.is_some() {"stroke-width=\"1\""} else {"stroke-width=\"0\""};
+        let stroke_width = if stroke.is_some() {
+            "stroke-width=\"1\""
+        } else {
+            "stroke-width=\"0\""
+        };
         let fill = color_to_svg_fill(fill);
         let stroke = color_to_svg_stroke(stroke);
 

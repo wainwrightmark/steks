@@ -1,4 +1,4 @@
-use bevy::prelude::{Vec2, Color};
+use bevy::prelude::{Color, Vec2};
 use std::ops::RangeInclusive;
 
 use crate::prelude::*;
@@ -12,29 +12,27 @@ pub struct EncodableShape {
 }
 
 impl EncodableShape {
-
-    pub fn stroke_color(&self)->  Option<Color>{
-
+    pub fn stroke_color(&self) -> Option<Color> {
         match self.modifiers {
             ShapeModifiers::Normal => (),
-            ShapeModifiers::LowFriction => return  Some(ICE_SHAPE_STROKE),
+            ShapeModifiers::LowFriction => return Some(ICE_SHAPE_STROKE),
         }
 
         use ShapeState::*;
-        match self.state{
-            Normal | Locked  => None,
+        match self.state {
+            Normal | Locked => None,
             Fixed => Some(crate::color::FIXED_SHAPE_STROKE),
             Void => Some(crate::color::VOID_SHAPE_STROKE),
-         }
+        }
     }
 
-    pub fn fill_color(&self)-> Option<Color>{
+    pub fn fill_color(&self) -> Option<Color> {
         use ShapeState::*;
-        match self.state{
-            Normal | Locked  => Some(self.shape.default_fill_color()),
+        match self.state {
+            Normal | Locked => Some(self.shape.default_fill_color()),
             Fixed => Some(crate::color::FIXED_SHAPE_FILL),
             Void => Some(crate::color::VOID_SHAPE_FILL),
-         }
+        }
     }
 
     pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {
@@ -42,14 +40,14 @@ impl EncodableShape {
         self
     }
 
-    fn encode_state_and_modifiers(state: &ShapeState, modifiers: &ShapeModifiers)-> u8 {
+    fn encode_state_and_modifiers(state: &ShapeState, modifiers: &ShapeModifiers) -> u8 {
         let state: u8 = (*state).into();
         let modifiers: u8 = (*modifiers).into();
         (state * 16) + modifiers
     }
 
-    fn decode_state_and_modifiers(byte: u8)-> (ShapeState, ShapeModifiers){
-        let state =  ShapeState::try_from(byte / 16).unwrap_or_default();
+    fn decode_state_and_modifiers(byte: u8) -> (ShapeState, ShapeModifiers) {
+        let state = ShapeState::try_from(byte / 16).unwrap_or_default();
         let modifiers = ShapeModifiers::try_from(byte % 16).unwrap_or_default();
 
         (state, modifiers)
@@ -86,7 +84,6 @@ impl EncodableShape {
         let shape_index = arr[0] as usize;
         let (state, modifiers) = Self::decode_state_and_modifiers(arr[1]);
 
-
         let shape = &ALL_SHAPES[shape_index % ALL_SHAPES.len()];
         let x_u16 = u16::from_be_bytes([arr[2], arr[3]]);
         let y_u16 = u16::from_be_bytes([arr[4], arr[5]]);
@@ -100,7 +97,7 @@ impl EncodableShape {
             shape,
             location,
             state,
-            modifiers
+            modifiers,
         }
     }
 }
@@ -110,7 +107,7 @@ pub fn encode_shapes(shapes: &[EncodableShape]) -> Vec<u8> {
 }
 
 pub fn decode_shapes(data: &[u8]) -> Vec<EncodableShape> {
-    data .chunks_exact(7)
+    data.chunks_exact(7)
         .map(|x| EncodableShape::decode(x))
         .collect()
 }

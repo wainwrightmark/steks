@@ -12,7 +12,6 @@ use planetscale_driver::{query, Database};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-
     //try_set(45.5, 4314).await
 
     let func = service_fn(my_handler);
@@ -37,8 +36,14 @@ pub(crate) async fn my_handler(
 ) -> Result<ApiGatewayProxyResponse, Error> {
     let mut headers = HeaderMap::new();
     headers.insert("Access-Control-Allow-Origin", HeaderValue::from_static("*"));
-    headers.insert("Access-Control-Allow-Headers", HeaderValue::from_static("*"));
-    headers.insert("Access-Control-Allow-Methods", HeaderValue::from_static("GET, POST"));
+    headers.insert(
+        "Access-Control-Allow-Headers",
+        HeaderValue::from_static("*"),
+    );
+    headers.insert(
+        "Access-Control-Allow-Methods",
+        HeaderValue::from_static("GET, POST"),
+    );
 
     let command = get_parameter(&e, "command").ok_or_else(|| "Could not get command")?;
     let command: Command = command.parse()?;

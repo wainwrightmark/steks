@@ -1,3 +1,5 @@
+use crate::prelude::Location;
+
 use super::{GameShapeBody, SHAPE_RADIUS_RATIO};
 use bevy::prelude::{Quat, Rect, Transform, Vec2};
 use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
@@ -38,11 +40,7 @@ impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
         }
     }
 
-    fn bounding_box(
-        &self,
-        size: f32,
-        location: &crate::fixed_shape::Location,
-    ) -> bevy::prelude::Rect {
+    fn bounding_box(&self, size: f32, location: &Location) -> bevy::prelude::Rect {
         let rotation = Transform::from_rotation(Quat::from_rotation_z(location.angle));
 
         let mut min_x = location.position.x;
@@ -62,5 +60,16 @@ impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
         }
 
         Rect::from_corners(Vec2::new(min_x, min_y), Vec2::new(max_x, max_y))
+    }
+
+    fn as_svg(&self, size: f32, color_rgba: String) -> String {
+        let u = size / (1.0 * f32::sqrt(S as f32));
+        let points = self
+            .0
+            .map(|(x, y)| Vec2::new((x as f32) * u, (y as f32) * u));
+
+        let path = crate::game_shape::rounded_polygon::make_rounded_polygon_path(&points, size / 10.0);
+
+        format!(r#"<path d="{path}" fill="{color_rgba}" />"#)
     }
 }

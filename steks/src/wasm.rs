@@ -1,10 +1,11 @@
-use crate::{logging::LogAppInfo, *};
+use crate::prelude::*;
 
 use web_sys::UrlSearchParams;
 
 use bevy::{
     tasks::IoTaskPool,
     window::{PrimaryWindow, WindowResized},
+    log::info
 };
 use capacitor_bindings::{device::Device, share::ShareOptions};
 
@@ -133,7 +134,7 @@ async fn share_game_async(game: String) {
                     .await;
             }
 
-            info!("Share succeeded")
+            bevy::log::info!("Share succeeded")
         }
         Err(_) => info!("Share failed"),
     }
@@ -205,16 +206,6 @@ fn remove_spinner() {
         let _ = document.body().unwrap().remove_child(&spinner);
     }
 }
-
-// #[wasm_bindgen(module="/recording.js")]
-// extern "C" {
-//     #[wasm_bindgen()]
-//     pub async fn start_recording();
-
-//     #[wasm_bindgen()]
-//     pub fn stop_recording();
-// }
-
 pub struct WASMPlugin;
 
 impl Plugin for WASMPlugin {

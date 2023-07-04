@@ -5,16 +5,9 @@ use bevy::{
 };
 use itertools::Itertools;
 
-use crate::{
-    draggable::ShapeComponent,
-    encoding,
-    fixed_shape::Location,
-    game_shape::{GameShape, ALL_SHAPES},
-    shape_maker::{ShapeIndex, SHAPE_SIZE},
-    WINDOW_HEIGHT,
-};
+use crate::prelude::*;
 
-pub struct ShapesVec<'a>(pub Vec<(&'a GameShape, Location, bool)>);
+pub struct ShapesVec(pub Vec<ShapeLocationState>);
 
 pub fn hash_shapes(shapes: impl Iterator<Item = ShapeIndex>) -> i64 {
     let mut code: i64 = 0;
@@ -25,19 +18,25 @@ pub fn hash_shapes(shapes: impl Iterator<Item = ShapeIndex>) -> i64 {
     code
 }
 
-impl<'a> ShapesVec<'a> {
+impl ShapesVec {
     pub fn hash(&self) -> i64 {
-        hash_shapes(self.0.iter().map(|x| x.0.index))
+        hash_shapes(self.0.iter().map(|x| x.shape.index))
     }
 
     pub fn calculate_tower_height(&self) -> f32 {
         let mut min = WINDOW_HEIGHT;
         let mut max = -WINDOW_HEIGHT;
 
-        for (shape, location, _) in self.0.iter() {
+        for ShapeLocationState {
+            shape,
+            location,
+            state,
+        } in self.0.iter()
+        {
+            if state == &ShapeState::Void{
+                continue;
+            }
             let bb = shape.body.bounding_box(SHAPE_SIZE, location);
-
-            //info!("shape {shape} {bb:?}");
 
             min = min.min(bb.min.y);
             max = max.max(bb.max.y);
@@ -52,14 +51,12 @@ impl<'a> ShapesVec<'a> {
     pub fn from_query<F: ReadOnlyWorldQuery>(
         shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent), F>,
     ) -> Self {
-        let shapes: Vec<(&'a GameShape, Location, bool)> = shapes_query
+        let shapes: Vec<ShapeLocationState> = shapes_query
             .iter()
-            .map(|(index, transform, draggable)| {
-                (
-                    &ALL_SHAPES[index.0],
-                    transform.into(),
-                    draggable.is_locked(),
-                )
+            .map(|(index, transform, shape_component)| ShapeLocationState {
+                shape: &ALL_SHAPES[index.0],
+                location: transform.into(),
+                state: shape_component.into(),
             })
             .collect_vec();
 
@@ -67,7 +64,7 @@ impl<'a> ShapesVec<'a> {
     }
 
     pub fn make_base64_data(&self) -> String {
-        let bytes = encoding::encode_shapes(&self.0);
+        let bytes = encode_shapes(&self.0);
 
         base64::engine::general_purpose::URL_SAFE.encode(bytes)
     }

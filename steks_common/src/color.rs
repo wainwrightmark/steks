@@ -21,6 +21,16 @@ pub fn choose_color(index: usize) -> Color {
     Color::hsla(hue, saturation, lightness, alpha)
 }
 
+
+pub fn color_to_rgba(color: Color) -> String {
+
+    let [r,g,b,a] = color.as_rgba_u32().to_le_bytes();
+    format!(
+        "#{:02X}{:02X}{:02X}{:02X}",
+        r,g,b,a
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::choose_color;

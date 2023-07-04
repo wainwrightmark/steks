@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::{color::choose_color, fixed_shape::Location, shape_maker::ShapeIndex};
+use crate::{color::choose_color, location::Location, shape_index::ShapeIndex};
 
 use bevy::{
     prelude::{Color, Rect},
@@ -9,13 +9,12 @@ use bevy::{
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
-use itertools::Itertools;
 
 pub mod circle;
 
 pub mod polygon;
 pub mod polyomino;
-
+mod rounded_polygon;
 pub use circle::*;
 
 pub use polygon::*;
@@ -23,8 +22,8 @@ pub use polygon::*;
 pub trait GameShapeBody: Send + Sync {
     fn to_collider_shape(&self, shape_size: f32) -> Collider;
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle;
-
     fn bounding_box(&self, size: f32, location: &Location) -> Rect;
+    fn as_svg(&self, size: f32, color_rgba: String) -> String;
 }
 
 const SHAPE_RADIUS_RATIO: f32 = 0.1;
@@ -59,6 +58,16 @@ impl GameShape {
 
     pub fn from_index(index: &usize) -> &Self {
         &ALL_SHAPES[*index]
+    }
+
+    pub fn by_name(name: &str) -> Option<&'static GameShape> {
+        let result = ALL_SHAPES
+            .iter()
+            .find(|x| x.name.eq_ignore_ascii_case(name));
+        if result.is_none() {
+            bevy::log::warn!("Could not find shape: {name}");
+        }
+        result
     }
 }
 
@@ -103,17 +112,7 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
             body,
             index: ShapeIndex(index),
         })
-        .collect_vec()
+        .collect()
 });
-
-pub fn shape_by_name(name: &str) -> Option<&'static GameShape> {
-    let result = ALL_SHAPES
-        .iter()
-        .find(|x| x.name.eq_ignore_ascii_case(name));
-    if result.is_none() {
-        bevy::log::warn!("Could not find shape: {name}");
-    }
-    result
-}
 
 const TRIANGLE: PolygonBody<4, 3> = PolygonBody(&[(-1, -1), (-1, 2), (2, -1)]);

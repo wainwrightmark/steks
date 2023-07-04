@@ -1,13 +1,8 @@
 use serde::{Deserialize, Serialize};
+use steks_common::prelude::GameShape;
 use std::f32::consts;
 
-use crate::{
-    fixed_shape::{Location, ShapeWithData},
-    game_shape::{self, GameShape},
-    level::{GameLevel, LevelCompletion},
-    rain::RaindropSettings,
-};
-
+use crate::prelude::*;
 lazy_static::lazy_static! {
     static ref LIST: Vec<SetLevel> ={
         let s = include_str!("levels.yaml");
@@ -104,23 +99,10 @@ pub struct LevelShape {
     pub r: Option<f32>,
 
     #[serde(default)]
-    pub state: InitialState,
+    pub state: ShapeState,
 
     #[serde(default)]
     pub friction: Option<f32>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
-pub enum InitialState {
-    #[serde(alias = "normal")]
-    #[default]
-    Normal,
-    #[serde(alias = "locked")]
-    Locked,
-    #[serde(alias = "fixed")]
-    Fixed,
-    #[serde(alias = "void")]
-    Void,
 }
 
 impl From<LevelShape> for ShapeWithData {
@@ -143,10 +125,10 @@ impl From<LevelShape> for ShapeWithData {
         let fixed_location = fl_set.then_some(fixed_location);
 
         let fixed_velocity = match val.state {
-            InitialState::Locked | InitialState::Fixed | InitialState::Void => {
+            ShapeState::Locked | ShapeState::Fixed | ShapeState::Void => {
                 Some(Default::default())
             }
-            InitialState::Normal => None,
+            ShapeState::Normal => None,
         };
 
         ShapeWithData {
@@ -200,7 +182,7 @@ pub enum LevelShapeForm {
 impl From<LevelShapeForm> for &'static GameShape {
     fn from(val: LevelShapeForm) -> Self {
         let index = val as usize;
-        &game_shape::ALL_SHAPES[index]
+        &ALL_SHAPES[index]
     }
 }
 
@@ -224,7 +206,7 @@ impl From<LevelShapeForm> for &'static GameShape {
 //                     x: Some(1.0),
 //                     y: Some(2.0),
 //                     r: Some(3.0),
-//                     state: InitialState::Locked,
+//                     state: ShapeState::Locked,
 //                     friction: Some(0.5),
 //                 }],
 //                 gravity: None,

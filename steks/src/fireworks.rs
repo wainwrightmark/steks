@@ -1,16 +1,9 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_prototype_lyon::prelude::ShapeBundle;
-use bevy_rapier2d::prelude::{
-    Collider, CollisionGroups, GravityScale, RapierConfiguration, RigidBody, Velocity,
-};
+
 use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 
-use crate::{
-    game_shape,
-    level::{CurrentLevel, GameLevel, ScoreInfo},
-    set_level::SetLevel,
-    FIREWORK_COLLISION_FILTERS, FIREWORK_COLLISION_GROUP, MAX_WINDOW_HEIGHT, MAX_WINDOW_WIDTH,
-};
+use crate::prelude::*;
 
 pub struct FireworksPlugin;
 
@@ -205,7 +198,7 @@ fn spawn_spark<R: Rng>(
     rng: &mut R,
     gravity_factor: f32,
 ) {
-    let game_shape = game_shape::ALL_SHAPES.choose(rng).unwrap();
+    let game_shape = ALL_SHAPES.choose(rng).unwrap();
 
     let size = rng.gen_range(0.5..3.0) * FIREWORK_SIZE;
     let shape_bundle = game_shape.body.get_shape_bundle(size);

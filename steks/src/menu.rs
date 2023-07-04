@@ -1,6 +1,6 @@
 use strum::Display;
 
-use crate::{level_ui::setup_level_ui, share::ShareEvent, *};
+use crate::prelude::*;
 
 pub struct ButtonPlugin;
 
@@ -233,7 +233,7 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer) {
         .insert(MenuComponent::Levels)
         .with_children(|parent| {
             let font = asset_server.load("fonts/FiraMono-Medium.ttf");
-            for level in 3..(set_level::set_levels_len() as u8) {
+            for level in 3..(set_levels_len() as u8) {
                 spawn_button(parent, MenuButton::GotoLevel { level }, font.clone())
             }
         });

@@ -1,11 +1,8 @@
 use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::RapierContext;
-
-use crate::{
-    shape_maker::{VoidShape, SHAPE_SIZE},
-    walls::*,
-};
+use steks_common::prelude::*;
+use crate::prelude::*;
 
 pub struct CollisionPlugin;
 
@@ -137,7 +134,7 @@ fn display_collision_markers(
                                 ..Default::default()
                             })
                             .insert(Fill {
-                                color: crate::color::WARN_COLOR,
+                                color: WARN_COLOR,
                                 options: Default::default(),
                             })
                             .insert(new_transform);

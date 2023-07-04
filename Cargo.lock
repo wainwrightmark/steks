@@ -266,24 +266,6 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "aws_lambda_events"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d13f801d4f819391ec4bcfcaa05f697e54992e90fb96d7bdaec87cbce3abce9"
-dependencies = [
- "base64 0.21.2",
- "bytes",
- "chrono",
- "http",
- "http-body",
- "http-serde",
- "query_map",
- "serde",
- "serde_derive",
- "serde_json",
-]
-
-[[package]]
-name = "aws_lambda_events"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "65991dbc3bfb586939ba1527eefdc99bc21157b6ec891f180fb1e16e2dddc7a9"
@@ -2040,15 +2022,15 @@ dependencies = [
 name = "image"
 version = "0.1.0"
 dependencies = [
- "aws_lambda_events 0.10.0",
+ "aws_lambda_events",
  "base64 0.21.2",
  "coolor",
- "geometrid",
  "http",
  "insta",
  "lambda_runtime",
  "once_cell",
  "resvg",
+ "steks_common",
  "tokio",
 ]
 
@@ -2232,7 +2214,7 @@ name = "leaderboard"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "aws_lambda_events 0.9.0",
+ "aws_lambda_events",
  "itertools",
  "lambda_runtime",
  "planetscale-driver",
@@ -3704,11 +3686,25 @@ dependencies = [
  "serde",
  "serde_with",
  "serde_yaml",
+ "steks_common",
  "strum",
  "test-case",
  "wasm-bindgen",
  "web-sys",
  "winit",
+]
+
+[[package]]
+name = "steks_common"
+version = "0.1.0"
+dependencies = [
+ "base64 0.21.2",
+ "bevy",
+ "bevy_prototype_lyon",
+ "bevy_rapier2d",
+ "geometrid",
+ "once_cell",
+ "serde",
 ]
 
 [[package]]

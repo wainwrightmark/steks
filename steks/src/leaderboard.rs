@@ -5,12 +5,7 @@ use std::collections::BTreeMap;
 use bevy::{log, prelude::*, tasks::IoTaskPool};
 use itertools::Itertools;
 
-use crate::{
-    async_event_writer::*,
-    level::{CurrentLevel, LevelCompletion},
-    shape_maker::ShapeIndex,
-    shapes_vec,
-};
+use crate::prelude::*;
 
 pub struct LeaderboardPlugin;
 
@@ -134,7 +129,7 @@ fn update_leaderboard_on_completion(
             LevelCompletion::Complete { score_info, .. } => score_info.height,
         };
 
-        let hash = shapes_vec::hash_shapes(shapes.iter().cloned());
+        let hash = hash_shapes(shapes.iter().cloned());
 
         match &mut score_store.map {
             Some(map) => {

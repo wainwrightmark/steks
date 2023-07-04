@@ -1,14 +1,10 @@
 use bevy::ecs::system::EntityCommands;
-use bevy::prelude::*;
 
+use bevy_pkv::PkvStore;
 use bevy_tweening::{lens::*, Delay};
 use bevy_tweening::{Animator, EaseFunction, Tween};
 
-use crate::lens::BackgroundColorLens;
-use crate::level::LevelCompletion;
-use crate::shape_maker::ShapeIndex;
-use crate::*;
-
+use crate::prelude::*;
 pub struct LevelUiPlugin;
 
 pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;

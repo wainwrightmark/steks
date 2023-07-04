@@ -1,8 +1,8 @@
 use bevy::window::WindowResized;
-use bevy_prototype_lyon::shapes::Rectangle;
+use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 use strum::{Display, EnumIter, IntoEnumIterator};
 
-use crate::*;
+use crate::prelude::*;
 
 impl WallPosition {
     pub fn show_marker(&self) -> bool {
@@ -50,7 +50,7 @@ impl WallPosition {
     }
 
     pub fn get_position(&self, height: f32, width: f32) -> Vec3 {
-        const OFFSET: f32 = crate::WALL_WIDTH / 2.0;
+        const OFFSET: f32 = WALL_WIDTH / 2.0;
         match self {
             WallPosition::Top => Vec2::new(0.0, height / 2.0 + OFFSET),
             WallPosition::Bottom => Vec2::new(0.0, -height / 2.0 - OFFSET) + 10.0,
@@ -65,7 +65,7 @@ pub struct WallsPlugin;
 
 impl Plugin for WallsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_walls.after(setup))
+        app.add_startup_system(spawn_walls.after(crate::startup::setup))
             .add_system(move_walls);
     }
 }
@@ -98,7 +98,7 @@ fn move_walls(
 }
 
 fn spawn_walls(mut commands: Commands) {
-    let color = color::ACCENT_COLOR;
+    let color = ACCENT_COLOR;
 
     for wall in WallPosition::iter() {
         spawn_wall(&mut commands, color, wall);
@@ -106,13 +106,13 @@ fn spawn_walls(mut commands: Commands) {
 }
 
 fn spawn_wall(commands: &mut Commands, color: Color, wall: WallPosition) {
-    const EXTRA_WIDTH: f32 = crate::WALL_WIDTH * 2.0;
-    let point = wall.get_position(crate::WINDOW_HEIGHT, crate::WINDOW_WIDTH);
+    const EXTRA_WIDTH: f32 = WALL_WIDTH * 2.0;
+    let point = wall.get_position(WINDOW_HEIGHT, WINDOW_WIDTH);
 
     let (width, height) = if wall.is_horizontal() {
-        (crate::MAX_WINDOW_WIDTH + EXTRA_WIDTH, crate::WALL_WIDTH)
+        (MAX_WINDOW_WIDTH + EXTRA_WIDTH, WALL_WIDTH)
     } else {
-        (crate::WALL_WIDTH, crate::MAX_WINDOW_HEIGHT)
+        (WALL_WIDTH, MAX_WINDOW_HEIGHT)
     };
 
     let shape = Rectangle {

@@ -5,7 +5,7 @@ use bevy_pkv::PkvStore;
 use chrono::NaiveDate;
 use serde::*;
 
-use crate::{get_today_date, level::LevelLogData};
+use crate::{prelude::*, startup::get_today_date};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 

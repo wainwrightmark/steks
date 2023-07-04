@@ -4,11 +4,7 @@ use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    game_shape::{self, GameShapeBody},
-    level::*,
-    MAX_WINDOW_HEIGHT, MAX_WINDOW_WIDTH, RAIN_COLLISION_FILTERS, RAIN_COLLISION_GROUP,
-};
+use crate::prelude::*;
 pub struct RainPlugin;
 
 impl Plugin for RainPlugin {
@@ -165,7 +161,7 @@ fn spawn_drop<R: Rng>(
     finish_time: f32, //gravity_factor: f32,
 ) {
     let size = rng.gen_range(0.5..3.0) * RAINDROP_SIZE;
-    let shape_bundle = game_shape::Circle.get_shape_bundle(size);
+    let shape_bundle = Circle.get_shape_bundle(size);
     let collider_shape = Collider::ball(size * std::f32::consts::FRAC_2_SQRT_PI * 0.5);
 
     let x = rng.gen_range(-RAIN_VELOCITY..RAIN_VELOCITY);

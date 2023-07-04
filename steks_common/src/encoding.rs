@@ -1,26 +1,32 @@
-use itertools::Itertools;
 use std::ops::RangeInclusive;
 
-use crate::{set_level::InitialState, *};
+use crate::prelude::*;
+use bevy::prelude::Vec2;
 
-pub fn encode_shapes(shapes: &[(&GameShape, Location, bool)]) -> Vec<u8> {
+pub fn encode_shapes(shapes: &[ShapeLocationState]) -> Vec<u8> {
     shapes
         .iter()
-        .flat_map(|(shape, location, locked)| encode_shape(shape, *location, *locked))
-        .collect_vec()
+        .flat_map(|shape| encode_shape(shape))
+        .collect()
 }
 
-pub fn decode_shapes(data: &[u8]) -> Vec<ShapeWithData> {
-    data.chunks_exact(6).map(decode_shape).collect_vec()
+pub fn decode_shapes(data: &[u8]) -> Vec<ShapeLocationState> {
+    data.chunks_exact(6).map(decode_shape).collect()
 }
 
 const X_RANGE: RangeInclusive<f32> = (MAX_WINDOW_WIDTH * -0.5)..=(MAX_WINDOW_WIDTH * 0.5);
 const Y_RANGE: RangeInclusive<f32> = (MAX_WINDOW_HEIGHT * -0.5)..=(MAX_WINDOW_HEIGHT * 0.5);
 
-pub fn encode_shape(shape: &GameShape, location: Location, locked: bool) -> [u8; 6] {
+pub fn encode_shape(fixed_shape: &ShapeLocationState) -> [u8; 6] {
     let mut arr = [0u8; 6];
 
-    arr[0] = ((shape.index.0 as u8) * 2) + if locked { 1 } else { 0 };
+    let ShapeLocationState {
+        shape,
+        location,
+        state,
+    } = fixed_shape;
+
+    arr[0] = ((shape.index.0 as u8) * 2) + if state == &ShapeState::Locked { 1 } else { 0 };
 
     let x = normalize_to_range(location.position.x, X_RANGE);
     let y = normalize_to_range(location.position.y, Y_RANGE);
@@ -35,16 +41,16 @@ pub fn encode_shape(shape: &GameShape, location: Location, locked: bool) -> [u8;
     arr
 }
 
-pub fn decode_shape(arr: &[u8]) -> ShapeWithData {
+pub fn decode_shape(arr: &[u8]) -> ShapeLocationState {
     let shape_index = ((arr[0]) as usize) / 2;
     let locked = arr[0] % 2 > 0;
     let state = if locked {
-        InitialState::Locked
+        ShapeState::Locked
     } else {
-        InitialState::Normal
+        ShapeState::Normal
     };
 
-    let shape = &game_shape::ALL_SHAPES[shape_index % game_shape::ALL_SHAPES.len()];
+    let shape = &ALL_SHAPES[shape_index % ALL_SHAPES.len()];
     let x_u16 = u16::from_be_bytes([arr[1], arr[2]]);
     let y_u16 = u16::from_be_bytes([arr[3], arr[4]]);
     let x = denormalize_from_range(x_u16, X_RANGE);
@@ -53,12 +59,10 @@ pub fn decode_shape(arr: &[u8]) -> ShapeWithData {
     let position = Vec2 { x, y };
     let location = Location { position, angle };
 
-    ShapeWithData {
+    ShapeLocationState {
         shape,
-        fixed_location: Some(location),
+        location,
         state,
-        fixed_velocity: Some(Velocity::default()),
-        friction: None,
     }
 }
 
@@ -95,27 +99,28 @@ const ANGLE_FRACTION: u8 = 240;
 
 #[cfg(test)]
 mod tests {
+    use crate::game_shape::GameShape;
+
     use super::encode_shape;
     use super::*;
 
     #[test]
     fn test_shape_encoding_roundtrip() {
-        let fs = ShapeWithData::by_name("O")
-            .unwrap_or_else(|| panic!("Could not find shape with name 'O'"))
-            .with_location(
-                Vec2 {
+        let shape = GameShape::by_name("O").unwrap();
+
+        let fs = ShapeLocationState {
+            shape,
+            location: Location {
+                position: Vec2 {
                     x: 41.99774,
                     y: -108.,
                 },
-                std::f32::consts::FRAC_PI_2,
-            )
-            .lock();
+                angle: std::f32::consts::FRAC_PI_2,
+            },
+            state: ShapeState::Locked,
+        };
 
-        let encoded = encode_shape(
-            fs.shape,
-            fs.fixed_location.unwrap(),
-            fs.state == InitialState::Locked,
-        );
+        let encoded = encode_shape(&fs);
 
         let decoded = decode_shape(&encoded);
 

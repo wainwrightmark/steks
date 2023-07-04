@@ -1,4 +1,5 @@
 use bevy_rapier2d::prelude::Group;
+use bevy::prelude::*;
 
 pub const WINDOW_WIDTH: f32 = 360f32;
 
@@ -28,3 +29,10 @@ pub const FIREWORK_COLLISION_FILTERS: Group = Group::NONE;
 
 pub const DRAGGED_DENSITY: f32 = 0.10;
 pub const DEFAULT_RESTITUTION: f32 = 0.3;
+
+pub const INFINITE_MODE_STARTING_SHAPES: usize = 3;
+
+// About 400 is a good amount of wind
+pub const GRAVITY: Vec2 = Vec2::new(0.0, -1000.0);
+
+pub const SHAPE_SIZE: f32 = 50f32;

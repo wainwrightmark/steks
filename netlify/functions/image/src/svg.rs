@@ -1,21 +1,22 @@
 use std::format;
 
-use resvg::usvg::Color;
-
-use crate::{fixed_shape::FixedShape, *};
+use crate::*;
+use steks_common::{
+    prelude::*,
+    shape_location_state::ShapeLocationState,
+};
 
 const SHAPE_SIZE: f32 = 50.0;
 
-pub fn create_svg<'a, I: Iterator<Item = FixedShape>>(iterator: I) -> String {
+pub fn create_svg<'a, I: Iterator<Item = ShapeLocationState>>(iterator: I) -> String {
     let mut str: String = "".to_owned();
-    let background = color_to_rgba(color::background_color());
-
+    let background = color_to_rgba(BACKGROUND_COLOR);
 
     str.push('\n');
     for shape in iterator {
         str.push('\n');
 
-        let transform = shape.fixed_location.svg_transform();
+        let transform = shape.location.svg_transform();
 
         str.push_str(format!(r#"<g transform="{transform}">"#).as_str());
 
@@ -23,7 +24,7 @@ pub fn create_svg<'a, I: Iterator<Item = FixedShape>>(iterator: I) -> String {
         let shape_svg = shape
             .shape
             .body
-            .as_svg(SHAPE_SIZE, color_to_rgba(shape.shape.fill()));
+            .as_svg(SHAPE_SIZE, color_to_rgba(shape.shape.fill().color));
         str.push_str(shape_svg.as_str());
         str.push('\n');
 
@@ -41,12 +42,5 @@ pub fn create_svg<'a, I: Iterator<Item = FixedShape>>(iterator: I) -> String {
         {str}
         </g>
         </svg>"#
-    )
-}
-
-fn color_to_rgba(color: Color) -> String {
-    format!(
-        "#{:02X}{:02X}{:02X}{:02X}",
-        color.red, color.green, color.blue, 255
     )
 }

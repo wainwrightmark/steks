@@ -1,9 +1,4 @@
-use crate::async_event_writer::AsyncEventPlugin;
-use crate::set_level::{get_numeral, get_set_level, TUTORIAL_LEVELS};
-use crate::shape_maker::ShapeIndex;
-use crate::shapes_vec::ShapesVec;
-use crate::*;
-use crate::{set_level::SetLevel, shape_maker::SpawnNewShapeEvent};
+use crate::{prelude::*, shape_maker, infinity};
 use serde::{Deserialize, Serialize};
 
 pub struct LevelPlugin;
@@ -99,7 +94,7 @@ fn choose_level_on_game_load(
 ) {
     #[cfg(target_arch = "wasm32")]
     {
-        match wasm::get_game_from_location() {
+        match crate::wasm::get_game_from_location() {
             Some(level) => {
                 change_level_events.send(level);
                 return;
@@ -452,7 +447,7 @@ fn track_level_completion(
             });
         }
         LevelCompletion::Complete { score_info, .. } => {
-            let hash = shapes_vec::hash_shapes(shapes.iter().cloned());
+            let hash = hash_shapes(shapes.iter().cloned());
 
             StoreData::update(&mut pkv, |x: LevelHeightRecords| {
                 x.add_height(hash, score_info.height)

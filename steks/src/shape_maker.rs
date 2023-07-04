@@ -1,14 +1,15 @@
 use bevy::prelude::*;
 
+use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
 
-use crate::{set_level::InitialState, *};
+use crate::{prelude::*, startup::get_today_date};
 
 use rand::{rngs::ThreadRng, Rng};
 
-pub const SHAPE_SIZE: f32 = 50f32;
+
 
 pub fn create_initial_shapes(
     level: &GameLevel,
@@ -23,11 +24,11 @@ pub fn create_initial_shapes(
         }
         GameLevel::Infinite { bytes } => {
             if let Some(bytes) = bytes {
-                encoding::decode_shapes(bytes)
+                decode_shapes(bytes).into_iter().map(|x| ShapeWithData::from(x)).collect_vec()
             } else {
                 let mut rng: ThreadRng = ThreadRng::default();
                 let mut shapes: Vec<ShapeWithData> = vec![];
-                for _ in 0..infinity::STARTING_SHAPES {
+                for _ in 0..INFINITE_MODE_STARTING_SHAPES {
                     shapes.push(ShapeWithData::random(&mut rng).with_random_velocity());
                 }
                 shapes
@@ -136,15 +137,7 @@ pub fn place_and_create_shape<RNG: Rng>(
     );
 }
 
-#[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
-pub struct ShapeIndex(pub usize);
 
-impl ShapeIndex {
-    pub fn exclusive_max() -> Self {
-        let i = ALL_SHAPES.len();
-        Self(i)
-    }
-}
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub struct VoidShape {
@@ -158,10 +151,10 @@ pub const DEFAULT_FRICTION: f32 = 1.0;
 
 pub fn create_shape(
     commands: &mut Commands,
-    game_shape: &game_shape::GameShape,
+    game_shape: &GameShape,
     position: Vec2,
     angle: f32,
-    state: InitialState,
+    state: ShapeState,
     velocity: Velocity,
     friction: Option<f32>,
 ) {
@@ -176,10 +169,10 @@ pub fn create_shape(
     };
 
     let shape_component = match state {
-        InitialState::Normal => crate::ShapeComponent::Free,
-        InitialState::Locked => crate::ShapeComponent::Locked,
-        InitialState::Fixed => crate::ShapeComponent::Fixed,
-        InitialState::Void => crate::ShapeComponent::Void,
+        ShapeState::Normal => ShapeComponent::Free,
+        ShapeState::Locked => ShapeComponent::Locked,
+        ShapeState::Fixed => ShapeComponent::Fixed,
+        ShapeState::Void => ShapeComponent::Void,
     };
 
     let mut ec = commands.spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE));
@@ -228,7 +221,7 @@ pub fn create_shape(
             .insert(
                 game_shape
                     .body
-                    .get_shape_bundle(SHAPE_SIZE * camera::ZOOM_LEVEL),
+                    .get_shape_bundle(SHAPE_SIZE * ZOOM_LEVEL),
             )
             .insert(Transform {
                 translation: Vec3::new(0., 0., 10.),
@@ -237,11 +230,11 @@ pub fn create_shape(
             .insert(Visibility::Hidden)
             .insert(Stroke {
                 color: Color::BLACK,
-                options: StrokeOptions::default().with_line_width(camera::ZOOM_LEVEL),
+                options: StrokeOptions::default().with_line_width(ZOOM_LEVEL),
             });
     });
 
-    if state == InitialState::Void {
+    if state == ShapeState::Void {
         ec.insert(CollisionNaughty);
 
         ec.with_children(|f| {
@@ -252,11 +245,11 @@ pub fn create_shape(
         });
 
         ec.insert(Stroke {
-            color: color::WARN_COLOR,
+            color: WARN_COLOR,
             options: StrokeOptions::default().with_line_width(1.0),
         });
         ec.insert(VoidShape { highlighted: false });
-    } else if state == InitialState::Fixed {
+    } else if state == ShapeState::Fixed {
         ec.insert(Stroke {
             color: Color::BLACK,
             options: StrokeOptions::default().with_line_width(1.0),

@@ -1,6 +1,7 @@
 use itertools::Itertools;
+use steks_common::shape_index::ShapeIndex;
 
-use crate::{fixed_shape::ShapeWithData, shape_maker::ShapeIndex};
+use crate::prelude::*;
 
 pub fn get_next_shape<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> ShapeWithData {
     let mut hash: u64 = 0;
@@ -11,4 +12,4 @@ pub fn get_next_shape<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> Shape
     ShapeWithData::from_seed(hash)
 }
 
-pub const STARTING_SHAPES: usize = 3;
+

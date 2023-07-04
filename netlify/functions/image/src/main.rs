@@ -1,12 +1,9 @@
-pub mod color;
-pub mod encoding;
-pub mod fixed_shape;
-pub mod game_shape;
 pub mod svg;
+use base64::Engine;
+pub use steks_common::prelude::*;
 
 use aws_lambda_events::encodings::Body;
 use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
-use base64::Engine;
 use http::header::HeaderMap;
 use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
@@ -56,7 +53,7 @@ pub(crate) async fn my_handler(
 fn make_svg_from_data(data: &str) -> String {
     let Ok(bytes) = base64::engine::general_purpose::URL_SAFE.decode(data) else {return "".to_string();};
 
-    let shapes = encoding::decode_shapes(&bytes);
+    let shapes = decode_shapes(&bytes);
 
     let svg = svg::create_svg(shapes.into_iter());
     svg
@@ -86,9 +83,9 @@ fn draw_image(game: &str) -> Vec<u8> {
     let mut pixmap =
         resvg::tiny_skia::Pixmap::new(RESOLUTION, RESOLUTION).expect("Could not create pixmap");
 
-    let bc = color::background_color();
+    let [r,g,b,a] = steks_common::color::BACKGROUND_COLOR.as_rgba_u32().to_le_bytes();
     pixmap.fill(resvg::tiny_skia::Color::from_rgba8(
-        bc.red, bc.green, bc.blue, 255,
+        r,g,b,a
     ));
 
     const SPACE_RATIO: f32 = 1.1;

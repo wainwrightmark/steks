@@ -1,7 +1,5 @@
-use crate::{
-    shape_maker::{FixedShape, VoidShape},
-    *,
-};
+use crate::prelude::*;
+use crate::input;
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
@@ -89,12 +87,12 @@ pub fn drag_end(
 
         let any_fixed = !fixed_shapes.is_empty();
 
-        for (entity, mut draggable) in draggables
+        for (entity, mut shape_component) in draggables
             .iter_mut()
             .filter(|x| x.1.has_drag_source(event.drag_source))
         {
-            if let ShapeComponent::Dragged(..) = draggable.as_ref() {
-                *draggable = if padlock_resource.has_entity(entity) {
+            if let ShapeComponent::Dragged(..) = shape_component.as_ref() {
+                *shape_component = if padlock_resource.has_entity(entity) {
                     let collides_with_wall = rapier_context
                         .contacts_with(entity)
                         .any(|c| walls.contains(c.collider1()) || walls.contains(c.collider2()));
@@ -226,8 +224,8 @@ pub fn drag_move(
             .iter_mut()
             .find(|d| d.0.has_drag_source(event.drag_source))
         {
-            let max_x: f32 = crate::MAX_WINDOW_WIDTH / 2.0; //You can't leave the game area
-            let max_y: f32 = crate::MAX_WINDOW_HEIGHT / 2.0;
+            let max_x: f32 = MAX_WINDOW_WIDTH / 2.0; //You can't leave the game area
+            let max_y: f32 = MAX_WINDOW_HEIGHT / 2.0;
 
             let min_x: f32 = -max_x;
             let min_y: f32 = -max_y;
@@ -390,6 +388,18 @@ pub enum ShapeComponent {
     Fixed,
     Void,
     Dragged(Dragged),
+}
+
+impl Into<ShapeState> for &ShapeComponent {
+    fn into(self) -> ShapeState {
+        match self{
+            ShapeComponent::Free => ShapeState::Normal,
+            ShapeComponent::Locked => ShapeState::Locked,
+            ShapeComponent::Fixed => ShapeState::Fixed,
+            ShapeComponent::Void => ShapeState::Void,
+            ShapeComponent::Dragged(_) => ShapeState::Normal,
+        }
+    }
 }
 
 impl ShapeComponent {

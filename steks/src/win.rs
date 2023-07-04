@@ -1,12 +1,11 @@
 use bevy::ecs::event::Events;
 use bevy::prelude::*;
+use bevy_prototype_lyon::prelude::Stroke;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::crossbeam::atomic::AtomicCell;
 use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 
-use crate::shape_maker::{ShapeIndex, SpawnNewShapeEvent};
-use crate::shapes_vec::ShapesVec;
-use crate::*;
+use crate::prelude::*;
 
 #[derive(Component)]
 pub struct WinTimer {
@@ -21,7 +20,7 @@ impl Plugin for WinPlugin {
         app.add_system(check_for_collisions)
             .add_system(check_for_win.after(check_for_collisions))
             .add_event::<SpawnNewShapeEvent>()
-            .add_system(shape_maker::spawn_shapes)
+            .add_system(spawn_shapes)
             //.add_system(handle_change_level.in_base_set(CoreSet::First))
             .add_system(check_for_tower.before(drag_end));
     }
@@ -81,7 +80,7 @@ pub fn check_for_win(
 
 pub fn check_for_tower(
     mut commands: Commands,
-    mut end_drag_events: EventReader<crate::DragEndedEvent>,
+    mut end_drag_events: EventReader<DragEndedEvent>,
     win_timer: Query<&WinTimer>,
     time: Res<Time>,
     draggable: Query<&ShapeComponent>,
@@ -130,12 +129,12 @@ pub fn check_for_tower(
             win_time: time.elapsed_seconds_f64() + countdown,
             total_countdown: countdown,
         })
-        .insert(game_shape::circle::Circle {}.get_shape_bundle(100f32))
+        .insert(Circle {}.get_shape_bundle(100f32))
         .insert(Transform {
             translation: Vec3::new(50.0, 200.0, 0.0),
             ..Default::default()
         })
-        .insert(Stroke::color(color::TIMER_COLOR));
+        .insert(Stroke::color(TIMER_COLOR));
 }
 
 fn check_future_collisions(

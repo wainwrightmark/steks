@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{draggable::ShapeComponent, shape_maker::ShapeIndex, shapes_vec::ShapesVec};
+use crate::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ShareEvent;
@@ -30,29 +30,3 @@ fn handle_shares(
         }
     }
 }
-
-// #[derive(Resource, Default)]
-// pub struct SavedShare(Option<ShareData>);
-
-// #[derive(Debug)]
-// pub struct ShareData {
-//     pub title: String,
-//     pub data: String,
-// }
-
-// fn share_saved_svg(mut events: EventReader<ShareSavedSvgEvent>, saves: Res<SavedShare>) {
-//     if events.iter().next().is_some() {
-//         for _save in saves.0.iter() {
-//             #[cfg(target_arch = "wasm32")]
-//             {
-//                 crate::wasm::share_game(_save.data.clone());
-//             }
-//         }
-//     }
-// }
-
-// pub fn save_svg(title: String, shapes: &ShapesVec, saves: &mut ResMut<SavedShare>) {
-//     let data = shapes.make_base64_data();
-
-//     *saves.as_mut() = SavedShare(Some(ShareData { title, data }))
-// }

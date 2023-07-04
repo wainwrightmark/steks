@@ -4,7 +4,7 @@ use bevy::input::touch::*;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::*;
+use crate::prelude::*;
 
 pub struct InputPlugin;
 impl Plugin for InputPlugin {

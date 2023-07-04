@@ -3,13 +3,11 @@ use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 use geometrid::{
     polyomino::Polyomino,
-    prelude::{HasCenter, Point},
+    prelude::*,
     shape::Shape,
 };
 
-use itertools::Itertools;
-
-use crate::PHYSICS_SCALE;
+use crate::prelude::*;
 
 use super::{GameShapeBody, SHAPE_RADIUS_RATIO};
 
@@ -39,7 +37,7 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
         } = self.get_center(1.0);
         let shape_radius = shape_size * SHAPE_RADIUS_RATIO;
 
-        let shapes = self
+        let shapes: Vec<_> = self
             .deconstruct_into_rectangles()
             .map(|rectangle| {
                 let x_mid = rectangle.north_west.x as f32 + ((rectangle.width as f32) * 0.5);
@@ -58,13 +56,13 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
                     ),
                 )
             })
-            .collect_vec();
+            .collect();
 
         Collider::compound(shapes)
     }
 
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle {
-        let points = get_vertices(self, shape_size).collect_vec();
+        let points: Vec<Vec2> = get_vertices(self, shape_size).collect();
         let shape = RoundedPolygon {
             points,
             closed: true,
@@ -81,7 +79,7 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn bounding_box(
         &self,
         size: f32,
-        location: &crate::fixed_shape::Location,
+        location: &Location,
     ) -> bevy::prelude::Rect {
         let rotation = Transform::from_rotation(Quat::from_rotation_z(location.angle));
 
@@ -101,5 +99,16 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
         }
 
         Rect::from_corners(Vec2::new(min_x, min_y), Vec2::new(max_x, max_y))
+    }
+
+    fn as_svg(&self, size: f32, color_rgba: String) -> String {
+        let points: Vec<_> = get_vertices(&self, size).collect();
+
+        let path = crate::game_shape::rounded_polygon::make_rounded_polygon_path(
+            points.as_slice(),
+            size * SHAPE_RADIUS_RATIO,
+        );
+
+        format!(r#"<path d="{path}" fill="{color_rgba}" />"#)
     }
 }

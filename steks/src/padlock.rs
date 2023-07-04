@@ -4,10 +4,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_tweening::{lens::TransformPositionLens, EaseFunction, Tween};
 
-use crate::{
-    level::{CurrentLevel, LevelCompletion},
-    shape_maker::{FixedShape, VoidShape},
-};
+use crate::prelude::*;
 
 pub struct PadlockPlugin;
 
@@ -243,7 +240,7 @@ fn add_void_shape_skulls(
             })
             .insert(Fill {
                 options: FillOptions::DEFAULT,
-                color: crate::color::WARN_COLOR,
+                color: WARN_COLOR,
             })
             .insert(transform)
             .insert(Visibility::Inherited)

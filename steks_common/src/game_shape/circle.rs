@@ -1,9 +1,11 @@
-use bevy::prelude::{Rect, Vec2};
+use bevy::prelude::{Rect, Vec2, Color};
 use bevy_prototype_lyon::{
     prelude::*,
     shapes::{self},
 };
 use bevy_rapier2d::prelude::Collider;
+
+use crate::prelude::{color_to_svg_fill, color_to_svg_stroke};
 
 use super::GameShapeBody;
 
@@ -38,8 +40,13 @@ impl GameShapeBody for Circle {
         Rect::from_center_size(location.position, Vec2::new(size * 2., size * 2.))
     }
 
-    fn as_svg(&self, size: f32, color_rgba: String) -> String {
+    fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String {
         let size = size * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
-        format!(r#"<circle r="{size}" fill="{color_rgba}" stroke-width="0" />"#)
+        let stroke_width = if stroke.is_some() {"stroke-width=\"1\""} else {"stroke-width=\"0\""};
+        let fill = color_to_svg_fill(fill);
+        let stroke = color_to_svg_stroke(stroke);
+
+
+        format!(r#"<circle r="{size}" {fill} {stroke} {stroke_width}  />"#)
     }
 }

@@ -1,5 +1,5 @@
 ---
-source: src/main.rs
+source: netlify/functions/image/src/main.rs
 expression: hash
 ---
-15806678873605418288
+1216881793328326624

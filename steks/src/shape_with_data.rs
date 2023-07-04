@@ -10,15 +10,20 @@ pub struct ShapeWithData {
     pub friction: Option<f32>,
 }
 
-impl From<ShapeLocationState> for ShapeWithData {
-    fn from(value: ShapeLocationState) -> Self {
-        let ShapeLocationState { shape, location, state } = value;
+impl From<EncodableShape> for ShapeWithData {
+    fn from(value: EncodableShape) -> Self {
+        let EncodableShape { shape, location, state, modifiers } = value;
+
+        let friction = match modifiers {
+            ShapeModifiers::Normal => None,
+            ShapeModifiers::LowFriction => Some(0.1),
+        };
         Self {
             shape,
             fixed_location: Some(location),
             state: state,
             fixed_velocity: None,
-            friction: None,
+            friction,
         }
     }
 }

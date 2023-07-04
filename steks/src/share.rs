@@ -16,7 +16,7 @@ impl Plugin for SharePlugin {
 
 fn handle_shares(
     mut events: EventReader<ShareEvent>,
-    _shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent)>,
+    _shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
 ) {
     if events.iter().next().is_some() {
         bevy::log::debug!("Handling Share");

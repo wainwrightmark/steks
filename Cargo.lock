@@ -3703,6 +3703,7 @@ dependencies = [
  "bevy_prototype_lyon",
  "bevy_rapier2d",
  "geometrid",
+ "num_enum 0.6.1",
  "once_cell",
  "serde",
 ]

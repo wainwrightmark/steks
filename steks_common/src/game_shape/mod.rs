@@ -23,7 +23,7 @@ pub trait GameShapeBody: Send + Sync {
     fn to_collider_shape(&self, shape_size: f32) -> Collider;
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle;
     fn bounding_box(&self, size: f32, location: &Location) -> Rect;
-    fn as_svg(&self, size: f32, color_rgba: String) -> String;
+    fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String;
 }
 
 const SHAPE_RADIUS_RATIO: f32 = 0.1;

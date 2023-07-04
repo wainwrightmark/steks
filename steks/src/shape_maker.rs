@@ -4,6 +4,7 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
+use steks_common::color;
 
 use crate::{prelude::*, startup::get_today_date};
 
@@ -180,12 +181,12 @@ pub fn create_shape(
     let fill = if shape_component.is_fixed() {
         Fill {
             options: FillOptions::DEFAULT,
-            color: Color::WHITE,
+            color: FIXED_SHAPE_FILL
         }
     } else if shape_component.is_void() {
         Fill {
             options: FillOptions::DEFAULT,
-            color: Color::BLACK,
+            color: VOID_SHAPE_FILL,
         }
     } else {
         game_shape.fill()
@@ -245,19 +246,19 @@ pub fn create_shape(
         });
 
         ec.insert(Stroke {
-            color: WARN_COLOR,
+            color: VOID_SHAPE_STROKE,
             options: StrokeOptions::default().with_line_width(1.0),
         });
         ec.insert(VoidShape { highlighted: false });
     } else if state == ShapeState::Fixed {
         ec.insert(Stroke {
-            color: Color::BLACK,
+            color: FIXED_SHAPE_STROKE,
             options: StrokeOptions::default().with_line_width(1.0),
         });
         ec.insert(FixedShape);
     } else if friction.map(|x| x < DEFAULT_FRICTION).unwrap_or_default() {
         ec.insert(Stroke {
-            color: Color::WHITE,
+            color: ICE_SHAPE_STROKE,
             options: StrokeOptions::default().with_line_width(1.0),
         });
     }

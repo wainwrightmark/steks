@@ -3,8 +3,17 @@ use bevy::prelude::*;
 pub const BACKGROUND_COLOR: Color = Color::hsla(216., 0.7, 0.72, 1.0); // #86AEEA
 pub const ACCENT_COLOR: Color = Color::hsla(218., 0.69, 0.62, 1.0); // #5B8BE2
 pub const WARN_COLOR: Color = Color::hsla(308., 0.70, 0.72, 1.0); // #FF6E5F
-                                                                  //pub const TIMER_COLOR: Color = Color::hsla(128., 0.70, 0.72, 1.0); // #86EA94
-pub const TIMER_COLOR: Color = Color::BLACK; // #86EA94
+pub const TIMER_COLOR: Color = Color::BLACK;
+
+pub const FIXED_SHAPE_FILL: Color = Color::WHITE;
+pub const VOID_SHAPE_FILL: Color = Color::BLACK;
+
+pub const FIXED_SHAPE_STROKE: Color = Color::BLACK;
+pub const VOID_SHAPE_STROKE: Color = WARN_COLOR;
+pub const ICE_SHAPE_STROKE: Color = Color::WHITE;
+
+
+
 
 pub fn choose_color(index: usize) -> Color {
     const SATURATIONS: [f32; 2] = [0.9, 0.28];
@@ -29,6 +38,26 @@ pub fn color_to_rgba(color: Color) -> String {
         "#{:02X}{:02X}{:02X}{:02X}",
         r,g,b,a
     )
+}
+
+pub fn color_to_svg_fill(color: Option<Color>)-> String{
+    match color{
+        Some(color) => {
+            let rgba = color_to_rgba(color);
+            format!("fill=\"{rgba}\"")
+        },
+        None => "".to_string(),
+    }
+}
+
+pub fn color_to_svg_stroke(color: Option<Color>)-> String{
+    match color{
+        Some(color) => {
+            let rgba = color_to_rgba(color);
+            format!("stroke=\"{rgba}\"")
+        },
+        None => "".to_string(),
+    }
 }
 
 #[cfg(test)]

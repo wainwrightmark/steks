@@ -1,4 +1,4 @@
-use bevy::prelude::{Quat, Rect, Transform, Vec2};
+use bevy::prelude::{Quat, Rect, Transform, Vec2, Color};
 use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 use geometrid::{
@@ -101,14 +101,17 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
         Rect::from_corners(Vec2::new(min_x, min_y), Vec2::new(max_x, max_y))
     }
 
-    fn as_svg(&self, size: f32, color_rgba: String) -> String {
+    fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String {
         let points: Vec<_> = get_vertices(&self, size).collect();
 
         let path = crate::game_shape::rounded_polygon::make_rounded_polygon_path(
             points.as_slice(),
             size * SHAPE_RADIUS_RATIO,
         );
+        let stroke_width = if stroke.is_some() {"stroke-width=\"1\""} else {"stroke-width=\"0\""};
+        let fill = color_to_svg_fill(fill);
+        let stroke = color_to_svg_stroke(stroke);
 
-        format!(r#"<path d="{path}" fill="{color_rgba}" />"#)
+        format!(r#"<path {fill} {stroke} {stroke_width} d="{path}"  />"#)
     }
 }

@@ -7,7 +7,7 @@ use itertools::Itertools;
 
 use crate::prelude::*;
 
-pub struct ShapesVec(pub Vec<ShapeLocationState>);
+pub struct ShapesVec(pub Vec<EncodableShape>);
 
 pub fn hash_shapes(shapes: impl Iterator<Item = ShapeIndex>) -> i64 {
     let mut code: i64 = 0;
@@ -27,10 +27,11 @@ impl ShapesVec {
         let mut min = WINDOW_HEIGHT;
         let mut max = -WINDOW_HEIGHT;
 
-        for ShapeLocationState {
+        for EncodableShape {
             shape,
             location,
             state,
+            modifiers
         } in self.0.iter()
         {
             if state == &ShapeState::Void{
@@ -49,14 +50,15 @@ impl ShapesVec {
     }
 
     pub fn from_query<F: ReadOnlyWorldQuery>(
-        shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent), F>,
+        shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), F>,
     ) -> Self {
-        let shapes: Vec<ShapeLocationState> = shapes_query
+        let shapes: Vec<EncodableShape> = shapes_query
             .iter()
-            .map(|(index, transform, shape_component)| ShapeLocationState {
+            .map(|(index, transform, shape_component, friction)| EncodableShape {
                 shape: &ALL_SHAPES[index.0],
                 location: transform.into(),
                 state: shape_component.into(),
+                modifiers: if friction.coefficient < DEFAULT_FRICTION { ShapeModifiers::LowFriction} else {ShapeModifiers::Normal}
             })
             .collect_vec();
 

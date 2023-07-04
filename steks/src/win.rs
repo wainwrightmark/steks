@@ -33,7 +33,7 @@ const FUTURE_WATCH: f64 = 20.0;
 pub fn check_for_win(
     mut commands: Commands,
     mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent), Without<WinTimer>>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), Without<WinTimer>>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
 

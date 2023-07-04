@@ -1,6 +1,7 @@
 [workspace]
 members = [
 "steks",
+"steks_common",
 "netlify/functions/image",
 "netlify/functions/leaderboard",
 ]

@@ -19,7 +19,8 @@ fn manage_level_shapes(
     mut commands: Commands,
     draggables: Query<((Entity, &ShapeIndex), With<ShapeComponent>)>,
     current_level: Res<CurrentLevel>,
-    mut event_writer: EventWriter<SpawnNewShapeEvent>,
+    mut shape_creation_events: EventWriter<ShapeCreationData>,
+    mut shape_update_events: EventWriter<ShapeUpdateData>,
     mut previous: Local<CurrentLevel>,
 ) {
     if current_level.is_changed() {
@@ -33,7 +34,10 @@ fn manage_level_shapes(
                     for ((e, _), _) in draggables.iter() {
                         commands.entity(e).despawn_recursive();
                     }
-                    shape_maker::create_initial_shapes(&current_level.level, &mut event_writer);
+                    shape_maker::create_initial_shapes(
+                        &current_level.level,
+                        &mut shape_creation_events,
+                    );
                     0
                 } else {
                     match previous.completion {
@@ -46,18 +50,20 @@ fn manage_level_shapes(
                         GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
                             for stage in (previous_stage + 1)..=(stage) {
                                 if let Some(stage) = level.get_stage(&stage) {
-                                    for shape in &stage.shapes {
-                                        event_writer.send(SpawnNewShapeEvent {
-                                            fixed_shape: (*shape).into(),
-                                        })
+                                    for creation in &stage.shapes {
+                                        shape_creation_events.send((*creation).into())
+                                    }
+
+                                    for update in &stage.updates{
+                                        shape_update_events.send((*update).into())
                                     }
                                 }
                             }
                         }
                         GameLevel::Infinite { .. } => {
-                            let fixed_shape =
+                            let creation_data =
                                 infinity::get_next_shape(draggables.iter().map(|x| x.0 .1));
-                            event_writer.send(SpawnNewShapeEvent { fixed_shape });
+                            shape_creation_events.send(creation_data);
                         }
                         GameLevel::Challenge => {}
                     }

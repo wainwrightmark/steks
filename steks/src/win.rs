@@ -19,9 +19,9 @@ impl Plugin for WinPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(check_for_collisions)
             .add_system(check_for_win.after(check_for_collisions))
-            .add_event::<SpawnNewShapeEvent>()
-            .add_system(spawn_shapes)
-            //.add_system(handle_change_level.in_base_set(CoreSet::First))
+            .add_event::<ShapeCreationData>()
+            .add_event::<ShapeUpdateData>()
+            .add_system(spawn_and_update_shapes)
             .add_system(check_for_tower.before(drag_end));
     }
 }

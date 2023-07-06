@@ -75,38 +75,144 @@ impl SetLevel {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct LevelStage {
+    #[serde(alias = "Text")]
     pub text: Option<String>,
+    #[serde(alias = "Mouse_text")]
     pub mouse_text: Option<String>,
     #[serde(default)]
+    #[serde(alias = "Text_seconds")]
     pub text_seconds: Option<u32>,
-    pub shapes: Vec<LevelShape>,
-
+    #[serde(default)]
+    #[serde(alias = "Shapes")]
+    pub shapes: Vec<ShapeCreation>,
+    #[serde(default)]
+    #[serde(alias = "Updates")]
+    pub updates: Vec<ShapeUpdate>,
+    #[serde(alias = "Gravity")]
     pub gravity: Option<bevy::prelude::Vec2>,
+    #[serde(alias = "Rainfall")]
     pub rainfall: Option<RaindropSettings>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
-pub struct LevelShape {
+pub struct ShapeCreation {
     pub shape: LevelShapeForm,
 
     #[serde(default)]
+    #[serde(alias = "X")]
     pub x: Option<f32>,
     #[serde(default)]
+    #[serde(alias = "Y")]
     pub y: Option<f32>,
     #[serde(default)]
-
+    #[serde(alias = "R")]
     /// Angle in revolutions
     pub r: Option<f32>,
 
     #[serde(default)]
+    #[serde(alias = "Vel_x")]
+    pub vel_x: Option<f32>,
+
+    #[serde(default)]
+    #[serde(alias = "Vel_y")]
+    pub vel_y: Option<f32>,
+
+    #[serde(default)]
+    #[serde(alias = "State")]
     pub state: ShapeState,
 
     #[serde(default)]
-    pub friction: Option<f32>,
+    #[serde(alias = "Modifiers")]
+    pub modifiers: ShapeModifiers,
+
+    #[serde(default)]
+    #[serde(alias = "Id")]
+    pub id: Option<u32>,
 }
 
-impl From<LevelShape> for ShapeWithData {
-    fn from(val: LevelShape) -> Self {
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub struct ShapeUpdate {
+    #[serde(default)]
+    #[serde(alias = "Id")]
+    pub id: u32,
+
+    #[serde(default)]
+    #[serde(alias = "Shape")]
+    pub shape: Option<LevelShapeForm>,
+
+    #[serde(default)]
+    #[serde(alias = "X")]
+    pub x: Option<f32>,
+    #[serde(default)]
+    #[serde(alias = "Y")]
+    pub y: Option<f32>,
+    #[serde(default)]
+    #[serde(alias = "R")]
+    /// Angle in revolutions
+    pub r: Option<f32>,
+
+    #[serde(default)]
+    #[serde(alias = "Vel_x")]
+    pub vel_x: Option<f32>,
+
+    #[serde(default)]
+    #[serde(alias = "Vel_y")]
+    pub vel_y: Option<f32>,
+
+    #[serde(default)]
+    #[serde(alias = "State")]
+    pub state: Option<ShapeState>,
+
+    #[serde(default)]
+    #[serde(alias = "Modifiers")]
+    pub modifiers: ShapeModifiers,
+}
+
+impl From<ShapeUpdate> for ShapeUpdateData {
+    fn from(val: ShapeUpdate) -> Self {
+
+        let location = if val.x.is_some() || val.y.is_some() || val.r.is_some(){
+            Some(
+                Location{
+                    position: Vec2 { x: val.x.unwrap_or_default(), y: val.y.unwrap_or_default() },
+                    angle: val.r.map(|r| r * consts::TAU).unwrap_or_default()
+                }
+            )
+        }else{
+            None
+        };
+
+        let velocity = match val.state {
+
+            Some(ShapeState::Normal) | None => {
+                if val.vel_x.is_some() || val.vel_y.is_some() {
+                    Some(Velocity {
+                        linvel: Vec2 {
+                            x: val.vel_x.unwrap_or_default(),
+                            y: val.vel_y.unwrap_or_default(),
+                        },
+                        angvel: Default::default(),
+                    })
+                } else {
+                    None
+                }
+            },
+            _ => None
+        };
+
+        ShapeUpdateData {
+            shape: val.shape.map(|x|x.into()),
+            location,
+            state: val.state,
+            velocity,
+            modifiers: val.modifiers,
+            id: val.id,
+        }
+    }
+}
+
+impl From<ShapeCreation> for ShapeCreationData {
+    fn from(val: ShapeCreation) -> Self {
         let mut fixed_location: Location = Default::default();
         let mut fl_set = false;
         if let Some(x) = val.x {
@@ -124,17 +230,30 @@ impl From<LevelShape> for ShapeWithData {
 
         let fixed_location = fl_set.then_some(fixed_location);
 
-        let fixed_velocity = match val.state {
+        let velocity = match val.state {
             ShapeState::Locked | ShapeState::Fixed | ShapeState::Void => Some(Default::default()),
-            ShapeState::Normal => None,
+            ShapeState::Normal => {
+                if val.vel_x.is_some() || val.vel_y.is_some() {
+                    Some(Velocity {
+                        linvel: Vec2 {
+                            x: val.vel_x.unwrap_or_default(),
+                            y: val.vel_y.unwrap_or_default(),
+                        },
+                        angvel: Default::default(),
+                    })
+                } else {
+                    None
+                }
+            }
         };
 
-        ShapeWithData {
+        ShapeCreationData {
             shape: val.shape.into(),
-            fixed_location,
+            location: fixed_location,
             state: val.state,
-            fixed_velocity,
-            friction: val.friction,
+            velocity,
+            modifiers: val.modifiers,
+            id: val.id,
         }
     }
 }

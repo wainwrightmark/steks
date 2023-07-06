@@ -36,3 +36,7 @@ pub const INFINITE_MODE_STARTING_SHAPES: usize = 3;
 pub const GRAVITY: Vec2 = Vec2::new(0.0, -1000.0);
 
 pub const SHAPE_SIZE: f32 = 50f32;
+
+
+pub const DEFAULT_FRICTION: f32 = 1.0;
+pub const LOW_FRICTION: f32 = 0.1;

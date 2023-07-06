@@ -36,7 +36,6 @@ pub struct GameShape {
 
 impl PartialOrd for GameShape {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-
         self.index.partial_cmp(&other.index)
     }
 }

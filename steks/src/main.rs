@@ -20,6 +20,7 @@ pub mod padlock;
 pub mod rain;
 pub mod saved_data;
 pub mod set_level;
+pub mod shape_component;
 pub mod shape_maker;
 pub mod shape_with_data;
 pub mod shapes_vec;
@@ -30,7 +31,6 @@ pub mod walls;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 pub mod win;
-
 pub mod prelude {
 
     pub use bevy::log::{debug, error, info, warn};
@@ -58,6 +58,7 @@ pub mod prelude {
     pub use crate::rain::*;
     pub use crate::saved_data::*;
     pub use crate::set_level::*;
+    pub use crate::shape_component::*;
     pub use crate::shape_maker::*;
     pub use crate::shape_with_data::*;
     pub use crate::shapes_vec::*;

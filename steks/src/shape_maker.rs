@@ -1,19 +1,15 @@
 use bevy::prelude::*;
 
-use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
 
-use crate::{prelude::*, startup::get_today_date};
+use crate::{prelude::*, startup::get_today_date, shape_with_data};
 
 use rand::{rngs::ThreadRng, Rng};
 
-pub fn create_initial_shapes(
-    level: &GameLevel,
-    event_writer: &mut EventWriter<SpawnNewShapeEvent>,
-) {
-    let mut shapes: Vec<ShapeWithData> = match level {
+pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<ShapeCreationData>) {
+    let mut shapes: Vec<ShapeCreationData> = match level {
         GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
             match level.get_stage(&0) {
                 Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
@@ -24,13 +20,13 @@ pub fn create_initial_shapes(
             if let Some(bytes) = bytes {
                 decode_shapes(bytes)
                     .into_iter()
-                    .map(|x| ShapeWithData::from(x))
+                    .map(|x| ShapeCreationData::from(x))
                     .collect_vec()
             } else {
                 let mut rng: ThreadRng = ThreadRng::default();
-                let mut shapes: Vec<ShapeWithData> = vec![];
+                let mut shapes: Vec<ShapeCreationData> = vec![];
                 for _ in 0..INFINITE_MODE_STARTING_SHAPES {
-                    shapes.push(ShapeWithData::random(&mut rng).with_random_velocity());
+                    shapes.push(ShapeCreationData::random(&mut rng).with_random_velocity());
                 }
                 shapes
             }
@@ -40,52 +36,69 @@ pub fn create_initial_shapes(
             let seed =
                 ((today.year().unsigned_abs() * 2000) + (today.month() * 100) + today.day()) as u64;
             (0..GameLevel::CHALLENGE_SHAPES)
-                .map(|i| ShapeWithData::from_seed(seed + i as u64).with_random_velocity())
+                .map(|i| ShapeCreationData::from_seed(seed + i as u64).with_random_velocity())
                 .collect_vec()
         }
     };
 
-    shapes.sort_by_key(|x| x.fixed_location.is_some());
+    shapes.sort_by_key(|x| x.location.is_some());
 
-    for fixed_shape in shapes {
-        event_writer.send(SpawnNewShapeEvent { fixed_shape })
+    for creation_data in shapes {
+        event_writer.send(creation_data)
     }
 }
 
-pub struct SpawnNewShapeEvent {
-    pub fixed_shape: ShapeWithData,
-}
-
-pub fn spawn_shapes(
+pub fn spawn_and_update_shapes(
     mut commands: Commands,
-    mut events: EventReader<SpawnNewShapeEvent>,
+    mut creations: EventReader<ShapeCreationData>,
+    mut updates: EventReader<ShapeUpdateData>,
     rapier_context: Res<RapierContext>,
-    mut queue: Local<Vec<ShapeWithData>>,
+    mut creation_queue: Local<Vec<ShapeCreationData>>,
+    mut update_queue: Local<Vec<ShapeUpdateData>>,
+    existing_query: Query<(Entity, &ShapeWithId, &ShapeComponent, &ShapeIndex, &Transform)>,
 ) {
-    queue.extend(events.iter().map(|x| x.fixed_shape));
+    creation_queue.extend(creations.iter());
+    update_queue.extend(updates.iter());
 
-    if let Some(fixed_shape) = queue.pop() {
+    //info!("Spawn and update shapes {} {}", creation_queue.len(), update_queue.len());
+
+    if let Some(creation) = creation_queue.pop() {
         let mut rng = rand::thread_rng();
 
-        place_and_create_shape(&mut commands, fixed_shape, &rapier_context, &mut rng);
+        place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng);
+        return;
+    }
+
+    if let Some(update) = update_queue.pop() {
+        if let Some((existing_entity, _, shape_component, shape_index, transform)) = existing_query.iter().find(|x| x.1.id == update.id) {
+
+            let prev: &'static GameShape = (*shape_index).into();
+            update.update_shape(&mut commands, existing_entity, prev, shape_component.into(), transform);
+
+        }
+        else{
+            error!("Could not find shape with id {}", update.id);
+        }
+
+        return;
     }
 }
 
 pub fn place_and_create_shape<RNG: Rng>(
     commands: &mut Commands,
-    fixed_shape: ShapeWithData,
+    mut shape_with_data: ShapeCreationData,
     rapier_context: &Res<RapierContext>,
     rng: &mut RNG,
 ) {
-    let Location { position, angle } = if let Some(l) = fixed_shape.fixed_location {
+    let location: Location = if let Some(l) = shape_with_data.location {
         bevy::log::debug!(
             "Placed fixed shape {} at {}",
-            fixed_shape.shape.name,
+            shape_with_data.shape.name,
             l.position
         );
         l
     } else {
-        let collider = fixed_shape.shape.body.to_collider_shape(SHAPE_SIZE);
+        let collider = shape_with_data.shape.body.to_collider_shape(SHAPE_SIZE);
         let mut tries = 0;
         loop {
             let x = rng.gen_range(
@@ -100,7 +113,7 @@ pub fn place_and_create_shape<RNG: Rng>(
             if tries >= 20 {
                 bevy::log::debug!(
                     "Placed shape {} without checking after {tries} tries at {position}",
-                    fixed_shape.shape.name
+                    shape_with_data.shape.name
                 );
                 break Location { position, angle };
             }
@@ -111,7 +124,7 @@ pub fn place_and_create_shape<RNG: Rng>(
             {
                 bevy::log::debug!(
                     "Placed shape {} after {tries} tries at {position}",
-                    fixed_shape.shape.name
+                    shape_with_data.shape.name
                 );
                 break Location { position, angle };
             }
@@ -119,7 +132,7 @@ pub fn place_and_create_shape<RNG: Rng>(
         }
     };
 
-    let velocity = fixed_shape.fixed_velocity.unwrap_or_else(|| Velocity {
+    let velocity = shape_with_data.velocity.unwrap_or_else(|| Velocity {
         linvel: Vec2 {
             x: rng.gen_range((WINDOW_WIDTH * -0.5)..(WINDOW_WIDTH * 0.5)),
             y: rng.gen_range(0.0..WINDOW_HEIGHT),
@@ -127,15 +140,10 @@ pub fn place_and_create_shape<RNG: Rng>(
         angvel: rng.gen_range(0.0..std::f32::consts::TAU),
     });
 
-    create_shape(
-        commands,
-        fixed_shape.shape,
-        position,
-        angle,
-        fixed_shape.state,
-        velocity,
-        fixed_shape.friction,
-    );
+    shape_with_data.location = Some(location);
+    shape_with_data.velocity = Some(velocity);
+
+    create_shape(commands, shape_with_data);
 }
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
@@ -146,20 +154,23 @@ pub struct VoidShape {
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub struct FixedShape;
 
-pub const DEFAULT_FRICTION: f32 = 1.0;
+#[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
+pub struct ShapeWithId {
+    pub id: u32,
+}
 
-pub fn create_shape(
-    commands: &mut Commands,
-    game_shape: &GameShape,
-    position: Vec2,
-    angle: f32,
-    state: ShapeState,
-    velocity: Velocity,
-    friction: Option<f32>,
-) {
-    debug!("Creating {game_shape} angle {angle} position {position} state {state:?}");
 
-    let collider_shape = game_shape.body.to_collider_shape(SHAPE_SIZE);
+
+pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData) {
+    info!(
+        "Creating {} in state {:?} {:?}",
+        shape_with_data.shape, shape_with_data.state, shape_with_data.id
+    );
+
+    let collider_shape = shape_with_data.shape.body.to_collider_shape(SHAPE_SIZE);
+    let shape_bundle = shape_with_data.shape.body.get_shape_bundle(SHAPE_SIZE);
+
+    let Location { position, angle } = shape_with_data.location.unwrap_or_default();
 
     let transform: Transform = Transform {
         translation: (position.extend(1.0)),
@@ -167,42 +178,25 @@ pub fn create_shape(
         scale: Vec3::ONE,
     };
 
-    let shape_component = match state {
-        ShapeState::Normal => ShapeComponent::Free,
-        ShapeState::Locked => ShapeComponent::Locked,
-        ShapeState::Fixed => ShapeComponent::Fixed,
-        ShapeState::Void => ShapeComponent::Void,
-    };
+    let shape_component: ShapeComponent = shape_with_data.state.into();
 
-    let mut ec = commands.spawn(game_shape.body.get_shape_bundle(SHAPE_SIZE));
+    let mut ec = commands.spawn_empty();
 
-    let fill = if shape_component.is_fixed() {
-        Fill {
-            options: FillOptions::DEFAULT,
-            color: FIXED_SHAPE_FILL,
-        }
-    } else if shape_component.is_void() {
-        Fill {
-            options: FillOptions::DEFAULT,
-            color: VOID_SHAPE_FILL,
-        }
-    } else {
-        game_shape.fill()
-    };
-
-    ec.insert(Friction::coefficient(friction.unwrap_or(DEFAULT_FRICTION)))
+    ec.insert(shape_bundle)
+        .insert(shape_with_data.modifiers.friction())
         .insert(Restitution {
             coefficient: shape_component.restitution_coefficient(),
             combine_rule: CoefficientCombineRule::Min,
         })
-        .insert(fill)
-        .insert(game_shape.index)
+        .insert(shape_with_data.fill())
+        .insert(shape_with_data.stroke())
+        .insert(shape_with_data.shape.index)
         .insert(RigidBody::Dynamic)
         .insert(collider_shape.clone())
         .insert(Ccd::enabled())
         .insert(shape_component.locked_axes())
         .insert(shape_component.gravity_scale())
-        .insert(velocity)
+        .insert(shape_with_data.velocity_component())
         .insert(shape_component.dominance())
         .insert(ExternalForce::default())
         .insert(shape_component.collider_mass_properties())
@@ -213,48 +207,17 @@ pub fn create_shape(
         .insert(shape_component)
         .insert(transform);
 
-    ec.with_children(|x| {
-        x.spawn_empty()
-            .insert(Shadow)
-            // .insert(bevy::render::view::visibility::RenderLayers::layer(ZOOM_ENTITY_LAYER))
-            .insert(game_shape.body.get_shape_bundle(SHAPE_SIZE * ZOOM_LEVEL))
-            .insert(Transform {
-                translation: Vec3::new(0., 0., 10.),
-                ..Default::default()
-            })
-            .insert(Visibility::Hidden)
-            .insert(Stroke {
-                color: Color::BLACK,
-                options: StrokeOptions::default().with_line_width(ZOOM_LEVEL),
-            });
-    });
+    ec.with_children(|cb| shape_with_data::spawn_children(shape_with_data.shape, &shape_with_data.state, cb) );
 
-    if state == ShapeState::Void {
+    if let Some(id) = shape_with_data.id {
+        ec.insert(ShapeWithId { id: id });
+    }
+
+    if shape_with_data.state == ShapeState::Void {
         ec.insert(CollisionNaughty);
-
-        ec.with_children(|f| {
-            f.spawn(collider_shape)
-                .insert(Sensor {})
-                .insert(ActiveEvents::COLLISION_EVENTS)
-                .insert(WallSensor);
-        });
-
-        ec.insert(Stroke {
-            color: VOID_SHAPE_STROKE,
-            options: StrokeOptions::default().with_line_width(1.0),
-        });
         ec.insert(VoidShape { highlighted: false });
-    } else if state == ShapeState::Fixed {
-        ec.insert(Stroke {
-            color: FIXED_SHAPE_STROKE,
-            options: StrokeOptions::default().with_line_width(1.0),
-        });
+    } else if shape_with_data.state == ShapeState::Fixed {
         ec.insert(FixedShape);
-    } else if friction.map(|x| x < DEFAULT_FRICTION).unwrap_or_default() {
-        ec.insert(Stroke {
-            color: ICE_SHAPE_STROKE,
-            options: StrokeOptions::default().with_line_width(1.0),
-        });
     }
 }
 

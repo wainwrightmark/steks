@@ -1,9 +1,19 @@
-use bevy::prelude::{Quat, Transform, Vec2};
+use bevy::prelude::{Quat, Transform, Vec2, Vec3};
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Location {
     pub position: Vec2,
     pub angle: f32,
+}
+
+impl Into<Transform> for Location {
+    fn into(self) -> Transform {
+        Transform {
+            translation: self.position.extend(0.0),
+            rotation: Quat::from_rotation_z(self.angle),
+            scale: Vec3::ONE,
+        }
+    }
 }
 
 impl Location {

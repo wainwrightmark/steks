@@ -52,6 +52,7 @@
     - shape: U5
     - shape: U5
     - shape: U5
+      id: 1
 
 - title: "Reach for the sky"
   end_text: "Nice one"
@@ -205,11 +206,19 @@
     - shape: X5
     - shape: X5
     - shape: X5
+    - shape: X5
+      id: 1
+    - shape: X5
+      id: 2
+
+
   stages:
     - text: "Balls!"
-      shapes:
+      updates:
         - shape: Circle
+          id: 1
         - shape: Circle
+          id: 2
 
 - title: "The joy of Steks"
   end_text: "Extremely Satisfactory"
@@ -228,19 +237,19 @@
   text_seconds: 20
   shapes:
     - shape: I5
-      friction: 0.1
+      modifiers: Ice
     - shape: Z4
-      friction: 0.1
+      modifiers: Ice
     - shape: S4
-      friction: 0.1
+      modifiers: Ice
     - shape: U5
-      friction: 0.1
+      modifiers: Ice
     - shape: F5
-      friction: 0.1
+      modifiers: Ice
     - shape: V5
-      friction: 0.1
+      modifiers: Ice
     - shape: X5
-      friction: 0.1
+      modifiers: Ice
   End_text: Nice Nice Baby
 
 - title: "Double Trouble"
@@ -437,41 +446,75 @@
   end_text: "You know nothing John Steks"
   shapes:
     - shape: L5
-      friction: 0.1
+      id: 1
     - shape: W5
-      friction: 0.1
+      id: 2
     - shape: Z5
-      friction: 0.1
+      id: 3
     - shape: X5
-      friction: 0.1
+      id: 4
     - shape: T5
-      friction: 0.1
+      id: 5
     - shape: U5
-      friction: 0.1
+      id: 6
   stages:
     - text: "Winter is Coming!"
+      updates:
+      - modifiers: Ice
+        vel_x: -100
+        id: 1
+      - modifiers: Ice
+        vel_x: -100
+        id: 2
+      - modifiers: Ice
+        vel_x: -100
+        id: 3
+      - modifiers: Ice
+        vel_x: 100
+        id: 4
+      - modifiers: Ice
+        vel_x: 100
+        id: 5
+      - modifiers: Ice
+        vel_x: 100
+        id: 6
+    - text: "Winter is Here!"
       rainfall:
         intensity: 2
       shapes:
         - shape: F5
-          friction: 0.1
+          modifiers: Ice
 
-- title: " In Steks no one can hear you scream - TEST LEVEL"
-  end_text: ""
+- text: "In Steks, no one can hear you scream"
+  end_text: "Now buy Steks 2"
+  gravity:
+    - 0.0
+    - 1000.0
   shapes:
-    - shape: L5
-    - shape: W5
+    - shape: Triangle
+      x: 0.0
+      y: 0.0
+      r: 0.625
+      state: Fixed
+      id: 1
     - shape: F5
     - shape: Z5
-    - shape: N5
+    - shape: O4
     - shape: T4
-    - shape: L4
+    - shape: V5
+    - shape: J4
+    - shape: Z4
+    - shape: T5
+    - shape: X5
 
   stages:
-    - text: "You thought you had defeated me?\nI am Dr. Gravity!"
-      gravity:
-        - 0.0
-        - 1000.0
-      shapes:
-        - shape: X5
-        - shape: s4
+  - text: "Noooooo, I am defeated."
+    gravity:
+    - 0.0
+    - -1000.0
+    Shapes:
+    - shape: J4
+    - shape: L4
+    Updates:
+    - id: 1
+      state: normal

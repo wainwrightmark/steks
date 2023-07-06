@@ -15,7 +15,7 @@ impl EncodableShape {
     pub fn stroke_color(&self) -> Option<Color> {
         match self.modifiers {
             ShapeModifiers::Normal => (),
-            ShapeModifiers::LowFriction => return Some(ICE_SHAPE_STROKE),
+            ShapeModifiers::Ice => return Some(ICE_SHAPE_STROKE),
         }
 
         use ShapeState::*;
@@ -166,7 +166,7 @@ mod tests {
                 angle: std::f32::consts::FRAC_PI_2,
             },
             state: ShapeState::Locked,
-            modifiers: ShapeModifiers::LowFriction,
+            modifiers: ShapeModifiers::Ice,
         };
 
         let encoded = fs.encode();

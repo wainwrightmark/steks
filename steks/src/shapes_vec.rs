@@ -9,7 +9,6 @@ use crate::prelude::*;
 
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
-
 impl ShapesVec {
     pub fn hash(&self) -> i64 {
         let mut code: i64 = 0;
@@ -18,7 +17,10 @@ impl ShapesVec {
             location: _,
             state,
             modifiers,
-        } in self.0.iter().sorted_by_cached_key(|x| (x.shape.index, x.state, x.modifiers))
+        } in self
+            .0
+            .iter()
+            .sorted_by_cached_key(|x| (x.shape.index, x.state, x.modifiers))
         {
             code = code.wrapping_mul(29).wrapping_add(*state as i64);
             code = code.wrapping_mul(31).wrapping_add(*modifiers as i64);
@@ -65,7 +67,7 @@ impl ShapesVec {
                     location: transform.into(),
                     state: shape_component.into(),
                     modifiers: if friction.coefficient < DEFAULT_FRICTION {
-                        ShapeModifiers::LowFriction
+                        ShapeModifiers::Ice
                     } else {
                         ShapeModifiers::Normal
                     },

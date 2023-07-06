@@ -161,7 +161,8 @@ fn button_system(
 async fn minimize_app_async() {
     #[cfg(all(feature = "android", target_arch = "wasm32"))]
     {
-        logging::do_or_report_error_async(|| capacitor_bindings::app::App::minimize_app()).await;
+        crate::logging::do_or_report_error_async(|| capacitor_bindings::app::App::minimize_app())
+            .await;
     }
 }
 

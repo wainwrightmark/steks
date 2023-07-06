@@ -1,5 +1,6 @@
+use bevy::ecs::system::EntityCommands;
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::prelude::Friction;
+use bevy_rapier2d::prelude::{ActiveEvents, Friction, Sensor};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 
@@ -69,8 +70,8 @@ impl ShapeModifiers {
         }
     }
 
-    pub fn stroke(&self)-> Option<Stroke>{
-        match self{
+    pub fn stroke(&self) -> Option<Stroke> {
+        match self {
             ShapeModifiers::Normal => None,
             ShapeModifiers::Ice => Some(Stroke {
                 color: ICE_SHAPE_STROKE,

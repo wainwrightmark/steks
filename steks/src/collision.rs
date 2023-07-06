@@ -27,8 +27,8 @@ fn highlight_voids(
 ) {
     for (entity, mut stroke, mut shape) in voids.iter_mut() {
         let has_contact = rapier_context
-            .contacts_with(entity)
-            .any(|contact| contact.has_any_active_contacts());
+            .intersections_with(entity)
+            .any(|contact| contact.2);
 
         if has_contact {
             if !shape.highlighted {

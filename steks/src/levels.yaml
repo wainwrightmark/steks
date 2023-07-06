@@ -261,23 +261,7 @@
     - shape: F5
     - shape: W5
     - shape: W5
-
-- title: "Deus Steks Machina"
-  end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
-  shapes:
-    - shape: O4
-    - shape: O4
-    - shape: J4
-    - shape: L4
-    - shape: T4
-    - shape: W5
-    - shape: Circle
-  stages:
-    - text: "Plot Twist!"
-      shapes:
-        - shape: Z5
-        - shape: F5
-
+#17
 - title: "Uneven Foundations"
   end_text: "Boom"
   shapes:
@@ -294,9 +278,9 @@
     - shape: S4
     - shape: J4
     - shape: T4
-
-- text: "XIX\nCircular Logic"
-  end_text: "You are amazing because you're amazing"
+#18
+- text: "Circular Logic"
+  end_text: "You are amazing\nbecause you're amazing"
   shapes:
     - shape: L4
     - shape: T4
@@ -306,7 +290,7 @@
     - shape: X5
     - shape: Circle
     - shape: Circle
-
+#19
 - title: "Tri Hard with a Vengeance"
   end_text: "Just a fly in the ointment, Hans"
   shapes:
@@ -318,7 +302,24 @@
     - text: "ho ho ho"
       shapes:
         - shape: Triangle
+#20
+- title: "Deus Steks Machina"
+  end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
+  shapes:
+    - shape: O4
+    - shape: O4
+    - shape: J4
+    - shape: L4
+    - shape: T4
+    - shape: W5
+    - shape: Circle
+  stages:
+    - text: "Plot Twist!"
+      shapes:
+        - shape: Z5
+        - shape: F5
 
+#21
 - title: "The Paranoid and Void"
   end_text: "Marvellous"
   shapes:
@@ -339,7 +340,7 @@
     - shape: S4
     - shape: Z4
     - shape: T4
-
+#22
 - title: " These blocks are made for building"
   end_text: "That's so beautiful I wanna take a picture"
   shapes:
@@ -352,7 +353,7 @@
     - shape: F5
     - shape: Z4
     - shape: F5
-
+#23
 - title: "Steks Storm"
   end_text: "You weathered that ok"
   rainfall:
@@ -367,8 +368,8 @@
     - shape: I5
     - shape: Z4
     - shape: L4
-
-- title: "This one is easy no tricks we promise"
+#24
+- title: "This one is easy no surprises we promise"
   end_text: "That was probably the work of Dr. Gravity somehow"
   shapes:
     - shape: L5
@@ -376,23 +377,25 @@
     - shape: F5
 
   stages:
-    - text: "ok, one trick"
+    - text: "ok, just the one"
       shapes:
         - shape: S4
-    - text: "fine, two tricks"
+    - text: "eh he he"
       shapes:
         - shape: Z4
         - shape: U5
-    - text: "final one we promise"
+    - text: "You're not handling this very well"
       shapes:
-        - shape: X5
-    - text: "uh-oh, we lied"
+        - shape: T4
+    - text: "That was a burn, here's some ICE"
       shapes:
-        - shape: circle
+        - shape: N5
+          modifiers: ice
         - shape: z5
+          modifiers: ice
 
 # 25
-- text: "Uneven Foundations 2"
+- title: "Uneven Foundations 2"
   end_text: "Something"
   shapes:
     - shape: Z5
@@ -425,7 +428,7 @@
     - shape: circle
 
 #27
-- text: "Uneven Foundations 3"
+- title: "Uneven Foundations 3"
   end_text: "Something"
   shapes:
     - shape: T5
@@ -510,36 +513,150 @@
         - shape: F5
           modifiers: Ice
 
-- text: "In Steks, no one can hear you scream"
+- title: "Dr. Gravity's Lair"
+  text: "In Steks, no one can hear you scream"
   end_text: "Now buy Steks 2"
-  gravity:
-    - 0.0
-    - 1000.0
   shapes:
-    - shape: Triangle
+    - shape: Triangle # mouth
       x: 0.0
-      y: 0.0
-      r: 0.625
+      y: -150.0
+      r: 0.125
       state: Fixed
       id: 1
+    - shape: Triangle # brow
+      x: 0.0
+      y: 200.0
+      r: 0.125
+      state: void
+      id: 2
+    - shape: V5 # Left Eyebrow
+      x: -150
+      y: 200
+      r: 0.125
+      state: void
+      id: 3
+    - shape: V5 # Right Eyebrow
+      x: 150
+      y: 200
+      r: 0.125
+      state: void
+      id: 4
+    - shape: O4 # Left Eye
+      x: -150
+      y: 150
+      state: void
+      id: 5
+    - shape: O4 # Right Eye
+      x: 150
+      y: 150
+      state: void
+      id: 6
+    - shape: I5 # Nose
+      x: 0
+      y: 0
+      r: 0.25
+      state: void
+      id: 7
     - shape: F5
+      id: 10
     - shape: Z5
-    - shape: O4
-    - shape: T4
-    - shape: V5
-    - shape: J4
-    - shape: Z4
-    - shape: T5
-    - shape: X5
+      id: 11
+    # - shape: O4
+    # - shape: T4
+    # - shape: V5
+    # - shape: J4
+    # - shape: Z4
+    # - shape: T5
+    # - shape: X5
 
   stages:
-    - text: "Noooooo, I am defeated."
+    - text: "Dr. Gravity unleashes his gravity ray\nA choir begins to chant in latin..."
+      gravity:
+      - 0.0
+      - 1000.0 #reverse gravity
+      Updates:
+        - id: 1
+          state: normal
+        - id: 2
+          state: fixed
+      shapes:
+        - shape: S4
+          id: 8
+          x: -150
+          y: -150
+          state: void
+        - shape: Z4
+          id: 9
+          x: 150
+          y: -150
+          state: void
+    - text: "To the last I grapple with thee!"
+      gravity:
+      - 0.0
+      - -1000.0 #normal gravity
+      Updates:
+        - id: 1
+          modifiers: ice
+        - id: 3
+          state: normal
+          modifiers: ice
+        - id: 4
+          state: normal
+          modifiers: ice
+        - id: 8
+          state: fixed
+          modifiers: ice
+        - id: 9
+          state: fixed
+          modifiers: ice
+        - id: 10
+          modifiers: ice
+        - id: 11
+          modifiers: ice
+        - id: 2
+          state: void
+    - text: "You haven't seen my final form!"
+      gravity:
+      - 0.0
+      - 1000.0 # Reverse Gravity
+      Updates:
+        - id: 1
+          modifiers: normal
+        - id: 2
+          state: normal
+        - id: 3
+          modifiers: normal
+        - id: 4
+          modifiers: normal
+        - id: 7 # nose
+          state: fixed
+          x: 0
+          y: 100
+          r: 0.125
+        - id: 8
+          state: normal
+        - id: 9
+          state: normal
+        - id: 10
+          modifiers: normal
+        - id: 11
+          modifiers: normal
+
+    - text: "Dr. Gravity is defeated\nBuild a tower to escape the dungeon!"
       gravity:
         - 0.0
         - -1000.0
       Shapes:
-        - shape: J4
-        - shape: L4
       Updates:
-        - id: 1
+        - id: 2
+          state: normal
+        - id: 3
+          state: normal
+        - id: 4
+          state: normal
+        - id: 5
+          state: normal
+        - id: 6
+          state: normal
+        - id: 7
           state: normal

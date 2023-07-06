@@ -1,10 +1,12 @@
+use std::collections::VecDeque;
+
 use bevy::prelude::*;
 
 use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
 
-use crate::{prelude::*, startup::get_today_date, shape_with_data};
+use crate::{prelude::*, shape_creation_data, startup::get_today_date};
 
 use rand::{rngs::ThreadRng, Rng};
 
@@ -54,8 +56,14 @@ pub fn spawn_and_update_shapes(
     mut updates: EventReader<ShapeUpdateData>,
     rapier_context: Res<RapierContext>,
     mut creation_queue: Local<Vec<ShapeCreationData>>,
-    mut update_queue: Local<Vec<ShapeUpdateData>>,
-    existing_query: Query<(Entity, &ShapeWithId, &ShapeComponent, &ShapeIndex, &Transform)>,
+    mut update_queue: Local<VecDeque<ShapeUpdateData>>,
+    existing_query: Query<(
+        Entity,
+        &ShapeWithId,
+        &ShapeComponent,
+        &ShapeIndex,
+        &Transform,
+    )>,
 ) {
     creation_queue.extend(creations.iter());
     update_queue.extend(updates.iter());
@@ -69,14 +77,19 @@ pub fn spawn_and_update_shapes(
         return;
     }
 
-    if let Some(update) = update_queue.pop() {
-        if let Some((existing_entity, _, shape_component, shape_index, transform)) = existing_query.iter().find(|x| x.1.id == update.id) {
-
+    if let Some(update) = update_queue.pop_front() {
+        if let Some((existing_entity, _, shape_component, shape_index, transform)) =
+            existing_query.iter().find(|x| x.1.id == update.id)
+        {
             let prev: &'static GameShape = (*shape_index).into();
-            update.update_shape(&mut commands, existing_entity, prev, shape_component.into(), transform);
-
-        }
-        else{
+            update.update_shape(
+                &mut commands,
+                existing_entity,
+                prev,
+                shape_component.into(),
+                transform,
+            );
+        } else {
             error!("Could not find shape with id {}", update.id);
         }
 
@@ -159,8 +172,6 @@ pub struct ShapeWithId {
     pub id: u32,
 }
 
-
-
 pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData) {
     info!(
         "Creating {} in state {:?} {:?}",
@@ -207,18 +218,19 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
         .insert(shape_component)
         .insert(transform);
 
-    ec.with_children(|cb| shape_with_data::spawn_children(shape_with_data.shape, &shape_with_data.state, cb) );
+    ec.with_children(|cb| {
+        shape_creation_data::spawn_children(
+            cb,
+            shape_with_data.shape,
+            shape_with_data.state,
+            &transform,
+        )
+    });
 
     if let Some(id) = shape_with_data.id {
-        ec.insert(ShapeWithId { id: id });
+        ec.insert(ShapeWithId { id });
     }
-
-    if shape_with_data.state == ShapeState::Void {
-        ec.insert(CollisionNaughty);
-        ec.insert(VoidShape { highlighted: false });
-    } else if shape_with_data.state == ShapeState::Fixed {
-        ec.insert(FixedShape);
-    }
+    shape_creation_data::add_components(&shape_with_data.state, &mut ec);
 }
 
 #[derive(Component)]

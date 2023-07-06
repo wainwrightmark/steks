@@ -145,9 +145,12 @@ fn set_status_bar() {
         use capacitor_bindings::status_bar::*;
         bevy::tasks::IoTaskPool::get()
             .spawn(async move {
-                logging::do_or_report_error_async(|| StatusBar::set_style(Style::Dark)).await;
-                logging::do_or_report_error_async(|| StatusBar::set_background_color("#5B8BE2"))
+                crate::logging::do_or_report_error_async(|| StatusBar::set_style(Style::Dark))
                     .await;
+                crate::logging::do_or_report_error_async(|| {
+                    StatusBar::set_background_color("#5B8BE2")
+                })
+                .await;
                 //logging::do_or_report_error_async(|| StatusBar::hide()).await;
             })
             .detach();

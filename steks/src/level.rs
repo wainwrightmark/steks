@@ -54,7 +54,7 @@ fn manage_level_shapes(
                                         shape_creation_events.send((*creation).into())
                                     }
 
-                                    for update in &stage.updates{
+                                    for update in &stage.updates {
                                         shape_update_events.send((*update).into())
                                     }
                                 }

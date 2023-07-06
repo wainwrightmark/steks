@@ -12,8 +12,7 @@ impl ShapeIndex {
     }
 }
 
-
-impl Into<&'static GameShape> for ShapeIndex{
+impl Into<&'static GameShape> for ShapeIndex {
     fn into(self) -> &'static GameShape {
         &ALL_SHAPES[self.0]
     }

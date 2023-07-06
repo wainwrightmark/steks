@@ -51,7 +51,7 @@ fn handle_rotate_events(
 ) {
     for ev in ev_rotate.iter() {
         for (mut rb, _) in dragged.iter_mut() {
-            info!("Rotate Event");
+            //info!("Rotate Event");
             //bd.desired_rotation = rb.rotation*  Quat::from_rotation_z(ev.angle);
             rb.rotation *= Quat::from_rotation_z(ev.angle);
             if let Some(multiple) = ev.snap_resolution {
@@ -79,11 +79,11 @@ pub fn drag_end(
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ew_end_drag: EventWriter<DragEndedEvent>,
     rapier_context: ResMut<RapierContext>,
-    walls: Query<Entity, With<CollisionNaughty>>,
+    walls: Query<Entity, With<WallSensor>>,
     fixed_shapes: Query<(), With<FixedShape>>,
 ) {
     for event in er_drag_end.iter() {
-        info!("{:?}", event);
+        //info!("{:?}", event);
 
         let any_fixed = !fixed_shapes.is_empty();
 
@@ -93,9 +93,12 @@ pub fn drag_end(
         {
             if let ShapeComponent::Dragged(..) = shape_component.as_ref() {
                 *shape_component = if padlock_resource.has_entity(entity) {
-                    let collides_with_wall = rapier_context
-                        .contacts_with(entity)
-                        .any(|c| walls.contains(c.collider1()) || walls.contains(c.collider2()));
+                    let collides_with_wall =
+                        rapier_context
+                            .intersections_with(entity)
+                            .any(|(c1, c2, intersect)| {
+                                intersect && (walls.contains(c1) || walls.contains(c2))
+                            });
 
                     if collides_with_wall || any_fixed {
                         ShapeComponent::Free
@@ -271,12 +274,12 @@ pub fn drag_start(
     mut touch_rotate: ResMut<TouchRotateResource>,
 ) {
     for event in er_drag_start.iter() {
-        info!("Drag Started {:?}", event);
+        //info!("Drag Started {:?}", event);
 
         if draggables.iter().all(|x| !x.0.is_dragged()) {
             rapier_context.intersections_with_point(event.position, default(), |entity| {
                 if let Ok((mut draggable, transform)) = draggables.get_mut(entity) {
-                    info!("{:?} found intersection with {:?}", event, draggable);
+                    //info!("{:?} found intersection with {:?}", event, draggable);
 
                     let origin = transform.translation.truncate();
                     let offset = origin - event.position;

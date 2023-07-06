@@ -87,7 +87,7 @@ pub fn check_for_tower(
 
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
-    walls: Query<Entity, With<CollisionNaughty>>,
+    walls: Query<Entity, With<WallSensor>>,
 ) {
     if !end_drag_events.iter().any(|_| true) {
         return;
@@ -103,8 +103,8 @@ pub fn check_for_tower(
     //Check for contacts
     if walls.iter().any(|entity| {
         rapier_context
-            .contacts_with(entity)
-            .any(|contact| contact.has_any_active_contacts())
+            .intersections_with(entity)
+            .any(|contact| contact.2)
     }) {
         return;
     }
@@ -255,17 +255,9 @@ fn check_for_collisions(
             CollisionEvent::Stopped(e1, e2, _) => (e1, e2),
         };
 
-        // let e1_draggable = draggables.contains(e1);
-        // let e2_draggable = draggables.contains(e2);
-        // let e1_wall = walls.contains(e1);
-        // let e2_wall = walls.contains(e2);
-
-        //bevy::log::info!("{e1_draggable} {e2_draggable} {e1_wall} {e2_wall}");
-
         if (draggables.contains(e1) && walls.contains(e2))
             || (draggables.contains(e2) && walls.contains(e1))
         {
-            //bevy::log::info!("Wall-Draggable Collision found");
             fail = Some("Intersection Found");
             break;
         }

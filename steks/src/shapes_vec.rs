@@ -52,7 +52,7 @@ impl ShapesVec {
 
         let height = (max - min).max(0.0);
 
-        info!("Calculated height min {min:.2} max {max:.2} height {height:.2}");
+        //info!("Calculated height min {min:.2} max {max:.2} height {height:.2}");
         height
     }
 

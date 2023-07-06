@@ -114,7 +114,8 @@
     - shape: X5
     - shape: S4
 
-- title: "Wonkiness encouraged"
+- title: Cubism
+  text: Wonky towers are encouraged
   end_text: "You're basically Picasso"
   shapes:
     - shape: P5
@@ -230,8 +231,8 @@
     - shape: J4
     - shape: J4
 
-- text: Baby's first ice level
-  mouse_text: COLD COLD COLD
+- title: Ice Ice Baby
+  text: A brand new invention
   text_seconds: 20
   shapes:
     - shape: I5
@@ -248,7 +249,7 @@
       modifiers: Ice
     - shape: X5
       modifiers: Ice
-  End_text: Nice Nice Baby
+  End_text: "There was a problem\nYou solved it"
 
 - title: "Double Trouble"
   end_text: "Two Thumbs Up!"
@@ -320,7 +321,8 @@
         - shape: F5
 
 #21
-- title: "The Paranoid and Void"
+- title: "Marvin"
+  text: "The Paranoid and Void"
   end_text: "Marvellous"
   shapes:
     - shape: I5
@@ -341,7 +343,7 @@
     - shape: Z4
     - shape: T4
 #22
-- title: " These blocks are made for building"
+- title: "These blocks are made for building"
   end_text: "That's so beautiful I wanna take a picture"
   shapes:
     - shape: P5
@@ -471,6 +473,7 @@
     - shape: T4
 
 - title: "A song of ice and steks"
+  text: "When you play the game of Steks\nYou win or you diagonal"
   end_text: "You know nothing John Steks"
   shapes:
     - shape: L5
@@ -486,7 +489,7 @@
     - shape: U5
       id: 6
   stages:
-    - text: "Winter is Coming!"
+    - text: "Chaos isn't a pit.\nChaos is a ladder!"
       updates:
         - modifiers: Ice
           vel_x: -100
@@ -506,7 +509,7 @@
         - modifiers: Ice
           vel_x: 100
           id: 6
-    - text: "Winter is Here!"
+    - text: "Winter is coming!"
       rainfall:
         intensity: 2
       shapes:
@@ -514,7 +517,7 @@
           modifiers: Ice
 
 - title: "Dr. Gravity's Lair"
-  text: "In Steks, no one can hear you scream"
+  text: "In 2d space, no one can hear you scream"
   end_text: "Now buy Steks 2"
   shapes:
     - shape: Triangle # mouth

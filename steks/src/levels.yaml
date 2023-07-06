@@ -52,7 +52,6 @@
     - shape: U5
     - shape: U5
     - shape: U5
-      id: 1
 
 - title: "Reach for the sky"
   end_text: "Nice one"
@@ -211,7 +210,6 @@
     - shape: X5
       id: 2
 
-
   stages:
     - text: "Balls!"
       updates:
@@ -321,7 +319,7 @@
       shapes:
         - shape: Triangle
 
-- title: "The Paranoid and Void - TEST LEVEL"
+- title: "The Paranoid and Void"
   end_text: "Marvellous"
   shapes:
     - shape: I5
@@ -355,7 +353,7 @@
     - shape: Z4
     - shape: F5
 
-- title: " Steks Storm"
+- title: "Steks Storm"
   end_text: "You weathered that ok"
   rainfall:
     intensity: 2
@@ -371,7 +369,7 @@
     - shape: Z4
     - shape: L4
 
-- title: " This one is easy no tricks we promise"
+- title: "This one is easy no tricks we promise"
   end_text: "That was probably the work of Dr. Gravity somehow"
   shapes:
     - shape: L5
@@ -394,11 +392,25 @@
         - shape: circle
         - shape: z5
 
-- title: " TEST LEVEL MAYBE ICE AND VOID?"
-  end_text: ""
+# 25
+- text: "Uneven Foundations 2"
+  end_text: "Something"
   shapes:
-    - shape: P5
+    - shape: Z5
+      x: 0.0
+      y: -150.0
+      r: 0.8
+      state: Fixed
+    - shape: W5
+    - shape: F5
+    - shape: T5
+    - shape: S4
+    - shape: J4
+    - shape: T4
+    - shape: Z4
+    - shape: J4
 
+#26
 - title: " Ten"
   end_text: ""
   shapes:
@@ -413,12 +425,26 @@
     - shape: J4
     - shape: circle
 
-- title: " TEST LEVEL MAYBE JUST 11 SHAPES?"
-  end_text: "yo"
+#27
+- text: "Uneven Foundations 3"
+  end_text: "Something"
   shapes:
-    - shape: P5
+    - shape: T5
+      x: 0.0
+      y: -175.0
+      r: 0.15
+      state: Fixed
+    - shape: W5
     - shape: F5
+    - shape: N5
+    - shape: S4
+    - shape: Z4
+    - shape: T4
+    - shape: U5
+    - shape: X5
+    - shape: J4
 
+#28
 - title: "Steks of Cthulu"
   end_text: "The dreamer waits..."
   shapes:
@@ -460,24 +486,24 @@
   stages:
     - text: "Winter is Coming!"
       updates:
-      - modifiers: Ice
-        vel_x: -100
-        id: 1
-      - modifiers: Ice
-        vel_x: -100
-        id: 2
-      - modifiers: Ice
-        vel_x: -100
-        id: 3
-      - modifiers: Ice
-        vel_x: 100
-        id: 4
-      - modifiers: Ice
-        vel_x: 100
-        id: 5
-      - modifiers: Ice
-        vel_x: 100
-        id: 6
+        - modifiers: Ice
+          vel_x: -100
+          id: 1
+        - modifiers: Ice
+          vel_x: -100
+          id: 2
+        - modifiers: Ice
+          vel_x: -100
+          id: 3
+        - modifiers: Ice
+          vel_x: 100
+          id: 4
+        - modifiers: Ice
+          vel_x: 100
+          id: 5
+        - modifiers: Ice
+          vel_x: 100
+          id: 6
     - text: "Winter is Here!"
       rainfall:
         intensity: 2
@@ -508,13 +534,13 @@
     - shape: X5
 
   stages:
-  - text: "Noooooo, I am defeated."
-    gravity:
-    - 0.0
-    - -1000.0
-    Shapes:
-    - shape: J4
-    - shape: L4
-    Updates:
-    - id: 1
-      state: normal
+    - text: "Noooooo, I am defeated."
+      gravity:
+        - 0.0
+        - -1000.0
+      Shapes:
+        - shape: J4
+        - shape: L4
+      Updates:
+        - id: 1
+          state: normal

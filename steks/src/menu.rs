@@ -338,7 +338,7 @@ impl MenuButton {
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
             Levels => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
-            GotoLevel { level } => crate::set_level::get_numeral(level),
+            GotoLevel { level } => crate::set_level::get_level_number(level),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
             MinimizeApp => "\u{e813}".to_string(),        //logout

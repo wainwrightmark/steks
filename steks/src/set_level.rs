@@ -25,11 +25,8 @@ pub fn get_set_level(index: u8) -> Option<GameLevel> {
     })
 }
 
-pub fn get_numeral(level: &u8) -> String {
-    format!(
-        "{:X}",
-        numerals::roman::Roman::from((*level as i16) - TUTORIAL_LEVELS + 1)
-    )
+pub fn get_level_number(level: &u8) -> String {
+    format!("{:2}", (*level as i16) - TUTORIAL_LEVELS + 1)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -170,20 +167,19 @@ pub struct ShapeUpdate {
 
 impl From<ShapeUpdate> for ShapeUpdateData {
     fn from(val: ShapeUpdate) -> Self {
-
-        let location = if val.x.is_some() || val.y.is_some() || val.r.is_some(){
-            Some(
-                Location{
-                    position: Vec2 { x: val.x.unwrap_or_default(), y: val.y.unwrap_or_default() },
-                    angle: val.r.map(|r| r * consts::TAU).unwrap_or_default()
-                }
-            )
-        }else{
+        let location = if val.x.is_some() || val.y.is_some() || val.r.is_some() {
+            Some(Location {
+                position: Vec2 {
+                    x: val.x.unwrap_or_default(),
+                    y: val.y.unwrap_or_default(),
+                },
+                angle: val.r.map(|r| r * consts::TAU).unwrap_or_default(),
+            })
+        } else {
             None
         };
 
         let velocity = match val.state {
-
             Some(ShapeState::Normal) | None => {
                 if val.vel_x.is_some() || val.vel_y.is_some() {
                     Some(Velocity {
@@ -196,12 +192,12 @@ impl From<ShapeUpdate> for ShapeUpdateData {
                 } else {
                     None
                 }
-            },
-            _ => None
+            }
+            _ => None,
         };
 
         ShapeUpdateData {
-            shape: val.shape.map(|x|x.into()),
+            shape: val.shape.map(|x| x.into()),
             location,
             state: val.state,
             velocity,

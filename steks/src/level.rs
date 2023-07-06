@@ -146,7 +146,7 @@ impl CurrentLevel {
         match &self.level {
             GameLevel::SetLevel { index, .. } => {
                 if (*index as i16) >= TUTORIAL_LEVELS {
-                    Some(get_numeral(index))
+                    Some(get_level_number(index))
                 } else {
                     None
                 }

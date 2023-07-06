@@ -27,7 +27,6 @@ bevy_embedded_assets = "0.7.0"
 lazy_static = "1.4.0"
 serde_yaml = "0.9.21"
 async-channel = "1.8.0"
-numerals = "0.1.4"
 steks_common = {path= "../steks_common"}
 
 

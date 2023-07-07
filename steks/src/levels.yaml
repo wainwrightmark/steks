@@ -472,9 +472,9 @@
     - shape: T4
     - shape: T4
 
-- title: "A song of ice and steks"
+- title: "A song of ice and Φ"
   text: "When you play the game of Steks\nYou win or you diagonal"
-  end_text: "You know nothing John Steks"
+  end_text: "Chaos isn't a pit\nChaos is a tower!"
   shapes:
     - shape: L5
       id: 1
@@ -489,16 +489,16 @@
     - shape: U5
       id: 6
   stages:
-    - text: "Chaos isn't a pit.\nChaos is a ladder!"
+    - text: "Winter is coming!"
       updates:
         - modifiers: Ice
-          vel_x: -100
+          vel_x: 100
           id: 1
         - modifiers: Ice
-          vel_x: -100
+          vel_x: 100
           id: 2
         - modifiers: Ice
-          vel_x: -100
+          vel_x: 100
           id: 3
         - modifiers: Ice
           vel_x: 100
@@ -509,14 +509,14 @@
         - modifiers: Ice
           vel_x: 100
           id: 6
-    - text: "Winter is coming!"
+    - text: "You know nothing John Steks"
       rainfall:
         intensity: 2
       shapes:
         - shape: F5
           modifiers: Ice
 
-- title: "Dr. Gravity's Lair"
+- title: "Dr. Gravity's Volcano Lair"
   text: "In 2d space, no one can hear you scream"
   end_text: "Now buy Steks 2"
   shapes:

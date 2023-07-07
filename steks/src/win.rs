@@ -131,7 +131,7 @@ pub fn check_for_tower(
         })
         .insert(Circle {}.get_shape_bundle(100f32))
         .insert(Transform {
-            translation: Vec3::new(50.0, 200.0, 0.0),
+            translation: Vec3::new(00.0, 200.0, 0.0),
             ..Default::default()
         })
         .insert(Stroke::color(TIMER_COLOR));

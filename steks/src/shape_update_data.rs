@@ -75,7 +75,7 @@ impl ShapeUpdateData {
                 .insert(shape_component.dominance())
                 .insert(shape_component.collider_mass_properties())
                 .insert(CollisionGroups {
-                    memberships: SHAPE_COLLISION_GROUP,
+                    memberships: shape_component.collision_group(),
                     filters: shape_component.collision_group_filters(),
                 })
                 .insert(shape_component);

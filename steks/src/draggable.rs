@@ -490,13 +490,20 @@ impl ShapeComponent {
         }
     }
 
+    pub fn collision_group(&self) -> Group {
+        match self {
+            ShapeComponent::Void => VOID_COLLISION_GROUP,
+            _ => SHAPE_COLLISION_GROUP,
+        }
+    }
+
     pub fn collision_group_filters(&self) -> Group {
         match self {
             ShapeComponent::Free => SHAPE_COLLISION_FILTERS,
             ShapeComponent::Fixed => SHAPE_COLLISION_FILTERS,
             ShapeComponent::Dragged(_) => DRAGGED_SHAPE_COLLISION_FILTERS,
             ShapeComponent::Locked => SHAPE_COLLISION_FILTERS,
-            ShapeComponent::Void => SHAPE_COLLISION_FILTERS,
+            ShapeComponent::Void => VOID_COLLISION_FILTERS,
         }
     }
 }

@@ -212,7 +212,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
         .insert(ExternalForce::default())
         .insert(shape_component.collider_mass_properties())
         .insert(CollisionGroups {
-            memberships: SHAPE_COLLISION_GROUP,
+            memberships: shape_component.collision_group(),
             filters: shape_component.collision_group_filters(),
         })
         .insert(shape_component)

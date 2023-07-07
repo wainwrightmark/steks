@@ -30,7 +30,7 @@ fn setup_spirit_lines(mut commands: Commands) {
     const OTHER_LINE_LEN: f32 = 10.0;
     const LINE_WIDTH: f32 = 2.0;
 
-    const SPIRIT_LEVEL_HEIGHT: f32 = 200.0;
+    const SPIRIT_LEVEL_HEIGHT: f32 = 250.0;
 
     let main_line_shape = shapes::Line(
         Vec2::default(),

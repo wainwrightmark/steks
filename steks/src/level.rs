@@ -1,5 +1,8 @@
 use crate::{infinity, prelude::*, shape_maker};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+
+
 
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
@@ -187,14 +190,17 @@ impl CurrentLevel {
 
                 let message = match &self.level {
                     GameLevel::SetLevel { level, .. } => {
-                        level.end_text.as_deref().unwrap_or("\nLevel Complete")
+                        level.end_text
+                        .as_deref()
+                        .unwrap_or("Level Complete")
+
                     }
                     GameLevel::Infinite { .. } => "",
-                    GameLevel::Challenge => "\nChallenge Complete",
-                    GameLevel::Custom { .. } => "\nCustom Level Complete",
+                    GameLevel::Challenge => "Challenge Complete",
+                    GameLevel::Custom { .. } => "Custom Level Complete",
                 };
 
-                let mut text = message.to_string();
+                let mut text = message.lines().map(|l| format!("{l:^padding$}", padding= END_TEXT_MAX_CHARS) ).join("\n");
 
                 text.push_str(format!("\n\nHeight    {height:.2}").as_str());
 

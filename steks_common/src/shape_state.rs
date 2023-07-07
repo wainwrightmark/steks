@@ -1,6 +1,5 @@
-use bevy::ecs::system::EntityCommands;
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::prelude::{ActiveEvents, Friction, Sensor};
+use bevy_rapier2d::prelude::*;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 

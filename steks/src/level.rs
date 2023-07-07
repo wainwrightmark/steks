@@ -200,7 +200,7 @@ impl CurrentLevel {
                     GameLevel::Custom { .. } => "Custom Level Complete",
                 };
 
-                let mut text = message.lines().map(|l| format!("{l:^padding$}", padding= END_TEXT_MAX_CHARS) ).join("\n");
+                let mut text = message.lines().map(|l| format!("{l:^padding$}", padding= LEVEL_END_TEXT_MAX_CHARS) ).join("\n");
 
                 text.push_str(format!("\n\nHeight    {height:.2}").as_str());
 

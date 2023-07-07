@@ -316,77 +316,52 @@ impl From<LevelShapeForm> for &'static GameShape {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use crate::set_level::*;
+#[cfg(test)]
+mod tests {
+    use super::SetLevel;
+    use crate::{set_level::*, level};
 
-//     use super::SetLevel;
+    #[test]
+    pub fn test_set_levels_deserialize() {
+        let list = &crate::set_level::LIST;
+        assert!(list.len() > 0)
+    }
 
-//     #[test]
-//     pub fn test_deserialize_level() {
-//         let levels: Vec<SetLevel> = vec![SetLevel {
-//             end_text: None,
-//             skip_completion: true,
-//             initial_stage: LevelStage {
-//                 text: "abc".to_string(),
-//                 mouse_text: Some("Mouse text".to_string()),
-//                 text_seconds: Some(20),
-//                 shapes: vec![LevelShape {
-//                     shape: crate::set_level::LevelShapeForm::Circle,
-//                     x: Some(1.0),
-//                     y: Some(2.0),
-//                     r: Some(3.0),
-//                     state: ShapeState::Locked,
-//                     friction: Some(0.5),
-//                 }],
-//                 gravity: None,
-//                 rainfall: Some(RaindropSettings { intensity: 2 }),
-//             },
-//             stages: vec![LevelStage {
-//                 text: "Other Stage".to_string(),
-//                 mouse_text: None,
-//                 text_seconds: None,
+    #[test]
+    pub fn test_set_levels_string_lengths() {
+        let list = &crate::set_level::LIST;
+        let mut errors: Vec<String> = vec![];
+        for (index, level) in list.iter().enumerate() {
+            check_level(level, index, &mut errors);
+        }
 
-//                 shapes: vec![LevelShape {
-//                     shape: crate::set_level::LevelShapeForm::Circle,
-//                     ..Default::default()
-//                 }],
-//                 gravity: Some(bevy::prelude::Vec2 { x: 100.0, y: 200.0 }),
-//                 rainfall: None,
-//             }],
-//         }];
+        if !errors.is_empty() {
+            panic!("levels.yaml contains errors:\n{}", errors.join("\n"))
+        }
+    }
 
-//         let str = serde_yaml::to_string(&levels).unwrap();
+    fn check_level(level: &SetLevel, index: usize, errors: &mut Vec<String>) {
 
-//         let expected = r#"- text: abc
-//   mouse_text: Mouse text
-//   text_seconds: 20
-//   shapes:
-//   - shape: Circle
-//     x: 1.0
-//     y: 2.0
-//     r: 3.0
-//     locked: true
-//     friction: 0.5
-//   gravity: null
-//   stages:
-//   - text: Other Stage
-//     mouse_text: null
-//     text_seconds: null
-//     shapes:
-//     - shape: Circle
-//       x: null
-//       y: null
-//       r: null
-//       state: Locked
-//       friction: null
-//     gravity:
-//     - 100.0
-//     - 200.0
-//   end_text: null
-//   skip_completion: true
-// "#;
+        let index =(index as i16) - TUTORIAL_LEVELS + 1;
 
-//         assert_eq!(str, expected);
-//     }
-// }
+        check_string(&level.title, format!("Level {index:2} Title   "), LEVEL_TITLE_MAX_CHARS, errors);
+        check_string(&level.end_text, format!("Level {index:2} End Text"), LEVEL_END_TEXT_MAX_CHARS, errors);
+
+        for (stage_index, stage) in std::iter::once(&level.initial_stage).chain(level.stages.iter()).enumerate(){
+            check_string(&stage.text, format!("Level {index:2} Stage  {stage_index}"), LEVEL_STAGE_TEXT_MAX_CHARS, errors);
+        }
+
+    }
+
+    fn check_string(string:&Option<String> , path: String, max_line_length: usize, errors: &mut Vec<String> ){
+        let Some(string) = string else{return;};
+        for (line_num, s) in string.lines().enumerate(){
+            let count = s.chars().count();
+            if count > max_line_length{
+                errors.push(format!("{path} line {line_num} is too long ({count} vs {max_line_length}): {s}"));
+            }
+        }
+    }
+
+
+}

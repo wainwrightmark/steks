@@ -1,7 +1,7 @@
 use base64::Engine;
 use bevy::{
     ecs::query::ReadOnlyWorldQuery,
-    prelude::{info, Query, Transform},
+    prelude::{ Query, Transform},
 };
 use itertools::Itertools;
 

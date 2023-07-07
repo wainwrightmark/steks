@@ -41,13 +41,9 @@ impl Default for FireworksCountdown {
     }
 }
 
-//const SPARKS_MIN: usize = 20;
-//const SPARKS_MAX: usize = 50;
-
 const FIREWORK_SIZE: f32 = 10.0;
 const FIREWORK_VELOCITY: f32 = 500.0;
 const FIREWORK_GRAVITY: f32 = 0.3;
-//const MAX_DELAY_SECONDS: f32 = 1.0;
 const FIREWORK_ANGULAR_VELOCITY: f32 = 10.0;
 
 fn despawn_fireworks(
@@ -75,7 +71,6 @@ fn max_window_contains(v: &Vec3) -> bool {
 
 fn spawn_fireworks(
     mut commands: Commands,
-
     mut countdown: ResMut<FireworksCountdown>,
     time: Res<Time>,
     window: Query<&Window, With<PrimaryWindow>>,

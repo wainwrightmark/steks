@@ -1,5 +1,4 @@
 use bevy::ecs::system::EntityCommands;
-
 use bevy_pkv::PkvStore;
 use bevy_tweening::{lens::*, Delay};
 use bevy_tweening::{Animator, EaseFunction, Tween};
@@ -31,16 +30,7 @@ pub fn setup_level_ui(
 
     let mut ec = commands.spawn_empty();
     ec.insert(LevelUIComponent::Root);
-    insert_bundle(
-        &mut ec,
-        true,
-        &current_level,
-        &component,
-        &asset_server,
-        &score_store,
-        &shapes,
-        &pkv,
-    );
+    insert_bundle(&mut ec, true, &current_level, &component, &asset_server);
 
     ec.with_children(|builder| {
         for child in component.get_child_components() {
@@ -67,16 +57,7 @@ fn insert_component_and_children(
     pkv: &Res<PkvStore>,
 ) {
     let mut ec = commands.spawn_empty();
-    insert_bundle(
-        &mut ec,
-        true,
-        current_level,
-        component,
-        asset_server,
-        score_store,
-        shapes,
-        pkv,
-    );
+    insert_bundle(&mut ec, true, current_level, component, asset_server);
     ec.insert(*component);
 
     ec.with_children(|builder| {
@@ -99,9 +80,6 @@ fn update_ui_on_level_change(
     current_level: Res<CurrentLevel>,
     level_ui: Query<(Entity, &Transform, &Style, &LevelUIComponent)>,
     asset_server: Res<AssetServer>,
-    score_store: Res<ScoreStore>,
-    shapes: Query<&ShapeIndex>,
-    pkv: Res<PkvStore>,
     mut previous: Local<CurrentLevel>,
 ) {
     if current_level.is_changed() {
@@ -117,9 +95,6 @@ fn update_ui_on_level_change(
                 current_level.as_ref(),
                 component,
                 &asset_server,
-                &score_store,
-                &shapes,
-                &pkv,
             );
             handle_animations(commands, current_level.as_ref(), component, &previous);
         }
@@ -167,53 +142,55 @@ fn get_root_position(current_level: &CurrentLevel) -> UiRect {
         LevelCompletion::Complete {
             splash: false,
             score_info: _,
-        } => UiRect {
-            top: Val::Percent(10.0),
-            left: Val::Percent(50.0),
-            right: Val::Percent(50.0),
-            bottom: Val::Percent(90.0),
-        },
+        } => UiRect::new(
+            Val::Percent(50.0),
+            Val::Percent(50.0),
+            Val::Percent(10.0),
+            Val::Percent(90.0),
+        ),
+        LevelCompletion::Complete {
+            splash: true,
+            score_info: _,
+        } => UiRect::new(
+            Val::Percent(50.0),
+            Val::Percent(50.0),
+            Val::Percent(30.0),
+            Val::Percent(70.0),
+        ),
+
         _ => UiRect::new(
             Val::Percent(50.0),
             Val::Percent(50.0),
-            Val::Percent(50.0),
-            Val::Percent(50.0),
+            Val::Percent(30.0),
+            Val::Percent(70.0),
         ),
     }
 }
 
-fn get_root_bundle(
-    current_level: &CurrentLevel,
-    _asset_server: &Res<AssetServer>,
-    _score_store: &Res<ScoreStore>,
-    _shapes: &Query<&ShapeIndex>,
-) -> NodeBundle {
+fn get_root_bundle(args: UIArgs) -> NodeBundle {
     let z_index = ZIndex::Global(5);
-    let position = get_root_position(current_level);
+    let position = get_root_position(args.current_level);
+    let size: Size = Size::UNDEFINED;
 
     NodeBundle {
         style: Style {
-            size: Size::DEFAULT,
+            size,
             position_type: PositionType::Absolute,
             position,
             justify_content: JustifyContent::Center,
             flex_direction: FlexDirection::Column,
             ..Default::default()
         },
+
         z_index,
         ..Default::default()
     }
 }
 
-fn get_border_bundle(
-    current_level: &CurrentLevel,
-    _asset_server: &Res<AssetServer>,
-    _score_store: &Res<ScoreStore>,
-    _shapes: &Query<&ShapeIndex>,
-) -> NodeBundle {
-    let background_color: BackgroundColor = get_border_color(current_level).into();
+fn get_border_bundle(args: UIArgs) -> NodeBundle {
+    let background_color: BackgroundColor = get_border_color(args.current_level).into();
 
-    let border = match current_level.completion {
+    let border = match args.current_level.completion {
         LevelCompletion::Incomplete { .. } | LevelCompletion::Complete { splash: false, .. } => {
             UiRect::DEFAULT
         }
@@ -235,52 +212,24 @@ fn get_border_bundle(
     }
 }
 
-fn get_all_text_bundle(
-    _current_level: &CurrentLevel,
-    _asset_server: &Res<AssetServer>,
-    _score_store: &Res<ScoreStore>,
-    _shapes: &Query<&ShapeIndex>,
-) -> NodeBundle {
-    // let show = match current_level.completion {
-    //     LevelCompletion::Incomplete { .. } => true,
-    //     LevelCompletion::Complete { splash, .. } => splash,
-    // };
-    // let size = if show {
-    //     Size::AUTO
-    // } else {
-    //     Size::new(Val::Px(0.0), Val::Px(0.0))
-    // };
-    // let visibility = if show {
-    //     Visibility::Inherited
-    // } else {
-    //     Visibility::Hidden
-    // };
-
+fn get_all_text_bundle(_args: UIArgs) -> NodeBundle {
     NodeBundle {
         style: Style {
             display: Display::Flex,
             align_items: AlignItems::Center,
             flex_direction: FlexDirection::Column,
-            // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
             margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
             justify_content: JustifyContent::Center,
-            //size,
             ..Default::default()
         },
-        //visibility,
         ..Default::default()
     }
 }
 
-fn get_panel_bundle(
-    current_level: &CurrentLevel,
-    _asset_server: &Res<AssetServer>,
-    _score_store: &Res<ScoreStore>,
-    _shapes: &Query<&ShapeIndex>,
-) -> NodeBundle {
-    let background_color: BackgroundColor = get_panel_color(current_level).into();
+fn get_panel_bundle(args: UIArgs) -> NodeBundle {
+    let background_color: BackgroundColor = get_panel_color(args.current_level).into();
 
-    let flex_direction = match current_level.completion {
+    let flex_direction = match args.current_level.completion {
         LevelCompletion::Incomplete { .. } | LevelCompletion::Complete { splash: false, .. } => {
             FlexDirection::RowReverse
         }
@@ -304,13 +253,8 @@ fn get_panel_bundle(
     }
 }
 
-fn get_button_panel(
-    current_level: &CurrentLevel,
-    _asset_server: &Res<AssetServer>,
-    _score_store: &Res<ScoreStore>,
-    _shapes: &Query<&ShapeIndex>,
-) -> NodeBundle {
-    let size = match current_level.completion {
+fn get_button_panel(args: UIArgs) -> NodeBundle {
+    let size = match args.current_level.completion {
         LevelCompletion::Incomplete { .. } => Size::new(Val::Px(0.0), Val::Px(0.0)),
         LevelCompletion::Complete { .. } => Size::AUTO,
     };
@@ -331,22 +275,16 @@ fn get_button_panel(
     }
 }
 
-fn get_title_bundle(
-    current_level: &CurrentLevel,
-    asset_server: &Res<AssetServer>,
-    _score_store: &Res<ScoreStore>,
-    _shapes: &Query<&ShapeIndex>,
-    _pkv: &Res<PkvStore>,
-) -> TextBundle {
-    if current_level.completion != (LevelCompletion::Incomplete { stage: 0 }) {
+fn get_title_bundle(args: UIArgs) -> TextBundle {
+    if args.current_level.completion != (LevelCompletion::Incomplete { stage: 0 }) {
         return TextBundle::default();
     }
 
-    if let Some(text) = current_level.get_title() {
+    if let Some(text) = args.current_level.get_title() {
         TextBundle::from_section(
             text,
             TextStyle {
-                font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
                 font_size: 30.0,
                 color: SMALL_TEXT_COLOR,
             },
@@ -361,14 +299,8 @@ fn get_title_bundle(
     }
 }
 
-fn get_level_number_bundle(
-    current_level: &CurrentLevel,
-    asset_server: &Res<AssetServer>,
-    _score_store: &Res<ScoreStore>,
-    _shapes: &Query<&ShapeIndex>,
-    _pkv: &Res<PkvStore>,
-) -> TextBundle {
-    match current_level.completion {
+fn get_level_number_bundle(args: UIArgs) -> TextBundle {
+    match args.current_level.completion {
         LevelCompletion::Incomplete { stage } => {
             if stage != 0 {
                 return TextBundle::default();
@@ -381,11 +313,11 @@ fn get_level_number_bundle(
         }
     }
 
-    if let Some(text) = current_level.get_level_number_text() {
+    if let Some(text) = args.current_level.get_level_number_text() {
         TextBundle::from_section(
             text,
             TextStyle {
-                font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
                 font_size: 30.0,
                 color: SMALL_TEXT_COLOR,
             },
@@ -400,18 +332,21 @@ fn get_level_number_bundle(
     }
 }
 
-fn get_message_bundle(
-    current_level: &CurrentLevel,
-    asset_server: &Res<AssetServer>,
-    _score_store: &Res<ScoreStore>,
-    _shapes: &Query<&ShapeIndex>,
-    _pkv: &Res<PkvStore>,
-) -> TextBundle {
-    if let Some(text) = current_level.get_text() {
+#[derive(Clone, Copy)]
+pub struct UIArgs<'a, 'world> {
+    current_level: &'a CurrentLevel,
+    asset_server: &'a Res<'world, AssetServer>,
+    // score_store: &'a Res<'world, ScoreStore>,
+    // shapes: &'a Query<'world, 'state, &'si ShapeIndex>,
+    // pkv: &'a Res<'world, PkvStore>,
+}
+
+fn get_message_bundle(args: UIArgs) -> TextBundle {
+    if let Some(text) = args.current_level.get_text() {
         TextBundle::from_section(
             text,
             TextStyle {
-                font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
                 font_size: 20.0,
                 color: SMALL_TEXT_COLOR,
             },
@@ -594,60 +529,30 @@ fn insert_bundle(
     current_level: &CurrentLevel,
     component: &LevelUIComponent,
     asset_server: &Res<AssetServer>,
-    score_store: &Res<ScoreStore>,
-    shapes: &Query<&ShapeIndex>,
-    pkv: &Res<PkvStore>,
 ) {
+    let args = UIArgs {
+        current_level,
+        asset_server,
+    };
+
     match component {
         LevelUIComponent::Root => {
-            commands.insert(get_root_bundle(
-                current_level,
-                asset_server,
-                score_store,
-                shapes,
-            ));
+            commands.insert(get_root_bundle(args));
         }
         LevelUIComponent::Border => {
-            commands.insert(get_border_bundle(
-                current_level,
-                asset_server,
-                score_store,
-                shapes,
-            ));
+            commands.insert(get_border_bundle(args));
         }
         LevelUIComponent::MainPanel => {
-            commands.insert(get_panel_bundle(
-                current_level,
-                asset_server,
-                score_store,
-                shapes,
-            ));
+            commands.insert(get_panel_bundle(args));
         }
         LevelUIComponent::Message => {
-            commands.insert(get_message_bundle(
-                current_level,
-                asset_server,
-                score_store,
-                shapes,
-                pkv,
-            ));
+            commands.insert(get_message_bundle(args));
         }
         LevelUIComponent::Title => {
-            commands.insert(get_title_bundle(
-                current_level,
-                asset_server,
-                score_store,
-                shapes,
-                pkv,
-            ));
+            commands.insert(get_title_bundle(args));
         }
         LevelUIComponent::ButtonPanel => {
-            commands.insert(get_button_panel(
-                current_level,
-                asset_server,
-                score_store,
-                shapes,
-            ));
+            commands.insert(get_button_panel(args));
         }
         LevelUIComponent::Button(menu_button) => {
             if first_time {
@@ -667,21 +572,10 @@ fn insert_bundle(
             }
         }
         LevelUIComponent::AllText => {
-            commands.insert(get_all_text_bundle(
-                current_level,
-                asset_server,
-                score_store,
-                shapes,
-            ));
+            commands.insert(get_all_text_bundle(args));
         }
         LevelUIComponent::LevelNumber => {
-            commands.insert(get_level_number_bundle(
-                current_level,
-                asset_server,
-                score_store,
-                shapes,
-                pkv,
-            ));
+            commands.insert(get_level_number_bundle(args));
         }
     };
 }

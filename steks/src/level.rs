@@ -126,7 +126,7 @@ fn choose_level_on_game_load(
     }
 }
 
-#[derive(Default, Resource, Clone)]
+#[derive(Default, Resource, Clone, Debug)]
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,

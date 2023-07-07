@@ -123,6 +123,7 @@ pub fn drag_end(
 }
 
 #[derive(Debug, Component)]
+#[component(storage = "SparseSet")]
 pub struct BeingDragged {
     pub desired_position: Vec2,
 }

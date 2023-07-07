@@ -36,7 +36,7 @@ impl ShapeUpdateData {
         previous_state_component: &ShapeComponent,
         previous_transform: &Transform,
     ) {
-        info!(
+        debug!(
             "Creating {:?} in state {:?} {:?}",
             self.shape, self.state, self.id
         );

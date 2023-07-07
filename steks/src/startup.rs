@@ -82,7 +82,9 @@ pub fn main() {
     #[cfg(target_arch = "wasm32")]
     {
         builder.add_plugin(WASMPlugin);
-        builder.add_plugin(NotificationPlugin);
+        if !cfg!(debug_assertions){
+            builder.add_plugin(NotificationPlugin);
+        }
     }
 
     if cfg!(debug_assertions) {
@@ -95,7 +97,11 @@ pub fn main() {
     builder.add_startup_system(disable_back);
     builder.add_startup_system(hide_splash);
     builder.add_startup_system(set_status_bar.after(hide_splash));
-    builder.add_startup_system(log_start.in_base_set(StartupSet::PostStartup));
+
+    if !cfg!(debug_assertions){
+        builder.add_startup_system(log_start.in_base_set(StartupSet::PostStartup));
+    }
+
     builder.run();
 }
 

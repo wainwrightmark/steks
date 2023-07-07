@@ -173,7 +173,7 @@ pub struct ShapeWithId {
 }
 
 pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData) {
-    info!(
+    debug!(
         "Creating {} in state {:?} {:?}",
         shape_with_data.shape, shape_with_data.state, shape_with_data.id
     );

@@ -295,17 +295,22 @@ impl EventLog {
     }
 
     async fn try_log<T: Serialize>(data: &T) -> Result<(), reqwest::Error> {
-        let client = reqwest::Client::new();
-        let res = client
-            .post("https://api.axiom.co/v1/datasets/steks_usage/ingest")
-            // .header("Authorization", format!("Bearer {API_TOKEN}"))
-            .bearer_auth(API_TOKEN)
-            .header("Content-Type", "application/json")
-            .json(&[data])
-            .send()
-            .await?;
+        if !cfg!(debug_assertions) {
+            let client = reqwest::Client::new();
+            let res = client
+                .post("https://api.axiom.co/v1/datasets/steks_usage/ingest")
+                // .header("Authorization", format!("Bearer {API_TOKEN}"))
+                .bearer_auth(API_TOKEN)
+                .header("Content-Type", "application/json")
+                .json(&[data])
+                .send()
+                .await?;
 
-        res.error_for_status().map(|_| ())
+            res.error_for_status().map(|_| ())
+        }
+        else{
+            Ok(())
+        }
     }
 
     async fn log_async(data: Self) {

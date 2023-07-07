@@ -29,6 +29,7 @@ pub struct ZoomCamera {
 }
 
 #[derive(Component)]
+#[component(storage = "SparseSet")]
 pub struct TouchDragged;
 
 fn show_shadows(
@@ -55,7 +56,7 @@ fn hide_shadows(
 }
 
 fn move_shadows(
-    query: Query<&Transform, (Changed<Transform>, With<TouchDragged>)>,
+    query: Query<&Transform,( With<TouchDragged>, Changed<Transform>)>,
     mut q_child: Query<
         (&Parent, &mut Transform, &GlobalTransform),
         (With<Shadow>, Without<TouchDragged>),

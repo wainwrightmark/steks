@@ -81,10 +81,7 @@ impl ShapeUpdateData {
                 .insert(shape_component);
         }
 
-        if let Some(fill) = self.fill() {
-            ec.insert(fill);
-        }
-
+        ec.insert(self.fill().unwrap_or_else(|| previous_shape.fill()));
         ec.insert(self.stroke());
 
         ec.insert(transform);

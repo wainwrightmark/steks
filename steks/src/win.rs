@@ -85,7 +85,8 @@ pub fn check_for_tower(
 
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
-    walls: Query<Entity, With<WallSensor>>,
+    wall_sensors: Query<Entity, With<WallSensor>>,
+    walls: Query<Entity, With<WallPosition>>,
 ) {
 
     let Some(event) = check_events.iter().next() else{return;};
@@ -100,10 +101,16 @@ pub fn check_for_tower(
 
     //Check for contacts
     if walls.iter().any(|entity| {
-        rapier_context
-            .intersections_with(entity)
-            .any(|contact| contact.2)
+        rapier_context.contacts_with(entity).any(|contact|contact.has_any_active_contacts())
     }) {
+        debug!("Wall Contact Found");
+        return;
+    }
+
+    if wall_sensors.iter().any(|entity| {
+        rapier_context.intersections_with(entity).any(|contact|contact.2) //.any(|contact|contact.2)
+    }) {
+        debug!("Wall Intersection Found");
         return;
     }
 
@@ -173,7 +180,7 @@ fn check_future_collisions(
         );
     }
 
-    info!("Looking for future collisions with {} bodies", bodies.len());
+    debug!("Looking for future collisions with {} bodies", bodies.len());
 
     let mut substep_integration_parameters = context.integration_parameters;
     substep_integration_parameters.dt = dt / (substeps as Real);
@@ -196,12 +203,12 @@ fn check_future_collisions(
         );
 
         if event_handler.collisions_found.load() {
-            info!("Collision found after {_i} substeps");
+            debug!("Collision found after {_i} substeps");
             return true;
         }
     }
 
-    info!("Not Collision found after {substeps} substeps");
+    debug!("Not Collision found after {substeps} substeps");
     false
 }
 
@@ -253,7 +260,7 @@ fn check_for_collisions(
     let mut fail: Option<&str> = None;
 
     for ce in collision_events.iter() {
-        //bevy::log::info!("Checking collisions");
+        //bevy::log::debug!("Checking collisions");
         let (&e1, &e2) = match ce {
             CollisionEvent::Started(e1, e2, _) => (e1, e2),
             CollisionEvent::Stopped(e1, e2, _) => (e1, e2),

@@ -103,6 +103,10 @@
     - text: "It's an imperial space station!"
       shapes:
         - shape: Circle
+          x: 0.0
+          y: 250.0
+          vel_x: 0.0
+          vel_y: 100.0
 
 - title: "Tri Hard"
   end_text: "Welcome to the party!"

@@ -18,7 +18,7 @@ pub struct WinPlugin;
 impl Plugin for WinPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(check_for_collisions)
-            .add_system(check_for_win.after(check_for_collisions))
+            .add_system(check_for_win.in_base_set(CoreSet::First))
             .add_event::<ShapeCreationData>()
             .add_event::<ShapeUpdateData>()
             .add_system(spawn_and_update_shapes)
@@ -26,9 +26,7 @@ impl Plugin for WinPlugin {
     }
 }
 
-const SHORT_COUNTDOWN: f64 = 1.0;
-const COUNTDOWN: f64 = 5.0;
-const FUTURE_WATCH: f64 = 20.0;
+
 
 pub fn check_for_win(
     mut commands: Commands,
@@ -80,7 +78,7 @@ pub fn check_for_win(
 
 pub fn check_for_tower(
     mut commands: Commands,
-    mut end_drag_events: EventReader<DragEndedEvent>,
+    mut check_events: EventReader<CheckForWinEvent>,
     win_timer: Query<&WinTimer>,
     time: Res<Time>,
     draggable: Query<&ShapeComponent>,
@@ -89,9 +87,9 @@ pub fn check_for_tower(
     rapier_context: Res<RapierContext>,
     walls: Query<Entity, With<WallSensor>>,
 ) {
-    if !end_drag_events.iter().any(|_| true) {
-        return;
-    }
+
+    let Some(event) = check_events.iter().next() else{return;};
+
     if !win_timer.is_empty() {
         return; // no need to check, we're already winning
     }
@@ -113,21 +111,22 @@ pub fn check_for_tower(
 
     let will_collide_with_wall = check_future_collisions(
         &rapier_context,
-        (COUNTDOWN * 2.) as f32,
-        (FUTURE_WATCH * 60.).floor() as usize,
+        event.future_lookahead_seconds as f32,
+        (event.future_lookahead_seconds * 60.).floor() as usize,
         GRAVITY,
     );
 
-    let countdown = if will_collide_with_wall {
-        COUNTDOWN
+    let countdown_seconds = if will_collide_with_wall {
+        let Some(countdown) =  event.future_collision_countdown_seconds else{ return;};
+        countdown
     } else {
-        SHORT_COUNTDOWN
+        event.no_future_collision_countdown_seconds
     };
 
     commands
         .spawn(WinTimer {
-            win_time: time.elapsed_seconds_f64() + countdown,
-            total_countdown: countdown,
+            win_time: time.elapsed_seconds_f64() + countdown_seconds,
+            total_countdown: countdown_seconds,
         })
         .insert(Circle {}.get_shape_bundle(100f32))
         .insert(Transform {
@@ -174,6 +173,8 @@ fn check_future_collisions(
         );
     }
 
+    info!("Looking for future collisions with {} bodies", bodies.len());
+
     let mut substep_integration_parameters = context.integration_parameters;
     substep_integration_parameters.dt = dt / (substeps as Real);
     let event_handler = SensorCollisionHandler::default();
@@ -195,9 +196,12 @@ fn check_future_collisions(
         );
 
         if event_handler.collisions_found.load() {
+            info!("Collision found after {_i} substeps");
             return true;
         }
     }
+
+    info!("Not Collision found after {substeps} substeps");
     false
 }
 

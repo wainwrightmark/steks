@@ -41,7 +41,7 @@ impl Plugin for DragPlugin {
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()
             .add_event::<DragEndingEvent>()
-            .add_event::<DragEndedEvent>();
+            .add_event::<CheckForWinEvent>();
     }
 }
 
@@ -77,7 +77,7 @@ pub fn drag_end(
     padlock_resource: Res<PadlockResource>,
     mut draggables: Query<(Entity, &mut ShapeComponent)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
-    mut ew_end_drag: EventWriter<DragEndedEvent>,
+    mut ew_end_drag: EventWriter<CheckForWinEvent>,
     rapier_context: ResMut<RapierContext>,
     walls: Query<Entity, With<WallSensor>>,
     fixed_shapes: Query<(), With<FixedShape>>,
@@ -108,7 +108,7 @@ pub fn drag_end(
                 } else {
                     ShapeComponent::Free
                 };
-                ew_end_drag.send(DragEndedEvent {});
+                ew_end_drag.send(CheckForWinEvent::ON_DROP);
             }
         }
 
@@ -424,8 +424,27 @@ pub struct DragEndingEvent {
     pub drag_source: DragSource,
 }
 
+/// Event to indicate that we should check for a win
 #[derive(Debug)]
-pub struct DragEndedEvent {}
+pub struct CheckForWinEvent {
+    pub no_future_collision_countdown_seconds: f64,
+    pub future_collision_countdown_seconds: Option<f64>,
+    pub future_lookahead_seconds: f64
+}
+
+impl CheckForWinEvent{
+    pub const ON_DROP: CheckForWinEvent = CheckForWinEvent{
+        no_future_collision_countdown_seconds: 1.0,
+        future_collision_countdown_seconds: Some(5.0),
+        future_lookahead_seconds: 10.0
+    };
+
+    pub const ON_LAST_SPAWN: CheckForWinEvent = CheckForWinEvent{
+        no_future_collision_countdown_seconds: 5.0,
+        future_collision_countdown_seconds: None,
+        future_lookahead_seconds: 20.0
+    };
+}
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum DragSource {

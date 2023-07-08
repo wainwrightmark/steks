@@ -64,20 +64,20 @@ pub fn spawn_and_update_shapes(
         &ShapeIndex,
         &Transform,
     )>,
+    mut recently_finished: Local<bool>,
+
+    mut check_win: EventWriter<CheckForWinEvent>
 ) {
     creation_queue.extend(creations.iter());
     update_queue.extend(updates.iter());
 
     //info!("Spawn and update shapes {} {}", creation_queue.len(), update_queue.len());
-
-    if let Some(creation) = creation_queue.pop() {
+    let changed = if let Some(creation) = creation_queue.pop() {
         let mut rng = rand::thread_rng();
 
         place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng);
-        return;
-    }
-
-    if let Some(update) = update_queue.pop_front() {
+        true
+    } else if let Some(update) = update_queue.pop_front() {
         if let Some((existing_entity, _, shape_component, shape_index, transform)) =
             existing_query.iter().find(|x| x.1.id == update.id)
         {
@@ -89,11 +89,23 @@ pub fn spawn_and_update_shapes(
                 shape_component.into(),
                 transform,
             );
+            true
         } else {
             error!("Could not find shape with id {}", update.id);
+            false
         }
+    } else{
+        false
+    };
 
-        return;
+    if changed{
+        * recently_finished = true;
+    }else{
+        if *recently_finished{
+            //send this event one frame after spawning shapes
+            check_win.send(CheckForWinEvent::ON_LAST_SPAWN);
+        }
+        *recently_finished = false;
     }
 }
 

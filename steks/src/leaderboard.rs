@@ -107,6 +107,11 @@ async fn get_leaderboard_data() -> LeaderboardDataEvent {
 }
 
 async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error> {
+
+    if cfg!(debug_assertions){
+        return Ok(());
+    }
+
     let client = reqwest::Client::new();
     let res = client
             .post(format!("https://steks.net/.netlify/functions/leaderboard?command=set&hash={hash}&height={height:.2}"))

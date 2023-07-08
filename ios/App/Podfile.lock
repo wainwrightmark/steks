@@ -1,0 +1,70 @@
+PODS:
+  - Capacitor (5.0.5):
+    - CapacitorCordova
+  - CapacitorApp (5.0.5):
+    - Capacitor
+  - CapacitorClipboard (5.0.5):
+    - Capacitor
+  - CapacitorCordova (5.0.5)
+  - CapacitorDevice (5.0.5):
+    - Capacitor
+  - CapacitorLocalNotifications (5.0.5):
+    - Capacitor
+  - CapacitorShare (5.0.5):
+    - Capacitor
+  - CapacitorSplashScreen (5.0.5):
+    - Capacitor
+  - CapacitorStatusBar (5.0.5):
+    - Capacitor
+  - CapacitorToast (5.0.5):
+    - Capacitor
+
+DEPENDENCIES:
+  - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorClipboard (from `../../node_modules/@capacitor/clipboard`)"
+  - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
+  - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
+  - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
+  - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
+  - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
+  - "CapacitorToast (from `../../node_modules/@capacitor/toast`)"
+
+EXTERNAL SOURCES:
+  Capacitor:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
+  CapacitorClipboard:
+    :path: "../../node_modules/@capacitor/clipboard"
+  CapacitorCordova:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorDevice:
+    :path: "../../node_modules/@capacitor/device"
+  CapacitorLocalNotifications:
+    :path: "../../node_modules/@capacitor/local-notifications"
+  CapacitorShare:
+    :path: "../../node_modules/@capacitor/share"
+  CapacitorSplashScreen:
+    :path: "../../node_modules/@capacitor/splash-screen"
+  CapacitorStatusBar:
+    :path: "../../node_modules/@capacitor/status-bar"
+  CapacitorToast:
+    :path: "../../node_modules/@capacitor/toast"
+
+SPEC CHECKSUMS:
+  Capacitor: b1248915663add1bd6567e2b67c1c1fa3abcf5e8
+  CapacitorApp: 9d91a5a400e4ad8cafe66a02cc9d8073c864d7bb
+  CapacitorClipboard: 17f9418206e9de5673fac29c815f11c8d618e81c
+  CapacitorCordova: f8c06b897c74ee8f7701fe10e6443b40822bc83a
+  CapacitorDevice: 4c78eeaa553c7a46bc07372c6eb03a5665459885
+  CapacitorLocalNotifications: cb6a69d128c5ed2a7f22c897c393c0e380f680e7
+  CapacitorShare: 7f90542d6708cfba03adfff7f900e8bc385e2c19
+  CapacitorSplashScreen: e563abf6d590bfe0269515ccc9d8bc03c41f32e9
+  CapacitorStatusBar: 540867ac3c63875b65bebd888f695de50a13a9a2
+  CapacitorToast: 77841e9091bea87db10e55b48747d958d76b1fe0
+
+PODFILE CHECKSUM: 759d0b723b22a44a30ec310317ed7f1f0efc4b47
+
+COCOAPODS: 1.11.3

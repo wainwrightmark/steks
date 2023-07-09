@@ -11,13 +11,11 @@ use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
 
 pub mod circle;
-
-pub mod polygon;
+pub mod triangle;
 pub mod polyomino;
 mod rounded_polygon;
 pub use circle::*;
-
-pub use polygon::*;
+pub use triangle::*;
 
 pub trait GameShapeBody: Send + Sync {
     fn to_collider_shape(&self, shape_size: f32) -> Collider;
@@ -127,4 +125,5 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .collect()
 });
 
-const TRIANGLE: PolygonBody<4, 3> = PolygonBody(&[(-1, -1), (-1, 2), (2, -1)]);
+
+const TRIANGLE: Triangle<4> =  Triangle(&[(-1, -1), (-1, 2), (2, -1)]);

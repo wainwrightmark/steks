@@ -6,20 +6,37 @@ use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
-pub struct PolygonBody<const SQUARES: usize, const POINTS: usize>(
-    pub &'static [(isize, isize); POINTS],
-);
+pub struct Triangle<const SQUARES: usize>(pub &'static [(isize, isize); 3]);
 
-impl<const S: usize, const P: usize> GameShapeBody for PolygonBody<S, P> {
+impl<const S: usize> GameShapeBody for Triangle<S> {
     fn to_collider_shape(&self, shape_size: f32) -> Collider {
-        let u = shape_size / (1.0 * f32::sqrt(S as f32));
+        let u = (1.0 - (1.5 * SHAPE_RADIUS_RATIO)) * shape_size / (1.0 * f32::sqrt(S as f32));
+        let shape_radius = shape_size * SHAPE_RADIUS_RATIO;
 
-        let vertices = self
-            .0
-            .map(|(x, y)| Vec2::new((x as f32) * u, (y as f32) * u));
-        let start_indices: [[u32; 2]; P] =
-            core::array::from_fn(|i| [i as u32, ((i + 1) % P) as u32]);
-        Collider::convex_decomposition(&vertices, &start_indices)
+        let vertices = [
+            Vec2 {
+                x: self.0[0].0 as f32 * u * 1.00,
+                y: self.0[0].1 as f32 * u * 1.00,
+            },
+            Vec2 {
+                x: self.0[1].0 as f32 * u * 1.05,
+                y: self.0[1].1 as f32 * u * 1.00,
+            },
+            Vec2 {
+                x: self.0[2].0 as f32 * u * 1.00,
+                y: self.0[2].1 as f32 * u * 1.05,
+            },
+        ];
+
+        let start_indices: [[u32; 2]; 3] =
+            core::array::from_fn(|i| [i as u32, ((i + 1) % 3) as u32]);
+
+        Collider::round_convex_decomposition(
+            &vertices,
+            &start_indices,
+            shape_radius * 0.5 / PHYSICS_SCALE,
+        )
+        //Collider::convex_decomposition(&vertices, &start_indices)//,  shape_radius / PHYSICS_SCALE )
     }
 
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle {

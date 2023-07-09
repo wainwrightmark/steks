@@ -16,7 +16,7 @@ bevy_tweening = { git = "https://github.com/wainwrightmark/bevy_tweening", defau
 chrono = {version="0.4", features = ["serde", "wasmbind"]}
 bevy_pkv = "0.7"
 
-serde = { version = "1", features = ["derive"] }
+serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
 base64 = "0.21"
 geometrid = "0.2.0"

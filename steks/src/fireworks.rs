@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_prototype_lyon::prelude::ShapeBundle;
 
@@ -23,9 +25,10 @@ impl Plugin for FireworksPlugin {
 #[derive(Debug, Resource)]
 struct FireworksCountdown {
     timer: Timer,
-    max_delay_seconds: f32,
-    sparks_min: usize,
-    sparks_max: usize,
+
+    intensity: u32,
+    max_delay_seconds: Option<f32>,
+    shapes: Arc<Vec<LevelShapeForm>>,
 }
 
 impl Default for FireworksCountdown {
@@ -34,9 +37,9 @@ impl Default for FireworksCountdown {
         timer.pause();
         Self {
             timer,
-            max_delay_seconds: 1.0,
-            sparks_max: 50,
-            sparks_min: 20,
+            shapes: Arc::new(vec![]),
+            intensity: DEFAULT_INTENSITY,
+            max_delay_seconds: None,
         }
     }
 }
@@ -45,6 +48,52 @@ const FIREWORK_SIZE: f32 = 10.0;
 const FIREWORK_VELOCITY: f32 = 500.0;
 const FIREWORK_GRAVITY: f32 = 0.3;
 const FIREWORK_ANGULAR_VELOCITY: f32 = 10.0;
+const DEFAULT_INTENSITY: u32 = 5;
+
+fn manage_fireworks(
+    current_level: Res<CurrentLevel>,
+    mut previous: Local<CurrentLevel>,
+    mut countdown: ResMut<FireworksCountdown>,
+) {
+    if !current_level.is_changed() {
+        return;
+    }
+    let swap = previous.clone();
+    *previous = current_level.clone();
+    let previous = swap;
+
+    match current_level.completion {
+        crate::level::LevelCompletion::Complete { splash: false, .. } => {
+            countdown.timer.pause();
+        }
+        crate::level::LevelCompletion::Incomplete { .. }
+        =>{
+            if let Some(new_countdown) = get_new_fireworks(
+                &current_level,
+                None,
+                previous.completion.is_complete(),
+            ) {
+                *countdown = new_countdown;
+            }
+            else {
+                countdown.timer.pause();
+            }
+        }
+        crate::level::LevelCompletion::Complete {
+            splash: true,
+            score_info,
+        } => {
+
+            if let Some(new_countdown) = get_new_fireworks(
+                &current_level,
+                Some(&score_info),
+                previous.completion.is_complete(),
+            ) {
+                *countdown = new_countdown;
+            }
+        }
+    }
+}
 
 fn despawn_fireworks(
     mut commands: Commands,
@@ -84,14 +133,20 @@ fn spawn_fireworks(
 
     if countdown.timer.just_finished() {
         let mut rng: ThreadRng = rand::thread_rng();
-        countdown.timer = Timer::from_seconds(
-            rng.gen_range(0.0..=countdown.max_delay_seconds),
-            TimerMode::Once,
-        );
+
+        if let Some(duration) = countdown.max_delay_seconds{
+            countdown.timer = Timer::from_seconds(
+                duration,
+                TimerMode::Once,
+            );
+        }
+        else{
+            countdown.timer.pause();
+        }
 
         let window = window.get_single().unwrap();
 
-        let sparks = rng.gen_range(countdown.sparks_min..=countdown.sparks_max);
+        let sparks = rng.gen_range(countdown.intensity..=(countdown.intensity * 2));
 
         let x = rng.gen_range((window.width() * -0.5)..=(window.width() * 0.5));
         let y = rng.gen_range(0.0..=(window.height() * 0.5));
@@ -102,86 +157,68 @@ fn spawn_fireworks(
                 translation,
                 &mut rng,
                 rapier.gravity.y.signum(),
+                &countdown.shapes,
             );
         }
     }
 }
 
-fn manage_fireworks(
-    current_level: Res<CurrentLevel>,
-    mut previous: Local<CurrentLevel>,
-    mut countdown: ResMut<FireworksCountdown>,
-) {
-    if !current_level.is_changed() {
-        return;
-    }
-    let swap = previous.clone();
-    *previous = current_level.clone();
-    let previous = swap;
+fn get_new_fireworks(
+    current_level: &CurrentLevel,
+    info: Option<&ScoreInfo>,
+    previous_was_complete: bool,
+) -> Option<FireworksCountdown> {
 
-    match current_level.completion {
-        crate::level::LevelCompletion::Incomplete { .. }
-        | crate::level::LevelCompletion::Complete { splash: false, .. } => {
-            countdown.timer.pause();
-        }
-        crate::level::LevelCompletion::Complete {
-            splash: true,
-            score_info,
-        } => {
-            if previous.completion.is_complete() && !score_info.is_pb && !score_info.is_wr {
-                countdown.timer.pause();
-            } else if let Some(new_countdown) = get_new_fireworks(&current_level.level, &score_info)
-            {
-                *countdown = new_countdown;
+    let settings = match &current_level.level {
+        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
+            match current_level.completion {
+                LevelCompletion::Incomplete { stage } => level.get_fireworks_settings(&stage),
+                LevelCompletion::Complete { .. } => {
+                    level.end_fireworks.clone()
+                }
             }
         }
-    }
-}
+        GameLevel::Infinite { .. } | GameLevel::Challenge => FireworksSettings::default(),
+    };
 
-fn get_new_fireworks(level: &GameLevel, info: &ScoreInfo) -> Option<FireworksCountdown> {
-    if info.is_wr {
+
+
+    if info.is_some_and(|x|x.is_wr) {
         return Some(FireworksCountdown {
             timer: Timer::from_seconds(0.0, TimerMode::Once),
-            max_delay_seconds: 1.0,
-            sparks_min: 20,
-            sparks_max: 50,
+            max_delay_seconds: Some(1.0),
+            intensity: 20,
+            shapes: settings.shapes,
         });
     }
 
-    if matches!(
-        level,
-        GameLevel::SetLevel {
-            level: SetLevel {
-                skip_completion: false,
-                ..
-            },
-            index: 22
+    if !previous_was_complete {
+        if info.is_some_and(|x|x.is_first_win) {
+            return Some(FireworksCountdown {
+                timer: Timer::from_seconds(4.0, TimerMode::Once),
+                max_delay_seconds: Some(4.0),
+                intensity: 10,
+                shapes: settings.shapes,
+            });
         }
-    ) {
-        return Some(FireworksCountdown {
-            timer: Timer::from_seconds(0.0, TimerMode::Once),
-            max_delay_seconds: 1.5,
-            sparks_min: 20,
-            sparks_max: 40,
-        });
-    }
 
-    if info.is_first_win {
-        return Some(FireworksCountdown {
-            timer: Timer::from_seconds(4.0, TimerMode::Once),
-            max_delay_seconds: 4.0,
-            sparks_min: 5,
-            sparks_max: 15,
-        });
-    }
+        if info.is_some_and(|x|x.is_pb) {
+            return Some(FireworksCountdown {
+                timer: Timer::from_seconds(0.0, TimerMode::Once),
+                max_delay_seconds: Some(4.0),
+                intensity: 20,
+                shapes: settings.shapes,
+            });
+        }
 
-    if info.is_pb {
-        return Some(FireworksCountdown {
-            timer: Timer::from_seconds(0.0, TimerMode::Once),
-            max_delay_seconds: 4.0,
-            sparks_min: 20,
-            sparks_max: 25,
-        });
+        if let Some(intensity) = settings.intensity {
+            return Some(FireworksCountdown {
+                timer: Timer::from_seconds(0.0, TimerMode::Once),
+                max_delay_seconds: None,
+                intensity,
+                shapes: settings.shapes,
+            });
+        }
     }
 
     None
@@ -192,8 +229,15 @@ fn spawn_spark<R: Rng>(
     translation: Vec3,
     rng: &mut R,
     gravity_factor: f32,
+    shapes: &Vec<LevelShapeForm>,
 ) {
-    let game_shape = ALL_SHAPES.choose(rng).unwrap();
+    let game_shape = if shapes.is_empty() {
+        ALL_SHAPES.choose(rng).unwrap()
+    } else {
+        let lsf = shapes.choose(rng).unwrap();
+        let shape: &GameShape = (*lsf).into();
+        shape
+    };
 
     let size = rng.gen_range(0.5..3.0) * FIREWORK_SIZE;
     let shape_bundle = game_shape.body.get_shape_bundle(size);

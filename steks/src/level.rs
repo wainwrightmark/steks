@@ -2,8 +2,6 @@ use crate::{infinity, prelude::*, shape_maker};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-
-
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
@@ -53,11 +51,11 @@ fn manage_level_shapes(
                         GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
                             for stage in (previous_stage + 1)..=(stage) {
                                 if let Some(stage) = level.get_stage(&stage) {
-                                    for creation in &stage.shapes {
+                                    for creation in stage.shapes.iter() {
                                         shape_creation_events.send((*creation).into())
                                     }
 
-                                    for update in &stage.updates {
+                                    for update in stage.updates.iter() {
                                         shape_update_events.send((*update).into())
                                     }
                                 }
@@ -190,17 +188,17 @@ impl CurrentLevel {
 
                 let message = match &self.level {
                     GameLevel::SetLevel { level, .. } => {
-                        level.end_text
-                        .as_deref()
-                        .unwrap_or("Level Complete")
-
+                        level.end_text.as_deref().unwrap_or("Level Complete")
                     }
                     GameLevel::Infinite { .. } => "",
                     GameLevel::Challenge => "Challenge Complete",
                     GameLevel::Custom { .. } => "Custom Level Complete",
                 };
 
-                let mut text = message.lines().map(|l| format!("{l:^padding$}", padding= LEVEL_END_TEXT_MAX_CHARS) ).join("\n");
+                let mut text = message
+                    .lines()
+                    .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
+                    .join("\n");
 
                 text.push_str(format!("\n\nHeight    {height:.2}").as_str());
 

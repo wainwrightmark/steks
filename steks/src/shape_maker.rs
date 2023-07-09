@@ -144,7 +144,7 @@ pub fn place_and_create_shape<RNG: Rng>(
             }
 
             if rapier_context
-                .intersection_with_shape(position, angle, &collider, QueryFilter::new())
+                .intersection_with_shape(position, angle, &collider, QueryFilter::new().groups(CollisionGroups { memberships: SHAPE_COLLISION_GROUP, filters: SHAPE_COLLISION_FILTERS }))
                 .is_none()
             {
                 bevy::log::debug!(

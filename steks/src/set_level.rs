@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::f32::consts;
+use std::{f32::consts, sync::Arc};
 use steks_common::prelude::GameShape;
 
 use crate::prelude::*;
@@ -42,6 +42,11 @@ pub struct SetLevel {
 
     #[serde(default)]
     pub skip_completion: bool,
+
+    #[serde(default)]
+    #[serde(alias = "End_fireworks")]
+    pub end_fireworks: FireworksSettings
+
 }
 
 impl SetLevel {
@@ -50,6 +55,10 @@ impl SetLevel {
             Some(index) => self.stages.get(index),
             None => Some(&self.initial_stage),
         }
+    }
+
+    pub fn get_fireworks_settings(&self, stage: &usize)-> FireworksSettings{
+        self.get_stage(stage).map(|x|x.fireworks.clone()).unwrap_or_default()
     }
 
     pub fn get_last_stage(&self) -> &LevelStage {
@@ -81,14 +90,29 @@ pub struct LevelStage {
     pub text_seconds: Option<u32>,
     #[serde(default)]
     #[serde(alias = "Shapes")]
-    pub shapes: Vec<ShapeCreation>,
+    pub shapes: Arc<Vec<ShapeCreation>>,
     #[serde(default)]
     #[serde(alias = "Updates")]
-    pub updates: Vec<ShapeUpdate>,
+    pub updates: Arc<Vec<ShapeUpdate>>,
     #[serde(alias = "Gravity")]
     pub gravity: Option<bevy::prelude::Vec2>,
     #[serde(alias = "Rainfall")]
     pub rainfall: Option<RaindropSettings>,
+
+    #[serde(default)]
+    #[serde(alias = "Fireworks")]
+    pub fireworks: FireworksSettings
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct FireworksSettings{
+    #[serde(default)]
+    #[serde(alias = "Intensity")]
+    pub intensity: Option<u32>,
+
+    #[serde(default)]
+    #[serde(alias = "Shapes")]
+    pub shapes: Arc<Vec<LevelShapeForm>>
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
@@ -319,7 +343,7 @@ impl From<LevelShapeForm> for &'static GameShape {
 #[cfg(test)]
 mod tests {
     use super::SetLevel;
-    use crate::{set_level::*, level};
+    use crate::set_level::*;
 
     #[test]
     pub fn test_set_levels_deserialize() {

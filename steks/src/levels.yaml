@@ -214,6 +214,11 @@
       id: 1
     - shape: X5
       id: 2
+  end_fireworks:
+    intensity: 10
+    shapes:
+      - Circle
+      - X5
 
   stages:
     - text: "Balls!"
@@ -222,6 +227,10 @@
           id: 1
         - shape: Circle
           id: 2
+      fireworks:
+        intensity: 15
+        shapes:
+          - Circle
 
 - title: "The joy of Steks"
   end_text: "Extremely Satisfactory"
@@ -307,6 +316,14 @@
     - text: "ho ho ho"
       shapes:
         - shape: Triangle
+      fireworks:
+        intensity: 10
+        shapes:
+          - Triangle
+  end_fireworks:
+    intensity: 10
+    shapes:
+      - Triangle
 #20
 - title: "Deus Steks Machina"
   end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
@@ -581,14 +598,6 @@
     - shape: Z5
       id: 11
 
-    # - shape: O4
-    # - shape: T4
-    # - shape: V5
-    # - shape: J4
-    # - shape: Z4
-    # - shape: T5
-    # - shape: X5
-
   stages:
     - text: "Dr. Gravity unleashes his gravity ray\nA choir begins to chant in latin..."
       gravity:
@@ -599,6 +608,8 @@
           state: normal
         - id: 2
           state: fixed
+      fireworks:
+        intensity: 10
     - text: "To the last I grapple with thee!"
       gravity:
       - 0.0
@@ -624,6 +635,8 @@
           modifiers: ice
         - id: 2
           state: void
+      fireworks:
+        intensity: 10
     - text: "You haven't seen my final form!"
       gravity:
       - 0.0
@@ -650,6 +663,8 @@
           modifiers: normal
         - id: 11
           modifiers: normal
+      fireworks:
+        intensity: 15
 
     - text: "Dr. Gravity is defeated\nBuild a tower to escape the dungeon!"
       gravity:

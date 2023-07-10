@@ -153,6 +153,8 @@ fn set_status_bar() {
             .spawn(async move {
                 crate::logging::do_or_report_error_async(|| StatusBar::set_style(Style::Dark))
                     .await;
+
+                #[cfg(feature = "android")]
                 crate::logging::do_or_report_error_async(|| {
                     StatusBar::set_background_color("#5B8BE2")
                 })

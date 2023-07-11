@@ -65,7 +65,7 @@ pub struct WallsPlugin;
 
 impl Plugin for WallsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_walls.after(crate::startup::setup))
+        app.add_systems(Startup,spawn_walls.after(crate::startup::setup))
             .add_system(move_walls);
     }
 }

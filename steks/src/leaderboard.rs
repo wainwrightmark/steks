@@ -11,9 +11,9 @@ pub struct LeaderboardPlugin;
 
 impl Plugin for LeaderboardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugin(AsyncEventPlugin::<LeaderboardDataEvent>::default())
+        app.add_plugins(AsyncEventPlugin::<LeaderboardDataEvent>::default())
             .init_resource::<ScoreStore>()
-            .add_startup_system(load_leaderboard_data)
+            .add_systems(Startup,load_leaderboard_data)
             .add_system(hydrate_leaderboard)
             .add_system(update_leaderboard_on_completion);
     }
@@ -24,6 +24,7 @@ pub struct ScoreStore {
     pub map: Option<BTreeMap<i64, f32>>,
 }
 
+#[derive(Debug, Event)]
 pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
 
 impl ScoreStore {

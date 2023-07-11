@@ -9,10 +9,10 @@ use crate::prelude::*;
 pub struct InputPlugin;
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(touch_listener)
-            .add_system(keyboard_listener)
-            .add_system(mousewheel_listener)
-            .add_system(mousebutton_listener.after(touch_listener));
+        app.add_systems(Update, touch_listener)
+            .add_systems(Update, keyboard_listener)
+            .add_systems(Update, mousewheel_listener)
+            .add_systems(Update, mousebutton_listener.after(touch_listener));
     }
 }
 
@@ -61,44 +61,27 @@ pub fn get_cursor_position(
 
     // check if the cursor is inside the window and get its position
     if let Some(screen_pos) = window.cursor_position() {
-        let world_pos =
-            convert_screen_to_world_position(screen_pos, window, camera, camera_transform);
+        let world_pos = camera.viewport_to_world_2d(camera_transform, screen_pos);
+        // let world_pos =
+        //     convert_screen_to_world_position(screen_pos, window, camera, camera_transform);
 
         //info!("Cursor world: {world_pos}; screen {screen_pos}");
-        Some(world_pos)
+        world_pos
     } else {
         None
     }
 }
 
-fn convert_screen_to_world_position2(
-    mut screen_pos: Vec2,
-    primary_query: &Query<&Window, With<PrimaryWindow>>,
-    q_camera: &Query<(&Camera, &GlobalTransform)>,
-) -> Vec2 {
-    let (camera, camera_transform) = q_camera.single();
-    let window = primary_query.get_single().unwrap();
-
-    screen_pos.y = window.height() - screen_pos.y;
-
-    convert_screen_to_world_position(screen_pos, window, camera, camera_transform)
-}
-
-pub fn convert_screen_to_world_position(
+fn convert_screen_to_world_position(
     screen_pos: Vec2,
-    window: &Window,
-    camera: &Camera,
-    camera_transform: &GlobalTransform,
-) -> Vec2 {
-    let window_size = Vec2::new(window.width(), window.height());
-    let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
-    let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix().inverse();
-    let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
-    world_pos.truncate()
+    q_camera: &Query<(&Camera, &GlobalTransform)>,
+) -> Option<Vec2> {
+    let (camera, camera_transform) = q_camera.single();
+
+    camera.viewport_to_world_2d(camera_transform, screen_pos)
 }
 
 pub fn touch_listener(
-    primary_window_query: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform)>,
 
     mut touch_evr: EventReader<TouchInput>,
@@ -112,28 +95,23 @@ pub fn touch_listener(
 
         match ev.phase {
             TouchPhase::Started => {
-                let position = convert_screen_to_world_position2(
-                    ev.position,
-                    &primary_window_query,
-                    &q_camera,
-                );
-                ew_drag_start.send(DragStartEvent {
-                    drag_source: DragSource::Touch { touch_id: ev.id },
-                    position,
-                });
-                debug!("Touch {} started at: {:?}", ev.id, ev.position);
+                if let Some(position) = convert_screen_to_world_position(ev.position, &q_camera) {
+                    ew_drag_start.send(DragStartEvent {
+                        drag_source: DragSource::Touch { touch_id: ev.id },
+                        position,
+                    });
+                    debug!("Touch {} started at: {:?}", ev.id, ev.position);
+                }
             }
             TouchPhase::Moved => {
-                let new_position = convert_screen_to_world_position2(
-                    ev.position,
-                    &primary_window_query,
-                    &q_camera,
-                );
-                ew_drag_move.send(DragMoveEvent {
-                    drag_source: DragSource::Touch { touch_id: ev.id },
-                    new_position,
-                });
-                debug!("Touch {} moved to: {:?}", ev.id, ev.position);
+                if let Some(new_position) = convert_screen_to_world_position(ev.position, &q_camera)
+                {
+                    ew_drag_move.send(DragMoveEvent {
+                        drag_source: DragSource::Touch { touch_id: ev.id },
+                        new_position,
+                    });
+                    debug!("Touch {} moved to: {:?}", ev.id, ev.position);
+                }
             }
             TouchPhase::Ended => {
                 ew_drag_end.send(DragEndingEvent {
@@ -141,7 +119,7 @@ pub fn touch_listener(
                 });
                 debug!("Touch {} ended at: {:?}", ev.id, ev.position);
             }
-            TouchPhase::Cancelled => {
+            TouchPhase::Canceled => {
                 ew_drag_end.send(DragEndingEvent {
                     drag_source: DragSource::Touch { touch_id: ev.id },
                 });

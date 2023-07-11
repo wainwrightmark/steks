@@ -216,7 +216,7 @@ impl Plugin for WASMPlugin {
         });
 
         app.add_system(resizer);
-        //app.add_startup_system(load_from_url_on_startup);
-        app.add_startup_system(remove_spinner.in_base_set(StartupSet::PostStartup));
+        //app.add_systems(Startup,load_from_url_on_startup);
+        app.add_systems(PostStartup,remove_spinner);
     }
 }

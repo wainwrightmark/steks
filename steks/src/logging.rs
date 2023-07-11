@@ -1,4 +1,4 @@
-use bevy::{log, tasks::IoTaskPool};
+use bevy::{log, tasks::IoTaskPool, prelude::*};
 use capacitor_bindings::{
     app::AppInfo,
     device::{Device, DeviceId, DeviceInfo, OperatingSystem, Platform},
@@ -11,7 +11,7 @@ use crate::level::LevelLogData;
 
 #[must_use]
 #[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, EnumDiscriminants)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, EnumDiscriminants, Event)]
 #[serde(tag = "type")]
 pub enum LoggableEvent {
     NewUser {

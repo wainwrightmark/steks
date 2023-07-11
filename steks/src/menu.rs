@@ -7,9 +7,9 @@ pub struct ButtonPlugin;
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<MenuState>()
-            .add_startup_system(setup.after(setup_level_ui))
-            .add_system(button_system.in_base_set(CoreSet::First))
-            .add_system(handle_menu_state_changes);
+            .add_systems(Startup, setup.after(setup_level_ui))
+            .add_systems(First, button_system)
+            .add_systems(Update, handle_menu_state_changes);
     }
 }
 
@@ -103,7 +103,7 @@ fn button_system(
         use MenuButton::*;
         //info!("{:?}", interaction);
         match *interaction {
-            Interaction::Clicked => {
+            Interaction::Pressed => {
                 *bg_color = PRESSED_BUTTON.into();
                 match *button {
                     ToggleMenu => menu_state.as_mut().toggle_menu(),
@@ -176,11 +176,8 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                position: UiRect {
-                    left: Val::Px(MENU_OFFSET),
-                    top: Val::Px(MENU_OFFSET + BUTTON_HEIGHT),
-                    ..Default::default()
-                },
+                left: Val::Px(MENU_OFFSET),
+                top: Val::Px(MENU_OFFSET + BUTTON_HEIGHT),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
                 ..Default::default()
@@ -218,17 +215,13 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer) {
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                position: UiRect {
-                    left: Val::Px(MENU_OFFSET + BUTTON_WIDTH),
-                    top: Val::Px(MENU_OFFSET + BUTTON_HEIGHT),
-                    ..Default::default()
-                },
+                left: Val::Px(MENU_OFFSET + BUTTON_WIDTH),
+                top: Val::Px(MENU_OFFSET + BUTTON_HEIGHT),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Row,
                 flex_wrap: FlexWrap::Wrap,
                 flex_grow: 0.,
-
-                max_size: Size::width(Val::Px(BUTTON_WIDTH * 4.)),
+                max_width: Val::Px(BUTTON_WIDTH * 4.),
 
                 ..Default::default()
             },
@@ -250,11 +243,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                position: UiRect {
-                    left: Val::Px(10.),
-                    top: Val::Px(10.),
-                    ..Default::default()
-                },
+                left: Val::Px(10.),
+                top: Val::Px(10.),
                 ..Default::default()
             },
             z_index: ZIndex::Global(10),
@@ -273,7 +263,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 pub fn button_bundle() -> ButtonBundle {
     ButtonBundle {
         style: Style {
-            size: Size::new(Val::Px(BUTTON_WIDTH), Val::Px(BUTTON_HEIGHT)),
+            width: Val::Px(BUTTON_WIDTH),
+            height: Val::Px(BUTTON_HEIGHT),
             margin: UiRect::all(Val::Auto),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
@@ -298,7 +289,7 @@ pub fn button_text_bundle(menu_button: &MenuButton, font: Handle<Font>) -> TextB
             },
         ),
         ..Default::default()
-    }
+    }.with_no_wrap()
 }
 
 pub fn spawn_button(

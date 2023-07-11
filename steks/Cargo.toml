@@ -7,13 +7,13 @@ edition = "2021"
 [dependencies]
 rand = "0.8.5"
 itertools = "0.10"
-bevy_prototype_lyon = {version="0.8"}
-bevy_rapier2d = {version = "0.21"}
+bevy_prototype_lyon = {version="0.9"}
+bevy_rapier2d = {version = "0.22"}
 
 strum = { version = "0.24.1", features = ["derive"] }
 bevy_tweening = { git = "https://github.com/wainwrightmark/bevy_tweening", default-features = false, features = ["bevy_text", "bevy_ui"] }
 chrono = {version="0.4", features = ["serde", "wasmbind"]}
-bevy_pkv = "0.7"
+bevy_pkv = {git="https://github.com/wainwrightmark/bevy_pkv"}
 
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
@@ -22,7 +22,7 @@ geometrid = "0.2.0"
 serde_with = "3"
 reqwest = { version = "0.11",default-features = false, features = ["json"] }
 capacitor_bindings = {  features = ["web"], git = "https://github.com/wainwrightmark/capacitor_bindings" }
-bevy_embedded_assets = "0.7.0"
+bevy_embedded_assets = "0.8.0"
 lazy_static = "1.4.0"
 serde_yaml = "0.9.21"
 async-channel = "1.8.0"
@@ -64,7 +64,7 @@ lto = 'thin'
 # opt-level = 3
 
 [dependencies.bevy]
-version = "0.10"
+version = "0.11"
 
 
 
@@ -91,6 +91,7 @@ features = [
 #   "bevy_gltf",          # GLTF 3D assets format support
   "bevy_text",          # Text/font rendering
   "bevy_ui",            # UI toolkit
+  "webgl2"
 
   # File formats:
   # "png",

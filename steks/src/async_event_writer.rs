@@ -49,16 +49,18 @@ unsafe impl<T: Event> SystemParam for AsyncEventWriter<T> {
     }
 
     unsafe fn get_param<'world, 'state>(
-        _state: &'state mut Self::State,
-        _system_meta: &bevy::ecs::system::SystemMeta,
-        world: &'world World,
-        _change_tick: u32,
+        state: &'state mut Self::State,
+        system_meta: &bevy::ecs::system::SystemMeta,
+        world: bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell<'world>,
+        change_tick: bevy::ecs::component::Tick,
     ) -> Self::Item<'world, 'state> {
         let resource = world
             .get_resource::<AsyncEventResource<T>>()
             .expect("Event is not registered as an async event");
         Self(resource.sender.clone())
     }
+
+
 }
 
 #[derive(Resource)]

@@ -15,9 +15,9 @@ impl Plugin for DragPlugin {
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
-            .add_system(
+            .add_systems(Update,
                 drag_move
-                    .in_base_set(CoreSet::Update)
+
                     .after(input::mousebutton_listener)
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
@@ -401,31 +401,31 @@ pub struct TouchRotate {
     pub centre: Vec2,
     pub touch_id: u64,
 }
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct RotateEvent {
     pub angle: f32,
     pub snap_resolution: Option<f32>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct DragStartEvent {
     pub drag_source: DragSource,
     pub position: Vec2,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct DragMoveEvent {
     pub drag_source: DragSource,
     pub new_position: Vec2,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct DragEndingEvent {
     pub drag_source: DragSource,
 }
 
 /// Event to indicate that we should check for a win
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct CheckForWinEvent {
     pub no_future_collision_countdown_seconds: f64,
     pub future_collision_countdown_seconds: Option<f64>,

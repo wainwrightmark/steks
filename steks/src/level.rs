@@ -8,13 +8,13 @@ pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CurrentLevel>()
-            .add_startup_system(choose_level_on_game_load.in_base_set(StartupSet::PostStartup))
-            .add_system(handle_change_level_events.in_base_set(CoreSet::First))
-            .add_system(track_level_completion.in_base_set(CoreSet::Last))
-            .add_system(manage_level_shapes)
-            .add_system(skip_tutorial_completion)
-            .add_system(adjust_gravity)
-            .add_plugin(AsyncEventPlugin::<ChangeLevelEvent>::default());
+            .add_systems(PostStartup, choose_level_on_game_load)
+            .add_systems(First, handle_change_level_events)
+            .add_systems(Last, track_level_completion)
+            .add_systems(Update, manage_level_shapes)
+            .add_systems(Update,skip_tutorial_completion)
+            .add_systems(Update,adjust_gravity)
+            .add_plugins(AsyncEventPlugin::<ChangeLevelEvent>::default());
     }
 }
 
@@ -364,7 +364,7 @@ impl GameLevel {
     pub const INFINITE_SHAPES: usize = 4;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Event)]
 pub enum ChangeLevelEvent {
     Next,
     ChooseLevel {

@@ -44,32 +44,32 @@ pub fn main() {
                     bevy_embedded_assets::EmbeddedAssetPlugin,
                 ),
         )
-        .add_plugin(WallsPlugin)
-        .add_plugin(ButtonPlugin)
-        .add_plugin(bevy_prototype_lyon::prelude::ShapePlugin)
-        .add_plugin(InputPlugin)
-        .add_plugin(CameraPlugin)
-        .add_plugin(LeaderboardPlugin)
-        .add_plugin(SpiritPlugin)
-        .add_plugin(LevelUiPlugin)
-        .add_plugin(LensPlugin)
-        .add_plugin(FireworksPlugin)
-        .add_plugin(AppUrlPlugin)
-        .add_plugin(RainPlugin)
-        .add_plugin(ImportPlugin)
-        //.add_plugin(MenuActionPlugin)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
+        .add_plugins(WallsPlugin)
+        .add_plugins(ButtonPlugin)
+        .add_plugins(bevy_prototype_lyon::prelude::ShapePlugin)
+        .add_plugins(InputPlugin)
+        .add_plugins(CameraPlugin)
+        .add_plugins(LeaderboardPlugin)
+        .add_plugins(SpiritPlugin)
+        .add_plugins(LevelUiPlugin)
+        .add_plugins(LensPlugin)
+        .add_plugins(FireworksPlugin)
+        .add_plugins(AppUrlPlugin)
+        .add_plugins(RainPlugin)
+        .add_plugins(ImportPlugin)
+        //.add_plugins(MenuActionPlugin)
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
         ))
-        .add_startup_system(setup)
-        .add_plugin(DragPlugin)
-        .add_plugin(WinPlugin)
-        .add_plugin(LevelPlugin)
-        .add_plugin(bevy_tweening::TweeningPlugin)
-        .add_plugin(SharePlugin)
-        .add_plugin(CollisionPlugin)
-        .add_plugin(PadlockPlugin)
-        //.add_plugin(RecordingPlugin)
+        .add_systems(Startup,setup)
+        .add_plugins(DragPlugin)
+        .add_plugins(WinPlugin)
+        .add_plugins(LevelPlugin)
+        .add_plugins(bevy_tweening::TweeningPlugin)
+        .add_plugins(SharePlugin)
+        .add_plugins(CollisionPlugin)
+        .add_plugins(PadlockPlugin)
+        //.add_plugins(RecordingPlugin)
         .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
@@ -81,26 +81,26 @@ pub fn main() {
 
     #[cfg(target_arch = "wasm32")]
     {
-        builder.add_plugin(WASMPlugin);
-        builder.add_plugin(PurchasesPlugin);
+        builder.add_plugins(WASMPlugin);
+        builder.add_plugins(PurchasesPlugin);
         if !cfg!(debug_assertions) {
-            builder.add_plugin(NotificationPlugin);
+            builder.add_plugins(NotificationPlugin);
         }
     }
 
     if cfg!(debug_assertions) {
-        //builder.add_plugin(RapierDebugRenderPlugin::default());
-        //builder.add_plugin(ScreenDiagsPlugin);
-        // builder.add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::default());
-        // builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
+        //builder.add_plugins(RapierDebugRenderPlugin::default());
+        //builder.add_plugins(ScreenDiagsPlugin);
+        // builder.add_plugins(bevy::diagnostic::LogDiagnosticsPlugin::default());
+        // builder.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
 
-    builder.add_startup_system(disable_back);
-    builder.add_startup_system(hide_splash);
-    builder.add_startup_system(set_status_bar.after(hide_splash));
+    builder.add_systems(Startup,disable_back);
+    builder.add_systems(Startup,hide_splash);
+    builder.add_systems(Startup,set_status_bar.after(hide_splash));
 
     if !cfg!(debug_assertions) {
-        builder.add_startup_system(log_start.in_base_set(StartupSet::PostStartup));
+        builder.add_systems(PostStartup, log_start);
     }
 
     builder.run();

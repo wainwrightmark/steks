@@ -9,8 +9,8 @@ pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
 
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_level_ui)
-            .add_system(update_ui_on_level_change.in_base_set(CoreSet::First)); //must be in first so tweening happens before the frame
+        app.add_systems(Startup,setup_level_ui)
+            .add_systems(First, update_ui_on_level_change); //must be in first so tweening happens before the frame
     }
 }
 
@@ -144,13 +144,14 @@ fn get_root_position(current_level: &CurrentLevel) -> UiRect {
 fn get_root_bundle(args: UIArgs) -> NodeBundle {
     let z_index = ZIndex::Global(5);
     let position = get_root_position(args.current_level);
-    let size: Size = Size::UNDEFINED;
 
     NodeBundle {
         style: Style {
-            size,
             position_type: PositionType::Absolute,
-            position,
+            left: position.left,
+            top: position.top,
+            right: position.right,
+            bottom: position.bottom,
             justify_content: JustifyContent::Center,
             flex_direction: FlexDirection::Column,
             ..Default::default()
@@ -175,7 +176,7 @@ fn get_border_bundle(args: UIArgs) -> NodeBundle {
         style: Style {
             display: Display::Flex,
             align_items: AlignItems::Center,
-            margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
+            margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
             justify_content: JustifyContent::Center,
             border,
 
@@ -192,7 +193,7 @@ fn get_all_text_bundle(_args: UIArgs) -> NodeBundle {
             display: Display::Flex,
             align_items: AlignItems::Center,
             flex_direction: FlexDirection::Column,
-            margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
+            margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
             justify_content: JustifyContent::Center,
             ..Default::default()
         },
@@ -216,7 +217,7 @@ fn get_panel_bundle(args: UIArgs) -> NodeBundle {
             align_items: AlignItems::Center,
             flex_direction,
             // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-            margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
+            margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
             justify_content: JustifyContent::Center,
             border: UiRect::all(Val::Px(2.0)),
 
@@ -228,9 +229,9 @@ fn get_panel_bundle(args: UIArgs) -> NodeBundle {
 }
 
 fn get_button_panel(args: UIArgs) -> NodeBundle {
-    let size = match args.current_level.completion {
-        LevelCompletion::Incomplete { .. } => Size::new(Val::Px(0.0), Val::Px(0.0)),
-        LevelCompletion::Complete { .. } => Size::AUTO,
+    let (width, height) = match args.current_level.completion {
+        LevelCompletion::Incomplete { .. } => (Val::Px(0.0), Val::Px(0.0)),
+        LevelCompletion::Complete { .. } => (Val::Auto, Val::Auto),
     };
 
     NodeBundle {
@@ -239,9 +240,9 @@ fn get_button_panel(args: UIArgs) -> NodeBundle {
             align_items: AlignItems::Center,
             flex_direction: FlexDirection::Row,
             // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-            margin: UiRect::new(Val::Auto, Val::Auto, Val::Undefined, Val::Undefined),
+            margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
             justify_content: JustifyContent::Center,
-            size,
+            width, height,
 
             ..Default::default()
         },
@@ -267,7 +268,7 @@ fn get_title_bundle(args: UIArgs) -> TextBundle {
         .with_style(Style {
             align_self: AlignSelf::Center,
             ..Default::default()
-        })
+        }).with_no_wrap()
     } else {
         TextBundle::default()
     }
@@ -300,7 +301,7 @@ fn get_level_number_bundle(args: UIArgs) -> TextBundle {
         .with_style(Style {
             align_self: AlignSelf::Center,
             ..Default::default()
-        })
+        }).with_no_wrap()
     } else {
         TextBundle::default()
     }
@@ -329,7 +330,7 @@ fn get_message_bundle(args: UIArgs) -> TextBundle {
         .with_style(Style {
             align_self: AlignSelf::Center,
             ..Default::default()
-        })
+        }).with_no_wrap()
     } else {
         TextBundle::default()
     }

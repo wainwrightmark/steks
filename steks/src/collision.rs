@@ -8,8 +8,8 @@ pub struct CollisionPlugin;
 
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(display_collision_markers.in_base_set(CoreSet::PreUpdate))
-            .add_system(highlight_voids.in_base_set(CoreSet::PreUpdate));
+        app.add_systems(PreUpdate, display_collision_markers)
+            .add_systems(PreUpdate,highlight_voids);
     }
 }
 

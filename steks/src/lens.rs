@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{Color, IntoSystemConfig, Plugin, Vec4},
+    prelude::*,
     ui::BackgroundColor,
 };
 use bevy_tweening::{component_animator_system, AnimationSystem, Lens};
@@ -8,7 +8,7 @@ pub struct LensPlugin;
 
 impl Plugin for LensPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_system(
+        app.add_systems(Update,
             component_animator_system::<BackgroundColor>.in_set(AnimationSystem::AnimationUpdate),
         );
     }

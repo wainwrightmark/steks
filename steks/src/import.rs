@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 use crate::{async_event_writer::*, level::ChangeLevelEvent, set_level::SetLevel};
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Event)]
 pub struct ImportEvent;
 
 pub struct ImportPlugin;

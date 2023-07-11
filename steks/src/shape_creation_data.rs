@@ -3,7 +3,7 @@ use bevy::{ecs::system::EntityCommands, render::color};
 use bevy_prototype_lyon::prelude::*;
 use rand::{rngs::StdRng, seq::SliceRandom, Rng};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Event)]
 pub struct ShapeCreationData {
     pub shape: &'static GameShape,
     pub location: Option<Location>,

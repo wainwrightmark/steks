@@ -1,8 +1,8 @@
 use bevy::prelude::*;
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
 use wasm_bindgen::prelude::*;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
 #[wasm_bindgen(module = "/purchase.js")]
 extern "C" {
 
@@ -24,9 +24,10 @@ extern "C" {
     // fn restore(this: &Purchases);
 }
 
+#[derive(Debug, Event)]
 pub struct TryPurchaseEvent;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
 fn handle_purchases(mut events: EventReader<TryPurchaseEvent>, res: NonSend<Purchases>) {
     if !events.is_empty() {
         events.clear();
@@ -34,7 +35,7 @@ fn handle_purchases(mut events: EventReader<TryPurchaseEvent>, res: NonSend<Purc
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
 fn init_purchases(world: &mut World) {
     let purchases = Purchases::new();
     world.insert_non_send_resource(purchases);
@@ -46,10 +47,10 @@ impl Plugin for PurchasesPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<TryPurchaseEvent>();
 
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
         {
-            app.add_startup_system(init_purchases)
-                .add_system(handle_purchases);
+            // app.add_systems(Startup,init_purchases)
+            //     .add_system(handle_purchases);
         }
     }
 }

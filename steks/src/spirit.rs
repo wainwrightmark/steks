@@ -18,10 +18,10 @@ pub struct SpiritMarkerLine;
 
 impl Plugin for SpiritPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_system(show_spirit_lines.in_base_set(CoreSet::PostUpdate))
-            .add_system(hide_spirit_lines.in_base_set(CoreSet::PostUpdate))
+        app.add_systems(PostUpdate, show_spirit_lines)
+            .add_systems(PostUpdate,hide_spirit_lines)
             .add_system(control_spirit_main_line)
-            .add_startup_system(setup_spirit_lines);
+            .add_systems(Startup,setup_spirit_lines);
     }
 }
 fn setup_spirit_lines(mut commands: Commands) {

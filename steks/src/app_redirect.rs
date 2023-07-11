@@ -1,3 +1,5 @@
+use bevy::prelude::*;
+
 use crate::async_event_writer::*;
 use crate::level::ChangeLevelEvent;
 
@@ -5,7 +7,7 @@ pub struct AppUrlPlugin;
 
 impl bevy::prelude::Plugin for AppUrlPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(subscribe_to_app_url_events);
+        app.add_systems(Startup, subscribe_to_app_url_events);
     }
 }
 

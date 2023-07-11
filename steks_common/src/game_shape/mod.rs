@@ -2,10 +2,7 @@ use std::fmt::Debug;
 
 use crate::{color::choose_color, location::Location, shape_index::ShapeIndex};
 
-use bevy::{
-    prelude::{Color, Rect},
-    render::once_cell::sync::Lazy,
-};
+use bevy::prelude::{Color, Rect};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
@@ -15,6 +12,7 @@ pub mod polyomino;
 mod rounded_polygon;
 pub mod triangle;
 pub use circle::*;
+use once_cell::sync::Lazy;
 pub use triangle::*;
 
 pub trait GameShapeBody: Send + Sync {

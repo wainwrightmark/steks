@@ -183,7 +183,10 @@ fn get_new_fireworks(
 
 
 
-    if info.is_some_and(|x|x.is_wr) {
+    if match info {
+            None => false,
+            Some(x) => (|x: &ScoreInfo|x.is_wr)(x),
+        } {
         return Some(FireworksCountdown {
             timer: Timer::from_seconds(0.0, TimerMode::Once),
             max_delay_seconds: Some(1.0),
@@ -193,7 +196,10 @@ fn get_new_fireworks(
     }
 
     if !previous_was_complete {
-        if info.is_some_and(|x|x.is_first_win) {
+        if match info {
+                None => false,
+                Some(x) => (|x: &ScoreInfo|x.is_first_win)(x),
+            } {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(4.0, TimerMode::Once),
                 max_delay_seconds: Some(4.0),
@@ -202,7 +208,10 @@ fn get_new_fireworks(
             });
         }
 
-        if info.is_some_and(|x|x.is_pb) {
+        if match info {
+                None => false,
+                Some(x) => (|x: &ScoreInfo|x.is_pb)(x),
+            } {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(0.0, TimerMode::Once),
                 max_delay_seconds: Some(4.0),

@@ -676,4 +676,4 @@ const CapacitorHttp = registerPlugin('CapacitorHttp', {
     web: () => new CapacitorHttpPluginWeb(),
 });
 
-export { Capacitor, CapacitorCookies, CapacitorException, CapacitorHttp, CapacitorPlatforms, ExceptionCode, Plugins, WebPlugin, WebView, addPlatform, registerPlugin, registerWebPlugin, setPlatform };
+export { Capacitor, CapacitorCookies, CapacitorException, CapacitorHttp, CapacitorPlatforms, ExceptionCode, Plugins, WebPlugin, WebView, addPlatform, buildRequestInit, registerPlugin, registerWebPlugin, setPlatform };

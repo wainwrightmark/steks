@@ -11,11 +11,7 @@ pub mod leaderboard;
 pub mod lens;
 pub mod level;
 pub mod level_ui;
-#[cfg(target_arch = "wasm32")]
-pub mod logging;
 pub mod menu;
-#[cfg(target_arch = "wasm32")]
-pub mod notifications;
 pub mod padlock;
 pub mod rain;
 pub mod saved_data;
@@ -29,9 +25,17 @@ pub mod share;
 pub mod spirit;
 pub mod startup;
 pub mod walls;
+pub mod win;
+
+#[cfg(target_arch = "wasm32")]
+pub mod logging;
+#[cfg(target_arch = "wasm32")]
+pub mod notifications;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
-pub mod win;
+
+pub mod purchases;
+
 pub mod prelude {
 
     pub use bevy::log::{debug, error, info, warn};
@@ -75,6 +79,9 @@ pub mod prelude {
     pub use crate::notifications::*;
     #[cfg(target_arch = "wasm32")]
     pub use crate::wasm::*;
+
+
+    pub use crate::purchases::*;
 }
 
 pub fn main() {

@@ -82,6 +82,7 @@ pub fn main() {
     #[cfg(target_arch = "wasm32")]
     {
         builder.add_plugin(WASMPlugin);
+        builder.add_plugin(PurchasesPlugin);
         if !cfg!(debug_assertions){
             builder.add_plugin(NotificationPlugin);
         }

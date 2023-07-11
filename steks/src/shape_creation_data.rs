@@ -56,29 +56,29 @@ pub fn spawn_children(
             options: StrokeOptions::default().with_line_width(ZOOM_LEVEL),
         });
 
-    if state == ShapeState::Void {
-        let transform = Transform {
-            rotation: transform.rotation.conjugate(),
-            scale: PADLOCK_SCALE,
-            translation: Vec3::Z * 50.0,
-        };
+    // if state == ShapeState::Void {
+    //     let transform = Transform {
+    //         rotation: transform.rotation.conjugate(),
+    //         scale: PADLOCK_SCALE,
+    //         translation: Vec3::Z * 50.0,
+    //     };
 
-        let path = GeometryBuilder::build_as(&shapes::SvgPathShape {
-            svg_path_string: SKULL_OUTLINE.to_owned(),
-            svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
-        });
+    //     let path = GeometryBuilder::build_as(&shapes::SvgPathShape {
+    //         svg_path_string: SKULL_OUTLINE.to_owned(),
+    //         svg_doc_size_in_px: SVG_DOC_SIZE.to_owned(),
+    //     });
 
-        cb.spawn(ShapeBundle {
-            path,
-            ..Default::default()
-        })
-        .insert(Fill {
-            options: FillOptions::DEFAULT,
-            color: WARN_COLOR,
-        })
-        .insert(transform)
-        .insert(Visibility::Inherited);
-    }
+    //     cb.spawn(ShapeBundle {
+    //         path,
+    //         ..Default::default()
+    //     })
+    //     .insert(Fill {
+    //         options: FillOptions::DEFAULT,
+    //         color: WARN_COLOR,
+    //     })
+    //     .insert(transform)
+    //     .insert(Visibility::Inherited);
+    // }
 
     if state == ShapeState::Fixed {
         let transform = Transform {

@@ -8,9 +8,9 @@ pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup,camera_setup)
+        app.add_systems(Startup, camera_setup)
             .add_systems(PostUpdate, show_shadows)
-            .add_systems(PostUpdate,hide_shadows)
+            .add_systems(PostUpdate, hide_shadows)
             .add_systems(Update, move_shadows);
     }
 }

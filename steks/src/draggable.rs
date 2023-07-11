@@ -9,34 +9,37 @@ pub struct DragPlugin;
 impl Plugin for DragPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TouchRotateResource::default())
-            .add_system(
+            .add_systems(
+                Update,
                 drag_start
                     .after(input::mousebutton_listener)
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
-            .add_systems(Update,
+            .add_systems(
+                Update,
                 drag_move
-
                     .after(input::mousebutton_listener)
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
-            .add_system(assign_padlock)
-            .add_system(
+            .add_systems(Update, assign_padlock)
+            .add_systems(
+                Update,
                 handle_rotate_events
                     .after(input::keyboard_listener)
                     .after(input::mousewheel_listener)
                     .before(handle_drag_changes),
             )
-            .add_system(
+            .add_systems(
+                Update,
                 drag_end
                     .after(input::mousebutton_listener)
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
-            .add_system(apply_forces.after(handle_rotate_events))
-            .add_system(handle_drag_changes.after(apply_forces)) // .in_base_set(CoreSet::PostUpdate))
+            .add_systems(Update, apply_forces.after(handle_rotate_events))
+            .add_systems(Update, handle_drag_changes.after(apply_forces)) // .in_base_set(CoreSet::PostUpdate))
             .add_event::<RotateEvent>()
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()

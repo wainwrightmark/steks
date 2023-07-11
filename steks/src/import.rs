@@ -11,7 +11,7 @@ pub struct ImportPlugin;
 impl Plugin for ImportPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ImportEvent>()
-            .add_system(handle_import_events);
+            .add_systems(Update, handle_import_events);
     }
 }
 

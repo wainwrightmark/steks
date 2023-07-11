@@ -9,9 +9,9 @@ pub struct RainPlugin;
 
 impl Plugin for RainPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_system(spawn_raindrops)
-            .add_system(despawn_raindrops)
-            .add_system(manage_raindrops)
+        app.add_systems(Update, spawn_raindrops)
+            .add_systems(Update, despawn_raindrops)
+            .add_systems(Update, manage_raindrops)
             .init_resource::<RaindropCountdown>();
     }
 }

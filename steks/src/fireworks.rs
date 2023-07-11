@@ -14,9 +14,9 @@ pub struct Firework;
 
 impl Plugin for FireworksPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_system(spawn_fireworks)
-            .add_system(despawn_fireworks)
-            .add_system(manage_fireworks)
+        app.add_systems(Update, spawn_fireworks)
+            .add_systems(Update, despawn_fireworks)
+            .add_systems(Update, manage_fireworks)
             .init_resource::<FireworksCountdown>();
         // .init_resource::<FireworksDespawnTimer>();
     }

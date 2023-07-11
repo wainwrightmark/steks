@@ -215,8 +215,8 @@ impl Plugin for WASMPlugin {
             height: 0.0,
         });
 
-        app.add_system(resizer);
+        app.add_systems(Update, resizer);
         //app.add_systems(Startup,load_from_url_on_startup);
-        app.add_systems(PostStartup,remove_spinner);
+        app.add_systems(PostStartup, remove_spinner);
     }
 }

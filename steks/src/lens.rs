@@ -1,14 +1,12 @@
-use bevy::{
-    prelude::*,
-    ui::BackgroundColor,
-};
+use bevy::{prelude::*, ui::BackgroundColor};
 use bevy_tweening::{component_animator_system, AnimationSystem, Lens};
 
 pub struct LensPlugin;
 
 impl Plugin for LensPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Update,
+        app.add_systems(
+            Update,
             component_animator_system::<BackgroundColor>.in_set(AnimationSystem::AnimationUpdate),
         );
     }

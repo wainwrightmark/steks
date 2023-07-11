@@ -1,4 +1,4 @@
-use bevy::{log, tasks::IoTaskPool, prelude::*};
+use bevy::{log, prelude::*, tasks::IoTaskPool};
 use capacitor_bindings::{
     app::AppInfo,
     device::{Device, DeviceId, DeviceInfo, OperatingSystem, Platform},

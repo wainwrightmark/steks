@@ -9,7 +9,7 @@ pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
 
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup,setup_level_ui)
+        app.add_systems(Startup, setup_level_ui)
             .add_systems(First, update_ui_on_level_change); //must be in first so tweening happens before the frame
     }
 }
@@ -242,7 +242,8 @@ fn get_button_panel(args: UIArgs) -> NodeBundle {
             // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
             margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
             justify_content: JustifyContent::Center,
-            width, height,
+            width,
+            height,
 
             ..Default::default()
         },
@@ -268,7 +269,8 @@ fn get_title_bundle(args: UIArgs) -> TextBundle {
         .with_style(Style {
             align_self: AlignSelf::Center,
             ..Default::default()
-        }).with_no_wrap()
+        })
+        .with_no_wrap()
     } else {
         TextBundle::default()
     }
@@ -301,7 +303,8 @@ fn get_level_number_bundle(args: UIArgs) -> TextBundle {
         .with_style(Style {
             align_self: AlignSelf::Center,
             ..Default::default()
-        }).with_no_wrap()
+        })
+        .with_no_wrap()
     } else {
         TextBundle::default()
     }
@@ -330,7 +333,8 @@ fn get_message_bundle(args: UIArgs) -> TextBundle {
         .with_style(Style {
             align_self: AlignSelf::Center,
             ..Default::default()
-        }).with_no_wrap()
+        })
+        .with_no_wrap()
     } else {
         TextBundle::default()
     }

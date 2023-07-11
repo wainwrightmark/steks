@@ -11,7 +11,7 @@ pub struct NotificationPlugin;
 
 impl Plugin for NotificationPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Startup,setup);
+        app.add_systems(Startup, setup);
     }
 }
 

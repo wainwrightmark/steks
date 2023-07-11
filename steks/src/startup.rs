@@ -61,7 +61,7 @@ pub fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
         ))
-        .add_systems(Startup,setup)
+        .add_systems(Startup, setup)
         .add_plugins(DragPlugin)
         .add_plugins(WinPlugin)
         .add_plugins(LevelPlugin)
@@ -95,9 +95,9 @@ pub fn main() {
         // builder.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
 
-    builder.add_systems(Startup,disable_back);
-    builder.add_systems(Startup,hide_splash);
-    builder.add_systems(Startup,set_status_bar.after(hide_splash));
+    builder.add_systems(Startup, disable_back);
+    builder.add_systems(Startup, hide_splash);
+    builder.add_systems(Startup, set_status_bar.after(hide_splash));
 
     if !cfg!(debug_assertions) {
         builder.add_systems(PostStartup, log_start);

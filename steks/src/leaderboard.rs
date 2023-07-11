@@ -13,9 +13,9 @@ impl Plugin for LeaderboardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(AsyncEventPlugin::<LeaderboardDataEvent>::default())
             .init_resource::<ScoreStore>()
-            .add_systems(Startup,load_leaderboard_data)
-            .add_system(hydrate_leaderboard)
-            .add_system(update_leaderboard_on_completion);
+            .add_systems(Startup, load_leaderboard_data)
+            .add_systems(Update, hydrate_leaderboard)
+            .add_systems(Update, update_leaderboard_on_completion);
     }
 }
 

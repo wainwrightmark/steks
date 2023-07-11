@@ -10,7 +10,7 @@ pub struct SharePlugin;
 impl Plugin for SharePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<ShareEvent>();
-        app.add_system(handle_shares);
+        app.add_systems(Update, handle_shares);
     }
 }
 

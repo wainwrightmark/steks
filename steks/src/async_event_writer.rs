@@ -13,7 +13,7 @@ impl<T: Event> Default for AsyncEventPlugin<T> {
 impl<T: Event> Plugin for AsyncEventPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_event::<T>()
-            .add_system(poll_events::<T>)
+            .add_systems(Update, poll_events::<T>)
             .init_resource::<AsyncEventResource<T>>();
     }
 }
@@ -49,18 +49,16 @@ unsafe impl<T: Event> SystemParam for AsyncEventWriter<T> {
     }
 
     unsafe fn get_param<'world, 'state>(
-        state: &'state mut Self::State,
-        system_meta: &bevy::ecs::system::SystemMeta,
+        _: &'state mut Self::State,
+        _: &bevy::ecs::system::SystemMeta,
         world: bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell<'world>,
-        change_tick: bevy::ecs::component::Tick,
+        _: bevy::ecs::component::Tick,
     ) -> Self::Item<'world, 'state> {
         let resource = world
             .get_resource::<AsyncEventResource<T>>()
             .expect("Event is not registered as an async event");
         Self(resource.sender.clone())
     }
-
-
 }
 
 #[derive(Resource)]

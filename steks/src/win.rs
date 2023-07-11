@@ -17,12 +17,12 @@ pub struct WinPlugin;
 
 impl Plugin for WinPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(check_for_collisions)
+        app.add_systems(Update, check_for_collisions)
             .add_systems(First, check_for_win)
             .add_event::<ShapeCreationData>()
             .add_event::<ShapeUpdateData>()
-            .add_system(spawn_and_update_shapes)
-            .add_system(check_for_tower.before(drag_end));
+            .add_systems(Update, spawn_and_update_shapes)
+            .add_systems(Update, check_for_tower.before(drag_end));
     }
 }
 

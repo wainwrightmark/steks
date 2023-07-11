@@ -12,8 +12,8 @@ impl Plugin for LevelPlugin {
             .add_systems(First, handle_change_level_events)
             .add_systems(Last, track_level_completion)
             .add_systems(Update, manage_level_shapes)
-            .add_systems(Update,skip_tutorial_completion)
-            .add_systems(Update,adjust_gravity)
+            .add_systems(Update, skip_tutorial_completion)
+            .add_systems(Update, adjust_gravity)
             .add_plugins(AsyncEventPlugin::<ChangeLevelEvent>::default());
     }
 }

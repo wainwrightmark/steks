@@ -10,10 +10,10 @@ pub struct PadlockPlugin;
 
 impl Plugin for PadlockPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup,create_padlock);
+        app.add_systems(Startup, create_padlock);
         app.init_resource::<PadlockResource>();
-        app.add_system(clear_padlock_on_level_change)
-            .add_system(control_padlock);
+        app.add_systems(Update, clear_padlock_on_level_change)
+            .add_systems(Update, control_padlock);
     }
 }
 

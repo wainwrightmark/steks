@@ -289,7 +289,8 @@ pub fn button_text_bundle(menu_button: &MenuButton, font: Handle<Font>) -> TextB
             },
         ),
         ..Default::default()
-    }.with_no_wrap()
+    }
+    .with_no_wrap()
 }
 
 pub fn spawn_button(

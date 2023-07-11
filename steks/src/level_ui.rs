@@ -78,7 +78,6 @@ fn update_ui_on_level_change(
 #[derive(Debug, Component, Clone, Copy)]
 enum LevelUIComponent {
     Root,
-    Border,
     MainPanel,
     AllText,
     LevelNumber,
@@ -98,8 +97,7 @@ impl LevelUIComponent {
         ];
 
         match self {
-            Root => &[Self::Border],
-            Border => &[Self::MainPanel],
+            Root => &[Self::MainPanel],
             MainPanel => &[Self::AllText, Self::ButtonPanel],
             AllText => &[Self::LevelNumber, Self::Title, Self::Message],
             Message => &[],
@@ -162,31 +160,6 @@ fn get_root_bundle(args: UIArgs) -> NodeBundle {
     }
 }
 
-fn get_border_bundle(args: UIArgs) -> NodeBundle {
-    let background_color: BackgroundColor = get_border_color(args.current_level).into();
-
-    let border = match args.current_level.completion {
-        LevelCompletion::Incomplete { .. } | LevelCompletion::Complete { splash: false, .. } => {
-            UiRect::DEFAULT
-        }
-        LevelCompletion::Complete { splash: true, .. } => UiRect::all(Val::Px(3.0)),
-    };
-
-    NodeBundle {
-        style: Style {
-            display: Display::Flex,
-            align_items: AlignItems::Center,
-            margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-            justify_content: JustifyContent::Center,
-            border,
-
-            ..Default::default()
-        },
-        background_color,
-        ..Default::default()
-    }
-}
-
 fn get_all_text_bundle(_args: UIArgs) -> NodeBundle {
     NodeBundle {
         style: Style {
@@ -223,6 +196,7 @@ fn get_panel_bundle(args: UIArgs) -> NodeBundle {
 
             ..Default::default()
         },
+        border_color: BorderColor(get_border_color(args.current_level)),
         background_color,
         ..Default::default()
     }
@@ -437,54 +411,6 @@ fn animate_panel(
     }
 }
 
-fn animate_border(
-    commands: &mut EntityCommands,
-    current_level: &CurrentLevel,
-    previous: &CurrentLevel,
-) {
-    let lens = BackgroundColorLens {
-        start: get_border_color(previous),
-        end: get_border_color(current_level),
-    };
-
-    match current_level.completion {
-        LevelCompletion::Complete { splash, .. } => {
-            //let millis = if splash{MINIMIZE_MILLIS * 5} else{MINIMIZE_MILLIS / 100};
-
-            if splash {
-                commands.insert(Animator::new(
-                    Tween::new(
-                        EaseFunction::QuadraticInOut,
-                        Duration::from_millis(1),
-                        BackgroundColorLens {
-                            start: Color::NONE,
-                            end: Color::NONE,
-                        },
-                    )
-                    .then(Delay::new(Duration::from_millis(MINIMIZE_MILLIS)))
-                    .then(Tween::new(
-                        EaseFunction::QuadraticInOut,
-                        Duration::from_millis(MINIMIZE_MILLIS),
-                        lens,
-                    )),
-                ));
-            } else {
-                commands.insert(Animator::new(Tween::new(
-                    EaseFunction::QuadraticInOut,
-                    Duration::from_millis(MINIMIZE_MILLIS),
-                    BackgroundColorLens {
-                        start: Color::NONE,
-                        end: Color::NONE,
-                    },
-                )));
-            }
-        }
-        LevelCompletion::Incomplete { .. } => {
-            commands.remove::<Animator<BackgroundColor>>();
-        }
-    }
-}
-
 fn handle_animations(
     commands: &mut EntityCommands,
     current_level: &CurrentLevel,
@@ -495,7 +421,6 @@ fn handle_animations(
         LevelUIComponent::Root => animate_root(commands, current_level, previous),
         LevelUIComponent::Message => animate_text(commands, current_level, previous),
         LevelUIComponent::MainPanel => animate_panel(commands, current_level, previous),
-        LevelUIComponent::Border => animate_border(commands, current_level, previous),
         LevelUIComponent::Title => animate_text(commands, current_level, previous),
         LevelUIComponent::LevelNumber => animate_text(commands, current_level, previous),
         _ => {}
@@ -517,9 +442,6 @@ fn insert_bundle(
     match component {
         LevelUIComponent::Root => {
             commands.insert(get_root_bundle(args));
-        }
-        LevelUIComponent::Border => {
-            commands.insert(get_border_bundle(args));
         }
         LevelUIComponent::MainPanel => {
             commands.insert(get_panel_bundle(args));

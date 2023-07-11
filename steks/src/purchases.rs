@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use wasm_bindgen::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(module = "/purchase.ts")]
+#[wasm_bindgen(module = "/purchase.js")]
 extern "C" {
 
     pub type Purchases;
@@ -11,33 +11,33 @@ extern "C" {
     #[wasm_bindgen(constructor)]
     fn new() -> Purchases;
 
-    #[wasm_bindgen(method)]
-    pub fn get_is_unlocked(this: &Purchases) -> bool;
+    // #[wasm_bindgen(method, js_namespace= ["purchase", "Purchases"])]
+    // pub fn get_is_unlocked(this: &Purchases) -> bool;
 
-    #[wasm_bindgen(method)]
-    pub fn can_purchase(this: &Purchases) -> bool;
+    // #[wasm_bindgen(method, js_namespace= ["purchase", "Purchases"])]
+    // pub fn can_purchase(this: &Purchases) -> bool;
 
     #[wasm_bindgen(method)]
     pub fn try_purchase(this: &Purchases);
 
-    #[wasm_bindgen(method)]
-    fn restore(this: &Purchases);
+    // #[wasm_bindgen(method, js_namespace= ["purchase", "Purchases"])]
+    // fn restore(this: &Purchases);
 }
 
 pub struct TryPurchaseEvent;
 
 #[cfg(target_arch = "wasm32")]
-fn handle_purchases(mut events: EventReader<TryPurchaseEvent>) { //, res: NonSend<Purchases>) {
-                                                                 // if !events.is_empty() {
-                                                                 //     events.clear();
-                                                                 //     res.try_purchase()
-                                                                 // }
+fn handle_purchases(mut events: EventReader<TryPurchaseEvent>, res: NonSend<Purchases>) {
+    if !events.is_empty() {
+        events.clear();
+        res.try_purchase()
+    }
 }
 
 #[cfg(target_arch = "wasm32")]
 fn init_purchases(world: &mut World) {
-    // let purchases = Purchases::new();
-    // world.insert_non_send_resource(purchases);
+    let purchases = Purchases::new();
+    world.insert_non_send_resource(purchases);
 }
 
 pub struct PurchasesPlugin;

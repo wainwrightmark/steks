@@ -31,8 +31,8 @@
     <link rel="manifest" href="/manifest.json" />
     <link data-trunk rel="inline" href="styles.css" />
 
-    <script src="purchase.ts" type="text/typescript"></script>
-    <link data-trunk rel="copy-file" href="purchase.ts" />
+    <script src="purchase.js" type="module"></script>
+    <link data-trunk rel="copy-file" href="purchase.js" />
   </head>
 
   <body>
@@ -47,15 +47,14 @@
       <div></div>
     </div>
 
-      <link
-        rel="rust"
-        data-trunk
-        href="Cargo.toml"
-        data-bin="steks"
-        data-cargo-features="android"
-      />
+    <link
+      rel="rust"
+      data-trunk
+      href="Cargo.toml"
+      data-bin="steks"
+      data-cargo-features="android"
+    />
 
-    <canvas id="game" > </canvas>
-
+    <canvas id="game"> </canvas>
   </body>
 </html>

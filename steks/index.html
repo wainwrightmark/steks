@@ -48,12 +48,18 @@
     <script src="../plugins/@capacitor/clipboard.js" type="module"></script>
     <script src="../plugins/@capacitor/splash-screen.js" type="module"></script>
     <script src="../plugins/@capacitor/status-bar.js" type="module"></script>
-    <script src="../plugins/@capacitor/local-notifications.js" type="module"></script>
+    <script
+      src="../plugins/@capacitor/local-notifications.js"
+      type="module"
+    ></script>
 
     <link data-trunk rel="copy-file" href="capacitor.js" />
 
     <link data-trunk rel="copy-dir" href="../plugins" />
     <link data-trunk rel="copy-dir" href=".well-known" />
+
+    <script src="purchase.js" type="text/javascript"></script>
+    <link data-trunk rel="copy-file" href="purchase.js" />
   </head>
 
   <body>
@@ -67,6 +73,6 @@
       <div></div>
       <div></div>
     </div>
-    <canvas id="game" > </canvas>
+    <canvas id="game"> </canvas>
   </body>
 </html>

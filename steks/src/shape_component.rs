@@ -9,9 +9,9 @@ pub enum ShapeComponent {
     Dragged(Dragged),
 }
 
-impl Into<ShapeState> for &ShapeComponent {
-    fn into(self) -> ShapeState {
-        match self {
+impl From<&ShapeComponent> for ShapeState {
+    fn from(val: &ShapeComponent) -> Self {
+        match val {
             ShapeComponent::Free => ShapeState::Normal,
             ShapeComponent::Locked => ShapeState::Locked,
             ShapeComponent::Fixed => ShapeState::Fixed,
@@ -21,9 +21,9 @@ impl Into<ShapeState> for &ShapeComponent {
     }
 }
 
-impl Into<ShapeComponent> for ShapeState {
-    fn into(self) -> ShapeComponent {
-        match self {
+impl From<ShapeState> for ShapeComponent {
+    fn from(val: ShapeState) -> Self {
+        match val {
             ShapeState::Normal => ShapeComponent::Free,
             ShapeState::Locked => ShapeComponent::Locked,
             ShapeState::Fixed => ShapeComponent::Fixed,

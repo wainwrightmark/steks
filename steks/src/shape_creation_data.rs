@@ -136,7 +136,7 @@ impl From<EncodableShape> for ShapeCreationData {
         Self {
             shape,
             location: Some(location),
-            state: state,
+            state,
             velocity: None,
             modifiers,
             id: None,

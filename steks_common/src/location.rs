@@ -6,11 +6,11 @@ pub struct Location {
     pub angle: f32,
 }
 
-impl Into<Transform> for Location {
-    fn into(self) -> Transform {
+impl From<Location> for Transform {
+    fn from(val: Location) -> Self {
         Transform {
-            translation: self.position.extend(0.0),
-            rotation: Quat::from_rotation_z(self.angle),
+            translation: val.position.extend(0.0),
+            rotation: Quat::from_rotation_z(val.angle),
             scale: Vec3::ONE,
         }
     }

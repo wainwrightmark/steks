@@ -144,8 +144,7 @@ fn spawn_wall(commands: &mut Commands, color: Color, wall: WallPosition) {
         .with_children(|f| {
             f.spawn(collider_shape)
                 .insert(Sensor {})
-                .insert( ActiveEvents::COLLISION_EVENTS)
-
+                .insert(ActiveEvents::COLLISION_EVENTS)
                 .insert(CollisionGroups {
                     memberships: WALL_COLLISION_GROUP,
                     filters: WALL_COLLISION_FILTERS,

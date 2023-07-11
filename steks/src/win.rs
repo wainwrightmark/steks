@@ -26,8 +26,6 @@ impl Plugin for WinPlugin {
     }
 }
 
-
-
 pub fn check_for_win(
     mut commands: Commands,
     mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
@@ -88,7 +86,6 @@ pub fn check_for_tower(
     wall_sensors: Query<Entity, With<WallSensor>>,
     walls: Query<Entity, With<WallPosition>>,
 ) {
-
     let Some(event) = check_events.iter().next() else{return;};
 
     if !win_timer.is_empty() {
@@ -101,14 +98,18 @@ pub fn check_for_tower(
 
     //Check for contacts
     if walls.iter().any(|entity| {
-        rapier_context.contacts_with(entity).any(|contact|contact.has_any_active_contacts())
+        rapier_context
+            .contacts_with(entity)
+            .any(|contact| contact.has_any_active_contacts())
     }) {
         debug!("Wall Contact Found");
         return;
     }
 
     if wall_sensors.iter().any(|entity| {
-        rapier_context.intersections_with(entity).any(|contact|contact.2) //.any(|contact|contact.2)
+        rapier_context
+            .intersections_with(entity)
+            .any(|contact| contact.2) //.any(|contact|contact.2)
     }) {
         debug!("Wall Intersection Found");
         return;

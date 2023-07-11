@@ -65,8 +65,7 @@ enum Winding {
 
 fn clamp_radius(radius: f32, p_previous: Vec2, p_current: Vec2, p_next: Vec2) -> f32 {
     let shorter_edge = ((p_current - p_next).length()).min((p_previous - p_current).length());
-    let clamped_radius = radius.min(shorter_edge * 0.5);
-    clamped_radius
+    radius.min(shorter_edge * 0.5)
 }
 
 fn get_point_between(p1: Vec2, p2: Vec2, radius: f32) -> Vec2 {
@@ -97,7 +96,7 @@ fn line_to(builder: &mut String, to: Vec2) {
 fn arc(builder: &mut String, radii: (f32, f32), x_rotation: f32, flags: ArcFlags, to: Vec2) {
     let rx = radii.0;
     let ry = radii.1;
-    let large_arc = flags.large_arc.then(|| 1).unwrap_or_default();
+    let large_arc = flags.large_arc.then_some(1).unwrap_or_default();
     let sweep = if flags.sweep == Winding::Negative {
         1
     } else {

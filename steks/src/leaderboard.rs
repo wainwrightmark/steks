@@ -107,8 +107,7 @@ async fn get_leaderboard_data() -> LeaderboardDataEvent {
 }
 
 async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error> {
-
-    if cfg!(debug_assertions){
+    if cfg!(debug_assertions) {
         return Ok(());
     }
 

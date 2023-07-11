@@ -56,7 +56,7 @@ fn hide_shadows(
 }
 
 fn move_shadows(
-    query: Query<&Transform,( With<TouchDragged>, Changed<Transform>)>,
+    query: Query<&Transform, (With<TouchDragged>, Changed<Transform>)>,
     mut q_child: Query<
         (&Parent, &mut Transform, &GlobalTransform),
         (With<Shadow>, Without<TouchDragged>),

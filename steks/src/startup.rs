@@ -83,7 +83,7 @@ pub fn main() {
     {
         builder.add_plugin(WASMPlugin);
         builder.add_plugin(PurchasesPlugin);
-        if !cfg!(debug_assertions){
+        if !cfg!(debug_assertions) {
             builder.add_plugin(NotificationPlugin);
         }
     }
@@ -99,7 +99,7 @@ pub fn main() {
     builder.add_startup_system(hide_splash);
     builder.add_startup_system(set_status_bar.after(hide_splash));
 
-    if !cfg!(debug_assertions){
+    if !cfg!(debug_assertions) {
         builder.add_startup_system(log_start.in_base_set(StartupSet::PostStartup));
     }
 

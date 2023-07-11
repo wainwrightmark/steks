@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{infinity, prelude::*, shape_maker};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -162,7 +164,7 @@ impl CurrentLevel {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::SetLevel { level, .. } => {
-                    level.get_stage(&stage).map(|x| x.text.clone()).flatten()
+                    level.get_stage(&stage).and_then(|x| x.text.clone())
                 }
                 GameLevel::Infinite { bytes } => {
                     if stage == 0 && bytes.is_some() {
@@ -176,7 +178,7 @@ impl CurrentLevel {
                     if message.is_some() {
                         message.clone()
                     } else {
-                        level.get_stage(&stage).map(|x| x.text.clone()).flatten()
+                        level.get_stage(&stage).and_then(|x| x.text.clone())
                     }
                 }
             },
@@ -301,15 +303,15 @@ impl LevelCompletion {
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameLevel {
     SetLevel {
+        level: Arc<SetLevel>,
         index: u8,
-        level: SetLevel,
     },
     Infinite {
-        bytes: Option<Vec<u8>>,
+        bytes: Option<Arc<Vec<u8>>>,
     },
     Challenge,
     Custom {
-        level: SetLevel,
+        level: Arc<SetLevel>,
         message: Option<String>,
     },
 }
@@ -374,10 +376,10 @@ pub enum ChangeLevelEvent {
     StartTutorial,
     StartInfinite,
     StartChallenge,
-    Load(Vec<u8>),
+    Load(std::sync::Arc<Vec<u8>>),
 
     Custom {
-        level: SetLevel,
+        level: std::sync::Arc<SetLevel>,
         message: Option<String>,
     },
 }
@@ -389,7 +391,7 @@ impl ChangeLevelEvent {
             let data = path[6..].to_string();
             match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data) {
                 Ok(bytes) => {
-                    return Some(ChangeLevelEvent::Load(bytes));
+                    return Some(ChangeLevelEvent::Load(std::sync::Arc::new(bytes)));
                 }
                 Err(err) => warn!("{err}"),
             }
@@ -425,20 +427,15 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
 }
 
 fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
-    if level.is_changed()
-        && level.completion.is_complete()
-        && matches!(
-            level.level,
-            GameLevel::SetLevel {
-                level: SetLevel {
-                    skip_completion: true,
-                    ..
-                },
-                ..
+    if level.is_changed() && level.completion.is_complete() {
+        if match &level.level {
+            GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
+                level.skip_completion
             }
-        )
-    {
-        events.send(ChangeLevelEvent::Next);
+            _ => false,
+        } {
+            events.send(ChangeLevelEvent::Next);
+        }
     }
 }
 
@@ -519,7 +516,7 @@ impl ChangeLevelEvent {
         match Self::try_make_custom(data) {
             Ok(x) => x,
             Err(message) => ChangeLevelEvent::Custom {
-                level: SetLevel::default(),
+                level: SetLevel::default().into(),
                 message: Some(message.to_string()),
             },
         }
@@ -540,7 +537,7 @@ impl ChangeLevelEvent {
             .ok_or(anyhow::anyhow!("No levels Found"))?;
 
         Ok(ChangeLevelEvent::Custom {
-            level,
+            level: level.into(),
             message: None,
         })
     }

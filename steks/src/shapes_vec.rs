@@ -1,7 +1,7 @@
 use base64::Engine;
 use bevy::{
     ecs::query::ReadOnlyWorldQuery,
-    prelude::{ Query, Transform},
+    prelude::{Query, Transform},
 };
 use itertools::Itertools;
 
@@ -50,10 +50,8 @@ impl ShapesVec {
             max = max.max(bb.max.y);
         }
 
-        let height = (max - min).max(0.0);
-
         //info!("Calculated height min {min:.2} max {max:.2} height {height:.2}");
-        height
+        (max - min).max(0.0)
     }
 
     pub fn from_query<F: ReadOnlyWorldQuery>(

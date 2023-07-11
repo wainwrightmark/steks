@@ -107,9 +107,7 @@ pub fn encode_shapes(shapes: &[EncodableShape]) -> Vec<u8> {
 }
 
 pub fn decode_shapes(data: &[u8]) -> Vec<EncodableShape> {
-    data.chunks_exact(7)
-        .map(|x| EncodableShape::decode(x))
-        .collect()
+    data.chunks_exact(7).map(EncodableShape::decode).collect()
 }
 
 const X_RANGE: RangeInclusive<f32> = (MAX_WINDOW_WIDTH * -0.5)..=(MAX_WINDOW_WIDTH * 0.5);

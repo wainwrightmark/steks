@@ -27,11 +27,11 @@ extern "C" {
 pub struct TryPurchaseEvent;
 
 #[cfg(target_arch = "wasm32")]
-fn handle_purchases(mut events: EventReader<TryPurchaseEvent>){//, res: NonSend<Purchases>) {
-    // if !events.is_empty() {
-    //     events.clear();
-    //     res.try_purchase()
-    // }
+fn handle_purchases(mut events: EventReader<TryPurchaseEvent>) { //, res: NonSend<Purchases>) {
+                                                                 // if !events.is_empty() {
+                                                                 //     events.clear();
+                                                                 //     res.try_purchase()
+                                                                 // }
 }
 
 #[cfg(target_arch = "wasm32")]

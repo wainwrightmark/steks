@@ -11,9 +11,9 @@ use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
 
 pub mod circle;
-pub mod triangle;
 pub mod polyomino;
 mod rounded_polygon;
+pub mod triangle;
 pub use circle::*;
 pub use triangle::*;
 
@@ -125,5 +125,4 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .collect()
 });
 
-
-const TRIANGLE: Triangle<4> =  Triangle(&[(-1, -1), (-1, 2), (2, -1)]);
+const TRIANGLE: Triangle<4> = Triangle(&[(-1, -1), (-1, 2), (2, -1)]);

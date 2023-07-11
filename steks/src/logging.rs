@@ -307,8 +307,7 @@ impl EventLog {
                 .await?;
 
             res.error_for_status().map(|_| ())
-        }
-        else{
+        } else {
             Ok(())
         }
     }

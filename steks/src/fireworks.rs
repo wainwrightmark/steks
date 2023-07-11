@@ -66,16 +66,12 @@ fn manage_fireworks(
         crate::level::LevelCompletion::Complete { splash: false, .. } => {
             countdown.timer.pause();
         }
-        crate::level::LevelCompletion::Incomplete { .. }
-        =>{
-            if let Some(new_countdown) = get_new_fireworks(
-                &current_level,
-                None,
-                previous.completion.is_complete(),
-            ) {
+        crate::level::LevelCompletion::Incomplete { .. } => {
+            if let Some(new_countdown) =
+                get_new_fireworks(&current_level, None, previous.completion.is_complete())
+            {
                 *countdown = new_countdown;
-            }
-            else {
+            } else {
                 countdown.timer.pause();
             }
         }
@@ -83,7 +79,6 @@ fn manage_fireworks(
             splash: true,
             score_info,
         } => {
-
             if let Some(new_countdown) = get_new_fireworks(
                 &current_level,
                 Some(&score_info),
@@ -134,13 +129,9 @@ fn spawn_fireworks(
     if countdown.timer.just_finished() {
         let mut rng: ThreadRng = rand::thread_rng();
 
-        if let Some(duration) = countdown.max_delay_seconds{
-            countdown.timer = Timer::from_seconds(
-                duration,
-                TimerMode::Once,
-            );
-        }
-        else{
+        if let Some(duration) = countdown.max_delay_seconds {
+            countdown.timer = Timer::from_seconds(duration, TimerMode::Once);
+        } else {
             countdown.timer.pause();
         }
 
@@ -168,25 +159,20 @@ fn get_new_fireworks(
     info: Option<&ScoreInfo>,
     previous_was_complete: bool,
 ) -> Option<FireworksCountdown> {
-
     let settings = match &current_level.level {
         GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
             match current_level.completion {
                 LevelCompletion::Incomplete { stage } => level.get_fireworks_settings(&stage),
-                LevelCompletion::Complete { .. } => {
-                    level.end_fireworks.clone()
-                }
+                LevelCompletion::Complete { .. } => level.end_fireworks.clone(),
             }
         }
         GameLevel::Infinite { .. } | GameLevel::Challenge => FireworksSettings::default(),
     };
 
-
-
     if match info {
-            None => false,
-            Some(x) => (|x: &ScoreInfo|x.is_wr)(x),
-        } {
+        None => false,
+        Some(x) => x.is_wr,
+    } {
         return Some(FireworksCountdown {
             timer: Timer::from_seconds(0.0, TimerMode::Once),
             max_delay_seconds: Some(1.0),
@@ -197,9 +183,9 @@ fn get_new_fireworks(
 
     if !previous_was_complete {
         if match info {
-                None => false,
-                Some(x) => (|x: &ScoreInfo|x.is_first_win)(x),
-            } {
+            None => false,
+            Some(x) => x.is_first_win,
+        } {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(4.0, TimerMode::Once),
                 max_delay_seconds: Some(4.0),
@@ -209,9 +195,9 @@ fn get_new_fireworks(
         }
 
         if match info {
-                None => false,
-                Some(x) => (|x: &ScoreInfo|x.is_pb)(x),
-            } {
+            None => false,
+            Some(x) => x.is_pb,
+        } {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(0.0, TimerMode::Once),
                 max_delay_seconds: Some(4.0),

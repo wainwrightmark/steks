@@ -22,7 +22,7 @@ pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<S
             if let Some(bytes) = bytes {
                 decode_shapes(bytes)
                     .into_iter()
-                    .map(|x| ShapeCreationData::from(x))
+                    .map(ShapeCreationData::from)
                     .collect_vec()
             } else {
                 let mut rng: ThreadRng = ThreadRng::default();
@@ -66,7 +66,7 @@ pub fn spawn_and_update_shapes(
     )>,
     mut recently_finished: Local<bool>,
 
-    mut check_win: EventWriter<CheckForWinEvent>
+    mut check_win: EventWriter<CheckForWinEvent>,
 ) {
     creation_queue.extend(creations.iter());
     update_queue.extend(updates.iter());
@@ -86,7 +86,7 @@ pub fn spawn_and_update_shapes(
                 &mut commands,
                 existing_entity,
                 prev,
-                shape_component.into(),
+                shape_component,
                 transform,
             );
             true
@@ -94,14 +94,14 @@ pub fn spawn_and_update_shapes(
             error!("Could not find shape with id {}", update.id);
             false
         }
-    } else{
+    } else {
         false
     };
 
-    if changed{
-        * recently_finished = true;
-    }else{
-        if *recently_finished{
+    if changed {
+        *recently_finished = true;
+    } else {
+        if *recently_finished {
             //send this event one frame after spawning shapes
             check_win.send(CheckForWinEvent::ON_LAST_SPAWN);
         }
@@ -144,7 +144,15 @@ pub fn place_and_create_shape<RNG: Rng>(
             }
 
             if rapier_context
-                .intersection_with_shape(position, angle, &collider, QueryFilter::new().groups(CollisionGroups { memberships: SHAPE_COLLISION_GROUP, filters: SHAPE_COLLISION_FILTERS }))
+                .intersection_with_shape(
+                    position,
+                    angle,
+                    &collider,
+                    QueryFilter::new().groups(CollisionGroups {
+                        memberships: SHAPE_COLLISION_GROUP,
+                        filters: SHAPE_COLLISION_FILTERS,
+                    }),
+                )
                 .is_none()
             {
                 bevy::log::debug!(
@@ -215,7 +223,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
         .insert(shape_with_data.stroke())
         .insert(shape_with_data.shape.index)
         .insert(RigidBody::Dynamic)
-        .insert(collider_shape.clone())
+        .insert(collider_shape)
         .insert(Ccd::enabled())
         .insert(shape_component.locked_axes())
         .insert(shape_component.gravity_scale())

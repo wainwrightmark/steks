@@ -64,7 +64,7 @@ impl ShapeUpdateData {
             let shape_bundle = shape.body.get_shape_bundle(SHAPE_SIZE);
 
             ec.insert(shape_bundle);
-            ec.insert(shape.index).insert(collider_shape.clone());
+            ec.insert(shape.index).insert(collider_shape);
         }
 
         if let Some(state) = self.state {

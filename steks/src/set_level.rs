@@ -4,9 +4,9 @@ use steks_common::prelude::GameShape;
 
 use crate::prelude::*;
 lazy_static::lazy_static! {
-    static ref LIST: Vec<SetLevel> ={
+    static ref LIST: Vec<Arc<SetLevel>> ={
         let s = include_str!("levels.yaml");
-        let list: Vec<SetLevel> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+        let list: Vec<Arc<SetLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
 
         list
     };
@@ -45,8 +45,7 @@ pub struct SetLevel {
 
     #[serde(default)]
     #[serde(alias = "End_fireworks")]
-    pub end_fireworks: FireworksSettings
-
+    pub end_fireworks: FireworksSettings,
 }
 
 impl SetLevel {
@@ -57,8 +56,10 @@ impl SetLevel {
         }
     }
 
-    pub fn get_fireworks_settings(&self, stage: &usize)-> FireworksSettings{
-        self.get_stage(stage).map(|x|x.fireworks.clone()).unwrap_or_default()
+    pub fn get_fireworks_settings(&self, stage: &usize) -> FireworksSettings {
+        self.get_stage(stage)
+            .map(|x| x.fireworks.clone())
+            .unwrap_or_default()
     }
 
     pub fn get_last_stage(&self) -> &LevelStage {
@@ -101,18 +102,18 @@ pub struct LevelStage {
 
     #[serde(default)]
     #[serde(alias = "Fireworks")]
-    pub fireworks: FireworksSettings
+    pub fireworks: FireworksSettings,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct FireworksSettings{
+pub struct FireworksSettings {
     #[serde(default)]
     #[serde(alias = "Intensity")]
     pub intensity: Option<u32>,
 
     #[serde(default)]
     #[serde(alias = "Shapes")]
-    pub shapes: Arc<Vec<LevelShapeForm>>
+    pub shapes: Arc<Vec<LevelShapeForm>>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
@@ -365,27 +366,48 @@ mod tests {
     }
 
     fn check_level(level: &SetLevel, index: usize, errors: &mut Vec<String>) {
+        let index = (index as i16) - TUTORIAL_LEVELS + 1;
 
-        let index =(index as i16) - TUTORIAL_LEVELS + 1;
+        check_string(
+            &level.title,
+            format!("Level {index:2} Title   "),
+            LEVEL_TITLE_MAX_CHARS,
+            errors,
+        );
+        check_string(
+            &level.end_text,
+            format!("Level {index:2} End Text"),
+            LEVEL_END_TEXT_MAX_CHARS,
+            errors,
+        );
 
-        check_string(&level.title, format!("Level {index:2} Title   "), LEVEL_TITLE_MAX_CHARS, errors);
-        check_string(&level.end_text, format!("Level {index:2} End Text"), LEVEL_END_TEXT_MAX_CHARS, errors);
-
-        for (stage_index, stage) in std::iter::once(&level.initial_stage).chain(level.stages.iter()).enumerate(){
-            check_string(&stage.text, format!("Level {index:2} Stage  {stage_index}"), LEVEL_STAGE_TEXT_MAX_CHARS, errors);
+        for (stage_index, stage) in std::iter::once(&level.initial_stage)
+            .chain(level.stages.iter())
+            .enumerate()
+        {
+            check_string(
+                &stage.text,
+                format!("Level {index:2} Stage  {stage_index}"),
+                LEVEL_STAGE_TEXT_MAX_CHARS,
+                errors,
+            );
         }
-
     }
 
-    fn check_string(string:&Option<String> , path: String, max_line_length: usize, errors: &mut Vec<String> ){
+    fn check_string(
+        string: &Option<String>,
+        path: String,
+        max_line_length: usize,
+        errors: &mut Vec<String>,
+    ) {
         let Some(string) = string else{return;};
-        for (line_num, s) in string.lines().enumerate(){
+        for (line_num, s) in string.lines().enumerate() {
             let count = s.chars().count();
-            if count > max_line_length{
-                errors.push(format!("{path} line {line_num} is too long ({count} vs {max_line_length}): {s}"));
+            if count > max_line_length {
+                errors.push(format!(
+                    "{path} line {line_num} is too long ({count} vs {max_line_length}): {s}"
+                ));
             }
         }
     }
-
-
 }

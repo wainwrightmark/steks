@@ -98,7 +98,6 @@ fn button_system(
 
     mut menu_state: ResMut<MenuState>,
     mut current_level: ResMut<CurrentLevel>,
-
 ) {
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
         use MenuButton::*;
@@ -141,7 +140,7 @@ fn button_system(
                         bevy::tasks::IoTaskPool::get()
                             .spawn(async move { minimize_app_async().await })
                             .detach();
-                    },
+                    }
                     Purchase => {
                         purchase_events.send(TryPurchaseEvent);
                     }
@@ -331,7 +330,7 @@ pub enum MenuButton {
     NextLevel,
     MinimizeCompletion,
     MinimizeApp,
-    Purchase
+    Purchase,
 }
 
 impl MenuButton {
@@ -351,7 +350,7 @@ impl MenuButton {
             MinimizeCompletion => "\u{e814}".to_string(), //minus
             MinimizeApp => "\u{e813}".to_string(),        //logout
             Import => "\u{e818}".to_string(),             //clipboard
-            Purchase => "\u{f513}".to_string() //unlock
+            Purchase => "\u{f513}".to_string(),           //unlock
         }
     }
 }

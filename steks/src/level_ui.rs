@@ -1,5 +1,4 @@
 use bevy::ecs::system::EntityCommands;
-use bevy_pkv::PkvStore;
 use bevy_tweening::{lens::*, Delay};
 use bevy_tweening::{Animator, EaseFunction, Tween};
 
@@ -15,13 +14,7 @@ impl Plugin for LevelUiPlugin {
     }
 }
 
-pub fn setup_level_ui(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    score_store: Res<ScoreStore>,
-    shapes: Query<&ShapeIndex>,
-    pkv: Res<PkvStore>,
-) {
+pub fn setup_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     let component = LevelUIComponent::Root;
     let current_level = CurrentLevel {
         level: GameLevel::Challenge,
@@ -34,15 +27,7 @@ pub fn setup_level_ui(
 
     ec.with_children(|builder| {
         for child in component.get_child_components() {
-            insert_component_and_children(
-                builder,
-                &current_level,
-                child,
-                &asset_server,
-                &score_store,
-                &shapes,
-                &pkv,
-            );
+            insert_component_and_children(builder, &current_level, child, &asset_server);
         }
     });
 }
@@ -52,9 +37,6 @@ fn insert_component_and_children(
     current_level: &CurrentLevel,
     component: &LevelUIComponent,
     asset_server: &Res<AssetServer>,
-    score_store: &Res<ScoreStore>,
-    shapes: &Query<&ShapeIndex>,
-    pkv: &Res<PkvStore>,
 ) {
     let mut ec = commands.spawn_empty();
     insert_bundle(&mut ec, true, current_level, component, asset_server);
@@ -62,15 +44,7 @@ fn insert_component_and_children(
 
     ec.with_children(|builder| {
         for child in component.get_child_components() {
-            insert_component_and_children(
-                builder,
-                current_level,
-                child,
-                asset_server,
-                score_store,
-                shapes,
-                pkv,
-            );
+            insert_component_and_children(builder, current_level, child, asset_server);
         }
     });
 }

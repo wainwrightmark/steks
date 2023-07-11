@@ -94,7 +94,7 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
     }
 
     fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String {
-        let points: Vec<_> = get_vertices(&self, size).collect();
+        let points: Vec<_> = get_vertices(self, size).collect();
 
         let path = crate::game_shape::rounded_polygon::make_rounded_polygon_path(
             points.as_slice(),

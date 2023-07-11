@@ -16,15 +16,15 @@ impl Plugin for ImportPlugin {
 }
 
 fn handle_import_events(
-    mut events: EventReader<ImportEvent>,
-    writer: AsyncEventWriter<ChangeLevelEvent>,
+    mut _events: EventReader<ImportEvent>,
+    _writer: AsyncEventWriter<ChangeLevelEvent>,
 ) {
     #[cfg(target_arch = "wasm32")]
     {
-        for _ in events.iter() {
-            let writer = writer.clone();
+        for _ in _events.iter() {
+            let _writer = _writer.clone();
             bevy::tasks::IoTaskPool::get()
-                .spawn(async move { handle_import_event_async(writer).await })
+                .spawn(async move { handle_import_event_async(_writer).await })
                 .detach();
         }
     }
@@ -34,12 +34,15 @@ async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {
     let data = capacitor_bindings::clipboard::Clipboard::read()
         .await
         .map_err(|x| anyhow!("{}", x.to_string()))?;
-    let list: Vec<SetLevel> = serde_yaml::from_str(data.value.replace(" ", " ").as_str())?;
+    let list: Vec<SetLevel> = serde_yaml::from_str(data.value.replace(' ', " ").as_str())?;
 
-    let level = list.first().ok_or(anyhow::anyhow!("No Level Found"))?;
+    let level = list
+        .into_iter()
+        .next()
+        .ok_or(anyhow::anyhow!("No Level Found"))?;
 
     Ok(ChangeLevelEvent::Custom {
-        level: level.clone(),
+        level: level.into(),
         message: None,
     })
 }
@@ -48,7 +51,7 @@ async fn handle_import_event_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
     let cle = match get_imported_level_async().await {
         Ok(cle) => cle,
         Err(e) => ChangeLevelEvent::Custom {
-            level: SetLevel::default(),
+            level: SetLevel::default().into(),
             message: Some(e.to_string()),
         },
     };

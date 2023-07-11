@@ -429,20 +429,20 @@ pub struct DragEndingEvent {
 pub struct CheckForWinEvent {
     pub no_future_collision_countdown_seconds: f64,
     pub future_collision_countdown_seconds: Option<f64>,
-    pub future_lookahead_seconds: f64
+    pub future_lookahead_seconds: f64,
 }
 
-impl CheckForWinEvent{
-    pub const ON_DROP: CheckForWinEvent = CheckForWinEvent{
+impl CheckForWinEvent {
+    pub const ON_DROP: CheckForWinEvent = CheckForWinEvent {
         no_future_collision_countdown_seconds: 1.0,
         future_collision_countdown_seconds: Some(5.0),
-        future_lookahead_seconds: 10.0
+        future_lookahead_seconds: 10.0,
     };
 
-    pub const ON_LAST_SPAWN: CheckForWinEvent = CheckForWinEvent{
+    pub const ON_LAST_SPAWN: CheckForWinEvent = CheckForWinEvent {
         no_future_collision_countdown_seconds: 5.0,
         future_collision_countdown_seconds: None,
-        future_lookahead_seconds: 20.0
+        future_lookahead_seconds: 20.0,
     };
 }
 

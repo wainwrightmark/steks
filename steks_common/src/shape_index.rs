@@ -12,8 +12,8 @@ impl ShapeIndex {
     }
 }
 
-impl Into<&'static GameShape> for ShapeIndex {
-    fn into(self) -> &'static GameShape {
-        &ALL_SHAPES[self.0]
+impl From<ShapeIndex> for &'static GameShape {
+    fn from(val: ShapeIndex) -> Self {
+        &ALL_SHAPES[val.0]
     }
 }

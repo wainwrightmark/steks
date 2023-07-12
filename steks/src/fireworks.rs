@@ -17,6 +17,7 @@ impl Plugin for FireworksPlugin {
         app.add_systems(Update, spawn_fireworks)
             .add_systems(Update, despawn_fireworks)
             .add_systems(Update, manage_fireworks)
+            .add_systems(Update, firework_physics)
             .init_resource::<FireworksCountdown>();
         // .init_resource::<FireworksDespawnTimer>();
     }
@@ -118,7 +119,6 @@ fn spawn_fireworks(
     mut countdown: ResMut<FireworksCountdown>,
     time: Res<Time>,
     window: Query<&Window, With<PrimaryWindow>>,
-    rapier: Res<RapierConfiguration>,
 ) {
     if countdown.timer.paused() {
         return;
@@ -147,7 +147,6 @@ fn spawn_fireworks(
                 &mut commands,
                 translation,
                 &mut rng,
-                rapier.gravity.y.signum(),
                 &countdown.shapes,
             );
         }
@@ -223,7 +222,7 @@ fn spawn_spark<R: Rng>(
     commands: &mut Commands,
     translation: Vec3,
     rng: &mut R,
-    gravity_factor: f32,
+    // gravity_factor: f32,
     shapes: &Vec<LevelShapeForm>,
 ) {
     let game_shape = if shapes.is_empty() {
@@ -240,7 +239,7 @@ fn spawn_spark<R: Rng>(
     let x = rng.gen_range(-FIREWORK_VELOCITY..FIREWORK_VELOCITY);
     let y = rng.gen_range(-FIREWORK_VELOCITY..FIREWORK_VELOCITY);
 
-    let velocity: Velocity = Velocity {
+    let velocity: FireworkVelocity = FireworkVelocity {
         linvel: Vec2 { x, y },
         angvel,
     };
@@ -255,15 +254,26 @@ fn spawn_spark<R: Rng>(
             visibility: shape_bundle.visibility,
             computed_visibility: shape_bundle.computed_visibility,
         })
-        .insert(GravityScale(FIREWORK_GRAVITY * gravity_factor * -1.0))
         .insert(game_shape.fill())
-        .insert(RigidBody::Dynamic)
-        .insert(CollisionGroups {
-            memberships: FIREWORK_COLLISION_GROUP,
-            filters: FIREWORK_COLLISION_FILTERS,
-        })
-        .insert(Collider::ball(1.0))
         .insert(velocity)
         .insert(Firework)
         .insert(Transform::from_translation(translation));
+}
+
+fn firework_physics(mut query: Query<(&mut Transform, &mut FireworkVelocity)>, time: Res<Time>) {
+    for (mut transform,mut velocity) in query.iter_mut(){
+        let seconds = time.delta_seconds();
+        let grav = -1000.0 * FIREWORK_GRAVITY * seconds;
+
+        velocity.linvel.y += grav;
+        transform.translation += (velocity.linvel * seconds).extend(0.0);
+
+        transform.rotate_z(velocity.angvel * seconds);
+    }
+}
+
+#[derive(Debug, Component)]
+struct FireworkVelocity {
+    linvel: Vec2,
+    angvel: f32,
 }

@@ -1,10 +1,3 @@
-// import {
-//   InAppPurchase2,
-//   IAPProduct,
-//   InAppPurchase2Original,
-// } from "cordova-plugin-purchase/www/store.d";
-import "/cordova-plugin-purchase"
-
 const PRODUCT_PRO_KEY = "steks_unlock1";
 
 export class Purchases {
@@ -13,31 +6,30 @@ export class Purchases {
   store;
 
   constructor() {
-    this.store = new InAppPurchase2Original();
     // Only for debugging!
-    this.store.verbosity = this.store.DEBUG;
+    CdvPurchase.store.verbosity = CdvPurchase.store.DEBUG;
 
     this.registerProducts();
     this.setupListeners();
 
     // Get the real product information
-    this.store.ready(() => {
-      this.products = this.store.products;
+    CdvPurchase.store.ready(() => {
+      this.products = CdvPurchase.store.products;
     });
   }
 
   registerProducts() {
-    this.store.register({
+    CdvPurchase.store.register({
       id: PRODUCT_PRO_KEY,
-      type: this.store.NON_CONSUMABLE,
+      type: CdvPurchase.store.NON_CONSUMABLE,
     });
 
-    this.store.refresh();
+    CdvPurchase.store.initialize();
   }
 
   setupListeners() {
     // General query to all products
-    this.store
+    CdvPurchase.store
       .when("product")
       .approved((p) => {
         // Handle the product deliverable
@@ -50,10 +42,11 @@ export class Purchases {
       .verified((p) => p.finish());
 
     // Specific query for one ID
-    this.store.when(PRODUCT_PRO_KEY).owned((p) => {
+
+    if (CdvPurchase.store.owned(PRODUCT_PRO_KEY)) {
       console.info("Unlock already owned");
       this.is_unlocked = true;
-    });
+    }
   }
 
   get_is_unlocked() {
@@ -70,7 +63,7 @@ export class Purchases {
     } else {
       let product = this.products[0];
 
-      this.store.order(product).then(
+      CdvPurchase.store.order(product).then(
         (p) => {
           // Purchase in progress!
           console.info("Purchase in progress");
@@ -84,6 +77,6 @@ export class Purchases {
 
   // To comply with AppStore rules
   restore() {
-    this.store.refresh();
+    CdvPurchase.store.initialize();
   }
 }

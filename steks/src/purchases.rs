@@ -49,8 +49,8 @@ impl Plugin for PurchasesPlugin {
 
         #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
         {
-            // app.add_systems(Startup,init_purchases)
-            //     .add_systems(Update,handle_purchases);
+            app.add_systems(Startup,init_purchases)
+                .add_systems(Update,handle_purchases);
         }
     }
 }

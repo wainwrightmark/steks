@@ -204,6 +204,8 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 Import,
                 #[cfg(all(feature = "android", target_arch = "wasm32"))]
                 MinimizeApp,
+                 #[cfg(all(any(feature = "android", feature = "ios"), target_arch = "wasm32"))]
+                Purchase
             ] {
                 spawn_button(parent, button, font.clone());
             }

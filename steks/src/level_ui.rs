@@ -1,5 +1,5 @@
 use bevy::ecs::system::EntityCommands;
-use bevy_tweening::{lens::*, Delay};
+use bevy_tweening::lens::*;
 use bevy_tweening::{Animator, EaseFunction, Tween};
 
 use crate::prelude::*;

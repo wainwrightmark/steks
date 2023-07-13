@@ -1,51 +1,6 @@
 # https://en.wikipedia.org/wiki/Tetromino
 # https://en.wikipedia.org/wiki/Pentomino
 
-- text: "Welcome to steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with your finger\n\nPlace it above the triangle"
-  text_seconds: 360
-  skip_completion: true
-  shapes:
-    - shape: Triangle
-      x: 0.0
-      y: -150.0
-      r: 0.125
-      state: locked
-    - shape: O4
-      x: 0
-      y: -300
-- text: "Towers cannot touch the ground\n\nYour tower will need a foundation\n\n\nGrab the square and lift it up\n\nHold it in place a moment to lock"
-  text_seconds: 360
-  skip_completion: true
-  shapes:
-    - shape: O4
-  stages:
-    - text: "You can only lock one shape at once\n\n\nBalance the X on top of the square"
-      text_seconds: 360
-      shapes:
-        - shape: X5
-
-- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again and finish your tower"
-  text_seconds: 360
-  skip_completion: true
-  shapes:
-    - shape: Triangle
-      x: 0.0
-      y: -150.0
-      r: 0.625
-      state: locked
-    - shape: O4
-      x: 0.0
-      y: -300
-  stages:
-    - text: "To complete your tower\n\nUse all shapes on the screen"
-      text_seconds: 360
-      shapes:
-        - shape: L4
-    - text: "Finger blocking your tower?\n\nUse the black outlines to guide you"
-      text_seconds: 360
-      shapes:
-        - shape: L4
-
 - title: "A gentle warmup"
   end_text: "Not bad for a beginner"
   shapes:
@@ -601,8 +556,8 @@
   stages:
     - text: "Dr. Gravity unleashes his gravity ray\nA choir begins to chant in latin..."
       gravity:
-      - 0.0
-      - 1000.0 #reverse gravity
+        - 0.0
+        - 1000.0 #reverse gravity
       Updates:
         - id: 1
           state: normal
@@ -612,8 +567,8 @@
         intensity: 10
     - text: "To the last I grapple with thee!"
       gravity:
-      - 0.0
-      - -1000.0 #normal gravity
+        - 0.0
+        - -1000.0 #normal gravity
       Updates:
         - id: 1
           modifiers: ice
@@ -639,8 +594,8 @@
         intensity: 10
     - text: "You haven't seen my final form!"
       gravity:
-      - 0.0
-      - 1000.0 # Reverse Gravity
+        - 0.0
+        - 1000.0 # Reverse Gravity
       Updates:
         - id: 1
           modifiers: normal

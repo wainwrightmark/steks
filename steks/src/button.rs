@@ -97,7 +97,7 @@ impl MenuButton {
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
             Levels => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
-            GotoLevel { level } => crate::set_level::get_level_number(level),
+            GotoLevel { level } => crate::set_level::format_campaign_level_number(level),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
             MinimizeApp => "\u{e813}".to_string(),        //logout
@@ -121,8 +121,8 @@ impl MenuButton {
             Levels => "Choose Level".to_string(),
             ClipboardImport => "Import Level".to_string(),
             GotoLevel { level } => {
-                let level_number = get_level_number(level);
-                if let Some(set_level) =  set_level::get_set_level(*level){
+                let level_number = format_campaign_level_number(level);
+                if let Some(set_level) =  set_level::get_campaign_level(*level){
                      if let Some(name) = &set_level.title{
                         //format!("{level_number}: {name}")
                         name.clone()

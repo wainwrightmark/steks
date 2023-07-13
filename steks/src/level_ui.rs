@@ -140,7 +140,7 @@ fn get_root_position(current_level: &CurrentLevel) -> UiRect {
 }
 
 fn get_root_bundle(args: UIArgs) -> NodeBundle {
-    let z_index = ZIndex::Global(5);
+    let z_index = ZIndex::Global(15);
     let position = get_root_position(args.current_level);
 
     NodeBundle {
@@ -322,7 +322,7 @@ fn animate_text(
     const DEFAULT_TEXT_FADE: u32 = 20;
     let (seconds, end) = match current_level.completion {
         LevelCompletion::Incomplete { stage } => match &current_level.level {
-            GameLevel::SetLevel { level, .. } => (
+            GameLevel::Designed { level, .. } => (
                 level
                     .get_stage(&stage)
                     .and_then(|x| x.text_seconds)
@@ -331,7 +331,7 @@ fn animate_text(
             ),
             GameLevel::Infinite { .. } => (DEFAULT_TEXT_FADE, Color::NONE),
             GameLevel::Challenge => (DEFAULT_TEXT_FADE, Color::NONE),
-            GameLevel::Custom { .. } => (DEFAULT_TEXT_FADE, Color::NONE),
+
         },
         LevelCompletion::Complete { .. } => (DEFAULT_TEXT_FADE, SMALL_TEXT_COLOR),
     };

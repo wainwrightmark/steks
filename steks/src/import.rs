@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use bevy::prelude::*;
 
-use crate::{async_event_writer::*, level::ChangeLevelEvent, set_level::SetLevel};
+use crate::{async_event_writer::*, level::ChangeLevelEvent, set_level::DesignedLevel};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Event)]
 pub struct ImportEvent;
@@ -34,7 +34,7 @@ async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {
     let data = capacitor_bindings::clipboard::Clipboard::read()
         .await
         .map_err(|x| anyhow!("{}", x.to_string()))?;
-    let list: Vec<SetLevel> = serde_yaml::from_str(data.value.replace(' ', " ").as_str())?;
+    let list: Vec<DesignedLevel> = serde_yaml::from_str(data.value.replace(' ', " ").as_str())?;
 
     let level = list
         .into_iter()
@@ -51,7 +51,7 @@ async fn handle_import_event_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
     let cle = match get_imported_level_async().await {
         Ok(cle) => cle,
         Err(e) => ChangeLevelEvent::Custom {
-            level: SetLevel::default().into(),
+            level: DesignedLevel::default().into(),
             message: Some(e.to_string()),
         },
     };

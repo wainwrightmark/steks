@@ -12,7 +12,7 @@ use rand::{rngs::ThreadRng, Rng};
 
 pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<ShapeCreationData>) {
     let mut shapes: Vec<ShapeCreationData> = match level {
-        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
+        GameLevel::Designed { level, .. } => {
             match level.get_stage(&0) {
                 Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
                 None => vec![],

@@ -4,37 +4,46 @@ use steks_common::prelude::GameShape;
 
 use crate::prelude::*;
 lazy_static::lazy_static! {
-    static ref LIST: Vec<Arc<SetLevel>> ={
+    pub static ref CAMPAIGN_LEVELS: Vec<Arc<DesignedLevel>> ={
         let s = include_str!("levels.yaml");
-        let list: Vec<Arc<SetLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+        let list: Vec<Arc<DesignedLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
 
         list
     };
 }
 
-pub fn level_count() -> usize {
-    LIST.len()
+lazy_static::lazy_static! {
+    pub static ref TUTORIAL_LEVELS: Vec<Arc<DesignedLevel>> ={
+        let s = include_str!("tutorial_levels.yaml");
+        let list: Vec<Arc<DesignedLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+
+        list
+    };
 }
 
-pub const TUTORIAL_LEVELS: u8 = 3;
+//pub const TUTORIAL_LEVELS: u8 = 3;
 
-pub fn get_game_level(index: u8) -> Option<GameLevel> {
-    LIST.get(index as usize).map(|level| GameLevel::SetLevel {
-        index,
-        level: level.clone(),
-    })
+// pub fn get_game_level(index: u8) -> Option<GameLevel> {
+//     LIST.get(index as usize).map(|level| GameLevel::SetLevel {
+//         index,
+//         level: level.clone(),
+//     })
+// }
+
+pub fn get_campaign_level(index: u8) -> Option<Arc<DesignedLevel>> {
+    CAMPAIGN_LEVELS.get(index as usize).map(|x| x.clone())
 }
 
-pub fn get_set_level(index: u8)-> Option<Arc<SetLevel>>{
-    LIST.get(index as usize).map(|x|x.clone())
+pub fn get_tutorial_level(index: u8) -> Option<Arc<DesignedLevel>> {
+    TUTORIAL_LEVELS.get(index as usize).map(|x| x.clone())
 }
 
-pub fn get_level_number(level: &u8) -> String {
-    format!("{:2}", level.saturating_sub(TUTORIAL_LEVELS).saturating_add(1))
+pub fn format_campaign_level_number(level: &u8) -> String {
+    format!("{:2}", level.saturating_add(1))
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-pub struct SetLevel {
+pub struct DesignedLevel {
     pub title: Option<String>,
 
     #[serde(flatten)]
@@ -52,7 +61,7 @@ pub struct SetLevel {
     pub end_fireworks: FireworksSettings,
 }
 
-impl SetLevel {
+impl DesignedLevel {
     pub fn get_stage(&self, stage: &usize) -> Option<&LevelStage> {
         match stage.checked_sub(1) {
             Some(index) => self.stages.get(index),
@@ -347,20 +356,28 @@ impl From<LevelShapeForm> for &'static GameShape {
 
 #[cfg(test)]
 mod tests {
-    use super::SetLevel;
+    use super::DesignedLevel;
     use crate::set_level::*;
 
     #[test]
-    pub fn test_set_levels_deserialize() {
-        let list = &crate::set_level::LIST;
+    pub fn test_campaign_levels_deserialize() {
+        let list = &crate::set_level::CAMPAIGN_LEVELS;
+        assert!(list.len() > 0)
+    }
+
+    #[test]
+    pub fn test_tutorial_levels_deserialize() {
+        let list = &crate::set_level::CAMPAIGN_LEVELS;
         assert!(list.len() > 0)
     }
 
     #[test]
     pub fn test_set_levels_string_lengths() {
-        let list = &crate::set_level::LIST;
+        let levels = crate::set_level::CAMPAIGN_LEVELS
+            .iter()
+            .chain(crate::set_level::TUTORIAL_LEVELS.iter());
         let mut errors: Vec<String> = vec![];
-        for (index, level) in list.iter().enumerate() {
+        for (index, level) in levels.enumerate() {
             check_level(level, index, &mut errors);
         }
 
@@ -369,8 +386,8 @@ mod tests {
         }
     }
 
-    fn check_level(level: &SetLevel, index: usize, errors: &mut Vec<String>) {
-        let index = (index as u8).saturating_add(1).saturating_sub(TUTORIAL_LEVELS);
+    fn check_level(level: &DesignedLevel, index: usize, errors: &mut Vec<String>) {
+        let index = (index as u8).saturating_add(1);
 
         check_string(
             &level.title,

@@ -50,7 +50,7 @@ fn manage_level_shapes(
                 };
                 if stage > 0 {
                     match &current_level.as_ref().level {
-                        GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
+                        GameLevel::Designed { level, .. } => {
                             for stage in (previous_stage + 1)..=(stage) {
                                 if let Some(stage) = level.get_stage(&stage) {
                                     for creation in stage.shapes.iter() {
@@ -117,8 +117,8 @@ fn choose_level_on_game_load(
     let settings = SavedData::get_or_create(&mut pkv);
 
     match settings.current_level.0 {
-        LevelLogData::SetLevel { index } => {
-            change_level_events.send(ChangeLevelEvent::ChooseLevel {
+        LevelLogData::CampaignLevel { index } => {
+            change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
                 index,
                 stage: settings.current_level.1,
             })
@@ -126,6 +126,12 @@ fn choose_level_on_game_load(
         LevelLogData::Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
         LevelLogData::Challenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
         LevelLogData::Custom => change_level_events.send(ChangeLevelEvent::StartChallenge),
+        LevelLogData::TutorialLevel { index } => {
+            change_level_events.send(ChangeLevelEvent::ChooseTutorialLevel {
+                index,
+                stage: settings.current_level.1,
+            })
+        }
     }
 }
 
@@ -138,32 +144,34 @@ pub struct CurrentLevel {
 impl CurrentLevel {
     pub fn get_title(&self) -> Option<String> {
         match &self.level {
-            GameLevel::SetLevel { level, .. } => level.title.clone(),
+            GameLevel::Designed { level, .. } => level.title.clone(),
             GameLevel::Infinite { .. } => None,
             GameLevel::Challenge => Some("Daily Challenge".to_string()),
-            GameLevel::Custom { level, .. } => level.title.clone(),
         }
     }
 
     pub fn get_level_number_text(&self) -> Option<String> {
         match &self.level {
-            GameLevel::SetLevel { index, .. } => {
-                if *index >= TUTORIAL_LEVELS {
-                    Some(get_level_number(index))
-                } else {
-                    None
-                }
-            }
-            GameLevel::Infinite { .. } => None,
-            GameLevel::Challenge => None,
-            GameLevel::Custom { .. } => None,
+            GameLevel::Designed { level, meta, .. } => match meta {
+                DesignedLevelMeta::Tutorial { .. } => None,
+                DesignedLevelMeta::Campaign { index } => Some(format_campaign_level_number(index)),
+                DesignedLevelMeta::Custom { .. } => None,
+            },
+            GameLevel::Infinite { .. } | GameLevel::Challenge => None,
         }
     }
 
     pub fn get_text(&self) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
-                GameLevel::SetLevel { level, .. } => {
+                GameLevel::Designed { level, meta } => {
+                    match meta {
+                        DesignedLevelMeta::Custom {
+                            message: Some(message),
+                        } => return Some(message.clone()),
+                        _ => {}
+                    }
+
                     level.get_stage(&stage).and_then(|x| x.text.clone())
                 }
                 GameLevel::Infinite { bytes } => {
@@ -174,13 +182,6 @@ impl CurrentLevel {
                     }
                 }
                 GameLevel::Challenge => None,
-                GameLevel::Custom { message, level } => {
-                    if message.is_some() {
-                        message.clone()
-                    } else {
-                        level.get_stage(&stage).and_then(|x| x.text.clone())
-                    }
-                }
             },
             LevelCompletion::Complete { splash, score_info } => {
                 let height = score_info.height;
@@ -189,12 +190,11 @@ impl CurrentLevel {
                 }
 
                 let message = match &self.level {
-                    GameLevel::SetLevel { level, .. } => {
+                    GameLevel::Designed { level, .. } => {
                         level.end_text.as_deref().unwrap_or("Level Complete")
                     }
                     GameLevel::Infinite { .. } => "",
                     GameLevel::Challenge => "Challenge Complete",
-                    GameLevel::Custom { .. } => "Custom Level Complete",
                 };
 
                 let mut text = message
@@ -302,26 +302,60 @@ impl LevelCompletion {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameLevel {
-    SetLevel {
-        level: Arc<SetLevel>,
-        index: u8,
+    Designed {
+        level: Arc<DesignedLevel>,
+        meta: DesignedLevelMeta,
     },
+
     Infinite {
         bytes: Option<Arc<Vec<u8>>>,
     },
     Challenge,
-    Custom {
-        level: Arc<SetLevel>,
-        message: Option<String>,
-    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DesignedLevelMeta {
+    Tutorial { index: u8 },
+    Campaign { index: u8 },
+    Custom { message: Option<String> },
+}
+
+impl DesignedLevelMeta {
+    pub fn next_level(&self) -> Option<Self> {
+        match self {
+            DesignedLevelMeta::Tutorial { index } => {
+                let index = index + 1;
+                if TUTORIAL_LEVELS.get(index  as usize).is_some() {
+                    Some(Self::Tutorial { index })
+                } else {
+                    Some(Self::Campaign { index: 0 })
+                }
+            }
+            DesignedLevelMeta::Campaign { index } => {
+                let index = index + 1;
+                if CAMPAIGN_LEVELS.get(index as usize).is_some() {
+                    Some(Self::Campaign { index })
+                } else {
+                    None
+                }
+            }
+            DesignedLevelMeta::Custom { message } => None,
+        }
+    }
+
+    pub fn get_level(&self)-> Option<Arc<DesignedLevel>>{
+        match self{
+            DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS.get(*index as usize).map(|x|x.clone()),
+            DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS.get(*index as usize).map(|x|x.clone()),
+            DesignedLevelMeta::Custom { .. } => None,
+        }
+    }
 }
 
 impl GameLevel {
     pub fn has_stage(&self, stage: &usize) -> bool {
         match self {
-            GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
-                level.total_stages() > *stage
-            }
+            GameLevel::Designed { level, .. } => level.total_stages() > *stage,
             GameLevel::Infinite { .. } => true,
             GameLevel::Challenge => false,
         }
@@ -330,7 +364,9 @@ impl GameLevel {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LevelLogData {
-    SetLevel { index: u8 },
+    TutorialLevel { index: u8 },
+    CampaignLevel { index: u8 },
+
     Infinite,
     Challenge,
     Custom,
@@ -338,24 +374,30 @@ pub enum LevelLogData {
 
 impl Default for LevelLogData {
     fn default() -> Self {
-        Self::SetLevel { index: 0 }
+        Self::TutorialLevel { index: 0 }
     }
 }
 
 impl From<GameLevel> for LevelLogData {
     fn from(value: GameLevel) -> Self {
         match value {
-            GameLevel::SetLevel { index, .. } => Self::SetLevel { index },
+            GameLevel::Designed { meta, .. } => match meta {
+                DesignedLevelMeta::Tutorial { index } => Self::TutorialLevel { index },
+                DesignedLevelMeta::Campaign { index } => Self::CampaignLevel { index },
+                DesignedLevelMeta::Custom { .. } => Self::Custom,
+            },
             GameLevel::Infinite { .. } => Self::Infinite,
             GameLevel::Challenge => Self::Challenge,
-            GameLevel::Custom { .. } => Self::Custom,
         }
     }
 }
 
 impl Default for GameLevel {
     fn default() -> Self {
-        get_game_level(0).unwrap()
+        Self::Designed {
+            level: get_tutorial_level(0).unwrap(),
+            meta: DesignedLevelMeta::Tutorial { index: 0 },
+        }
     }
 }
 
@@ -367,19 +409,24 @@ impl GameLevel {
 #[derive(Debug, Clone, Event)]
 pub enum ChangeLevelEvent {
     Next,
-    ChooseLevel {
+    ChooseCampaignLevel {
         index: u8,
         stage: usize,
     },
+    ChooseTutorialLevel {
+        index: u8,
+        stage: usize,
+    },
+
     // Previous,
     ResetLevel,
-    StartTutorial,
+    //StartTutorial,
     StartInfinite,
     StartChallenge,
     Load(std::sync::Arc<Vec<u8>>),
 
     Custom {
-        level: std::sync::Arc<SetLevel>,
+        level: std::sync::Arc<DesignedLevel>,
         message: Option<String>,
     },
 }
@@ -413,7 +460,7 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
         let LevelCompletion::Incomplete { stage }  = level.completion  else{ return;};
 
         let gravity = match level.level.clone() {
-            GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
+            GameLevel::Designed { level, .. } => {
                 if let Some(stage) = level.get_stage(&stage) {
                     stage.gravity.unwrap_or(GRAVITY)
                 } else {
@@ -429,9 +476,7 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
 fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
     if level.is_changed() && level.completion.is_complete() {
         if match &level.level {
-            GameLevel::SetLevel { level, .. } | GameLevel::Custom { level, .. } => {
-                level.skip_completion
-            }
+            GameLevel::Designed { level, .. } => level.skip_completion,
             _ => false,
         } {
             events.send(ChangeLevelEvent::Next);
@@ -463,9 +508,8 @@ fn track_level_completion(
             });
 
             match &level.level {
-                GameLevel::SetLevel { .. } => {}
+                GameLevel::Designed { .. } => {}
                 GameLevel::Infinite { .. } => {}
-                GameLevel::Custom { .. } => {}
                 GameLevel::Challenge => {
                     SavedData::update(&mut pkv, |x| x.with_todays_challenge_beat());
                 }
@@ -478,23 +522,41 @@ impl ChangeLevelEvent {
     #[must_use]
     pub fn get_new_level(&self, level: &GameLevel) -> (GameLevel, usize) {
         match self {
-            ChangeLevelEvent::Next => match level {
-                GameLevel::SetLevel { index, .. } => {
-                    if let Some(next) = get_game_level(index.saturating_add(1)) {
-                        (next, 0)
-                    } else {
-                        (GameLevel::Infinite { bytes: None }, 0)
+            ChangeLevelEvent::Next =>
+            {
+                if let GameLevel::Designed {  meta, .. } = level{
+                    if let Some(meta) =meta.next_level() {
+                        if let Some(level) = meta.get_level(){
+                            return (GameLevel::Designed { level, meta }, 0);
+                        }
                     }
                 }
-                _ => (GameLevel::Infinite { bytes: None }, 0),
+                return (GameLevel::Infinite { bytes: None }, 0);
             },
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
-            ChangeLevelEvent::StartTutorial => (get_game_level(0).unwrap(), 0),
+            //ChangeLevelEvent::StartTutorial => (get_tutorial_level(0).unwrap(), 0),
             ChangeLevelEvent::StartInfinite => (GameLevel::Infinite { bytes: None }, 0),
             ChangeLevelEvent::StartChallenge => (GameLevel::Challenge, 0),
 
-            ChangeLevelEvent::ChooseLevel { index, stage } => {
-                (get_game_level(*index).unwrap(), *stage)
+            ChangeLevelEvent::ChooseCampaignLevel { index, stage } => {
+                let index = *index;
+                (
+                    GameLevel::Designed {
+                        level: get_campaign_level(index).unwrap(),
+                        meta: DesignedLevelMeta::Campaign { index },
+                    },
+                    *stage,
+                )
+            }
+            ChangeLevelEvent::ChooseTutorialLevel { index, stage } => {
+                let index = *index;
+                (
+                    GameLevel::Designed {
+                        level: get_tutorial_level(index).unwrap(),
+                        meta: DesignedLevelMeta::Campaign { index },
+                    },
+                    *stage,
+                )
             }
             ChangeLevelEvent::Load(bytes) => (
                 GameLevel::Infinite {
@@ -503,9 +565,11 @@ impl ChangeLevelEvent {
                 0,
             ),
             ChangeLevelEvent::Custom { level, message } => (
-                GameLevel::Custom {
+                GameLevel::Designed {
                     level: level.clone(),
-                    message: message.clone(),
+                    meta: DesignedLevelMeta::Custom {
+                        message: message.clone(),
+                    },
                 },
                 0,
             ),
@@ -516,7 +580,7 @@ impl ChangeLevelEvent {
         match Self::try_make_custom(data) {
             Ok(x) => x,
             Err(message) => ChangeLevelEvent::Custom {
-                level: SetLevel::default().into(),
+                level: DesignedLevel::default().into(),
                 message: Some(message.to_string()),
             },
         }
@@ -529,7 +593,7 @@ impl ChangeLevelEvent {
 
         let str = std::str::from_utf8(decoded.as_slice())?;
 
-        let levels: Vec<SetLevel> = serde_yaml::from_str(str)?;
+        let levels: Vec<DesignedLevel> = serde_yaml::from_str(str)?;
 
         let level = levels
             .into_iter()

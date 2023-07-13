@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, set_level};
 
 pub struct ButtonPlugin;
 
@@ -29,7 +29,7 @@ pub enum MenuState {
 const LEVELS_PER_PAGE: u8 = 5;
 
 pub fn max_page_exclusive() -> u8 {
-    let t = level_count() as u8 - TUTORIAL_LEVELS;
+    let t = set_level::CAMPAIGN_LEVELS.len() as u8;
     t / LEVELS_PER_PAGE + (t % LEVELS_PER_PAGE).min(1) + 1
 }
 
@@ -139,12 +139,12 @@ fn button_system(
                     }
                 }
                 ClipboardImport => import_events.send(ImportEvent),
-                Tutorial => change_level_events.send(ChangeLevelEvent::StartTutorial),
+                Tutorial => change_level_events.send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
                 Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
                 DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
                 ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
                 Share => share_events.send(ShareEvent),
-                GotoLevel { level } => change_level_events.send(ChangeLevelEvent::ChooseLevel {
+                GotoLevel { level } => change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
                     index: level,
                     stage: 0,
                 }),
@@ -238,7 +238,7 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
             let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
             let icon_font = asset_server.load("fonts/fontello.ttf");
 
-            let start = TUTORIAL_LEVELS + (page * LEVELS_PER_PAGE);
+            let start = page * LEVELS_PER_PAGE;
             let end = start + LEVELS_PER_PAGE;
 
 

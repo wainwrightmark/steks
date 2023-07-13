@@ -4,6 +4,7 @@ pub mod button;
 pub mod camera;
 pub mod collision;
 pub mod draggable;
+pub mod designed_level;
 pub mod fireworks;
 pub mod import;
 pub mod infinity;
@@ -52,6 +53,7 @@ pub mod prelude {
     pub use crate::camera::*;
     pub use crate::collision::*;
     pub use crate::draggable::*;
+    pub use crate::designed_level::*;
     pub use crate::fireworks::*;
     pub use crate::import::*;
     pub use crate::infinity::*;

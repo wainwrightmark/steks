@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::anyhow;
 use bevy::prelude::*;
 
@@ -43,17 +45,19 @@ async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {
 
     Ok(ChangeLevelEvent::Custom {
         level: level.into(),
-        message: None,
     })
 }
 
 async fn handle_import_event_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
     let cle = match get_imported_level_async().await {
         Ok(cle) => cle,
-        Err(e) => ChangeLevelEvent::Custom {
-            level: DesignedLevel::default().into(),
-            message: Some(e.to_string()),
-        },
+        Err(e) => {
+            let mut level = DesignedLevel::default();
+            level.initial_stage.text = Some(e.to_string());
+            let level = Arc::new(level);
+
+            ChangeLevelEvent::Custom { level }
+        }
     };
 
     writer.send_async(cle).await.unwrap()

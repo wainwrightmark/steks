@@ -152,7 +152,7 @@ impl CurrentLevel {
 
     pub fn get_level_number_text(&self) -> Option<String> {
         match &self.level {
-            GameLevel::Designed { level, meta, .. } => match meta {
+            GameLevel::Designed {  meta, .. } => match meta {
                 DesignedLevelMeta::Tutorial { .. } => None,
                 DesignedLevelMeta::Campaign { index } => Some(format_campaign_level_number(index)),
                 DesignedLevelMeta::Custom { .. } => None,
@@ -164,14 +164,7 @@ impl CurrentLevel {
     pub fn get_text(&self) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
-                GameLevel::Designed { level, meta } => {
-                    match meta {
-                        DesignedLevelMeta::Custom {
-                            message: Some(message),
-                        } => return Some(message.clone()),
-                        _ => {}
-                    }
-
+                GameLevel::Designed { level, .. } => {
                     level.get_stage(&stage).and_then(|x| x.text.clone())
                 }
                 GameLevel::Infinite { bytes } => {
@@ -317,7 +310,7 @@ pub enum GameLevel {
 pub enum DesignedLevelMeta {
     Tutorial { index: u8 },
     Campaign { index: u8 },
-    Custom { message: Option<String> },
+    Custom,
 }
 
 impl DesignedLevelMeta {
@@ -325,7 +318,7 @@ impl DesignedLevelMeta {
         match self {
             DesignedLevelMeta::Tutorial { index } => {
                 let index = index + 1;
-                if TUTORIAL_LEVELS.get(index  as usize).is_some() {
+                if TUTORIAL_LEVELS.get(index as usize).is_some() {
                     Some(Self::Tutorial { index })
                 } else {
                     Some(Self::Campaign { index: 0 })
@@ -339,14 +332,18 @@ impl DesignedLevelMeta {
                     None
                 }
             }
-            DesignedLevelMeta::Custom { message } => None,
+            DesignedLevelMeta::Custom => None,
         }
     }
 
-    pub fn get_level(&self)-> Option<Arc<DesignedLevel>>{
-        match self{
-            DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS.get(*index as usize).map(|x|x.clone()),
-            DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS.get(*index as usize).map(|x|x.clone()),
+    pub fn get_level(&self) -> Option<Arc<DesignedLevel>> {
+        match self {
+            DesignedLevelMeta::Tutorial { index } => {
+                TUTORIAL_LEVELS.get(*index as usize).map(|x| x.clone())
+            }
+            DesignedLevelMeta::Campaign { index } => {
+                CAMPAIGN_LEVELS.get(*index as usize).map(|x| x.clone())
+            }
             DesignedLevelMeta::Custom { .. } => None,
         }
     }
@@ -427,7 +424,6 @@ pub enum ChangeLevelEvent {
 
     Custom {
         level: std::sync::Arc<DesignedLevel>,
-        message: Option<String>,
     },
 }
 
@@ -522,17 +518,16 @@ impl ChangeLevelEvent {
     #[must_use]
     pub fn get_new_level(&self, level: &GameLevel) -> (GameLevel, usize) {
         match self {
-            ChangeLevelEvent::Next =>
-            {
-                if let GameLevel::Designed {  meta, .. } = level{
-                    if let Some(meta) =meta.next_level() {
-                        if let Some(level) = meta.get_level(){
+            ChangeLevelEvent::Next => {
+                if let GameLevel::Designed { meta, .. } = level {
+                    if let Some(meta) = meta.next_level() {
+                        if let Some(level) = meta.get_level() {
                             return (GameLevel::Designed { level, meta }, 0);
                         }
                     }
                 }
                 return (GameLevel::Infinite { bytes: None }, 0);
-            },
+            }
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
             //ChangeLevelEvent::StartTutorial => (get_tutorial_level(0).unwrap(), 0),
             ChangeLevelEvent::StartInfinite => (GameLevel::Infinite { bytes: None }, 0),
@@ -564,12 +559,10 @@ impl ChangeLevelEvent {
                 },
                 0,
             ),
-            ChangeLevelEvent::Custom { level, message } => (
+            ChangeLevelEvent::Custom { level } => (
                 GameLevel::Designed {
                     level: level.clone(),
-                    meta: DesignedLevelMeta::Custom {
-                        message: message.clone(),
-                    },
+                    meta: DesignedLevelMeta::Custom {},
                 },
                 0,
             ),
@@ -579,10 +572,14 @@ impl ChangeLevelEvent {
     pub fn make_custom(data: &str) -> Self {
         match Self::try_make_custom(data) {
             Ok(x) => x,
-            Err(message) => ChangeLevelEvent::Custom {
-                level: DesignedLevel::default().into(),
-                message: Some(message.to_string()),
-            },
+            Err(message) => {
+                let mut level = DesignedLevel::default();
+                level.initial_stage.text = Some(message.to_string());
+
+                ChangeLevelEvent::Custom {
+                    level: level.into(),
+                }
+            }
         }
     }
 
@@ -602,7 +599,6 @@ impl ChangeLevelEvent {
 
         Ok(ChangeLevelEvent::Custom {
             level: level.into(),
-            message: None,
         })
     }
 }

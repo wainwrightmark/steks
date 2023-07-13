@@ -10,6 +10,7 @@ pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_level_ui)
+            .add_systems(Update, hide_when_menu_visible)
             .add_systems(First, update_ui_on_level_change); //must be in first so tweening happens before the frame
     }
 }
@@ -49,6 +50,25 @@ fn insert_component_and_children(
     });
 }
 
+fn hide_when_menu_visible(
+    menu_state: Res<MenuState>,
+    mut query: Query<(&mut Visibility, &LevelUIComponent)>,
+) {
+    if menu_state.is_changed() {
+        let new_visibility = if menu_state.as_ref() == &MenuState::Closed {
+            Visibility::Inherited
+        } else {
+            Visibility::Hidden
+        };
+
+        for (mut visibility, component) in query.iter_mut() {
+            if component == &LevelUIComponent::Root {
+                *visibility = new_visibility;
+            }
+        }
+    }
+}
+
 fn update_ui_on_level_change(
     mut commands: Commands,
     current_level: Res<CurrentLevel>,
@@ -75,7 +95,7 @@ fn update_ui_on_level_change(
     }
 }
 
-#[derive(Debug, Component, Clone, Copy)]
+#[derive(Debug, Component, Clone, Copy, Eq, PartialEq)]
 enum LevelUIComponent {
     Root,
     MainPanel,
@@ -331,7 +351,6 @@ fn animate_text(
             ),
             GameLevel::Infinite { .. } => (DEFAULT_TEXT_FADE, Color::NONE),
             GameLevel::Challenge => (DEFAULT_TEXT_FADE, Color::NONE),
-
         },
         LevelCompletion::Complete { .. } => (DEFAULT_TEXT_FADE, SMALL_TEXT_COLOR),
     };
@@ -458,9 +477,9 @@ fn insert_bundle(
         LevelUIComponent::Button(button_action) => {
             if first_time {
                 let font = asset_server.load("fonts/fontello.ttf");
-                commands.insert(ButtonComponent{
+                commands.insert(ButtonComponent {
                     button_type: ButtonType::Icon,
-                    button_action: *button_action
+                    button_action: *button_action,
                 });
                 commands.insert(icon_button_bundle());
 

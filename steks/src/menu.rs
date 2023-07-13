@@ -27,7 +27,7 @@ pub enum MenuState {
     LevelsPage(u8),
 }
 
-const LEVELS_PER_PAGE: u8 = 5;
+const LEVELS_PER_PAGE: u8 = 8;
 
 pub fn max_page_exclusive() -> u8 {
     let t = set_level::CAMPAIGN_LEVELS.len() as u8;
@@ -125,11 +125,7 @@ fn handle_menu_state_changes(
 
 fn button_system(
     mut interaction_query: Query<
-        (
-            &Interaction,
-            &mut BackgroundColor,
-            &ButtonComponent
-        ),
+        (&Interaction, &mut BackgroundColor, &ButtonComponent),
         (Changed<Interaction>, With<Button>),
     >,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
@@ -239,8 +235,8 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                left: Val::Percent(50.0),  // Val::Px(MENU_OFFSET),
-                right: Val::Percent(50.0), // Val::Px(MENU_OFFSET),
+                left: Val::Percent(50.0),
+                right: Val::Percent(50.0),
                 top: Val::Px(MENU_OFFSET),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
@@ -256,11 +252,7 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
             let icon_font = asset_server.load("fonts/fontello.ttf");
 
             let start = page * LEVELS_PER_PAGE;
-            let end = start + LEVELS_PER_PAGE;
-
-            for level in start..end {
-                spawn_text_button(parent, ButtonAction::GotoLevel { level }, text_font.clone())
-            }
+            let end = (start + LEVELS_PER_PAGE).min(CAMPAIGN_LEVELS.len() as u8);
 
             parent
                 .spawn(NodeBundle {
@@ -280,5 +272,9 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
                     spawn_icon_button(panel, ButtonAction::PreviousLevelsPage, icon_font.clone());
                     spawn_icon_button(panel, ButtonAction::NextLevelsPage, icon_font.clone());
                 });
+
+            for level in start..end {
+                spawn_text_button(parent, ButtonAction::GotoLevel { level }, text_font.clone())
+            }
         });
 }

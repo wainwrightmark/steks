@@ -155,12 +155,10 @@ fn get_new_fireworks(
     previous_was_complete: bool,
 ) -> Option<FireworksCountdown> {
     let settings = match &current_level.level {
-        GameLevel::Designed { level, .. } => {
-            match current_level.completion {
-                LevelCompletion::Incomplete { stage } => level.get_fireworks_settings(&stage),
-                LevelCompletion::Complete { .. } => level.end_fireworks.clone(),
-            }
-        }
+        GameLevel::Designed { level, .. } => match current_level.completion {
+            LevelCompletion::Incomplete { stage } => level.get_fireworks_settings(&stage),
+            LevelCompletion::Complete { .. } => level.end_fireworks.clone(),
+        },
         GameLevel::Infinite { .. } | GameLevel::Challenge => FireworksSettings::default(),
     };
 
@@ -257,7 +255,7 @@ fn spawn_spark<R: Rng>(
 }
 
 fn firework_physics(mut query: Query<(&mut Transform, &mut FireworkVelocity)>, time: Res<Time>) {
-    if query.is_empty(){
+    if query.is_empty() {
         return;
     }
     let seconds = time.delta_seconds();

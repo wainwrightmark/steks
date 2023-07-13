@@ -12,9 +12,9 @@ pub const TEXT_BUTTON_HEIGHT: f32 = 60.;
 pub const MENU_OFFSET: f32 = 10.;
 
 #[derive(Debug, Clone, Copy, Component)]
-pub struct ButtonComponent{
+pub struct ButtonComponent {
     pub button_action: ButtonAction,
-    pub button_type: ButtonType
+    pub button_type: ButtonType,
 }
 
 #[derive(Debug, Clone, Copy, Display)]
@@ -66,30 +66,29 @@ pub enum ButtonAction {
     MinimizeApp,
     Purchase,
     NextLevelsPage,
-    PreviousLevelsPage
+    PreviousLevelsPage,
 }
 
 impl ButtonAction {
-
-    pub fn main_buttons()-> &'static [Self]{
+    pub fn main_buttons() -> &'static [Self] {
         use ButtonAction::*;
         &[
-                // ToggleMenu,
-                ResetLevel,
-                #[cfg(target_arch = "wasm32")]
-                GoFullscreen,
-                Tutorial,
-                Infinite,
-                DailyChallenge,
-                #[cfg(target_arch = "wasm32")]
-                Share,
-                Levels,
-                ClipboardImport,
-                #[cfg(all(feature = "android", target_arch = "wasm32"))]
-                MinimizeApp,
-                #[cfg(all(any(feature = "android", feature = "ios"), target_arch = "wasm32"))]
-                Purchase,
-            ]
+            // ToggleMenu,
+            ResetLevel,
+            #[cfg(target_arch = "wasm32")]
+            GoFullscreen,
+            Tutorial,
+            Infinite,
+            DailyChallenge,
+            #[cfg(target_arch = "wasm32")]
+            Share,
+            Levels,
+            ClipboardImport,
+            #[cfg(all(feature = "android", target_arch = "wasm32"))]
+            MinimizeApp,
+            #[cfg(all(any(feature = "android", feature = "ios"), target_arch = "wasm32"))]
+            Purchase,
+        ]
     }
 
     pub fn icon(&self) -> String {
@@ -110,7 +109,7 @@ impl ButtonAction {
             ClipboardImport => "\u{e818}".to_string(),    //clipboard
             Purchase => "\u{f513}".to_string(),           //unlock
             PreviousLevelsPage => "\u{e80d}".to_string(),
-            NextLevelsPage => "\u{e80c}".to_string()
+            NextLevelsPage => "\u{e80c}".to_string(),
         }
     }
 
@@ -128,18 +127,17 @@ impl ButtonAction {
             ClipboardImport => "Import Level".to_string(),
             GotoLevel { level } => {
                 let level_number = format_campaign_level_number(level);
-                if let Some(set_level) =  set_level::get_campaign_level(*level){
-                     if let Some(name) = &set_level.title{
+                if let Some(set_level) = set_level::get_campaign_level(*level) {
+                    if let Some(name) = &set_level.title {
                         //format!("{level_number}: {name}")
                         name.clone()
-                     }
-                     else{
+                    } else {
                         level_number
-                     }
-                }else{
+                    }
+                } else {
                     level_number
                 }
-            },
+            }
             NextLevel => "Next Level".to_string(),
             MinimizeCompletion => "Minimize Completion".to_string(),
             MinimizeApp => "Quit".to_string(),
@@ -192,7 +190,7 @@ pub fn icon_button_bundle() -> ButtonBundle {
 
             ..Default::default()
         },
-        background_color:  ButtonType::Icon.background_color(&Interaction::None),
+        background_color: ButtonType::Icon.background_color(&Interaction::None),
         ..Default::default()
     }
 }
@@ -202,12 +200,12 @@ pub fn text_button_bundle() -> ButtonBundle {
         style: Style {
             width: Val::Px(TEXT_BUTTON_WIDTH),
             height: Val::Px(TEXT_BUTTON_HEIGHT),
-            margin: UiRect{
+            margin: UiRect {
                 left: Val::Auto,
                 right: Val::Auto,
                 top: Val::Px(5.0),
-                bottom: Val::Px(5.0)
-            } ,
+                bottom: Val::Px(5.0),
+            },
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             flex_grow: 0.0,
@@ -217,7 +215,7 @@ pub fn text_button_bundle() -> ButtonBundle {
             ..Default::default()
         },
         background_color: ButtonType::Text.background_color(&Interaction::None),
-        border_color: Color::BLACK.into(),// color::BACKGROUND_COLOR.into(),
+        border_color: Color::BLACK.into(), // color::BACKGROUND_COLOR.into(),
         ..Default::default()
     }
 }
@@ -233,10 +231,9 @@ pub fn spawn_text_button(
         .with_children(|parent| {
             parent.spawn(button_action.text_bundle(font));
         })
-
-        .insert(ButtonComponent{
+        .insert(ButtonComponent {
             button_action,
-            button_type: ButtonType::Text
+            button_type: ButtonType::Text,
         });
 }
 
@@ -251,8 +248,8 @@ pub fn spawn_icon_button(
         .with_children(|parent| {
             parent.spawn(button_action.icon_bundle(font));
         })
-        .insert(ButtonComponent{
+        .insert(ButtonComponent {
             button_action,
-            button_type: ButtonType::Icon
+            button_type: ButtonType::Icon,
         });
 }

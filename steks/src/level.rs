@@ -152,7 +152,7 @@ impl CurrentLevel {
 
     pub fn get_level_number_text(&self) -> Option<String> {
         match &self.level {
-            GameLevel::Designed {  meta, .. } => match meta {
+            GameLevel::Designed { meta, .. } => match meta {
                 DesignedLevelMeta::Tutorial { .. } => None,
                 DesignedLevelMeta::Campaign { index } => Some(format_campaign_level_number(index)),
                 DesignedLevelMeta::Custom { .. } => None,
@@ -284,8 +284,8 @@ impl LevelCompletion {
 
 impl LevelCompletion {
     pub fn is_button_visible(&self, button: &ButtonAction) -> bool {
-        use LevelCompletion::*;
         use ButtonAction::*;
+        use LevelCompletion::*;
         match self {
             Incomplete { .. } => false,
             Complete { .. } => matches!(button, NextLevel | Share | MinimizeCompletion),
@@ -315,7 +315,6 @@ pub enum DesignedLevelMeta {
 
 impl DesignedLevelMeta {
     pub fn next_level(&self) -> Option<Self> {
-
         //info!("Next Level {self:?}");
         match self {
             DesignedLevelMeta::Tutorial { index } => {

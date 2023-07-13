@@ -21,15 +21,6 @@ lazy_static::lazy_static! {
     };
 }
 
-//pub const TUTORIAL_LEVELS: u8 = 3;
-
-// pub fn get_game_level(index: u8) -> Option<GameLevel> {
-//     LIST.get(index as usize).map(|level| GameLevel::SetLevel {
-//         index,
-//         level: level.clone(),
-//     })
-// }
-
 pub fn get_campaign_level(index: u8) -> Option<Arc<DesignedLevel>> {
     CAMPAIGN_LEVELS.get(index as usize).map(|x| x.clone())
 }
@@ -52,9 +43,6 @@ pub struct DesignedLevel {
     pub stages: Vec<LevelStage>,
 
     pub end_text: Option<String>,
-
-    #[serde(default)]
-    pub skip_completion: bool,
 
     #[serde(default)]
     #[serde(alias = "End_fireworks")]
@@ -99,9 +87,14 @@ pub struct LevelStage {
     pub text: Option<String>,
     #[serde(alias = "Mouse_text")]
     pub mouse_text: Option<String>,
+
     #[serde(default)]
-    #[serde(alias = "Text_seconds")]
-    pub text_seconds: Option<u32>,
+    #[serde(alias = "Text_forever")]
+    pub text_forever: bool,
+
+    // #[serde(default)]
+    // #[serde(alias = "Text_seconds")]
+    // pub text_seconds: Option<u32>,
     #[serde(default)]
     #[serde(alias = "Shapes")]
     pub shapes: Arc<Vec<ShapeCreation>>,

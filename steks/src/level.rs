@@ -473,7 +473,10 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
 fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
     if level.is_changed() && level.completion.is_complete() {
         if match &level.level {
-            GameLevel::Designed { level, .. } => level.skip_completion,
+            GameLevel::Designed {  meta,.. } => match meta {
+                DesignedLevelMeta::Tutorial { .. } => true,
+                _=> false
+            },
             _ => false,
         } {
             events.send(ChangeLevelEvent::Next);

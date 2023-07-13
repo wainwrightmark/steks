@@ -195,6 +195,13 @@ fn get_all_text_bundle(_args: UIArgs) -> NodeBundle {
 }
 
 fn get_panel_bundle(args: UIArgs) -> NodeBundle {
+
+    let visibility = match &args.current_level{
+        CurrentLevel {  completion: LevelCompletion::Complete { .. }, level: GameLevel::Designed { meta: DesignedLevelMeta::Tutorial { .. } ,.. } }=> Visibility::Hidden,
+
+        _=> Visibility::Inherited
+    };
+
     let background_color: BackgroundColor = get_panel_color(args.current_level).into();
 
     let flex_direction = match args.current_level.completion {
@@ -216,6 +223,7 @@ fn get_panel_bundle(args: UIArgs) -> NodeBundle {
 
             ..Default::default()
         },
+        visibility,
         border_color: BorderColor(get_border_color(args.current_level)),
         background_color,
         ..Default::default()
@@ -339,31 +347,42 @@ fn animate_text(
     current_level: &CurrentLevel,
     _previous: &CurrentLevel,
 ) {
-    const DEFAULT_TEXT_FADE: u32 = 20;
-    let (seconds, end) = match current_level.completion {
+    let fade = match current_level.completion {
         LevelCompletion::Incomplete { stage } => match &current_level.level {
-            GameLevel::Designed { level, .. } => (
-                level
-                    .get_stage(&stage)
-                    .and_then(|x| x.text_seconds)
-                    .unwrap_or(DEFAULT_TEXT_FADE),
-                Color::NONE,
-            ),
-            GameLevel::Infinite { .. } => (DEFAULT_TEXT_FADE, Color::NONE),
-            GameLevel::Challenge => (DEFAULT_TEXT_FADE, Color::NONE),
+            GameLevel::Designed { level, .. } => level
+                .get_stage(&stage)
+                .map(|x| !x.text_forever)
+                .unwrap_or(true),
+            GameLevel::Infinite { .. } => false,
+            GameLevel::Challenge => true,
         },
-        LevelCompletion::Complete { .. } => (DEFAULT_TEXT_FADE, SMALL_TEXT_COLOR),
+        LevelCompletion::Complete {  .. } => false,
     };
 
-    commands.insert(Animator::new(Tween::new(
-        EaseFunction::QuadraticInOut,
-        Duration::from_secs(seconds as u64),
-        TextColorLens {
-            section: 0,
-            start: SMALL_TEXT_COLOR,
-            end,
-        },
-    )));
+    const DEFAULT_TEXT_FADE: u32 = 20;
+
+    if fade {
+        commands.insert(Animator::new(Tween::new(
+            EaseFunction::QuadraticInOut,
+            Duration::from_secs(DEFAULT_TEXT_FADE as u64),
+            TextColorLens {
+                section: 0,
+                start: SMALL_TEXT_COLOR,
+                end: Color::NONE,
+            },
+        )));
+    }
+    else{
+        commands.insert(Animator::new(Tween::new(
+            EaseFunction::QuadraticInOut,
+            Duration::from_secs(0),
+            TextColorLens {
+                section: 0,
+                start: SMALL_TEXT_COLOR,
+                end: SMALL_TEXT_COLOR,
+            },
+        )));
+    }
 }
 
 const MINIMIZE_MILLIS: u64 = 1000;

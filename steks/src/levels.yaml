@@ -201,7 +201,6 @@
 
 - title: Ice Ice Baby
   text: A brand new invention
-  text_seconds: 20
   shapes:
     - shape: I5
       modifiers: Ice

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use bevy::prelude::*;
 
-use crate::{async_event_writer::*, level::ChangeLevelEvent, set_level::DesignedLevel};
+use crate::{async_event_writer::*, level::ChangeLevelEvent, designed_level::DesignedLevel};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Event)]
 pub struct ImportEvent;

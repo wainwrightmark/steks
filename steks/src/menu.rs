@@ -1,4 +1,4 @@
-use crate::{prelude::*, set_level};
+use crate::{prelude::*, designed_level};
 
 pub struct ButtonPlugin;
 
@@ -30,7 +30,7 @@ pub enum MenuState {
 const LEVELS_PER_PAGE: u8 = 8;
 
 pub fn max_page_exclusive() -> u8 {
-    let t = set_level::CAMPAIGN_LEVELS.len() as u8;
+    let t = designed_level::CAMPAIGN_LEVELS.len() as u8;
     t / LEVELS_PER_PAGE + (t % LEVELS_PER_PAGE).min(1) + 1
 }
 

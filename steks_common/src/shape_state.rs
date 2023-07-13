@@ -1,3 +1,4 @@
+use bevy::prelude::Color;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
@@ -78,6 +79,7 @@ impl ShapeModifiers {
             }),
         }
     }
+
 }
 
 impl ShapeState {
@@ -110,6 +112,14 @@ impl ShapeState {
             })
         } else {
             None
+        }
+    }
+
+    pub fn shadow_stroke(&self)-> Color{
+        match self {
+
+            ShapeState::Void => WARN_COLOR,
+            _=> SHADOW_STROKE
         }
     }
 }

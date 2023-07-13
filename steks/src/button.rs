@@ -1,4 +1,5 @@
 use crate::{prelude::*, set_level};
+use steks_common::color;
 use strum::Display;
 
 const TEXT_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
@@ -51,7 +52,8 @@ impl ButtonType {
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
 pub enum ButtonAction {
-    ToggleMenu,
+    OpenMenu,
+    CloseMenu,
     ResetLevel,
     GoFullscreen,
     Tutorial,
@@ -73,28 +75,31 @@ impl ButtonAction {
     pub fn main_buttons() -> &'static [Self] {
         use ButtonAction::*;
         &[
+            CloseMenu,
             // ToggleMenu,
-            ResetLevel,
-            #[cfg(target_arch = "wasm32")]
-            GoFullscreen,
-            Tutorial,
-            Infinite,
+            //ResetLevel,
+
             DailyChallenge,
+            Tutorial,
+            Levels,
+            Infinite,
             #[cfg(target_arch = "wasm32")]
             Share,
-            Levels,
             ClipboardImport,
-            #[cfg(all(feature = "android", target_arch = "wasm32"))]
-            MinimizeApp,
             #[cfg(all(any(feature = "android", feature = "ios"), target_arch = "wasm32"))]
             Purchase,
+            #[cfg(target_arch = "wasm32")]
+            GoFullscreen,
+            #[cfg(all(feature = "android", target_arch = "wasm32"))]
+            MinimizeApp,
         ]
     }
 
     pub fn icon(&self) -> String {
         use ButtonAction::*;
         match self {
-            ToggleMenu => "\u{f0c9}".to_string(),     // "Menu",
+            OpenMenu => "\u{f0c9}".to_string(),     // "Menu",
+            CloseMenu => "\u{e817}".to_string(),     // "Menu",
             ResetLevel => "\u{e800}".to_string(),     //"Reset Level",image
             GoFullscreen => "\u{f0b2}".to_string(),   //"Fullscreen",
             Tutorial => "\u{e801}".to_string(),       //"Tutorial",
@@ -116,7 +121,8 @@ impl ButtonAction {
     pub fn text(&self) -> String {
         use ButtonAction::*;
         match self {
-            ToggleMenu => "Close".to_string(),
+            OpenMenu => "Menu".to_string(),
+            CloseMenu => "Continue".to_string(),
             ResetLevel => "Reset".to_string(),
             GoFullscreen => "Fullscreen".to_string(),
             Tutorial => "Tutorial".to_string(),
@@ -210,12 +216,12 @@ pub fn text_button_bundle() -> ButtonBundle {
             align_items: AlignItems::Center,
             flex_grow: 0.0,
             flex_shrink: 0.0,
-            border: UiRect::all(Val::Px(5.0)),
+            border: UiRect::all(UI_BORDER_WIDTH),
 
             ..Default::default()
         },
         background_color: ButtonType::Text.background_color(&Interaction::None),
-        border_color: Color::BLACK.into(), // color::BACKGROUND_COLOR.into(),
+        border_color: color::BUTTON_BORDER.into(),
         ..Default::default()
     }
 }

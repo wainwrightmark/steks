@@ -35,12 +35,12 @@ pub fn max_page_exclusive() -> u8 {
 }
 
 impl MenuState {
-    pub fn toggle_menu(&mut self) {
-        match self {
-            MenuState::Closed => *self = MenuState::MenuOpen,
-            MenuState::MenuOpen => *self = MenuState::Closed,
-            MenuState::LevelsPage(..) => *self = MenuState::Closed,
-        }
+    pub fn open_menu(&mut self) {
+        *self = MenuState::MenuOpen
+    }
+
+    pub fn close_menu(&mut self) {
+        *self = MenuState::Closed
     }
 
     pub fn toggle_levels(&mut self) {
@@ -97,7 +97,7 @@ impl MenuState {
                     })
                     .insert(MenuComponent::MenuHamburger)
                     .with_children(|parent| {
-                        spawn_icon_button(parent, ButtonAction::ToggleMenu, font)
+                        spawn_icon_button(parent, ButtonAction::OpenMenu, font)
                     });
             }
             MenuState::MenuOpen => {
@@ -143,7 +143,8 @@ fn button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                ToggleMenu => menu_state.as_mut().toggle_menu(),
+                OpenMenu => menu_state.as_mut().open_menu(),
+                CloseMenu => menu_state.as_mut().close_menu(),
                 GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
                     {
@@ -188,10 +189,8 @@ fn button_system(
             }
 
             match button.button_action {
-                ToggleMenu | Levels | NextLevelsPage | PreviousLevelsPage => {}
-                _ => {
-                    menu_state.as_mut().close();
-                }
+                OpenMenu | CloseMenu | Levels | NextLevelsPage | PreviousLevelsPage => {}
+                _ => menu_state.close_menu(),
             }
         }
     }

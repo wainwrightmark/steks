@@ -212,7 +212,7 @@ fn get_panel_bundle(args: UIArgs) -> NodeBundle {
             // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
             margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
             justify_content: JustifyContent::Center,
-            border: UiRect::all(Val::Px(2.0)),
+            border: UiRect::all(UI_BORDER_WIDTH),
 
             ..Default::default()
         },
@@ -401,7 +401,7 @@ fn get_panel_color(level: &CurrentLevel) -> Color {
 fn get_border_color(level: &CurrentLevel) -> Color {
     match level.completion {
         LevelCompletion::Incomplete { .. } => Color::NONE,
-        LevelCompletion::Complete { splash: true, .. } => Color::BLACK,
+        LevelCompletion::Complete { splash: true, .. } => BUTTON_BORDER,
         LevelCompletion::Complete { splash: false, .. } => Color::NONE,
     }
 }

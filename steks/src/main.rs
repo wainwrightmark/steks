@@ -1,5 +1,6 @@
 pub mod app_redirect;
 pub mod async_event_writer;
+pub mod button;
 pub mod camera;
 pub mod collision;
 pub mod draggable;
@@ -47,6 +48,7 @@ pub mod prelude {
 
     pub use crate::app_redirect::*;
     pub use crate::async_event_writer::*;
+    pub use crate::button::*;
     pub use crate::camera::*;
     pub use crate::collision::*;
     pub use crate::draggable::*;

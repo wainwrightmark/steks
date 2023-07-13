@@ -148,7 +148,7 @@ impl CurrentLevel {
     pub fn get_level_number_text(&self) -> Option<String> {
         match &self.level {
             GameLevel::SetLevel { index, .. } => {
-                if (*index as i16) >= TUTORIAL_LEVELS {
+                if *index >= TUTORIAL_LEVELS {
                     Some(get_level_number(index))
                 } else {
                     None
@@ -355,7 +355,7 @@ impl From<GameLevel> for LevelLogData {
 
 impl Default for GameLevel {
     fn default() -> Self {
-        get_set_level(0).unwrap()
+        get_game_level(0).unwrap()
     }
 }
 
@@ -480,7 +480,7 @@ impl ChangeLevelEvent {
         match self {
             ChangeLevelEvent::Next => match level {
                 GameLevel::SetLevel { index, .. } => {
-                    if let Some(next) = get_set_level(index.saturating_add(1)) {
+                    if let Some(next) = get_game_level(index.saturating_add(1)) {
                         (next, 0)
                     } else {
                         (GameLevel::Infinite { bytes: None }, 0)
@@ -489,12 +489,12 @@ impl ChangeLevelEvent {
                 _ => (GameLevel::Infinite { bytes: None }, 0),
             },
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
-            ChangeLevelEvent::StartTutorial => (get_set_level(0).unwrap(), 0),
+            ChangeLevelEvent::StartTutorial => (get_game_level(0).unwrap(), 0),
             ChangeLevelEvent::StartInfinite => (GameLevel::Infinite { bytes: None }, 0),
             ChangeLevelEvent::StartChallenge => (GameLevel::Challenge, 0),
 
             ChangeLevelEvent::ChooseLevel { index, stage } => {
-                (get_set_level(*index).unwrap(), *stage)
+                (get_game_level(*index).unwrap(), *stage)
             }
             ChangeLevelEvent::Load(bytes) => (
                 GameLevel::Infinite {

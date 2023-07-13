@@ -48,6 +48,7 @@ impl Default for FireworksCountdown {
 const FIREWORK_SIZE: f32 = 10.0;
 const FIREWORK_VELOCITY: f32 = 500.0;
 const FIREWORK_GRAVITY: f32 = 0.3;
+const FIREWORK_DAMPING: f32 = 0.9;
 const FIREWORK_ANGULAR_VELOCITY: f32 = 10.0;
 const DEFAULT_INTENSITY: u32 = 5;
 
@@ -143,12 +144,7 @@ fn spawn_fireworks(
         let y = rng.gen_range(0.0..=(window.height() * 0.5));
         let translation = Vec2 { x, y }.extend(0.0);
         for _ in 0..sparks {
-            spawn_spark(
-                &mut commands,
-                translation,
-                &mut rng,
-                &countdown.shapes,
-            );
+            spawn_spark(&mut commands, translation, &mut rng, &countdown.shapes);
         }
     }
 }
@@ -261,11 +257,17 @@ fn spawn_spark<R: Rng>(
 }
 
 fn firework_physics(mut query: Query<(&mut Transform, &mut FireworkVelocity)>, time: Res<Time>) {
-    for (mut transform,mut velocity) in query.iter_mut(){
-        let seconds = time.delta_seconds();
-        let grav = -1000.0 * FIREWORK_GRAVITY * seconds;
+    if query.is_empty(){
+        return;
+    }
+    let seconds = time.delta_seconds();
+    let grav = -1000.0 * FIREWORK_GRAVITY * seconds;
+    let damping = FIREWORK_DAMPING.powf(time.delta_seconds());
 
+    for (mut transform, mut velocity) in query.iter_mut() {
         velocity.linvel.y += grav;
+        velocity.linvel *= damping;
+        velocity.angvel *= damping;
         transform.translation += (velocity.linvel * seconds).extend(0.0);
 
         transform.rotate_z(velocity.angvel * seconds);

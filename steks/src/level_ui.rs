@@ -459,10 +459,10 @@ fn insert_bundle(
             if first_time {
                 let font = asset_server.load("fonts/fontello.ttf");
                 commands.insert(*menu_button);
-                commands.insert(button_bundle());
+                commands.insert(icon_button_bundle());
 
                 commands.with_children(|parent| {
-                    parent.spawn(button_text_bundle(menu_button, font));
+                    parent.spawn(menu_button.icon_bundle(font));
                 });
             }
 

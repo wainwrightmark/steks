@@ -12,21 +12,25 @@ lazy_static::lazy_static! {
     };
 }
 
-pub fn set_levels_len() -> usize {
+pub fn level_count() -> usize {
     LIST.len()
 }
 
-pub const TUTORIAL_LEVELS: i16 = 3;
+pub const TUTORIAL_LEVELS: u8 = 3;
 
-pub fn get_set_level(index: u8) -> Option<GameLevel> {
+pub fn get_game_level(index: u8) -> Option<GameLevel> {
     LIST.get(index as usize).map(|level| GameLevel::SetLevel {
         index,
         level: level.clone(),
     })
 }
 
+pub fn get_set_level(index: u8)-> Option<Arc<SetLevel>>{
+    LIST.get(index as usize).map(|x|x.clone())
+}
+
 pub fn get_level_number(level: &u8) -> String {
-    format!("{:2}", (*level as i16) - TUTORIAL_LEVELS + 1)
+    format!("{:2}", level.saturating_sub(TUTORIAL_LEVELS).saturating_add(1))
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -366,7 +370,7 @@ mod tests {
     }
 
     fn check_level(level: &SetLevel, index: usize, errors: &mut Vec<String>) {
-        let index = (index as i16) - TUTORIAL_LEVELS + 1;
+        let index = (index as u8).saturating_add(1).saturating_sub(TUTORIAL_LEVELS);
 
         check_string(
             &level.title,

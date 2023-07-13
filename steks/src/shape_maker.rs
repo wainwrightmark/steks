@@ -116,7 +116,7 @@ pub fn place_and_create_shape<RNG: Rng>(
     rng: &mut RNG,
 ) {
     let location: Location = if let Some(l) = shape_with_data.location {
-        bevy::log::debug!(
+        bevy::log::info!(
             "Placed fixed shape {} at {}",
             shape_with_data.shape.name,
             l.position
@@ -136,7 +136,7 @@ pub fn place_and_create_shape<RNG: Rng>(
             let position = Vec2 { x, y };
 
             if tries >= 20 {
-                bevy::log::debug!(
+                bevy::log::warn!(
                     "Placed shape {} without checking after {tries} tries at {position}",
                     shape_with_data.shape.name
                 );
@@ -155,7 +155,7 @@ pub fn place_and_create_shape<RNG: Rng>(
                 )
                 .is_none()
             {
-                bevy::log::debug!(
+                bevy::log::info!(
                     "Placed shape {} after {tries} tries at {position}",
                     shape_with_data.shape.name
                 );

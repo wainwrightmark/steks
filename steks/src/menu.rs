@@ -5,13 +5,14 @@ pub struct ButtonPlugin;
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<MenuState>()
-            .add_systems(Startup, setup.after(setup_level_ui))
+            //.add_systems(Startup, setup.after(setup_level_ui))
             .add_systems(First, button_system)
             .add_systems(Update, handle_menu_state_changes);
     }
 }
 
 #[derive(Component, PartialEq, Eq, Clone, Copy)]
+#[component(storage = "SparseSet")]
 pub enum MenuComponent {
     MenuHamburger,
     MainMenu,
@@ -77,32 +78,48 @@ impl MenuState {
     pub fn close(&mut self) {
         *self = MenuState::Closed;
     }
+
+    pub fn spawn_nodes(&self, commands: &mut Commands, asset_server: &AssetServer) {
+        match self {
+            MenuState::Closed => {
+                let font = asset_server.load("fonts/fontello.ttf");
+
+                commands
+                    .spawn(NodeBundle {
+                        style: Style {
+                            position_type: PositionType::Absolute,
+                            left: Val::Px(10.),
+                            top: Val::Px(10.),
+                            ..Default::default()
+                        },
+                        z_index: ZIndex::Global(10),
+                        ..Default::default()
+                    })
+                    .insert(MenuComponent::MenuHamburger)
+                    .with_children(|parent| {
+                        spawn_icon_button(parent, ButtonAction::ToggleMenu, font)
+                    });
+            }
+            MenuState::MenuOpen => {
+                spawn_menu(commands, asset_server);
+            }
+            MenuState::LevelsPage(page) => spawn_level_menu(commands, asset_server, *page),
+        }
+    }
 }
 
 fn handle_menu_state_changes(
+    mut commands: Commands,
     menu_state: Res<MenuState>,
-    mut components: Query<(&MenuComponent, &mut Visibility)>,
+    components: Query<Entity, &MenuComponent>,
+    asset_server: Res<AssetServer>,
 ) {
     if menu_state.is_changed() {
-        for (component, mut visibility) in components.iter_mut() {
-            let visible = match (*component, *menu_state) {
-                (MenuComponent::MenuHamburger, MenuState::Closed) => true,
-                (MenuComponent::MenuHamburger, MenuState::MenuOpen) => false,
-                (MenuComponent::MenuHamburger, MenuState::LevelsPage(..)) => false,
-                (MenuComponent::MainMenu, MenuState::Closed) => false,
-                (MenuComponent::MainMenu, MenuState::MenuOpen) => true,
-                (MenuComponent::MainMenu, MenuState::LevelsPage(..)) => false,
-                (MenuComponent::LevelsPage(..), MenuState::Closed) => false,
-                (MenuComponent::LevelsPage(..), MenuState::MenuOpen) => false,
-                (MenuComponent::LevelsPage(p1), MenuState::LevelsPage(p2)) => p1 == p2,
-            };
-
-            if visible {
-                *visibility = Visibility::Inherited;
-            } else {
-                *visibility = Visibility::Hidden;
-            }
+        for entity in components.iter() {
+            commands.entity(entity).despawn_recursive();
         }
+
+        menu_state.spawn_nodes(&mut commands, asset_server.as_ref());
     }
 }
 
@@ -111,8 +128,7 @@ fn button_system(
         (
             &Interaction,
             &mut BackgroundColor,
-            &MenuButton,
-            &ButtonComponent,
+            &ButtonComponent
         ),
         (Changed<Interaction>, With<Button>),
     >,
@@ -124,13 +140,13 @@ fn button_system(
     mut menu_state: ResMut<MenuState>,
     mut current_level: ResMut<CurrentLevel>,
 ) {
-    for (interaction, mut bg_color, button, button_component) in interaction_query.iter_mut() {
-        use MenuButton::*;
+    for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
+        use ButtonAction::*;
         //info!("{interaction:?} {button:?} {menu_state:?}");
-        *bg_color = button_component.background_color(interaction);
+        *bg_color = button.button_type.background_color(interaction);
 
         if interaction == &Interaction::Pressed {
-            match *button {
+            match button.button_action {
                 ToggleMenu => menu_state.as_mut().toggle_menu(),
                 GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
@@ -139,15 +155,18 @@ fn button_system(
                     }
                 }
                 ClipboardImport => import_events.send(ImportEvent),
-                Tutorial => change_level_events.send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
+                Tutorial => change_level_events
+                    .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
                 Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
                 DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
                 ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
                 Share => share_events.send(ShareEvent),
-                GotoLevel { level } => change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
-                    index: level,
-                    stage: 0,
-                }),
+                GotoLevel { level } => {
+                    change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
+                        index: level,
+                        stage: 0,
+                    })
+                }
                 Levels => menu_state.as_mut().toggle_levels(),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeCompletion => match current_level.completion {
@@ -172,7 +191,7 @@ fn button_system(
                 PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
             }
 
-            match *button {
+            match button.button_action {
                 ToggleMenu | Levels | NextLevelsPage | PreviousLevelsPage => {}
                 _ => {
                     menu_state.as_mut().close();
@@ -204,13 +223,12 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
                 ..Default::default()
             },
             z_index: ZIndex::Global(10),
-            visibility: Visibility::Hidden,
             ..Default::default()
         })
         .insert(MenuComponent::MainMenu)
         .with_children(|parent| {
             let font = asset_server.load("fonts/FiraMono-Medium.ttf");
-            for button in MenuButton::main_buttons() {
+            for button in ButtonAction::main_buttons() {
                 spawn_text_button(parent, *button, font.clone());
             }
         });
@@ -230,7 +248,6 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
                 ..Default::default()
             },
             z_index: ZIndex::Global(10),
-            visibility: Visibility::Hidden,
             ..Default::default()
         })
         .insert(MenuComponent::LevelsPage(page))
@@ -241,10 +258,8 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
             let start = page * LEVELS_PER_PAGE;
             let end = start + LEVELS_PER_PAGE;
 
-
-
             for level in start..end {
-                spawn_text_button(parent, MenuButton::GotoLevel { level }, text_font.clone())
+                spawn_text_button(parent, ButtonAction::GotoLevel { level }, text_font.clone())
             }
 
             parent
@@ -262,33 +277,8 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
                     ..Default::default()
                 })
                 .with_children(|panel| {
-                    spawn_icon_button(panel, MenuButton::PreviousLevelsPage, icon_font.clone());
-                    spawn_icon_button(panel, MenuButton::NextLevelsPage, icon_font.clone());
+                    spawn_icon_button(panel, ButtonAction::PreviousLevelsPage, icon_font.clone());
+                    spawn_icon_button(panel, ButtonAction::NextLevelsPage, icon_font.clone());
                 });
         });
-}
-
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands
-        .spawn(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Px(10.),
-                top: Val::Px(10.),
-                ..Default::default()
-            },
-            z_index: ZIndex::Global(10),
-            ..Default::default()
-        })
-        .insert(MenuComponent::MenuHamburger)
-        .with_children(|parent| {
-            let font = asset_server.load("fonts/fontello.ttf");
-            spawn_icon_button(parent, MenuButton::ToggleMenu, font)
-        });
-
-    spawn_menu(&mut commands, asset_server.as_ref());
-
-    for page in 0..max_page_exclusive() {
-        spawn_level_menu(&mut commands, asset_server.as_ref(), page);
-    }
 }

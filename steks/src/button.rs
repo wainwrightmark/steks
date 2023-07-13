@@ -11,13 +11,19 @@ pub const TEXT_BUTTON_HEIGHT: f32 = 60.;
 
 pub const MENU_OFFSET: f32 = 10.;
 
-#[derive(Debug, Component, Clone, Copy, Display)]
-pub enum ButtonComponent {
+#[derive(Debug, Clone, Copy, Component)]
+pub struct ButtonComponent{
+    pub button_action: ButtonAction,
+    pub button_type: ButtonType
+}
+
+#[derive(Debug, Clone, Copy, Display)]
+pub enum ButtonType {
     Icon,
     Text,
 }
 
-impl ButtonComponent {
+impl ButtonType {
     pub fn background_color(&self, interaction: &Interaction) -> BackgroundColor {
         const ICON_BUTTON_BACKGROUND: Color = Color::NONE;
         const TEXT_BUTTON_BACKGROUND: Color = Color::WHITE;
@@ -28,7 +34,7 @@ impl ButtonComponent {
         const TEXT_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.9);
         const TEXT_PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
 
-        use ButtonComponent::*;
+        use ButtonType::*;
         use Interaction::*;
 
         match (self, interaction) {
@@ -43,8 +49,8 @@ impl ButtonComponent {
     }
 }
 
-#[derive(Component, Clone, Copy, Debug, Display, PartialEq, Eq)]
-pub enum MenuButton {
+#[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
+pub enum ButtonAction {
     ToggleMenu,
     ResetLevel,
     GoFullscreen,
@@ -63,10 +69,10 @@ pub enum MenuButton {
     PreviousLevelsPage
 }
 
-impl MenuButton {
+impl ButtonAction {
 
     pub fn main_buttons()-> &'static [Self]{
-        use MenuButton::*;
+        use ButtonAction::*;
         &[
                 // ToggleMenu,
                 ResetLevel,
@@ -87,7 +93,7 @@ impl MenuButton {
     }
 
     pub fn icon(&self) -> String {
-        use MenuButton::*;
+        use ButtonAction::*;
         match self {
             ToggleMenu => "\u{f0c9}".to_string(),     // "Menu",
             ResetLevel => "\u{e800}".to_string(),     //"Reset Level",image
@@ -109,7 +115,7 @@ impl MenuButton {
     }
 
     pub fn text(&self) -> String {
-        use MenuButton::*;
+        use ButtonAction::*;
         match self {
             ToggleMenu => "Close".to_string(),
             ResetLevel => "Reset".to_string(),
@@ -186,7 +192,7 @@ pub fn icon_button_bundle() -> ButtonBundle {
 
             ..Default::default()
         },
-        background_color:  ButtonComponent::Icon.background_color(&Interaction::None),
+        background_color:  ButtonType::Icon.background_color(&Interaction::None),
         ..Default::default()
     }
 }
@@ -210,7 +216,7 @@ pub fn text_button_bundle() -> ButtonBundle {
 
             ..Default::default()
         },
-        background_color: ButtonComponent::Text.background_color(&Interaction::None),
+        background_color: ButtonType::Text.background_color(&Interaction::None),
         border_color: Color::BLACK.into(),// color::BACKGROUND_COLOR.into(),
         ..Default::default()
     }
@@ -218,30 +224,35 @@ pub fn text_button_bundle() -> ButtonBundle {
 
 pub fn spawn_text_button(
     parent: &mut ChildBuilder,
-    menu_button: MenuButton,
+    button_action: ButtonAction,
     //asset_server: &AssetServer,
     font: Handle<Font>,
 ) {
     parent
         .spawn(text_button_bundle())
         .with_children(|parent| {
-            parent.spawn(menu_button.text_bundle(font));
+            parent.spawn(button_action.text_bundle(font));
         })
-        .insert(menu_button)
-        .insert(ButtonComponent::Text);
+
+        .insert(ButtonComponent{
+            button_action,
+            button_type: ButtonType::Text
+        });
 }
 
 pub fn spawn_icon_button(
     parent: &mut ChildBuilder,
-    menu_button: MenuButton,
+    button_action: ButtonAction,
     //asset_server: &AssetServer,
     font: Handle<Font>,
 ) {
     parent
         .spawn(icon_button_bundle())
         .with_children(|parent| {
-            parent.spawn(menu_button.icon_bundle(font));
+            parent.spawn(button_action.icon_bundle(font));
         })
-        .insert(menu_button)
-        .insert(ButtonComponent::Icon);
+        .insert(ButtonComponent{
+            button_action,
+            button_type: ButtonType::Icon
+        });
 }

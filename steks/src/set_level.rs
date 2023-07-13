@@ -367,8 +367,8 @@ mod tests {
 
     #[test]
     pub fn test_tutorial_levels_deserialize() {
-        let list = &crate::set_level::CAMPAIGN_LEVELS;
-        assert!(list.len() > 0)
+        let list = &crate::set_level::TUTORIAL_LEVELS;
+        assert_eq!(list.len(), 3)
     }
 
     #[test]

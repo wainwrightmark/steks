@@ -84,16 +84,16 @@ enum LevelUIComponent {
     Title,
     Message,
     ButtonPanel,
-    Button(MenuButton),
+    Button(ButtonAction),
 }
 
 impl LevelUIComponent {
     pub fn get_child_components(&self) -> &[Self] {
         use LevelUIComponent::*;
         const BUTTONS: [LevelUIComponent; 3] = [
-            Button(MenuButton::NextLevel),
-            Button(MenuButton::Share),
-            Button(MenuButton::MinimizeCompletion),
+            Button(ButtonAction::NextLevel),
+            Button(ButtonAction::Share),
+            Button(ButtonAction::MinimizeCompletion),
         ];
 
         match self {
@@ -455,18 +455,21 @@ fn insert_bundle(
         LevelUIComponent::ButtonPanel => {
             commands.insert(get_button_panel(args));
         }
-        LevelUIComponent::Button(menu_button) => {
+        LevelUIComponent::Button(button_action) => {
             if first_time {
                 let font = asset_server.load("fonts/fontello.ttf");
-                commands.insert(*menu_button);
+                commands.insert(ButtonComponent{
+                    button_type: ButtonType::Icon,
+                    button_action: *button_action
+                });
                 commands.insert(icon_button_bundle());
 
                 commands.with_children(|parent| {
-                    parent.spawn(menu_button.icon_bundle(font));
+                    parent.spawn(button_action.icon_bundle(font));
                 });
             }
 
-            if current_level.completion.is_button_visible(menu_button) {
+            if current_level.completion.is_button_visible(button_action) {
                 commands.insert(Visibility::Inherited);
             } else {
                 commands.insert(Visibility::Hidden);

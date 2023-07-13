@@ -283,9 +283,9 @@ impl LevelCompletion {
 }
 
 impl LevelCompletion {
-    pub fn is_button_visible(&self, button: &MenuButton) -> bool {
+    pub fn is_button_visible(&self, button: &ButtonAction) -> bool {
         use LevelCompletion::*;
-        use MenuButton::*;
+        use ButtonAction::*;
         match self {
             Incomplete { .. } => false,
             Complete { .. } => matches!(button, NextLevel | Share | MinimizeCompletion),
@@ -315,6 +315,8 @@ pub enum DesignedLevelMeta {
 
 impl DesignedLevelMeta {
     pub fn next_level(&self) -> Option<Self> {
+
+        //info!("Next Level {self:?}");
         match self {
             DesignedLevelMeta::Tutorial { index } => {
                 let index = index + 1;
@@ -548,7 +550,7 @@ impl ChangeLevelEvent {
                 (
                     GameLevel::Designed {
                         level: get_tutorial_level(index).unwrap(),
-                        meta: DesignedLevelMeta::Campaign { index },
+                        meta: DesignedLevelMeta::Tutorial { index },
                     },
                     *stage,
                 )

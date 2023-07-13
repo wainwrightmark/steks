@@ -473,9 +473,9 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
 fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
     if level.is_changed() && level.completion.is_complete() {
         if match &level.level {
-            GameLevel::Designed {  meta,.. } => match meta {
+            GameLevel::Designed { meta, .. } => match meta {
                 DesignedLevelMeta::Tutorial { .. } => true,
-                _=> false
+                _ => false,
             },
             _ => false,
         } {
@@ -508,7 +508,24 @@ fn track_level_completion(
             });
 
             match &level.level {
-                GameLevel::Designed { .. } => {}
+                GameLevel::Designed { meta, .. } => match meta {
+                    DesignedLevelMeta::Campaign { index } => {
+                        if *index > 0 && *index % 10 == 0 {
+                            #[cfg(all(
+                                target_arch = "wasm32",
+                                any(feature = "android", feature = "ios")
+                            ))]
+                            {
+                                bevy::tasks::IoTaskPool::get()
+                                    .spawn(async move {
+                                        capacitor_bindings::rate::Rate::request_review().await
+                                    })
+                                    .detach();
+                            }
+                        }
+                    }
+                    _ => {}
+                },
                 GameLevel::Infinite { .. } => {}
                 GameLevel::Challenge => {
                     SavedData::update(&mut pkv, |x| x.with_todays_challenge_beat());

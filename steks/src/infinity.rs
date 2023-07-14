@@ -9,5 +9,5 @@ pub fn get_next_shape<'a>(shapes: impl Iterator<Item = &'a ShapeIndex>) -> Shape
         hash |= hash.wrapping_mul(97).wrapping_add(s.0 as u64)
     }
 
-    ShapeCreationData::from_seed(hash)
+    ShapeCreationData::from_seed_no_circle(hash)
 }

@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use bevy::{ecs::system::EntityCommands, render::color};
 use bevy_prototype_lyon::prelude::*;
-use rand::{rngs::StdRng, seq::SliceRandom, Rng};
+use rand::{rngs::StdRng, seq::IteratorRandom, Rng};
 
 #[derive(Debug, Clone, Copy, PartialEq, Event)]
 pub struct ShapeCreationData {
@@ -152,13 +152,13 @@ impl ShapeCreationData {
         self
     }
 
-    pub fn from_seed(seed: u64) -> Self {
+    pub fn from_seed_no_circle(seed: u64) -> Self {
         let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(seed);
-        Self::random(&mut shape_rng)
+        Self::random_no_circle(&mut shape_rng)
     }
 
-    pub fn random<R: Rng>(shape_rng: &mut R) -> Self {
-        let shape = ALL_SHAPES.choose(shape_rng).unwrap();
+    pub fn random_no_circle<R: Rng>(shape_rng: &mut R) -> Self {
+        let shape = ALL_SHAPES.iter().skip(1).choose(shape_rng).unwrap();
 
         Self {
             shape,

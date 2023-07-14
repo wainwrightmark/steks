@@ -15,6 +15,10 @@ pub const ICE_SHAPE_STROKE: Color = Color::WHITE;
 pub const SHADOW_STROKE: Color = Color::BLACK;
 
 
+pub const LEVEL_TEXT_COLOR: Color = Color::DARK_GRAY;
+pub const LEVEL_TEXT_ALT_COLOR: Color = Color::WHITE;
+
+
 pub const BUTTON_BORDER: Color = Color::BLACK;
 
 pub const UI_BORDER_WIDTH: Val = Val::Px(5.0);

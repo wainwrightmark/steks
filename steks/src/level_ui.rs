@@ -5,7 +5,7 @@ use bevy_tweening::{Animator, EaseFunction, Tween};
 use crate::prelude::*;
 pub struct LevelUiPlugin;
 
-pub const SMALL_TEXT_COLOR: Color = Color::DARK_GRAY;
+//
 
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
@@ -258,13 +258,15 @@ fn get_title_bundle(args: UIArgs) -> TextBundle {
         return TextBundle::default();
     }
 
+    let color = args.current_level.level.text_color();
+
     if let Some(text) = args.current_level.get_title() {
         TextBundle::from_section(
             text,
             TextStyle {
                 font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
                 font_size: 30.0,
-                color: SMALL_TEXT_COLOR,
+                color,
             },
         )
         .with_text_alignment(TextAlignment::Center)
@@ -292,13 +294,15 @@ fn get_level_number_bundle(args: UIArgs) -> TextBundle {
         }
     }
 
+    let color = args.current_level.level.text_color();
+
     if let Some(text) = args.current_level.get_level_number_text() {
         TextBundle::from_section(
             text,
             TextStyle {
                 font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
                 font_size: 30.0,
-                color: SMALL_TEXT_COLOR,
+                color,
             },
         )
         .with_text_alignment(TextAlignment::Center)
@@ -320,12 +324,14 @@ pub struct UIArgs<'a, 'world> {
 
 fn get_message_bundle(args: UIArgs) -> TextBundle {
     if let Some(text) = args.current_level.get_text() {
+
+        let color = args.current_level.level.text_color();
         TextBundle::from_section(
             text,
             TextStyle {
                 font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
                 font_size: 20.0,
-                color: SMALL_TEXT_COLOR,
+                color,
             },
         )
         .with_text_alignment(TextAlignment::Center)
@@ -356,6 +362,8 @@ fn animate_text(
         LevelCompletion::Complete {  .. } => false,
     };
 
+    let start = current_level.level.text_color();
+
     const DEFAULT_TEXT_FADE: u32 = 20;
 
     if fade {
@@ -364,7 +372,7 @@ fn animate_text(
             Duration::from_secs(DEFAULT_TEXT_FADE as u64),
             TextColorLens {
                 section: 0,
-                start: SMALL_TEXT_COLOR,
+                start,
                 end: Color::NONE,
             },
         )));
@@ -375,8 +383,8 @@ fn animate_text(
             Duration::from_secs(0),
             TextColorLens {
                 section: 0,
-                start: SMALL_TEXT_COLOR,
-                end: SMALL_TEXT_COLOR,
+                start,
+                end: start,
             },
         )));
     }

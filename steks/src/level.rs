@@ -4,6 +4,7 @@ use crate::{infinity, prelude::*, shape_maker};
 use bevy::reflect::TypeUuid;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use steks_common::color;
 
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
@@ -296,6 +297,9 @@ pub enum DesignedLevelMeta {
 }
 
 impl DesignedLevelMeta {
+
+
+
     pub fn next_level(&self) -> Option<Self> {
         //info!("Next Level {self:?}");
         match self {
@@ -350,6 +354,19 @@ impl GameLevel {
             GameLevel::Designed { meta, .. } => meta.get_level().total_stages() > *stage,
             GameLevel::Infinite { .. } => true,
             GameLevel::Challenge => false,
+        }
+    }
+
+    pub fn text_color(&self)-> Color{
+        let alt = match self {
+            GameLevel::Designed { meta } => meta.get_level().alt_text_color,
+            _=> false
+        };
+
+        if alt{
+            color::LEVEL_TEXT_ALT_COLOR
+        }else{
+            color::LEVEL_TEXT_COLOR
         }
     }
 }
@@ -525,15 +542,12 @@ impl ChangeLevelEvent {
             ChangeLevelEvent::Next => {
                 if let GameLevel::Designed { meta, .. } = level {
                     if let Some(meta) = meta.next_level() {
-                        if let Some(level) = meta.try_get_level() {
-                            return (GameLevel::Designed { meta }, 0);
-                        }
+                        return (GameLevel::Designed { meta }, 0);
                     }
                 }
                 return (GameLevel::Infinite { bytes: None }, 0);
             }
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
-            //ChangeLevelEvent::StartTutorial => (get_tutorial_level(0).unwrap(), 0),
             ChangeLevelEvent::StartInfinite => (GameLevel::Infinite { bytes: None }, 0),
             ChangeLevelEvent::StartChallenge => (GameLevel::Challenge, 0),
 

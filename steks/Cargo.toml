@@ -29,21 +29,11 @@ async-channel = "1.8.0"
 steks_common = {path= "../steks_common"}
 
 
-
-
-[dependencies.web-sys]
-version = "0.3"
-features = ["Url"
-]
-
-[target.wasm32-unknown-unknown]
-runner = "wasm-server-runner"
-
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }
 wasm-bindgen = "0.2"
 
-web-sys = {version = "0.3", features = ['Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
+web-sys = {version = "0.3", features = ['Url', 'Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
 console_error_panic_hook = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]

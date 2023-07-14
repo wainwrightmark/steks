@@ -35,13 +35,21 @@ pub fn format_campaign_level_number(level: &u8) -> String {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct DesignedLevel {
+    #[serde(alias = "Title")]
     pub title: Option<String>,
 
+    #[serde(alias = "Alt_text_color")]
+    #[serde(default)]
+    pub alt_text_color: bool,
+
+    #[serde(alias = "Initial_stage")]
     #[serde(flatten)]
     pub initial_stage: LevelStage,
+    #[serde(alias = "Stages")]
     #[serde(default)]
     pub stages: Vec<LevelStage>,
-
+    #[serde(alias = "End_text")]
+    #[serde(default)]
     pub end_text: Option<String>,
 
     #[serde(default)]

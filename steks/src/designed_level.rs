@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use strum::FromRepr;
 use std::{f32::consts, sync::Arc};
 use steks_common::prelude::GameShape;
 
@@ -166,6 +167,22 @@ pub struct ShapeCreation {
     pub id: Option<u32>,
 }
 
+impl From<EncodableShape> for ShapeCreation {
+    fn from(value: EncodableShape) -> Self {
+        Self {
+            shape: value.shape.into(),
+            x: Some(value.location.position.x),
+            y: Some(value.location.position.y) ,
+            r: Some(value.location.angle / consts::TAU),
+            vel_x: Some(0.0),
+            vel_y: Some(0.0),
+            state: value.state,
+            modifiers: value.modifiers,
+            id: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
 pub struct ShapeUpdate {
     #[serde(default)]
@@ -293,7 +310,7 @@ impl From<ShapeCreation> for ShapeCreationData {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, FromRepr)]
 #[repr(u8)]
 pub enum LevelShapeForm {
     #[default]
@@ -352,6 +369,11 @@ impl From<LevelShapeForm> for &'static GameShape {
     fn from(val: LevelShapeForm) -> Self {
         let index = val as usize;
         &ALL_SHAPES[index]
+    }
+}
+impl From<&'static GameShape> for LevelShapeForm  {
+    fn from(value: &'static GameShape) -> Self {
+        Self::from_repr(value.index.0 as u8).unwrap()
     }
 }
 

@@ -115,7 +115,7 @@ pub fn place_and_create_shape<RNG: Rng>(
 ) {
     let location: Location = if let Some(l) = shape_with_data.location {
         bevy::log::info!(
-            "Placed fixed shape {} at {}",
+            "Placed shape {} at {}",
             shape_with_data.shape.name,
             l.position
         );

@@ -7,7 +7,7 @@ pub struct AppUrlPlugin;
 
 impl bevy::prelude::Plugin for AppUrlPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Startup, subscribe_to_app_url_events);
+        app.add_systems(PostStartup, subscribe_to_app_url_events);
     }
 }
 
@@ -36,5 +36,6 @@ fn redirect_to_url(url: String, writer: AsyncEventWriter<ChangeLevelEvent>) {
     let index = index + 9;
     let path = url[index..].to_string();
     let Some(cle) = ChangeLevelEvent::try_from_path(path) else {return};
+    //info!("Loaded game from path");
     writer.send_blocking(cle).unwrap();
 }

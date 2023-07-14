@@ -99,11 +99,15 @@ fn handle_change_level_events(
     }
 }
 
-fn choose_level_on_game_load(mut change_level_events: EventWriter<ChangeLevelEvent>, current_level: Res<CurrentLevel>) {
+fn choose_level_on_game_load(
+    mut change_level_events: EventWriter<ChangeLevelEvent>,
+    current_level: Res<CurrentLevel>,
+) {
     #[cfg(target_arch = "wasm32")]
     {
         match crate::wasm::get_game_from_location() {
             Some(level) => {
+                //info!("Loaded level from url");
                 change_level_events.send(level);
                 return;
             }
@@ -113,10 +117,9 @@ fn choose_level_on_game_load(mut change_level_events: EventWriter<ChangeLevelEve
         }
     }
 
-    if current_level.completion.is_complete(){
+    if current_level.completion.is_complete() {
         change_level_events.send(ChangeLevelEvent::Next);
     }
-
 }
 
 #[derive(Default, Resource, Clone, Debug, Serialize, Deserialize, TypeUuid)]
@@ -149,9 +152,10 @@ impl CurrentLevel {
     pub fn get_text(&self) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
-                GameLevel::Designed { meta, .. } => {
-                    meta.get_level().get_stage(&stage).and_then(|x| x.text.clone())
-                }
+                GameLevel::Designed { meta, .. } => meta
+                    .get_level()
+                    .get_stage(&stage)
+                    .and_then(|x| x.text.clone()),
                 GameLevel::Infinite { bytes } => {
                     if stage == 0 && bytes.is_some() {
                         Some("Loaded Game".to_string())
@@ -168,9 +172,11 @@ impl CurrentLevel {
                 }
 
                 let message = match &self.level {
-                    GameLevel::Designed { meta, .. } => {
-                        meta.get_level().end_text.as_deref().unwrap_or("Level Complete")
-                    }
+                    GameLevel::Designed { meta, .. } => meta
+                        .get_level()
+                        .end_text
+                        .as_deref()
+                        .unwrap_or("Level Complete"),
                     GameLevel::Infinite { .. } => "",
                     GameLevel::Challenge => "Challenge Complete",
                 };
@@ -279,13 +285,9 @@ impl LevelCompletion {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum GameLevel {
-    Designed {
-        meta: DesignedLevelMeta,
-    },
+    Designed { meta: DesignedLevelMeta },
 
-    Infinite {
-        bytes: Option<Arc<Vec<u8>>>,
-    },
+    Infinite { bytes: Option<Arc<Vec<u8>>> },
     Challenge,
 }
 
@@ -293,13 +295,10 @@ pub enum GameLevel {
 pub enum DesignedLevelMeta {
     Tutorial { index: u8 },
     Campaign { index: u8 },
-    Custom{ level: Arc<DesignedLevel>,},
+    Custom { level: Arc<DesignedLevel> },
 }
 
 impl DesignedLevelMeta {
-
-
-
     pub fn next_level(&self) -> Option<Self> {
         //info!("Next Level {self:?}");
         match self {
@@ -319,7 +318,7 @@ impl DesignedLevelMeta {
                     None
                 }
             }
-            DesignedLevelMeta::Custom{..} => None,
+            DesignedLevelMeta::Custom { .. } => None,
         }
     }
 
@@ -337,12 +336,14 @@ impl DesignedLevelMeta {
 
     pub fn get_level(&self) -> &DesignedLevel {
         match self {
-            DesignedLevelMeta::Tutorial { index } => {
-                TUTORIAL_LEVELS.get(*index as usize).expect("Could not get tutorial level").as_ref()
-            }
-            DesignedLevelMeta::Campaign { index } => {
-                CAMPAIGN_LEVELS.get(*index as usize).expect("Could not get campaign level").as_ref()
-            }
+            DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS
+                .get(*index as usize)
+                .expect("Could not get tutorial level")
+                .as_ref(),
+            DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS
+                .get(*index as usize)
+                .expect("Could not get campaign level")
+                .as_ref(),
             DesignedLevelMeta::Custom { level } => level.as_ref(),
         }
     }
@@ -357,15 +358,15 @@ impl GameLevel {
         }
     }
 
-    pub fn text_color(&self)-> Color{
+    pub fn text_color(&self) -> Color {
         let alt = match self {
             GameLevel::Designed { meta } => meta.get_level().alt_text_color,
-            _=> false
+            _ => false,
         };
 
-        if alt{
+        if alt {
             color::LEVEL_TEXT_ALT_COLOR
-        }else{
+        } else {
             color::LEVEL_TEXT_COLOR
         }
     }
@@ -442,9 +443,11 @@ impl ChangeLevelEvent {
     pub fn try_from_path(path: String) -> Option<Self> {
         use base64::Engine;
         if path.to_ascii_lowercase().starts_with("/game") {
+            //info!("Path starts with game");
             let data = path[6..].to_string();
             match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data) {
                 Ok(bytes) => {
+                    //info!("Decoded data");
                     return Some(ChangeLevelEvent::Load(std::sync::Arc::new(bytes)));
                 }
                 Err(err) => warn!("{err}"),
@@ -538,6 +541,8 @@ fn track_level_completion(
 impl ChangeLevelEvent {
     #[must_use]
     pub fn get_new_level(&self, level: &GameLevel) -> (GameLevel, usize) {
+        info!("Changing level {self:?} level {level:?}");
+
         match self {
             ChangeLevelEvent::Next => {
                 if let GameLevel::Designed { meta, .. } = level {
@@ -569,15 +574,37 @@ impl ChangeLevelEvent {
                     *stage,
                 )
             }
-            ChangeLevelEvent::Load(bytes) => (
-                GameLevel::Infinite {
-                    bytes: Some(bytes.clone()),
-                },
-                0,
-            ),
+            ChangeLevelEvent::Load(bytes) => {
+                let decoded = decode_shapes(bytes);
+                let shapes = decoded.into_iter().map(|x| x.into()).collect_vec();
+                let initial_stage = LevelStage {
+                    text: None,
+                    mouse_text: None,
+                    text_forever: false,
+                    shapes: Arc::new(shapes),
+                    updates: vec![].into(),
+                    gravity: None,
+                    rainfall: None,
+                    fireworks: FireworksSettings::default(),
+                };
+
+                let level = DesignedLevel {
+                    title: None,
+                    alt_text_color: false,
+                    initial_stage,
+                    stages: vec![],
+                    end_text: None,
+                    end_fireworks: FireworksSettings::default(),
+                };
+
+                (GameLevel::Designed { meta: DesignedLevelMeta::Custom { level: level.into() } }, 0)
+
+            }
             ChangeLevelEvent::Custom { level } => (
                 GameLevel::Designed {
-                    meta: DesignedLevelMeta::Custom {level:level.clone()},
+                    meta: DesignedLevelMeta::Custom {
+                        level: level.clone(),
+                    },
                 },
                 0,
             ),

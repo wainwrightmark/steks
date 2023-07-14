@@ -79,7 +79,6 @@ impl ShapeModifiers {
             }),
         }
     }
-
 }
 
 impl ShapeState {
@@ -115,11 +114,10 @@ impl ShapeState {
         }
     }
 
-    pub fn shadow_stroke(&self)-> Color{
+    pub fn shadow_stroke(&self) -> Color {
         match self {
-
             ShapeState::Void => WARN_COLOR,
-            _=> SHADOW_STROKE
+            _ => SHADOW_STROKE,
         }
     }
 }

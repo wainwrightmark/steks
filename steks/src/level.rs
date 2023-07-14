@@ -122,9 +122,6 @@ fn choose_level_on_game_load(
     }
 }
 
-
-
-
 #[derive(Default, Resource, Clone, Debug, Serialize, Deserialize, TypeUuid)]
 #[uuid = "a2a27354-2222-11ee-be56-0242ac120002"]
 pub struct CurrentLevel {
@@ -327,12 +324,8 @@ impl DesignedLevelMeta {
 
     pub fn try_get_level(&self) -> Option<Arc<DesignedLevel>> {
         match self {
-            DesignedLevelMeta::Tutorial { index } => {
-                TUTORIAL_LEVELS.get(*index as usize).map(|x| x.clone())
-            }
-            DesignedLevelMeta::Campaign { index } => {
-                CAMPAIGN_LEVELS.get(*index as usize).map(|x| x.clone())
-            }
+            DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS.get(*index as usize).cloned(),
+            DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS.get(*index as usize).cloned(),
             DesignedLevelMeta::Custom { level } => Some(level.clone()),
         }
     }
@@ -462,8 +455,6 @@ impl ChangeLevelEvent {
             return Some(ChangeLevelEvent::make_custom(data.as_str()));
         }
 
-
-
         bevy::log::warn!("Could not get game from path: {path}");
 
         None
@@ -489,57 +480,49 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
 }
 
 fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
-    if level.is_changed() && level.completion.is_complete() {
-        if match &level.level {
+    if level.is_changed()
+        && level.completion.is_complete()
+        && match &level.level {
             GameLevel::Designed { meta, .. } => match meta {
                 DesignedLevelMeta::Tutorial { .. } => true,
                 _ => false,
             },
             _ => false,
-        } {
-            events.send(ChangeLevelEvent::Next);
         }
+    {
+        events.send(ChangeLevelEvent::Next);
     }
 }
 
-fn track_level_completion(
-    level: Res<CurrentLevel>,
-    //shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
-) {
+fn track_level_completion(level: Res<CurrentLevel>) {
     if !level.is_changed() {
         return;
     }
 
     match level.completion {
-        LevelCompletion::Incomplete { .. } => {
-            //let current: LevelLogData = level.level.clone().into();
-        }
-        LevelCompletion::Complete { .. } => {
-            //let hash = ShapesVec::from_query(shapes_query).hash();
-
-            match &level.level {
-                GameLevel::Designed { meta, .. } => match meta {
-                    DesignedLevelMeta::Campaign { index } => {
-                        if *index > 0 && *index % 10 == 0 {
-                            #[cfg(all(
-                                target_arch = "wasm32",
-                                any(feature = "android", feature = "ios")
-                            ))]
-                            {
-                                bevy::tasks::IoTaskPool::get()
-                                    .spawn(async move {
-                                        capacitor_bindings::rate::Rate::request_review().await
-                                    })
-                                    .detach();
-                            }
+        LevelCompletion::Incomplete { .. } => {}
+        LevelCompletion::Complete { .. } => match &level.level {
+            GameLevel::Designed { meta, .. } => match meta {
+                DesignedLevelMeta::Campaign { index } => {
+                    if *index > 0 && *index % 10 == 0 {
+                        #[cfg(all(
+                            target_arch = "wasm32",
+                            any(feature = "android", feature = "ios")
+                        ))]
+                        {
+                            bevy::tasks::IoTaskPool::get()
+                                .spawn(async move {
+                                    capacitor_bindings::rate::Rate::request_review().await
+                                })
+                                .detach();
                         }
                     }
-                    _ => {}
-                },
-                GameLevel::Infinite { .. } => {}
-                GameLevel::Challenge => {}
-            }
-        }
+                }
+                _ => {}
+            },
+            GameLevel::Infinite { .. } => {}
+            GameLevel::Challenge => {}
+        },
     }
 }
 
@@ -555,7 +538,7 @@ impl ChangeLevelEvent {
                         return (GameLevel::Designed { meta }, 0);
                     }
                 }
-                return (GameLevel::Infinite { bytes: None }, 0);
+                (GameLevel::Infinite { bytes: None }, 0)
             }
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
             ChangeLevelEvent::StartInfinite => (GameLevel::Infinite { bytes: None }, 0),
@@ -602,8 +585,14 @@ impl ChangeLevelEvent {
                     end_fireworks: FireworksSettings::default(),
                 };
 
-                (GameLevel::Designed { meta: DesignedLevelMeta::Custom { level: level.into() } }, 0)
-
+                (
+                    GameLevel::Designed {
+                        meta: DesignedLevelMeta::Custom {
+                            level: level.into(),
+                        },
+                    },
+                    0,
+                )
             }
             ChangeLevelEvent::Custom { level } => (
                 GameLevel::Designed {

@@ -61,12 +61,7 @@ pub fn get_cursor_position(
 
     // check if the cursor is inside the window and get its position
     if let Some(screen_pos) = window.cursor_position() {
-        let world_pos = camera.viewport_to_world_2d(camera_transform, screen_pos);
-        // let world_pos =
-        //     convert_screen_to_world_position(screen_pos, window, camera, camera_transform);
-
-        //info!("Cursor world: {world_pos}; screen {screen_pos}");
-        world_pos
+        camera.viewport_to_world_2d(camera_transform, screen_pos)
     } else {
         None
     }
@@ -77,7 +72,6 @@ fn convert_screen_to_world_position(
     q_camera: &Query<(&Camera, &GlobalTransform)>,
 ) -> Option<Vec2> {
     let (camera, camera_transform) = q_camera.single();
-
     camera.viewport_to_world_2d(camera_transform, screen_pos)
 }
 

@@ -1,4 +1,4 @@
-use crate::{prelude::*, designed_level};
+use crate::{designed_level, prelude::*};
 use steks_common::color;
 use strum::Display;
 
@@ -33,7 +33,7 @@ impl ButtonType {
         const TEXT_BUTTON_BACKGROUND: Color = Color::WHITE;
         const DISABLED_BUTTON_BACKGROUND: Color = Color::GRAY;
 
-        if disabled{
+        if disabled {
             return DISABLED_BUTTON_BACKGROUND.into();
         }
 
@@ -86,7 +86,6 @@ impl ButtonAction {
             CloseMenu,
             // ToggleMenu,
             //ResetLevel,
-
             DailyChallenge,
             Tutorial,
             Levels,
@@ -106,8 +105,8 @@ impl ButtonAction {
     pub fn icon(&self) -> String {
         use ButtonAction::*;
         match self {
-            OpenMenu => "\u{f0c9}".to_string(),     // "Menu",
-            CloseMenu => "\u{e817}".to_string(),     // "Menu",
+            OpenMenu => "\u{f0c9}".to_string(),       // "Menu",
+            CloseMenu => "\u{e817}".to_string(),      // "Menu",
             ResetLevel => "\u{e800}".to_string(),     //"Reset Level",image
             GoFullscreen => "\u{f0b2}".to_string(),   //"Fullscreen",
             Tutorial => "\u{e801}".to_string(),       //"Tutorial",
@@ -143,11 +142,10 @@ impl ButtonAction {
                 let level_number = format_campaign_level_number(level);
                 if let Some(set_level) = designed_level::get_campaign_level(*level) {
                     if let Some(name) = &set_level.title {
-
-
-                        let text = format!("{level_number:>2}: {name:<width$}", width = LEVEL_TITLE_MAX_CHARS);
-                        format!("{text:}", )
-                        //name.clone()
+                        format!(
+                            "{level_number:>2}: {name:<width$}",
+                            width = LEVEL_TITLE_MAX_CHARS
+                        )
                     } else {
                         level_number
                     }
@@ -241,7 +239,7 @@ pub fn spawn_text_button(
     parent: &mut ChildBuilder,
     button_action: ButtonAction,
     font: Handle<Font>,
-    disabled: bool
+    disabled: bool,
 ) {
     parent
         .spawn(text_button_bundle(disabled))
@@ -260,7 +258,7 @@ pub fn spawn_icon_button(
     button_action: ButtonAction,
 
     font: Handle<Font>,
-    disabled: bool
+    disabled: bool,
 ) {
     parent
         .spawn(icon_button_bundle(disabled))

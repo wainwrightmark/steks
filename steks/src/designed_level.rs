@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use strum::FromRepr;
 use std::{f32::consts, sync::Arc};
 use steks_common::prelude::GameShape;
+use strum::FromRepr;
 
 use crate::prelude::*;
 lazy_static::lazy_static! {
@@ -23,11 +23,11 @@ lazy_static::lazy_static! {
 }
 
 pub fn get_campaign_level(index: u8) -> Option<Arc<DesignedLevel>> {
-    CAMPAIGN_LEVELS.get(index as usize).map(|x| x.clone())
+    CAMPAIGN_LEVELS.get(index as usize).cloned()
 }
 
 pub fn get_tutorial_level(index: u8) -> Option<Arc<DesignedLevel>> {
-    TUTORIAL_LEVELS.get(index as usize).map(|x| x.clone())
+    TUTORIAL_LEVELS.get(index as usize).cloned()
 }
 
 pub fn format_campaign_level_number(level: &u8) -> String {
@@ -172,7 +172,7 @@ impl From<EncodableShape> for ShapeCreation {
         Self {
             shape: value.shape.into(),
             x: Some(value.location.position.x),
-            y: Some(value.location.position.y) ,
+            y: Some(value.location.position.y),
             r: Some(value.location.angle / consts::TAU),
             vel_x: Some(0.0),
             vel_y: Some(0.0),
@@ -371,7 +371,7 @@ impl From<LevelShapeForm> for &'static GameShape {
         &ALL_SHAPES[index]
     }
 }
-impl From<&'static GameShape> for LevelShapeForm  {
+impl From<&'static GameShape> for LevelShapeForm {
     fn from(value: &'static GameShape) -> Self {
         Self::from_repr(value.index.0 as u8).unwrap()
     }

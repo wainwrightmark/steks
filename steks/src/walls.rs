@@ -43,7 +43,10 @@ impl WallPosition {
             Bottom => Vec2::new(0.0, -height / 2.0 - OFFSET) + 10.0,
             Left => Vec2::new(-width / 2.0 - OFFSET, 0.0),
             Right => Vec2::new(width / 2.0 + OFFSET, 0.0),
-            TopLeft => Vec2 { x: (-width / 2.0) +  (TOP_LEFT_SQUARE_SIZE / 2.0), y: (height / 2.0) - (TOP_LEFT_SQUARE_SIZE / 2.0) },
+            TopLeft => Vec2 {
+                x: (-width / 2.0) + (TOP_LEFT_SQUARE_SIZE / 2.0),
+                y: (height / 2.0) - (TOP_LEFT_SQUARE_SIZE / 2.0),
+            },
         }
         .extend(1.0)
     }
@@ -56,10 +59,19 @@ impl WallPosition {
         const EXTRA_WIDTH: f32 = WALL_WIDTH * 2.0;
         use WallPosition::*;
 
-        match self{
-            Top | Bottom => Vec2{x: MAX_WINDOW_WIDTH + EXTRA_WIDTH, y: WALL_WIDTH },
-            Left | Right => Vec2 { x: WALL_WIDTH, y: MAX_WINDOW_HEIGHT},
-            TopLeft => Vec2 { x: TOP_LEFT_SQUARE_SIZE, y: TOP_LEFT_SQUARE_SIZE },
+        match self {
+            Top | Bottom => Vec2 {
+                x: MAX_WINDOW_WIDTH + EXTRA_WIDTH,
+                y: WALL_WIDTH,
+            },
+            Left | Right => Vec2 {
+                x: WALL_WIDTH,
+                y: MAX_WINDOW_HEIGHT,
+            },
+            TopLeft => Vec2 {
+                x: TOP_LEFT_SQUARE_SIZE,
+                y: TOP_LEFT_SQUARE_SIZE,
+            },
         }
     }
 
@@ -72,7 +84,7 @@ impl WallPosition {
         }
     }
 
-    pub fn color(&self)-> Color{
+    pub fn color(&self) -> Color {
         use WallPosition::*;
         match self {
             Top | Bottom | Left | Right => ACCENT_COLOR,
@@ -81,7 +93,7 @@ impl WallPosition {
     }
 }
 
-const TOP_LEFT_SQUARE_SIZE : f32 = 70.0;
+const TOP_LEFT_SQUARE_SIZE: f32 = 70.0;
 
 pub struct WallsPlugin;
 
@@ -120,10 +132,8 @@ fn move_walls(
 }
 
 fn spawn_walls(mut commands: Commands) {
-
-
     for wall in WallPosition::iter() {
-        spawn_wall(&mut commands,  wall);
+        spawn_wall(&mut commands, wall);
     }
 }
 

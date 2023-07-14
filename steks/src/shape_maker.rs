@@ -26,7 +26,8 @@ pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<S
                 let mut rng: ThreadRng = ThreadRng::default();
                 let mut shapes: Vec<ShapeCreationData> = vec![];
                 for _ in 0..INFINITE_MODE_STARTING_SHAPES {
-                    shapes.push(ShapeCreationData::random_no_circle(&mut rng).with_random_velocity());
+                    shapes
+                        .push(ShapeCreationData::random_no_circle(&mut rng).with_random_velocity());
                 }
                 shapes
             }
@@ -36,7 +37,9 @@ pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<S
             let seed =
                 ((today.year().unsigned_abs() * 2000) + (today.month() * 100) + today.day()) as u64;
             (0..GameLevel::CHALLENGE_SHAPES)
-                .map(|i| ShapeCreationData::from_seed_no_circle(seed + i as u64).with_random_velocity())
+                .map(|i| {
+                    ShapeCreationData::from_seed_no_circle(seed + i as u64).with_random_velocity()
+                })
                 .collect_vec()
         }
     };

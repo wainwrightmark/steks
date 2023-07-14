@@ -195,11 +195,17 @@ fn get_all_text_bundle(_args: UIArgs) -> NodeBundle {
 }
 
 fn get_panel_bundle(args: UIArgs) -> NodeBundle {
+    let visibility = match &args.current_level {
+        CurrentLevel {
+            completion: LevelCompletion::Complete { .. },
+            level:
+                GameLevel::Designed {
+                    meta: DesignedLevelMeta::Tutorial { .. },
+                    ..
+                },
+        } => Visibility::Hidden,
 
-    let visibility = match &args.current_level{
-        CurrentLevel {  completion: LevelCompletion::Complete { .. }, level: GameLevel::Designed { meta: DesignedLevelMeta::Tutorial { .. } ,.. } }=> Visibility::Hidden,
-
-        _=> Visibility::Inherited
+        _ => Visibility::Inherited,
     };
 
     let background_color: BackgroundColor = get_panel_color(args.current_level).into();
@@ -324,7 +330,6 @@ pub struct UIArgs<'a, 'world> {
 
 fn get_message_bundle(args: UIArgs) -> TextBundle {
     if let Some(text) = args.current_level.get_text() {
-
         let color = args.current_level.level.text_color();
         TextBundle::from_section(
             text,
@@ -352,14 +357,15 @@ fn animate_text(
 ) {
     let fade = match current_level.completion {
         LevelCompletion::Incomplete { stage } => match &current_level.level {
-            GameLevel::Designed { meta, .. } => meta.get_level()
+            GameLevel::Designed { meta, .. } => meta
+                .get_level()
                 .get_stage(&stage)
                 .map(|x| !x.text_forever)
                 .unwrap_or(true),
             GameLevel::Infinite { .. } => false,
             GameLevel::Challenge => true,
         },
-        LevelCompletion::Complete {  .. } => false,
+        LevelCompletion::Complete { .. } => false,
     };
 
     let start = current_level.level.text_color();
@@ -367,7 +373,6 @@ fn animate_text(
     const DEFAULT_TEXT_FADE: u32 = 20;
 
     if fade {
-
         let end = start.with_a(0.0);
         commands.insert(Animator::new(Tween::new(
             EaseFunction::QuadraticInOut,
@@ -378,8 +383,7 @@ fn animate_text(
                 end,
             },
         )));
-    }
-    else{
+    } else {
         commands.insert(Animator::new(Tween::new(
             EaseFunction::QuadraticInOut,
             Duration::from_secs(0),
@@ -506,9 +510,9 @@ fn insert_bundle(
                 commands.insert(ButtonComponent {
                     button_type: ButtonType::Icon,
                     button_action: *button_action,
-                    disabled: false
+                    disabled: false,
                 });
-                commands.insert(icon_button_bundle(false) );
+                commands.insert(icon_button_bundle(false));
 
                 commands.with_children(|parent| {
                     parent.spawn(button_action.icon_bundle(font));

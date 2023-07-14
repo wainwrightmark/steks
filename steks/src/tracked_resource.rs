@@ -15,7 +15,7 @@ impl<T: Resource + Default + Serialize + DeserializeOwned + TypeUuid> TrackedRes
         if data.is_changed() {
             let key = <T as TypeUuid>::TYPE_UUID.to_string();
             pkv.set(key, data.as_ref())
-                .expect(format!("Failed to store {}", type_name::<T>()).as_str());
+                .unwrap_or_else(|_| panic!("Failed to store {}", type_name::<T>()));
         }
     }
 }
@@ -41,7 +41,7 @@ impl<T: Resource + Default + Serialize + DeserializeOwned + TypeUuid> Plugin
                 use bevy_pkv::GetError::*;
                 match e {
                     NotFound => T::default(),
-                    _ => panic!("Failed to read {}: {}", type_name::<T>(), e.to_string()),
+                    _ => panic!("Failed to read {}: {}", type_name::<T>(), e),
                 }
             }
         };

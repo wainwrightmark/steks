@@ -34,7 +34,7 @@ pub fn check_for_win(
     mut current_level: ResMut<CurrentLevel>,
 
     score_store: Res<Leaderboard>,
-    pbs: Res<PersonalBests>
+    pbs: Res<PersonalBests>,
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
         let remaining = timer.win_time - time.elapsed_seconds_f64();

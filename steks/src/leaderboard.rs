@@ -45,15 +45,13 @@ pub struct CampaignCompletion {
 pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
 
 fn check_for_cheat_on_game_load(mut completion: ResMut<CampaignCompletion>) {
-
-    if is_cheat_in_path().is_some(){
+    if is_cheat_in_path().is_some() {
         info!("Found cheat in path");
         completion.highest_level_completed = 99;
     }
-
 }
 
-fn is_cheat_in_path()-> Option<()>{
+fn is_cheat_in_path() -> Option<()> {
     #[cfg(target_arch = "wasm32")]
     {
         let window = web_sys::window()?;
@@ -61,7 +59,7 @@ fn is_cheat_in_path()-> Option<()>{
         let path = location.pathname().ok()?;
 
         if path.to_ascii_lowercase().starts_with("/cheat") {
-            return Some(())
+            return Some(());
         }
     }
     None

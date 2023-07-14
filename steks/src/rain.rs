@@ -131,7 +131,9 @@ fn manage_raindrops(
 
     let settings = match &current_level.level {
         GameLevel::Designed { meta, .. } => {
-            meta.get_level().get_current_stage(current_level.completion).rainfall
+            meta.get_level()
+                .get_current_stage(current_level.completion)
+                .rainfall
         }
         GameLevel::Infinite { .. } => None,
         GameLevel::Challenge => None,

@@ -1,18 +1,20 @@
 use std::collections::BTreeMap;
 
-//use async_channel::unbounded::{Sender, Receiver};
-
-use bevy::{log, prelude::*, tasks::IoTaskPool};
+use bevy::{log, prelude::*, reflect::TypeUuid, tasks::IoTaskPool};
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
+
+pub type LevelRecordMap = BTreeMap<i64, f32>;
 
 pub struct LeaderboardPlugin;
 
 impl Plugin for LeaderboardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(AsyncEventPlugin::<LeaderboardDataEvent>::default())
-            .init_resource::<ScoreStore>()
+            .add_plugins(TrackedResourcePlugin::<PersonalBests>::default())
+            .init_resource::<Leaderboard>()
             .add_systems(Startup, load_leaderboard_data)
             .add_systems(Update, hydrate_leaderboard)
             .add_systems(Update, update_leaderboard_on_completion);
@@ -20,14 +22,20 @@ impl Plugin for LeaderboardPlugin {
 }
 
 #[derive(Debug, Resource, Default)]
-pub struct ScoreStore {
-    pub map: Option<BTreeMap<i64, f32>>,
+pub struct Leaderboard {
+    pub map: Option<LevelRecordMap>,
+}
+
+#[derive(Debug, Resource, Default, Serialize, Deserialize, TypeUuid)]
+#[uuid = "fe541444-2224-11ee-be56-0242ac120002"]
+pub struct PersonalBests {
+    pub map: LevelRecordMap,
 }
 
 #[derive(Debug, Event)]
 pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
 
-impl ScoreStore {
+impl Leaderboard {
     pub fn set_from_string(&mut self, s: &str) {
         let mut map: BTreeMap<i64, f32> = Default::default();
         for (hash, height) in s.split_ascii_whitespace().tuples() {
@@ -78,7 +86,7 @@ fn load_leaderboard_data(writer: AsyncEventWriter<LeaderboardDataEvent>) {
 }
 
 fn hydrate_leaderboard(
-    mut store_score: ResMut<ScoreStore>,
+    mut store_score: ResMut<Leaderboard>,
     mut events: EventReader<LeaderboardDataEvent>,
 ) {
     for ev in events.into_iter() {
@@ -124,7 +132,8 @@ async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error
 fn update_leaderboard_on_completion(
     current_level: Res<CurrentLevel>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
-    mut score_store: ResMut<ScoreStore>,
+    mut leaderboard: ResMut<Leaderboard>,
+    mut pbs: ResMut<PersonalBests>,
 ) {
     if current_level.is_changed() {
         let height = match current_level.completion {
@@ -134,7 +143,28 @@ fn update_leaderboard_on_completion(
 
         let hash = ShapesVec::from_query(shapes_query).hash();
 
-        match &mut score_store.map {
+        let changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
+            .map
+            .entry(hash)
+        {
+            std::collections::btree_map::Entry::Vacant(v) => {
+                v.insert(height);
+                true
+            }
+            std::collections::btree_map::Entry::Occupied(mut o) => {
+                if o.get() + 0.01 < height {
+                    o.insert(height);
+                    true
+                } else {
+                    false
+                }
+            }
+        };
+        if changed {
+            pbs.set_changed();
+        }
+
+        match &mut leaderboard.map {
             Some(map) => {
                 let changed = match map.entry(hash) {
                     std::collections::btree_map::Entry::Vacant(v) => {

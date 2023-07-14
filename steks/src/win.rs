@@ -33,8 +33,8 @@ pub fn check_for_win(
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
 
-    score_store: Res<ScoreStore>,
-    pkv: Res<PkvStore>,
+    score_store: Res<Leaderboard>,
+    pbs: Res<PersonalBests>
 ) {
     if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
         let remaining = timer.win_time - time.elapsed_seconds_f64();
@@ -52,7 +52,7 @@ pub fn check_for_win(
                     if current_level.level.has_stage(&next_stage) {
                         current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
                     } else {
-                        let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
+                        let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
                         current_level.completion = LevelCompletion::Complete {
                             score_info,
                             splash: true,
@@ -61,7 +61,7 @@ pub fn check_for_win(
                 }
 
                 LevelCompletion::Complete { splash, .. } => {
-                    let score_info = ScoreInfo::generate(&shapes, &score_store, &pkv);
+                    let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
                     let splash = splash | score_info.is_pb | score_info.is_wr;
                     current_level.completion = LevelCompletion::Complete { score_info, splash }
                 }

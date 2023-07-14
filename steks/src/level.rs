@@ -1,19 +1,20 @@
 use std::sync::Arc;
 
 use crate::{infinity, prelude::*, shape_maker};
+use bevy::reflect::TypeUuid;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<CurrentLevel>()
-            .add_systems(PostStartup, choose_level_on_game_load)
+        app.add_systems(PostStartup, choose_level_on_game_load)
             .add_systems(First, handle_change_level_events)
             .add_systems(Last, track_level_completion)
             .add_systems(Update, manage_level_shapes)
             .add_systems(Update, skip_tutorial_completion)
             .add_systems(Update, adjust_gravity)
+            .add_plugins(TrackedResourcePlugin::<CurrentLevel>::default())
             .add_plugins(AsyncEventPlugin::<ChangeLevelEvent>::default());
     }
 }
@@ -97,10 +98,7 @@ fn handle_change_level_events(
     }
 }
 
-fn choose_level_on_game_load(
-    mut pkv: ResMut<PkvStore>,
-    mut change_level_events: EventWriter<ChangeLevelEvent>,
-) {
+fn choose_level_on_game_load(mut change_level_events: EventWriter<ChangeLevelEvent>, current_level: Res<CurrentLevel>) {
     #[cfg(target_arch = "wasm32")]
     {
         match crate::wasm::get_game_from_location() {
@@ -114,28 +112,14 @@ fn choose_level_on_game_load(
         }
     }
 
-    let settings = SavedData::get_or_create(&mut pkv);
-
-    match settings.current_level.0 {
-        LevelLogData::CampaignLevel { index } => {
-            change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
-                index,
-                stage: settings.current_level.1,
-            })
-        }
-        LevelLogData::Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
-        LevelLogData::Challenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
-        LevelLogData::Custom => change_level_events.send(ChangeLevelEvent::StartChallenge),
-        LevelLogData::TutorialLevel { index } => {
-            change_level_events.send(ChangeLevelEvent::ChooseTutorialLevel {
-                index,
-                stage: settings.current_level.1,
-            })
-        }
+    if current_level.completion.is_complete(){
+        change_level_events.send(ChangeLevelEvent::Next);
     }
+
 }
 
-#[derive(Default, Resource, Clone, Debug)]
+#[derive(Default, Resource, Clone, Debug, Serialize, Deserialize, TypeUuid)]
+#[uuid = "a2a27354-2222-11ee-be56-0242ac120002"]
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
@@ -216,13 +200,13 @@ impl CurrentLevel {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum LevelCompletion {
     Incomplete { stage: usize },
     Complete { splash: bool, score_info: ScoreInfo },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct ScoreInfo {
     pub height: f32,
     pub is_wr: bool,
@@ -236,21 +220,20 @@ pub struct ScoreInfo {
 impl ScoreInfo {
     pub fn generate(
         shapes: &ShapesVec,
-        score_store: &Res<ScoreStore>,
-        pkv: &Res<PkvStore>,
+        leaderboard: &Res<Leaderboard>,
+        pbs: &Res<PersonalBests>,
     ) -> Self {
         let height = shapes.calculate_tower_height();
         let hash = shapes.hash();
 
-        let wr: Option<f32> = score_store
+        let wr: Option<f32> = leaderboard
             .map
             .as_ref()
             .map(|map| map.get(&hash).copied().unwrap_or(0.0));
-        let heights: LevelHeightRecords = StoreData::get_or_default(pkv);
 
-        let old_height = heights.try_get(hash);
+        let old_height = pbs.map.get(&hash);
 
-        let pb = old_height.unwrap_or(0.0);
+        let pb = *old_height.unwrap_or(&0.0);
 
         let is_wr = wr.map(|x| x < height).unwrap_or_default();
         //TODO use is_some_and when netlify updates
@@ -293,7 +276,7 @@ impl LevelCompletion {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum GameLevel {
     Designed {
         level: Arc<DesignedLevel>,
@@ -306,7 +289,7 @@ pub enum GameLevel {
     Challenge,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DesignedLevelMeta {
     Tutorial { index: u8 },
     Campaign { index: u8 },
@@ -486,26 +469,18 @@ fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<Ch
 
 fn track_level_completion(
     level: Res<CurrentLevel>,
-    mut pkv: ResMut<PkvStore>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
+    //shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
 ) {
     if !level.is_changed() {
         return;
     }
 
     match level.completion {
-        LevelCompletion::Incomplete { stage } => {
-            let current: LevelLogData = level.level.clone().into();
-            StoreData::update(&mut pkv, |x: SavedData| {
-                x.with_current_level((current, stage))
-            });
+        LevelCompletion::Incomplete { .. } => {
+            //let current: LevelLogData = level.level.clone().into();
         }
-        LevelCompletion::Complete { score_info, .. } => {
-            let hash = ShapesVec::from_query(shapes_query).hash();
-
-            StoreData::update(&mut pkv, |x: LevelHeightRecords| {
-                x.add_height(hash, score_info.height)
-            });
+        LevelCompletion::Complete { .. } => {
+            //let hash = ShapesVec::from_query(shapes_query).hash();
 
             match &level.level {
                 GameLevel::Designed { meta, .. } => match meta {
@@ -527,9 +502,7 @@ fn track_level_completion(
                     _ => {}
                 },
                 GameLevel::Infinite { .. } => {}
-                GameLevel::Challenge => {
-                    SavedData::update(&mut pkv, |x| x.with_todays_challenge_beat());
-                }
+                GameLevel::Challenge => {}
             }
         }
     }

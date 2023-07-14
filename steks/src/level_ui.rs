@@ -316,9 +316,6 @@ fn get_level_number_bundle(args: UIArgs) -> TextBundle {
 pub struct UIArgs<'a, 'world> {
     current_level: &'a CurrentLevel,
     asset_server: &'a Res<'world, AssetServer>,
-    // score_store: &'a Res<'world, ScoreStore>,
-    // shapes: &'a Query<'world, 'state, &'si ShapeIndex>,
-    // pkv: &'a Res<'world, PkvStore>,
 }
 
 fn get_message_bundle(args: UIArgs) -> TextBundle {

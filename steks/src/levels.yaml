@@ -20,7 +20,7 @@
 
 #3
 - title: "Steks with an X"
-  text: "Rotating shapes from further away\nmakes them turn faster\nExperiment and find what work's for you"
+  text: "Rotating shapes from further away\nmakes them turn faster\nExperiment! Find what works for you"
   end_text: "Wow, that was quick."
   shapes:
     - shape: Z5
@@ -260,7 +260,7 @@
     - shape: T4
 #18
 - title: "Circular Logic"
-  end_text: "You're a success because you succeeded\nYou succeeded because you're a success"
+  end_text: "You're a success 'cos you succeeded\nYou succeeded 'cos you're a success"
   shapes:
     - shape: L4
     - shape: T4
@@ -294,7 +294,7 @@
 #20
 - title: "Marvin"
   text: "The Paranoid and Void"
-  end_text: "So long and thanks for all the shapes"
+  end_text: "So long\nand thanks for all the shapes"
   shapes:
     - shape: I5
       x: 0.0
@@ -444,7 +444,7 @@
 
 #28
 - title: "Shapes on a plane"
-  end_text: "I've had it with these monkey fighting shapes"
+  end_text: "I've had it with these\nmonkey fighting shapes"
   shapes:
     - shape: I4
       x: 0.0
@@ -468,7 +468,7 @@
 
 #29
 - title: "A song of Ice and Towers"
-  text: "When you play the game of steks\nYou win or you... don't?"
+  text: "When you play the game of Steks\nYou win or you... don't?"
   end_text: "That was our season eight"
   shapes:
     - shape: L5
@@ -514,7 +514,7 @@
 #30
 - title: "Dr. Gravity's Laboratory"
   alt_text_color: true
-  text: "In steks, no one can hear you scream"
+  text: "In Steks no one can hear you scream"
   end_text: "Now buy Steks 2"
   shapes:
     - shape: Triangle # mouth

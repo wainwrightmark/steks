@@ -9,7 +9,7 @@
 
 [build]
   publish = "steks/dist"
-  command = "cargo install trunk --locked; trunk build steks/index.html --release"
+  command = "rustup update; cargo install trunk --locked; trunk build steks/index.html --release"
 
 
 [context.production]

@@ -367,13 +367,15 @@ fn animate_text(
     const DEFAULT_TEXT_FADE: u32 = 20;
 
     if fade {
+
+        let end = start.with_a(0.0);
         commands.insert(Animator::new(Tween::new(
             EaseFunction::QuadraticInOut,
             Duration::from_secs(DEFAULT_TEXT_FADE as u64),
             TextColorLens {
                 section: 0,
                 start,
-                end: Color::NONE,
+                end,
             },
         )));
     }

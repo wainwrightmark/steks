@@ -21,7 +21,7 @@ pub const LEVEL_TEXT_ALT_COLOR: Color = Color::WHITE;
 
 pub const BUTTON_BORDER: Color = Color::BLACK;
 
-pub const UI_BORDER_WIDTH: Val = Val::Px(5.0);
+
 
 pub fn choose_color(index: usize) -> Color {
     const SATURATIONS: [f32; 2] = [0.9, 0.28];

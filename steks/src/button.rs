@@ -12,6 +12,8 @@ pub const TEXT_BUTTON_HEIGHT: f32 = 60.;
 
 pub const MENU_OFFSET: f32 = 10.;
 
+pub const UI_BORDER_WIDTH: Val = Val::Px(5.0);
+
 #[derive(Debug, Clone, Copy, Component)]
 pub struct ButtonComponent {
     pub disabled: bool,

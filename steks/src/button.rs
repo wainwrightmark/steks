@@ -135,8 +135,11 @@ impl ButtonAction {
                 let level_number = format_campaign_level_number(level);
                 if let Some(set_level) = designed_level::get_campaign_level(*level) {
                     if let Some(name) = &set_level.title {
-                        //format!("{level_number}: {name}")
-                        name.clone()
+
+
+                        let text = format!("{level_number:>2}: {name:<width$}", width = LEVEL_TITLE_MAX_CHARS);
+                        format!("{text:}", )
+                        //name.clone()
                     } else {
                         level_number
                     }

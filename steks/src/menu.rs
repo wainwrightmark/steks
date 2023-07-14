@@ -1,4 +1,4 @@
-use crate::{prelude::*, designed_level};
+use crate::{designed_level, prelude::*};
 
 pub struct ButtonPlugin;
 
@@ -257,12 +257,22 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
                 .spawn(NodeBundle {
                     style: Style {
                         position_type: PositionType::Relative,
+                        left: Val::Percent(0.0),
                         display: Display::Flex,
                         flex_direction: FlexDirection::Row,
-                        align_items: AlignItems::Start,
-                        //grid_template_columns: RepeatedGridTrack::auto(2),
-                        //left: Val::Percent(00.0),  // Val::Px(MENU_OFFSET),
-                        //right: Val::Percent(100.0), // Val::Px(MENU_OFFSET),
+
+                        width: Val::Px(TEXT_BUTTON_WIDTH),
+                        height: Val::Px(TEXT_BUTTON_HEIGHT),
+                        margin: UiRect {
+                            left: Val::Auto,
+                            right: Val::Auto,
+                            top: Val::Px(5.0),
+                            bottom: Val::Px(5.0),
+                        },
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        flex_grow: 0.0,
+                        flex_shrink: 0.0,
                         ..Default::default()
                     },
                     ..Default::default()

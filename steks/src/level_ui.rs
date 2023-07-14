@@ -504,8 +504,9 @@ fn insert_bundle(
                 commands.insert(ButtonComponent {
                     button_type: ButtonType::Icon,
                     button_action: *button_action,
+                    disabled: false
                 });
-                commands.insert(icon_button_bundle());
+                commands.insert(icon_button_bundle(false) );
 
                 commands.with_children(|parent| {
                     parent.spawn(button_action.icon_bundle(font));

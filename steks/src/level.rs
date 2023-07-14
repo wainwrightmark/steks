@@ -122,6 +122,9 @@ fn choose_level_on_game_load(
     }
 }
 
+
+
+
 #[derive(Default, Resource, Clone, Debug, Serialize, Deserialize, TypeUuid)]
 #[uuid = "a2a27354-2222-11ee-be56-0242ac120002"]
 pub struct CurrentLevel {
@@ -458,6 +461,8 @@ impl ChangeLevelEvent {
             let data = path[8..].to_string();
             return Some(ChangeLevelEvent::make_custom(data.as_str()));
         }
+
+
 
         bevy::log::warn!("Could not get game from path: {path}");
 

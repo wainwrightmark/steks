@@ -14,6 +14,7 @@ pub const MENU_OFFSET: f32 = 10.;
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct ButtonComponent {
+    pub disabled: bool,
     pub button_action: ButtonAction,
     pub button_type: ButtonType,
 }
@@ -25,9 +26,14 @@ pub enum ButtonType {
 }
 
 impl ButtonType {
-    pub fn background_color(&self, interaction: &Interaction) -> BackgroundColor {
+    pub fn background_color(&self, interaction: &Interaction, disabled: bool) -> BackgroundColor {
         const ICON_BUTTON_BACKGROUND: Color = Color::NONE;
         const TEXT_BUTTON_BACKGROUND: Color = Color::WHITE;
+        const DISABLED_BUTTON_BACKGROUND: Color = Color::GRAY;
+
+        if disabled{
+            return DISABLED_BUTTON_BACKGROUND.into();
+        }
 
         const ICON_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.3);
         const ICON_PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
@@ -186,7 +192,7 @@ impl ButtonAction {
     }
 }
 
-pub fn icon_button_bundle() -> ButtonBundle {
+pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
     ButtonBundle {
         style: Style {
             width: Val::Px(ICON_BUTTON_WIDTH),
@@ -199,12 +205,12 @@ pub fn icon_button_bundle() -> ButtonBundle {
 
             ..Default::default()
         },
-        background_color: ButtonType::Icon.background_color(&Interaction::None),
+        background_color: ButtonType::Icon.background_color(&Interaction::None, disabled),
         ..Default::default()
     }
 }
 
-pub fn text_button_bundle() -> ButtonBundle {
+pub fn text_button_bundle(disabled: bool) -> ButtonBundle {
     ButtonBundle {
         style: Style {
             width: Val::Px(TEXT_BUTTON_WIDTH),
@@ -223,7 +229,7 @@ pub fn text_button_bundle() -> ButtonBundle {
 
             ..Default::default()
         },
-        background_color: ButtonType::Text.background_color(&Interaction::None),
+        background_color: ButtonType::Text.background_color(&Interaction::None, disabled),
         border_color: color::BUTTON_BORDER.into(),
         ..Default::default()
     }
@@ -232,15 +238,16 @@ pub fn text_button_bundle() -> ButtonBundle {
 pub fn spawn_text_button(
     parent: &mut ChildBuilder,
     button_action: ButtonAction,
-    //asset_server: &AssetServer,
     font: Handle<Font>,
+    disabled: bool
 ) {
     parent
-        .spawn(text_button_bundle())
+        .spawn(text_button_bundle(disabled))
         .with_children(|parent| {
             parent.spawn(button_action.text_bundle(font));
         })
         .insert(ButtonComponent {
+            disabled,
             button_action,
             button_type: ButtonType::Text,
         });
@@ -249,15 +256,17 @@ pub fn spawn_text_button(
 pub fn spawn_icon_button(
     parent: &mut ChildBuilder,
     button_action: ButtonAction,
-    //asset_server: &AssetServer,
+
     font: Handle<Font>,
+    disabled: bool
 ) {
     parent
-        .spawn(icon_button_bundle())
+        .spawn(icon_button_bundle(disabled))
         .with_children(|parent| {
             parent.spawn(button_action.icon_bundle(font));
         })
         .insert(ButtonComponent {
+            disabled,
             button_action,
             button_type: ButtonType::Icon,
         });

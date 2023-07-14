@@ -14,10 +14,13 @@ impl Plugin for LeaderboardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(AsyncEventPlugin::<LeaderboardDataEvent>::default())
             .add_plugins(TrackedResourcePlugin::<PersonalBests>::default())
+            .add_plugins(TrackedResourcePlugin::<CampaignCompletion>::default())
             .init_resource::<Leaderboard>()
             .add_systems(Startup, load_leaderboard_data)
+            .add_systems(PostStartup, check_for_cheat_on_game_load)
             .add_systems(Update, hydrate_leaderboard)
-            .add_systems(Update, update_leaderboard_on_completion);
+            .add_systems(Update, update_leaderboard_on_completion)
+            .add_systems(Update, update_campaign_completion);
     }
 }
 
@@ -32,8 +35,37 @@ pub struct PersonalBests {
     pub map: LevelRecordMap,
 }
 
+#[derive(Debug, Resource, Default, Serialize, Deserialize, TypeUuid)]
+#[uuid = "65016d08-2253-11ee-be56-0242ac120002"]
+pub struct CampaignCompletion {
+    pub highest_level_completed: u8,
+}
+
 #[derive(Debug, Event)]
 pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
+
+fn check_for_cheat_on_game_load(mut completion: ResMut<CampaignCompletion>) {
+
+    if is_cheat_in_path().is_some(){
+        info!("Found cheat in path");
+        completion.highest_level_completed = 99;
+    }
+
+}
+
+fn is_cheat_in_path()-> Option<()>{
+    #[cfg(target_arch = "wasm32")]
+    {
+        let window = web_sys::window()?;
+        let location = window.location();
+        let path = location.pathname().ok()?;
+
+        if path.to_ascii_lowercase().starts_with("/cheat") {
+            return Some(())
+        }
+    }
+    None
+}
 
 impl Leaderboard {
     pub fn set_from_string(&mut self, s: &str) {
@@ -129,82 +161,108 @@ async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error
     res.error_for_status().map(|_| ())
 }
 
+fn update_campaign_completion(
+    current_level: Res<CurrentLevel>,
+    mut campaign_completion: ResMut<CampaignCompletion>,
+) {
+    if !current_level.is_changed() {
+        return;
+    }
+
+    if !current_level.completion.is_complete() {
+        return;
+    }
+
+    let index = match current_level.level {
+        GameLevel::Designed {
+            meta: DesignedLevelMeta::Campaign { index },
+        } => index,
+        _ => return,
+    } + 1;
+
+    if campaign_completion.highest_level_completed < index {
+        campaign_completion.highest_level_completed = index;
+    }
+}
+
 fn update_leaderboard_on_completion(
     current_level: Res<CurrentLevel>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     mut leaderboard: ResMut<Leaderboard>,
     mut pbs: ResMut<PersonalBests>,
 ) {
-    if current_level.is_changed() {
-        let height = match current_level.completion {
-            LevelCompletion::Incomplete { .. } => return,
-            LevelCompletion::Complete { score_info, .. } => score_info.height,
-        };
+    if !current_level.is_changed() {
+        return;
+    }
 
-        let hash = ShapesVec::from_query(shapes_query).hash();
+    let height = match current_level.completion {
+        LevelCompletion::Incomplete { .. } => return,
+        LevelCompletion::Complete { score_info, .. } => score_info.height,
+    };
 
-        let changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
-            .map
-            .entry(hash)
-        {
-            std::collections::btree_map::Entry::Vacant(v) => {
-                v.insert(height);
-                true
-            }
-            std::collections::btree_map::Entry::Occupied(mut o) => {
-                if o.get() + 0.01 < height {
-                    o.insert(height);
-                    true
-                } else {
-                    false
-                }
-            }
-        };
-        if changed {
-            pbs.set_changed();
+    let hash = ShapesVec::from_query(shapes_query).hash();
+
+    let pb_changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
+        .map
+        .entry(hash)
+    {
+        std::collections::btree_map::Entry::Vacant(v) => {
+            v.insert(height);
+            true
         }
+        std::collections::btree_map::Entry::Occupied(mut o) => {
+            if o.get() + 0.01 < height {
+                o.insert(height);
+                true
+            } else {
+                false
+            }
+        }
+    };
+    if pb_changed {
+        pbs.set_changed();
+    }
 
-        match &mut leaderboard.map {
-            Some(map) => {
-                let changed = match map.entry(hash) {
-                    std::collections::btree_map::Entry::Vacant(v) => {
-                        v.insert(height);
+    match &mut leaderboard.map {
+        Some(map) => {
+            let changed = match map.entry(hash) {
+                std::collections::btree_map::Entry::Vacant(v) => {
+                    v.insert(height);
+                    true
+                }
+                std::collections::btree_map::Entry::Occupied(mut o) => {
+                    if o.get() + 0.01 < height {
+                        o.insert(height);
                         true
+                    } else {
+                        false
                     }
-                    std::collections::btree_map::Entry::Occupied(mut o) => {
-                        if o.get() + 0.01 < height {
-                            o.insert(height);
-                            true
-                        } else {
-                            false
-                        }
-                    }
-                };
+                }
+            };
 
-                if changed {
-                    log::info!("Updating leaderboard {hash} {height}");
-                    IoTaskPool::get()
-                        .spawn(async move {
-                            match update_leaderboard(hash, height).await {
-                                Ok(_) => log::info!("Updated leaderboard"),
-                                Err(_err) => {
-                                    #[cfg(target_arch = "wasm32")]
-                                    {
-                                        crate::logging::try_log_error_message(format!(
-                                            "Could not update leaderboard: {_err}"
-                                        ));
-                                    }
+            if changed {
+                log::info!("Updating leaderboard {hash} {height}");
+                IoTaskPool::get()
+                    .spawn(async move {
+                        match update_leaderboard(hash, height).await {
+                            Ok(_) => log::info!("Updated leaderboard"),
+                            Err(_err) => {
+                                #[cfg(target_arch = "wasm32")]
+                                {
+                                    crate::logging::try_log_error_message(format!(
+                                        "Could not update leaderboard: {_err}"
+                                    ));
                                 }
                             }
-                        })
-                        .detach();
-                }
+                        }
+                    })
+                    .detach();
             }
-            None => {
-                #[cfg(target_arch = "wasm32")]
-                {
-                    crate::logging::try_log_error_message("Score Store is not loaded".to_string());
-                }
+        }
+        None => {
+            #[cfg(target_arch = "wasm32")]
+            {
+                crate::logging::try_log_error_message("Score Store is not loaded".to_string());
             }
         }
     }

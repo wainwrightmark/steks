@@ -79,7 +79,7 @@ impl MenuState {
         *self = MenuState::Closed;
     }
 
-    pub fn spawn_nodes(&self, commands: &mut Commands, asset_server: &AssetServer) {
+    pub fn spawn_nodes(&self, commands: &mut Commands, asset_server: &AssetServer, completion: &CampaignCompletion) {
         match self {
             MenuState::Closed => {
                 let font = asset_server.load("fonts/fontello.ttf");
@@ -97,13 +97,13 @@ impl MenuState {
                     })
                     .insert(MenuComponent::MenuHamburger)
                     .with_children(|parent| {
-                        spawn_icon_button(parent, ButtonAction::OpenMenu, font)
+                        spawn_icon_button(parent, ButtonAction::OpenMenu, font, false  ) //todo gravity
                     });
             }
             MenuState::MenuOpen => {
                 spawn_menu(commands, asset_server);
             }
-            MenuState::LevelsPage(page) => spawn_level_menu(commands, asset_server, *page),
+            MenuState::LevelsPage(page) => spawn_level_menu(commands, asset_server, *page, completion),
         }
     }
 }
@@ -113,13 +113,15 @@ fn handle_menu_state_changes(
     menu_state: Res<MenuState>,
     components: Query<Entity, &MenuComponent>,
     asset_server: Res<AssetServer>,
+    completion: Res<CampaignCompletion>,
+
 ) {
     if menu_state.is_changed() {
         for entity in components.iter() {
             commands.entity(entity).despawn_recursive();
         }
 
-        menu_state.spawn_nodes(&mut commands, asset_server.as_ref());
+        menu_state.spawn_nodes(&mut commands, asset_server.as_ref(), &completion);
     }
 }
 
@@ -137,9 +139,13 @@ fn button_system(
     mut current_level: ResMut<CurrentLevel>,
 ) {
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
+
+        if button.disabled{
+            continue;
+        }
         use ButtonAction::*;
         //info!("{interaction:?} {button:?} {menu_state:?}");
-        *bg_color = button.button_type.background_color(interaction);
+        *bg_color = button.button_type.background_color(interaction, button.disabled);
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
@@ -224,12 +230,12 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
         .with_children(|parent| {
             let font = asset_server.load("fonts/FiraMono-Medium.ttf");
             for button in ButtonAction::main_buttons() {
-                spawn_text_button(parent, *button, font.clone());
+                spawn_text_button(parent, *button, font.clone(), false);
             }
         });
 }
 
-fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u8) {
+fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u8, completion: &CampaignCompletion) {
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -278,12 +284,12 @@ fn spawn_level_menu(commands: &mut Commands, asset_server: &AssetServer, page: u
                     ..Default::default()
                 })
                 .with_children(|panel| {
-                    spawn_icon_button(panel, ButtonAction::PreviousLevelsPage, icon_font.clone());
-                    spawn_icon_button(panel, ButtonAction::NextLevelsPage, icon_font.clone());
+                    spawn_icon_button(panel, ButtonAction::PreviousLevelsPage, icon_font.clone(), false);
+                    spawn_icon_button(panel, ButtonAction::NextLevelsPage, icon_font.clone(), start + LEVELS_PER_PAGE < end);
                 });
 
             for level in start..end {
-                spawn_text_button(parent, ButtonAction::GotoLevel { level }, text_font.clone())
+                spawn_text_button(parent, ButtonAction::GotoLevel { level }, text_font.clone(), level > completion.highest_level_completed)
             }
         });
 }

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use bevy::prelude::*;
 
-use crate::{async_event_writer::*, level::ChangeLevelEvent, designed_level::DesignedLevel};
+use crate::{async_event_writer::*, designed_level::DesignedLevel, level::ChangeLevelEvent};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Event)]
 pub struct ImportEvent;
@@ -32,6 +32,21 @@ fn handle_import_events(
     }
 }
 
+async fn handle_import_event_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
+    let cle = match get_imported_level_async().await {
+        Ok(cle) => cle,
+        Err(e) => {
+            let mut level = DesignedLevel::default();
+            level.initial_stage.text = Some(e.to_string());
+            let level = Arc::new(level);
+
+            ChangeLevelEvent::Custom { level }
+        }
+    };
+
+    writer.send_async(cle).await.unwrap()
+}
+
 async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {
     let data = capacitor_bindings::clipboard::Clipboard::read()
         .await
@@ -46,19 +61,4 @@ async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {
     Ok(ChangeLevelEvent::Custom {
         level: level.into(),
     })
-}
-
-async fn handle_import_event_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
-    let cle = match get_imported_level_async().await {
-        Ok(cle) => cle,
-        Err(e) => {
-            let mut level = DesignedLevel::default();
-            level.initial_stage.text = Some(e.to_string());
-            let level = Arc::new(level);
-
-            ChangeLevelEvent::Custom { level }
-        }
-    };
-
-    writer.send_async(cle).await.unwrap()
 }

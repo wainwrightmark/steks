@@ -346,7 +346,7 @@ fn animate_text(
 ) {
     let fade = match current_level.completion {
         LevelCompletion::Incomplete { stage } => match &current_level.level {
-            GameLevel::Designed { level, .. } => level
+            GameLevel::Designed { meta, .. } => meta.get_level()
                 .get_stage(&stage)
                 .map(|x| !x.text_forever)
                 .unwrap_or(true),

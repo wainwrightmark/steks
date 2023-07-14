@@ -4,29 +4,11 @@ use strum::{Display, EnumIter, IntoEnumIterator};
 
 use crate::prelude::*;
 
-impl WallPosition {
-    pub fn show_marker(&self) -> bool {
-        self != &WallPosition::Bottom
-    }
-
-    pub fn marker_type(&self) -> MarkerType {
-        if self.is_horizontal() {
-            MarkerType::Horizontal
-        } else {
-            MarkerType::Vertical
-        }
-    }
-}
-
 #[derive(PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display, Hash)]
 pub enum MarkerType {
     Horizontal,
     Vertical,
 }
-
-// /// Collisions with this prevent you from winning the level
-// #[derive(Component, PartialEq, Eq, Clone, Copy, Debug)]
-// pub struct CollisionNaughty;
 
 #[derive(Component, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
 pub enum WallPosition {
@@ -34,32 +16,72 @@ pub enum WallPosition {
     Bottom,
     Left,
     Right,
+
+    TopLeft,
 }
 
 #[derive(Debug, Component)]
 pub struct WallSensor;
 
 impl WallPosition {
-    pub fn is_horizontal(&self) -> bool {
-        match self {
-            WallPosition::Top => true,
-            WallPosition::Bottom => true,
-            WallPosition::Left => false,
-            WallPosition::Right => false,
-        }
-    }
+    // pub fn is_horizontal(&self) -> bool {
+    //     use WallPosition::*;
+    //     match self {
+    //         Top => true,
+    //         Bottom => true,
+    //         Left => false,
+    //         Right => false,
+    //         TopLeft => true,
+    //     }
+    // }
 
     pub fn get_position(&self, height: f32, width: f32) -> Vec3 {
+        use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;
         match self {
-            WallPosition::Top => Vec2::new(0.0, height / 2.0 + OFFSET),
-            WallPosition::Bottom => Vec2::new(0.0, -height / 2.0 - OFFSET) + 10.0,
-            WallPosition::Left => Vec2::new(-width / 2.0 - OFFSET, 0.0),
-            WallPosition::Right => Vec2::new(width / 2.0 + OFFSET, 0.0),
+            Top => Vec2::new(0.0, height / 2.0 + OFFSET),
+            Bottom => Vec2::new(0.0, -height / 2.0 - OFFSET) + 10.0,
+            Left => Vec2::new(-width / 2.0 - OFFSET, 0.0),
+            Right => Vec2::new(width / 2.0 + OFFSET, 0.0),
+            TopLeft => Vec2 { x: (-width / 2.0) +  (TOP_LEFT_SQUARE_SIZE / 2.0), y: (height / 2.0) - (TOP_LEFT_SQUARE_SIZE / 2.0) },
         }
         .extend(1.0)
     }
+
+    pub fn show_marker(&self) -> bool {
+        self != &WallPosition::Bottom
+    }
+
+    pub fn get_extents(&self) -> Vec2 {
+        const EXTRA_WIDTH: f32 = WALL_WIDTH * 2.0;
+        use WallPosition::*;
+
+        match self{
+            Top | Bottom => Vec2{x: MAX_WINDOW_WIDTH + EXTRA_WIDTH, y: WALL_WIDTH },
+            Left | Right => Vec2 { x: WALL_WIDTH, y: MAX_WINDOW_HEIGHT},
+            TopLeft => Vec2 { x: TOP_LEFT_SQUARE_SIZE, y: TOP_LEFT_SQUARE_SIZE },
+        }
+    }
+
+    pub fn marker_type(&self) -> MarkerType {
+        use WallPosition::*;
+        match self {
+            Top | Bottom => MarkerType::Horizontal,
+            Left | Right => MarkerType::Vertical,
+            TopLeft => MarkerType::Horizontal,
+        }
+    }
+
+    pub fn color(&self)-> Color{
+        use WallPosition::*;
+        match self {
+            Top | Bottom | Left | Right => ACCENT_COLOR,
+            TopLeft => BACKGROUND_COLOR,
+        }
+    }
 }
+
+const TOP_LEFT_SQUARE_SIZE : f32 = 70.0;
 
 pub struct WallsPlugin;
 
@@ -98,29 +120,24 @@ fn move_walls(
 }
 
 fn spawn_walls(mut commands: Commands) {
-    let color = ACCENT_COLOR;
+
 
     for wall in WallPosition::iter() {
-        spawn_wall(&mut commands, color, wall);
+        spawn_wall(&mut commands,  wall);
     }
 }
 
-fn spawn_wall(commands: &mut Commands, color: Color, wall: WallPosition) {
-    const EXTRA_WIDTH: f32 = WALL_WIDTH * 2.0;
+fn spawn_wall(commands: &mut Commands, wall: WallPosition) {
     let point = wall.get_position(WINDOW_HEIGHT, WINDOW_WIDTH);
-
-    let (width, height) = if wall.is_horizontal() {
-        (MAX_WINDOW_WIDTH + EXTRA_WIDTH, WALL_WIDTH)
-    } else {
-        (WALL_WIDTH, MAX_WINDOW_HEIGHT)
-    };
+    let extents = wall.get_extents();
 
     let shape = Rectangle {
-        extents: Vec2::new(width, height),
+        extents,
         origin: RectangleOrigin::Center,
     };
     let collider_shape = Collider::cuboid(shape.extents.x / 2.0, shape.extents.y / 2.0);
     let path = GeometryBuilder::build_as(&shape);
+    let color = wall.color();
     commands
         .spawn(ShapeBundle {
             path,

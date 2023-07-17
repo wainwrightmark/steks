@@ -24,11 +24,6 @@ pub fn camera_setup(mut commands: Commands) {
 }
 
 #[derive(Component)]
-pub struct ZoomCamera {
-    pub scale: f32,
-}
-
-#[derive(Component)]
 #[component(storage = "SparseSet")]
 pub struct TouchDragged;
 

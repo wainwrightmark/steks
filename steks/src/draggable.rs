@@ -273,7 +273,7 @@ pub fn drag_start(
     rapier_context: Res<RapierContext>,
     mut draggables: Query<
         (&mut ShapeComponent, &Transform),
-        (Without<ZoomCamera>, Without<FixedShape>, Without<VoidShape>),
+        (Without<FixedShape>, Without<VoidShape>),
     >,
     mut touch_rotate: ResMut<TouchRotateResource>,
 ) {

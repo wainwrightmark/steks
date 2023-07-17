@@ -273,7 +273,6 @@ fn get_title_bundle(args: UIArgs) -> TextBundle {
                 font: args.asset_server.load(LEVEL_TITLE_FONT_PATH),
                 font_size: LEVEL_TITLE_FONT_SIZE,
                 color,
-
             },
         )
         .with_text_alignment(TextAlignment::Center)
@@ -371,8 +370,6 @@ fn animate_text(
 
     let start = current_level.level.text_color();
 
-
-
     if fade {
         let end = start.with_a(0.0);
         commands.insert(Animator::new(Tween::new(
@@ -424,7 +421,7 @@ fn animate_root(
 
 fn get_panel_color(level: &CurrentLevel) -> Color {
     match level.completion {
-        LevelCompletion::Incomplete { .. } => steks_common::color::BACKGROUND_COLOR.with_a(0.5),
+        LevelCompletion::Incomplete { .. } => Color::NONE, // steks_common::color::BACKGROUND_COLOR.with_a(0.5),
         LevelCompletion::Complete { splash: true, .. } => Color::WHITE,
         LevelCompletion::Complete { splash: false, .. } => Color::NONE,
     }
@@ -443,11 +440,8 @@ fn animate_panel(
     current_level: &CurrentLevel,
     previous: &CurrentLevel,
 ) {
-
-
     match current_level.completion {
         LevelCompletion::Complete { .. } => {
-
             let lens = BackgroundColorLens {
                 start: get_panel_color(previous),
                 end: get_panel_color(current_level),
@@ -460,18 +454,17 @@ fn animate_panel(
             )));
         }
         LevelCompletion::Incomplete { .. } => {
+            // commands.insert(
+            //     Animator::new(Tween::new(EaseFunction::QuadraticInOut, Duration::from_secs(DEFAULT_TEXT_FADE_SECONDS),
+            // BackgroundColorLens{
+            //     start: BACKGROUND_COLOR.with_a(0.5),
+            //     end: BACKGROUND_COLOR.with_a(0.0)
+            // }
+            // ))
 
-            commands.insert(
-                Animator::new(Tween::new(EaseFunction::QuadraticInOut, Duration::from_secs(DEFAULT_TEXT_FADE_SECONDS),
-            BackgroundColorLens{
-                start: BACKGROUND_COLOR.with_a(0.5),
-                end: BACKGROUND_COLOR.with_a(0.0)
-            }
-            ))
+            // );
 
-            );
-
-            //commands.remove::<Animator<BackgroundColor>>();
+            commands.remove::<Animator<BackgroundColor>>();
         }
     }
 }
@@ -536,7 +529,6 @@ fn insert_bundle(
                     ..Default::default()
                 }
                 .with_no_wrap();
-
 
                 commands.insert(ButtonComponent {
                     button_type: ButtonType::Icon,

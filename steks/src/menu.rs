@@ -1,3 +1,5 @@
+use steks_common::color;
+
 use crate::{designed_level, prelude::*};
 
 pub struct ButtonPlugin;
@@ -270,7 +272,41 @@ fn spawn_level_menu(
             let icon_font = asset_server.load(ICON_FONT_PATH);
 
             let start = page * LEVELS_PER_PAGE;
-            let end = (start + LEVELS_PER_PAGE).min(CAMPAIGN_LEVELS.len() as u8);
+            let end = start + LEVELS_PER_PAGE;
+
+            for level in start..end {
+                if level < CAMPAIGN_LEVELS.len() as u8 {
+                    spawn_text_button(
+                        parent,
+                        ButtonAction::GotoLevel { level },
+                        text_font.clone(),
+                        level > completion.highest_level_completed,
+                        JustifyContent::Start,
+                    )
+                } else {
+                    parent.spawn(NodeBundle {
+                        style: Style {
+                            width: Val::Px(TEXT_BUTTON_WIDTH),
+                            height: Val::Px(TEXT_BUTTON_HEIGHT),
+                            margin: UiRect {
+                                left: Val::Auto,
+                                right: Val::Auto,
+                                top: Val::Px(5.0),
+                                bottom: Val::Px(5.0),
+                            },
+                            align_items: AlignItems::Center,
+                            flex_grow: 0.0,
+                            flex_shrink: 0.0,
+                            border: UiRect::all(UI_BORDER_WIDTH),
+
+                            ..Default::default()
+                        },
+                        background_color: BackgroundColor(Color::NONE),
+                        border_color: BorderColor(Color::NONE),
+                        ..Default::default()
+                    });
+                }
+            }
 
             parent
                 .spawn(NodeBundle {
@@ -292,33 +328,44 @@ fn spawn_level_menu(
                         align_items: AlignItems::Center,
                         flex_grow: 0.0,
                         flex_shrink: 0.0,
+                        border: UiRect::all(UI_BORDER_WIDTH),
+
                         ..Default::default()
                     },
+                    background_color: BackgroundColor(color::TEXT_BUTTON_BACKGROUND),
+                    border_color: BorderColor(color::BUTTON_BORDER),
                     ..Default::default()
                 })
                 .with_children(|panel| {
-                    spawn_icon_button(
-                        panel,
-                        ButtonAction::PreviousLevelsPage,
-                        icon_font.clone(),
-                        false,
-                    );
-                    spawn_icon_button(
-                        panel,
-                        ButtonAction::NextLevelsPage,
-                        icon_font.clone(),
-                        start + LEVELS_PER_PAGE < end,
-                    );
-                });
+                    let back_action = (page == 0)
+                        .then(|| ButtonAction::OpenMenu)
+                        .unwrap_or(ButtonAction::PreviousLevelsPage);
+                    spawn_icon_button(panel, back_action, icon_font.clone(), false);
 
-            for level in start..end {
-                spawn_text_button(
-                    parent,
-                    ButtonAction::GotoLevel { level },
-                    text_font.clone(),
-                    level > completion.highest_level_completed,
-                    JustifyContent::Start
-                )
-            }
+                    if end + 1 >= CAMPAIGN_LEVELS.len() as u8 {
+                        panel.spawn(NodeBundle {
+                            style: Style {
+                                width: Val::Px(ICON_BUTTON_WIDTH),
+                                height: Val::Px(ICON_BUTTON_HEIGHT),
+                                margin: UiRect::all(Val::Auto),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                flex_grow: 0.0,
+                                flex_shrink: 0.0,
+
+                                ..Default::default()
+                            },
+                            background_color: BackgroundColor(Color::NONE),
+                            ..default()
+                        });
+                    } else {
+                        spawn_icon_button(
+                            panel,
+                            ButtonAction::NextLevelsPage,
+                            icon_font.clone(),
+                            end + 1 >= CAMPAIGN_LEVELS.len() as u8,
+                        );
+                    }
+                });
         });
 }

@@ -2,8 +2,6 @@ use crate::{designed_level, prelude::*};
 use steks_common::color;
 use strum::Display;
 
-
-
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
 
@@ -29,9 +27,7 @@ pub enum ButtonType {
 
 impl ButtonType {
     pub fn background_color(&self, interaction: &Interaction, disabled: bool) -> BackgroundColor {
-        const ICON_BUTTON_BACKGROUND: Color = Color::NONE;
-        const TEXT_BUTTON_BACKGROUND: Color = Color::WHITE;
-        const DISABLED_BUTTON_BACKGROUND: Color = Color::GRAY;
+
 
         if disabled {
             return DISABLED_BUTTON_BACKGROUND.into();
@@ -120,8 +116,8 @@ impl ButtonAction {
             MinimizeApp => "\u{e813}".to_string(),        //logout
             ClipboardImport => "\u{e818}".to_string(),    //clipboard
             Purchase => "\u{f513}".to_string(),           //unlock
-            PreviousLevelsPage => "\u{e80d}".to_string(),
-            NextLevelsPage => "\u{e80c}".to_string(),
+            PreviousLevelsPage => "\u{e81b}".to_string(),
+            NextLevelsPage => "\u{e81a}".to_string(),
         }
     }
 
@@ -177,12 +173,36 @@ pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
             ..Default::default()
         },
         background_color: ButtonType::Icon.background_color(&Interaction::None, disabled),
-        ..Default::default()
+        ..default()
     }
 }
 
-pub fn text_button_bundle(disabled: bool, justify_content: JustifyContent) -> ButtonBundle {
-    ButtonBundle {
+
+pub fn spawn_text_button(
+    parent: &mut ChildBuilder,
+    button_action: ButtonAction,
+    font: Handle<Font>,
+    disabled: bool,
+    justify_content: JustifyContent,
+) {
+    let text_bundle = TextBundle {
+        text: Text::from_section(
+            button_action.text(),
+            TextStyle {
+                font,
+                font_size: BUTTON_FONT_SIZE,
+                color: BUTTON_TEXT_COLOR,
+            },
+        ),
+        style: Style {
+            ..Default::default()
+        },
+
+        ..Default::default()
+    }
+    .with_no_wrap();
+
+    let button_bundle = ButtonBundle {
         style: Style {
             width: Val::Px(TEXT_BUTTON_WIDTH),
             height: Val::Px(TEXT_BUTTON_HEIGHT),
@@ -203,35 +223,10 @@ pub fn text_button_bundle(disabled: bool, justify_content: JustifyContent) -> Bu
         background_color: ButtonType::Text.background_color(&Interaction::None, disabled),
         border_color: color::BUTTON_BORDER.into(),
         ..Default::default()
-    }
-}
-
-pub fn spawn_text_button(
-    parent: &mut ChildBuilder,
-    button_action: ButtonAction,
-    font: Handle<Font>,
-    disabled: bool,
-    justify_content: JustifyContent
-) {
-    let text_bundle = TextBundle {
-        text: Text::from_section(
-            button_action.text(),
-            TextStyle {
-                font,
-                font_size: BUTTON_FONT_SIZE,
-                color: BUTTON_TEXT_COLOR,
-            },
-        ),
-        style: Style {
-            ..Default::default()
-        },
-
-        ..Default::default()
-    }
-    .with_no_wrap();
+    };
 
     parent
-        .spawn(text_button_bundle(disabled, justify_content))
+        .spawn(button_bundle)
         .with_children(|parent| {
             parent.spawn(text_bundle);
         })
@@ -258,6 +253,7 @@ pub fn spawn_icon_button(
                 color: BUTTON_TEXT_COLOR,
             },
         ),
+
         ..Default::default()
     }
     .with_no_wrap();

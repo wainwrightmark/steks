@@ -20,6 +20,10 @@ pub const LEVEL_TEXT_ALT_COLOR: Color = Color::WHITE;
 pub const BUTTON_BORDER: Color = Color::BLACK;
 pub const BUTTON_TEXT_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
 
+pub const ICON_BUTTON_BACKGROUND: Color = Color::NONE;
+pub const TEXT_BUTTON_BACKGROUND: Color = Color::WHITE;
+pub const DISABLED_BUTTON_BACKGROUND: Color = Color::GRAY;
+
 pub fn choose_color(index: usize) -> Color {
     const SATURATIONS: [f32; 2] = [0.9, 0.28];
     const LIGHTNESSES: [f32; 2] = [0.28, 0.49];

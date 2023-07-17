@@ -264,7 +264,7 @@ fn get_title_bundle(args: UIArgs) -> TextBundle {
         return TextBundle::default();
     }
 
-    let color = args.current_level.level.text_color();
+    let color = args.current_level.text_color();
 
     if let Some(text) = args.current_level.get_title() {
         TextBundle::from_section(
@@ -300,7 +300,7 @@ fn get_level_number_bundle(args: UIArgs) -> TextBundle {
         }
     }
 
-    let color = args.current_level.level.text_color();
+    let color = args.current_level.text_color();
 
     if let Some(text) = args.current_level.get_level_number_text() {
         TextBundle::from_section(
@@ -330,7 +330,7 @@ pub struct UIArgs<'a, 'world> {
 
 fn get_message_bundle(args: UIArgs) -> TextBundle {
     if let Some(text) = args.current_level.get_text() {
-        let color = args.current_level.level.text_color();
+        let color = args.current_level.text_color();
         TextBundle::from_section(
             text,
             TextStyle {
@@ -368,7 +368,7 @@ fn animate_text(
         LevelCompletion::Complete { .. } => false,
     };
 
-    let start = current_level.level.text_color();
+    let start = current_level.text_color();
 
     if fade {
         let end = start.with_a(0.0);

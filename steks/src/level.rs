@@ -131,6 +131,21 @@ pub struct CurrentLevel {
 }
 
 impl CurrentLevel {
+
+
+    pub fn text_color(&self) -> Color {
+        let alt = self.completion.is_incomplete() && match &self.level {
+            GameLevel::Designed { meta } => meta.get_level().alt_text_color,
+            _ => false,
+        };
+
+        if alt {
+            color::LEVEL_TEXT_ALT_COLOR
+        } else {
+            color::LEVEL_TEXT_COLOR
+        }
+    }
+
     pub fn get_title(&self) -> Option<String> {
         match &self.level {
             GameLevel::Designed { meta, .. } => meta.get_level().title.clone(),
@@ -346,18 +361,7 @@ impl GameLevel {
         }
     }
 
-    pub fn text_color(&self) -> Color {
-        let alt = match self {
-            GameLevel::Designed { meta } => meta.get_level().alt_text_color,
-            _ => false,
-        };
 
-        if alt {
-            color::LEVEL_TEXT_ALT_COLOR
-        } else {
-            color::LEVEL_TEXT_COLOR
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

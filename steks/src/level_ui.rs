@@ -371,13 +371,13 @@ fn animate_text(
 
     let start = current_level.level.text_color();
 
-    const DEFAULT_TEXT_FADE: u32 = 20;
+
 
     if fade {
         let end = start.with_a(0.0);
         commands.insert(Animator::new(Tween::new(
             EaseFunction::QuadraticInOut,
-            Duration::from_secs(DEFAULT_TEXT_FADE as u64),
+            Duration::from_secs(DEFAULT_TEXT_FADE_SECONDS),
             TextColorLens {
                 section: 0,
                 start,
@@ -397,6 +397,7 @@ fn animate_text(
     }
 }
 
+const DEFAULT_TEXT_FADE_SECONDS: u64 = 20;
 const MINIMIZE_MILLIS: u64 = 1000;
 
 fn animate_root(
@@ -423,7 +424,7 @@ fn animate_root(
 
 fn get_panel_color(level: &CurrentLevel) -> Color {
     match level.completion {
-        LevelCompletion::Incomplete { .. } => Color::NONE,
+        LevelCompletion::Incomplete { .. } => steks_common::color::BACKGROUND_COLOR.with_a(0.5),
         LevelCompletion::Complete { splash: true, .. } => Color::WHITE,
         LevelCompletion::Complete { splash: false, .. } => Color::NONE,
     }
@@ -442,13 +443,16 @@ fn animate_panel(
     current_level: &CurrentLevel,
     previous: &CurrentLevel,
 ) {
-    let lens = BackgroundColorLens {
-        start: get_panel_color(previous),
-        end: get_panel_color(current_level),
-    };
+
 
     match current_level.completion {
         LevelCompletion::Complete { .. } => {
+
+            let lens = BackgroundColorLens {
+                start: get_panel_color(previous),
+                end: get_panel_color(current_level),
+            };
+
             commands.insert(Animator::new(Tween::new(
                 EaseFunction::QuadraticInOut,
                 Duration::from_millis(MINIMIZE_MILLIS),
@@ -456,7 +460,18 @@ fn animate_panel(
             )));
         }
         LevelCompletion::Incomplete { .. } => {
-            commands.remove::<Animator<BackgroundColor>>();
+
+            commands.insert(
+                Animator::new(Tween::new(EaseFunction::QuadraticInOut, Duration::from_secs(DEFAULT_TEXT_FADE_SECONDS),
+            BackgroundColorLens{
+                start: BACKGROUND_COLOR.with_a(0.5),
+                end: BACKGROUND_COLOR.with_a(0.0)
+            }
+            ))
+
+            );
+
+            //commands.remove::<Animator<BackgroundColor>>();
         }
     }
 }

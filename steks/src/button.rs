@@ -143,7 +143,7 @@ impl ButtonAction {
                 if let Some(set_level) = designed_level::get_campaign_level(*level) {
                     if let Some(name) = &set_level.title {
                         format!(
-                            "{level_number:>2}: {name}",
+                            "{level_number:>3}: {name}",
                             // width = LEVEL_TITLE_MAX_CHARS
                         )
                     } else {

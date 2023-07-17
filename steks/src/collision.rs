@@ -23,9 +23,12 @@ pub struct CollisionMarker {
 
 fn highlight_voids(
     rapier_context: Res<RapierContext>,
-    mut voids: Query<(Entity, &mut Stroke, &mut VoidShape)>,
+    mut voids: Query<(Entity, &mut Stroke, &mut VoidShape, &Children), Without<Shadow>>,
+    mut shadows: Query<&mut Stroke, With<Shadow>>
 ) {
-    for (entity, mut stroke, mut shape) in voids.iter_mut() {
+    const MULTIPLIER: f32 = 5.0;
+
+    for (entity, mut stroke, mut shape, children) in voids.iter_mut() {
         let has_contact = rapier_context
             .intersections_with(entity)
             .any(|contact| contact.2);
@@ -33,11 +36,23 @@ fn highlight_voids(
         if has_contact {
             if !shape.highlighted {
                 shape.highlighted = true;
-                stroke.options.line_width = 5.0;
+                stroke.options.line_width = MULTIPLIER;
+
+                for child in children{
+                    if let Ok(mut shadow) = shadows.get_mut(*child){
+                        shadow.options.line_width = ZOOM_LEVEL * MULTIPLIER;
+                    }
+                }
             }
         } else if shape.highlighted {
             shape.highlighted = false;
             stroke.options.line_width = 1.0;
+
+            for child in children{
+                if let Ok(mut shadow) = shadows.get_mut(*child){
+                    shadow.options.line_width = ZOOM_LEVEL;
+                }
+            }
         }
     }
 }

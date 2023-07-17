@@ -1,5 +1,3 @@
-use bevy::ecs::system::EntityCommands;
-
 use crate::input;
 use crate::prelude::*;
 
@@ -479,7 +477,7 @@ pub struct CheckForWinEvent {
 
 impl CheckForWinEvent {
     pub const ON_DROP: CheckForWinEvent = CheckForWinEvent {
-        no_future_collision_countdown_seconds: 1.0,
+        no_future_collision_countdown_seconds: 1.5,
         future_collision_countdown_seconds: Some(5.0),
         future_lookahead_seconds: 10.0,
     };

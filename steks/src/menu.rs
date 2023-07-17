@@ -146,11 +146,20 @@ fn button_system(
 
     mut menu_state: ResMut<MenuState>,
     mut current_level: ResMut<CurrentLevel>,
+
+    dragged: Query<(), With<BeingDragged>>,
 ) {
+    if! dragged.is_empty(){
+        return;
+    }
+
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
         if button.disabled {
             continue;
         }
+
+
+
         use ButtonAction::*;
         //info!("{interaction:?} {button:?} {menu_state:?}");
         *bg_color = button
@@ -160,7 +169,7 @@ fn button_system(
         if interaction == &Interaction::Pressed {
             match button.button_action {
                 OpenMenu => menu_state.as_mut().open_menu(),
-                CloseMenu => menu_state.as_mut().close_menu(),
+                Resume => menu_state.as_mut().close_menu(),
                 GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
                     {
@@ -180,7 +189,7 @@ fn button_system(
                         stage: 0,
                     })
                 }
-                Levels => menu_state.as_mut().toggle_levels(),
+                ChooseLevel => menu_state.as_mut().toggle_levels(),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeCompletion => match current_level.completion {
                     LevelCompletion::Incomplete { stage: _ } => {}
@@ -196,7 +205,7 @@ fn button_system(
                         .spawn(async move { minimize_app_async().await })
                         .detach();
                 }
-                Purchase => {
+                Unlock => {
                     purchase_events.send(TryPurchaseEvent);
                 }
                 NextLevelsPage => menu_state.as_mut().next_levels_page(),
@@ -205,7 +214,7 @@ fn button_system(
             }
 
             match button.button_action {
-                OpenMenu | CloseMenu | Levels | NextLevelsPage | PreviousLevelsPage => {}
+                OpenMenu | Resume | ChooseLevel | NextLevelsPage | PreviousLevelsPage => {}
                 _ => menu_state.close_menu(),
             }
         }

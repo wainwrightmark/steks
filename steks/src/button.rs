@@ -57,20 +57,20 @@ impl ButtonType {
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
 pub enum ButtonAction {
     OpenMenu,
-    CloseMenu,
+    Resume,
     ResetLevel,
     GoFullscreen,
     Tutorial,
     Infinite,
     DailyChallenge,
     Share,
-    Levels,
+    ChooseLevel,
     ClipboardImport,
     GotoLevel { level: u8 },
     NextLevel,
     MinimizeCompletion,
     MinimizeApp,
-    Purchase,
+    Unlock,
     NextLevelsPage,
     PreviousLevelsPage,
 }
@@ -79,19 +79,20 @@ impl ButtonAction {
     pub fn main_buttons() -> &'static [Self] {
         use ButtonAction::*;
         &[
-            CloseMenu,
-            // ToggleMenu,
-            //ResetLevel,
+            Resume,
+
+            ChooseLevel,
             DailyChallenge,
-            Tutorial,
-            Levels,
             Infinite,
-            #[cfg(target_arch = "wasm32")]
+            Tutorial,
             Share,
-            ClipboardImport,
+
             #[cfg(all(any(feature = "android", feature = "ios"), target_arch = "wasm32"))]
-            Purchase,
-            #[cfg(target_arch = "wasm32")]
+            Unlock,
+
+            ClipboardImport, //TODO
+
+            #[cfg(all(feature = "web", target_arch = "wasm32"))]
             GoFullscreen,
             #[cfg(all(feature = "android", target_arch = "wasm32"))]
             MinimizeApp,
@@ -102,20 +103,20 @@ impl ButtonAction {
         use ButtonAction::*;
         match self {
             OpenMenu => "\u{f0c9}".to_string(),       // "Menu",
-            CloseMenu => "\u{e817}".to_string(),      // "Menu",
+            Resume => "\u{e817}".to_string(),      // "Menu",
             ResetLevel => "\u{e800}".to_string(),     //"Reset Level",image
             GoFullscreen => "\u{f0b2}".to_string(),   //"Fullscreen",
             Tutorial => "\u{e801}".to_string(),       //"Tutorial",
             Infinite => "\u{e802}".to_string(),       //"Infinite",
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
-            Levels => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
+            ChooseLevel => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
             GotoLevel { level } => crate::designed_level::format_campaign_level_number(level),
             NextLevel => "\u{e808}".to_string(),          //play
             MinimizeCompletion => "\u{e814}".to_string(), //minus
             MinimizeApp => "\u{e813}".to_string(),        //logout
             ClipboardImport => "\u{e818}".to_string(),    //clipboard
-            Purchase => "\u{f513}".to_string(),           //unlock
+            Unlock => "\u{f513}".to_string(),           //unlock
             PreviousLevelsPage => "\u{e81b}".to_string(),
             NextLevelsPage => "\u{e81a}".to_string(),
         }
@@ -125,14 +126,14 @@ impl ButtonAction {
         use ButtonAction::*;
         match self {
             OpenMenu => "Menu".to_string(),
-            CloseMenu => "Continue".to_string(),
+            Resume => "Resume".to_string(),
             ResetLevel => "Reset".to_string(),
             GoFullscreen => "Fullscreen".to_string(),
             Tutorial => "Tutorial".to_string(),
             Infinite => "Infinite Mode".to_string(),
             DailyChallenge => "Daily Challenge".to_string(),
             Share => "Share".to_string(),
-            Levels => "Choose Level".to_string(),
+            ChooseLevel => "Choose Level".to_string(),
             ClipboardImport => "Import Level".to_string(),
             GotoLevel { level } => {
                 let level_number = format_campaign_level_number(level);
@@ -152,7 +153,7 @@ impl ButtonAction {
             NextLevel => "Next Level".to_string(),
             MinimizeCompletion => "Minimize Completion".to_string(),
             MinimizeApp => "Quit".to_string(),
-            Purchase => "Unlock Game".to_string(),
+            Unlock => "Unlock Game".to_string(),
             NextLevelsPage => "Next Levels".to_string(),
             PreviousLevelsPage => "Previous Levels".to_string(),
         }

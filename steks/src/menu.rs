@@ -87,7 +87,7 @@ impl MenuState {
     ) {
         match self {
             MenuState::Closed => {
-                let font = asset_server.load("fonts/fontello.ttf");
+                let font = asset_server.load(ICON_FONT_PATH);
 
                 commands
                     .spawn(NodeBundle {
@@ -236,9 +236,9 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
         })
         .insert(MenuComponent::MainMenu)
         .with_children(|parent| {
-            let font = asset_server.load("fonts/FiraMono-Medium.ttf");
+            let font = asset_server.load(MENU_TEXT_FONT_PATH);
             for button in ButtonAction::main_buttons() {
-                spawn_text_button(parent, *button, font.clone(), false);
+                spawn_text_button(parent, *button, font.clone(), false, JustifyContent::Center);
             }
         });
 }
@@ -266,8 +266,8 @@ fn spawn_level_menu(
         })
         .insert(MenuComponent::LevelsPage(page))
         .with_children(|parent| {
-            let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-            let icon_font = asset_server.load("fonts/fontello.ttf");
+            let text_font = asset_server.load(MENU_TEXT_FONT_PATH);
+            let icon_font = asset_server.load(ICON_FONT_PATH);
 
             let start = page * LEVELS_PER_PAGE;
             let end = (start + LEVELS_PER_PAGE).min(CAMPAIGN_LEVELS.len() as u8);
@@ -317,6 +317,7 @@ fn spawn_level_menu(
                     ButtonAction::GotoLevel { level },
                     text_font.clone(),
                     level > completion.highest_level_completed,
+                    JustifyContent::Start
                 )
             }
         });

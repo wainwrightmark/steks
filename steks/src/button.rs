@@ -2,7 +2,7 @@ use crate::{designed_level, prelude::*};
 use steks_common::color;
 use strum::Display;
 
-const TEXT_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
+
 
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
@@ -12,7 +12,7 @@ pub const TEXT_BUTTON_HEIGHT: f32 = 60.;
 
 pub const MENU_OFFSET: f32 = 10.;
 
-pub const UI_BORDER_WIDTH: Val = Val::Px(5.0);
+pub const UI_BORDER_WIDTH: Val = Val::Px(3.0);
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct ButtonComponent {
@@ -143,8 +143,8 @@ impl ButtonAction {
                 if let Some(set_level) = designed_level::get_campaign_level(*level) {
                     if let Some(name) = &set_level.title {
                         format!(
-                            "{level_number:>2}: {name:<width$}",
-                            width = LEVEL_TITLE_MAX_CHARS
+                            "{level_number:>2}: {name}",
+                            // width = LEVEL_TITLE_MAX_CHARS
                         )
                     } else {
                         level_number
@@ -160,35 +160,6 @@ impl ButtonAction {
             NextLevelsPage => "Next Levels".to_string(),
             PreviousLevelsPage => "Previous Levels".to_string(),
         }
-    }
-    pub fn icon_bundle(&self, font: Handle<Font>) -> TextBundle {
-        TextBundle {
-            text: Text::from_section(
-                self.icon(),
-                TextStyle {
-                    font,
-                    font_size: 30.0,
-                    color: TEXT_COLOR,
-                },
-            ),
-            ..Default::default()
-        }
-        .with_no_wrap()
-    }
-
-    pub fn text_bundle(&self, font: Handle<Font>) -> TextBundle {
-        TextBundle {
-            text: Text::from_section(
-                self.text(),
-                TextStyle {
-                    font,
-                    font_size: 24.0,
-                    color: TEXT_COLOR,
-                },
-            ),
-            ..Default::default()
-        }
-        .with_no_wrap()
     }
 }
 
@@ -210,7 +181,7 @@ pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
     }
 }
 
-pub fn text_button_bundle(disabled: bool) -> ButtonBundle {
+pub fn text_button_bundle(disabled: bool, justify_content: JustifyContent) -> ButtonBundle {
     ButtonBundle {
         style: Style {
             width: Val::Px(TEXT_BUTTON_WIDTH),
@@ -221,7 +192,7 @@ pub fn text_button_bundle(disabled: bool) -> ButtonBundle {
                 top: Val::Px(5.0),
                 bottom: Val::Px(5.0),
             },
-            justify_content: JustifyContent::Center,
+            justify_content,
             align_items: AlignItems::Center,
             flex_grow: 0.0,
             flex_shrink: 0.0,
@@ -240,11 +211,29 @@ pub fn spawn_text_button(
     button_action: ButtonAction,
     font: Handle<Font>,
     disabled: bool,
+    justify_content: JustifyContent
 ) {
+    let text_bundle = TextBundle {
+        text: Text::from_section(
+            button_action.text(),
+            TextStyle {
+                font,
+                font_size: BUTTON_FONT_SIZE,
+                color: BUTTON_TEXT_COLOR,
+            },
+        ),
+        style: Style {
+            ..Default::default()
+        },
+
+        ..Default::default()
+    }
+    .with_no_wrap();
+
     parent
-        .spawn(text_button_bundle(disabled))
+        .spawn(text_button_bundle(disabled, justify_content))
         .with_children(|parent| {
-            parent.spawn(button_action.text_bundle(font));
+            parent.spawn(text_bundle);
         })
         .insert(ButtonComponent {
             disabled,
@@ -260,10 +249,23 @@ pub fn spawn_icon_button(
     font: Handle<Font>,
     disabled: bool,
 ) {
+    let text_bundle = TextBundle {
+        text: Text::from_section(
+            button_action.icon(),
+            TextStyle {
+                font,
+                font_size: ICON_FONT_SIZE,
+                color: BUTTON_TEXT_COLOR,
+            },
+        ),
+        ..Default::default()
+    }
+    .with_no_wrap();
+
     parent
         .spawn(icon_button_bundle(disabled))
         .with_children(|parent| {
-            parent.spawn(button_action.icon_bundle(font));
+            parent.spawn(text_bundle);
         })
         .insert(ButtonComponent {
             disabled,

@@ -60,3 +60,24 @@ pub const PLAIN_PADLOCK_OUTLINE: &str= "M256 18.15c-81.1 0-146.6 65.51-146.6 146
 pub const LEVEL_TITLE_MAX_CHARS: usize = "The Empire Steks Building".len();
 pub const LEVEL_STAGE_TEXT_MAX_CHARS: usize = "Use the black outlines to guide you".len();
 pub const LEVEL_END_TEXT_MAX_CHARS: usize = "if it weren't for you meddling kids!".len();
+
+
+
+// cSpell:ignore wght
+
+const GRANDMASTER_FONT_PATH: &str ="fonts/Grandstander-VariableFont_wght.ttf";
+const FIRA_FONT_PATH: &str = "fonts/FiraMono-Medium.ttf";
+const BALOO_FONT_PATH: &str = "fonts/Baloo2-VariableFont_wght.ttf";
+
+pub const LEVEL_TEXT_FONT_PATH: &str = FIRA_FONT_PATH;
+pub const LEVEL_TITLE_FONT_PATH: &str = GRANDMASTER_FONT_PATH;
+pub const LEVEL_NUMBER_FONT_PATH: &str = FIRA_FONT_PATH;
+pub const MENU_TEXT_FONT_PATH: &str = GRANDMASTER_FONT_PATH;
+pub const ICON_FONT_PATH: &str = "fonts/fontello.ttf";
+
+pub const ICON_FONT_SIZE: f32 = 30.0;
+pub const BUTTON_FONT_SIZE: f32 = 24.0;
+
+pub const LEVEL_TITLE_FONT_SIZE: f32 = 30.0;
+pub const LEVEL_TEXT_FONT_SIZE: f32 = 20.0;
+pub const LEVEL_NUMBER_FONT_SIZE: f32 = 30.0;

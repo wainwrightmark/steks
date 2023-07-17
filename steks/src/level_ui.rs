@@ -270,9 +270,10 @@ fn get_title_bundle(args: UIArgs) -> TextBundle {
         TextBundle::from_section(
             text,
             TextStyle {
-                font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
-                font_size: 30.0,
+                font: args.asset_server.load(LEVEL_TITLE_FONT_PATH),
+                font_size: LEVEL_TITLE_FONT_SIZE,
                 color,
+
             },
         )
         .with_text_alignment(TextAlignment::Center)
@@ -306,8 +307,8 @@ fn get_level_number_bundle(args: UIArgs) -> TextBundle {
         TextBundle::from_section(
             text,
             TextStyle {
-                font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
-                font_size: 30.0,
+                font: args.asset_server.load(LEVEL_NUMBER_FONT_PATH),
+                font_size: LEVEL_NUMBER_FONT_SIZE,
                 color,
             },
         )
@@ -334,8 +335,8 @@ fn get_message_bundle(args: UIArgs) -> TextBundle {
         TextBundle::from_section(
             text,
             TextStyle {
-                font: args.asset_server.load("fonts/FiraMono-Medium.ttf"),
-                font_size: 20.0,
+                font: args.asset_server.load(LEVEL_TEXT_FONT_PATH),
+                font_size: LEVEL_TEXT_FONT_SIZE,
                 color,
             },
         )
@@ -506,7 +507,22 @@ fn insert_bundle(
         }
         LevelUIComponent::Button(button_action) => {
             if first_time {
-                let font = asset_server.load("fonts/fontello.ttf");
+                let font = asset_server.load(ICON_FONT_PATH);
+
+                let text_bundle = TextBundle {
+                    text: Text::from_section(
+                        button_action.icon(),
+                        TextStyle {
+                            font,
+                            font_size: ICON_FONT_SIZE,
+                            color: BUTTON_TEXT_COLOR,
+                        },
+                    ),
+                    ..Default::default()
+                }
+                .with_no_wrap();
+
+
                 commands.insert(ButtonComponent {
                     button_type: ButtonType::Icon,
                     button_action: *button_action,
@@ -515,7 +531,7 @@ fn insert_bundle(
                 commands.insert(icon_button_bundle(false));
 
                 commands.with_children(|parent| {
-                    parent.spawn(button_action.icon_bundle(font));
+                    parent.spawn(text_bundle);
                 });
             }
 

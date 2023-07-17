@@ -18,6 +18,7 @@ pub const LEVEL_TEXT_COLOR: Color = Color::DARK_GRAY;
 pub const LEVEL_TEXT_ALT_COLOR: Color = Color::WHITE;
 
 pub const BUTTON_BORDER: Color = Color::BLACK;
+pub const BUTTON_TEXT_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
 
 pub fn choose_color(index: usize) -> Color {
     const SATURATIONS: [f32; 2] = [0.9, 0.28];

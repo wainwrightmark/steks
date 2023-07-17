@@ -5,6 +5,7 @@ use bevy::reflect::TypeUuid;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use steks_common::color;
+use strum::EnumIs;
 
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
@@ -207,7 +208,7 @@ impl CurrentLevel {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum LevelCompletion {
     Incomplete { stage: usize },
     Complete { splash: bool, score_info: ScoreInfo },
@@ -260,15 +261,6 @@ impl ScoreInfo {
 impl Default for LevelCompletion {
     fn default() -> Self {
         Self::Incomplete { stage: 0 }
-    }
-}
-
-impl LevelCompletion {
-    pub fn is_complete(&self) -> bool {
-        match self {
-            LevelCompletion::Incomplete { .. } => false,
-            LevelCompletion::Complete { .. } => true,
-        }
     }
 }
 

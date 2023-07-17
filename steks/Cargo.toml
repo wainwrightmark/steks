@@ -6,11 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 rand = "0.8.5"
-itertools = "0.10"
+itertools = "0.11"
 bevy_prototype_lyon = {version="0.9"}
 bevy_rapier2d = {version = "0.22"}
 
-strum = { version = "0.24.1", features = ["derive"] }
+strum = { version = "0.25", features = ["derive"] }
 bevy_tweening = { git = "https://github.com/wainwrightmark/bevy_tweening", default-features = false, features = ["bevy_text", "bevy_ui"] }
 chrono = {version="0.4", features = ["serde", "wasmbind"]}
 bevy_pkv = {git="https://github.com/wainwrightmark/bevy_pkv"}
@@ -42,7 +42,6 @@ winit = { version = "0.28", features=["x11"]}
 [dev-dependencies]
 insta = "1"
 test-case = "3"
-bevy_rapier2d = { version = "0.21"}
 
 [profile.release]
 opt-level = 'z'

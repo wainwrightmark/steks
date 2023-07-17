@@ -24,17 +24,6 @@ pub enum WallPosition {
 pub struct WallSensor;
 
 impl WallPosition {
-    // pub fn is_horizontal(&self) -> bool {
-    //     use WallPosition::*;
-    //     match self {
-    //         Top => true,
-    //         Bottom => true,
-    //         Left => false,
-    //         Right => false,
-    //         TopLeft => true,
-    //     }
-    // }
-
     pub fn get_position(&self, height: f32, width: f32) -> Vec3 {
         use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;

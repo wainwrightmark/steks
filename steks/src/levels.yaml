@@ -3,6 +3,8 @@
 
 #1
 - title: "Steks Marks The Spot"
+  text: "towers may not touch\n
+  the ground or the sides"
   end_text: "Not bad for a beginner"
   shapes:
     - shape: U5
@@ -111,7 +113,7 @@
 
 
 #9
-- title: "Tri Hard II: Tri harder"
+- title: "Tri Hard II: Tri Harder"
   end_text: "Yippee-Ki-Yay!"
   shapes:
     - shape: L4

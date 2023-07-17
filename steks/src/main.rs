@@ -1,3 +1,4 @@
+pub mod achievements;
 pub mod app_redirect;
 pub mod async_event_writer;
 pub mod button;
@@ -28,7 +29,7 @@ pub mod tracked_resource;
 pub mod walls;
 pub mod win;
 
-#[cfg(target_arch = "wasm32")]
+//#[cfg(target_arch = "wasm32")]
 pub mod logging;
 #[cfg(target_arch = "wasm32")]
 pub mod notifications;
@@ -46,6 +47,7 @@ pub mod prelude {
     pub use std::time::Duration;
     pub use steks_common::prelude::*;
 
+    pub use crate::achievements::*;
     pub use crate::app_redirect::*;
     pub use crate::async_event_writer::*;
     pub use crate::button::*;
@@ -76,7 +78,7 @@ pub mod prelude {
     pub use crate::walls::*;
     pub use crate::win::*;
 
-    #[cfg(target_arch = "wasm32")]
+    //#[cfg(target_arch = "wasm32")]
     pub use crate::logging::*;
     #[cfg(target_arch = "wasm32")]
     pub use crate::notifications::*;

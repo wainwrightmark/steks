@@ -44,6 +44,7 @@ pub fn main() {
                     bevy_embedded_assets::EmbeddedAssetPlugin,
                 ),
         )
+        .add_plugins(AchievementsPlugin)
         .add_plugins(WallsPlugin)
         .add_plugins(ButtonPlugin)
         .add_plugins(bevy_prototype_lyon::prelude::ShapePlugin)

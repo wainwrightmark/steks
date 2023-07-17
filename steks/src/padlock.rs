@@ -3,6 +3,7 @@ use std::time::Duration;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_tweening::{lens::TransformPositionLens, EaseFunction, Tween};
+use strum::EnumIs;
 
 use crate::prelude::*;
 
@@ -20,12 +21,12 @@ impl Plugin for PadlockPlugin {
 #[derive(Component, Debug)]
 pub struct Padlock;
 
-#[derive(Resource, Debug, PartialEq, Default)]
+#[derive(Resource, Debug, PartialEq, Default, Deref)]
 pub struct PadlockResource {
     pub status: PadlockStatus,
 }
 
-#[derive(Resource, Debug, PartialEq)]
+#[derive(Resource, Debug, PartialEq, EnumIs)]
 pub enum PadlockStatus {
     Invisible {
         last_moved: Option<Duration>,
@@ -48,18 +49,6 @@ impl Default for PadlockStatus {
 }
 
 impl PadlockResource {
-    pub fn is_invisible(&self) -> bool {
-        matches!(self.status, PadlockStatus::Invisible { .. })
-    }
-
-    pub fn is_locked(&self) -> bool {
-        matches!(self.status, PadlockStatus::Locked { .. })
-    }
-
-    pub fn is_visible(&self) -> bool {
-        matches!(self.status, PadlockStatus::Visible { .. })
-    }
-
     pub fn has_entity(&self, entity: Entity) -> bool {
         match self.status {
             PadlockStatus::Invisible { .. } => false,

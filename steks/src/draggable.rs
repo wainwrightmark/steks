@@ -1,3 +1,5 @@
+use bevy::ecs::system::EntityCommands;
+
 use crate::input;
 use crate::prelude::*;
 
@@ -38,9 +40,11 @@ impl Plugin for DragPlugin {
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
+            //.add_systems(Update, detach_stuck_shapes_on_pickup)
             .add_systems(Update, apply_forces.after(handle_rotate_events))
             .add_systems(Update, handle_drag_changes.after(apply_forces)) // .in_base_set(CoreSet::PostUpdate))
             .add_event::<RotateEvent>()
+            //.add_event::<ShapePickedUpEvent> ()
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()
             .add_event::<DragEndingEvent>()
@@ -268,6 +272,41 @@ pub fn drag_move(
     }
 }
 
+// #[derive(Debug, Event)]
+// pub struct ShapePickedUpEvent {
+//     pub entity: Entity,
+// }
+
+// pub fn detach_stuck_shapes_on_pickup(
+//     mut picked_up_events: EventReader<ShapePickedUpEvent>,
+//     rapier_context: Res<RapierContext>,
+//     mut draggables: Query<
+//         (&ShapeComponent, &Collider, &mut Transform),
+//         (Without<FixedShape>, Without<VoidShape>),
+//     >,
+//     mut commands: Commands
+// ) {
+//     for event in picked_up_events.iter() {
+//         if let Ok((shape, collider, transform)) = draggables.get(event.entity) {
+//             if let Some(intersecting) = rapier_context.intersection_with_shape(
+//                 transform.translation.truncate(),
+//                 transform.rotation.z,
+//                 collider,
+//                 QueryFilter::new().exclude_collider(event.entity),
+//             ) {
+//                 if let Ok((_, _, mut transform)) = draggables.get_mut(intersecting){
+//                     transform.translation = Vec3::default();
+//                 }
+
+//                 // if draggables.contains(intersecting){
+
+
+//                 // }
+//             }
+//         }
+//     }
+// }
+
 pub fn drag_start(
     mut er_drag_start: EventReader<DragStartEvent>,
     rapier_context: Res<RapierContext>,
@@ -276,6 +315,7 @@ pub fn drag_start(
         (Without<FixedShape>, Without<VoidShape>),
     >,
     mut touch_rotate: ResMut<TouchRotateResource>,
+    //mut picked_up_events: EventWriter<ShapePickedUpEvent>,
 ) {
     for event in er_drag_start.iter() {
         //info!("Drag Started {:?}", event);
@@ -293,6 +333,8 @@ pub fn drag_start(
                         offset,
                         drag_source: event.drag_source,
                     });
+
+                    //picked_up_events.send(ShapePickedUpEvent { entity });
 
                     return false; //Stop looking for intersections
                 }

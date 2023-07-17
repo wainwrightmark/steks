@@ -1,6 +1,6 @@
 use bevy::window::WindowResized;
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
-use strum::{Display, EnumIter, IntoEnumIterator};
+use strum::{Display, EnumIter, IntoEnumIterator, EnumIs};
 
 use crate::prelude::*;
 
@@ -10,7 +10,7 @@ pub enum MarkerType {
     Vertical,
 }
 
-#[derive(Component, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
+#[derive(Component, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display, EnumIs)]
 pub enum WallPosition {
     Top,
     Bottom,
@@ -40,8 +40,16 @@ impl WallPosition {
         .extend(1.0)
     }
 
-    pub fn show_marker(&self) -> bool {
-        self != &WallPosition::Bottom
+    pub fn show_marker(&self, current_level: &CurrentLevel) -> bool {
+
+        if ! self.is_bottom(){
+            return true;
+        }
+
+        match &current_level.level {
+            GameLevel::Designed { meta } => meta.is_tutorial(),
+            _=> false
+        }
     }
 
     pub fn get_extents(&self) -> Vec2 {

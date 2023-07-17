@@ -2,7 +2,7 @@ use crate::prelude::*;
 use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::RapierContext;
-use bevy_tweening::{Animator, EaseFunction,  RepeatCount, Tween,  lens::TransformScaleLens};
+//use bevy_tweening::{lens::TransformScaleLens, Animator, EaseFunction, RepeatCount, Tween};
 use steks_common::prelude::*;
 
 pub struct CollisionPlugin;
@@ -11,6 +11,7 @@ impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, display_collision_markers)
             .add_systems(PreUpdate, highlight_voids)
+            .add_systems(Update, flash_collision_markers)
             ;
     }
 }
@@ -64,10 +65,14 @@ fn display_collision_markers(
     rapier_context: Res<RapierContext>,
     walls: Query<(Entity, &Transform, &WallPosition), Without<CollisionMarker>>,
     mut markers: Query<(Entity, &mut Transform, &CollisionMarker), Without<WallPosition>>,
+    current_level: Res<CurrentLevel>,
 ) {
     let mut markers_map = HashMap::from_iter(markers.iter_mut().map(|x| (x.2, (x.0, x.1))));
 
-    for (sensor_entity, wall_transform, wall) in walls.iter().filter(|x| x.2.show_marker()) {
+    for (sensor_entity, wall_transform, wall) in walls
+        .iter()
+        .filter(|x| x.2.show_marker(current_level.as_ref()))
+    {
         for contact in rapier_context
             .contacts_with(sensor_entity)
             .filter(|contact| contact.has_any_active_contacts())
@@ -121,13 +126,19 @@ fn display_collision_markers(
                             MarkerType::Horizontal | MarkerType::Vertical => {
                                 let (xr, yr) = if cm.marker_type == MarkerType::Horizontal {
                                     (
-                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * MARKER_SIZE * 2.0,
+                                        SHAPE_SIZE
+                                            * std::f32::consts::FRAC_2_SQRT_PI
+                                            * MARKER_SIZE
+                                            * 2.0,
                                         SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * MARKER_SIZE,
                                     )
                                 } else {
                                     (
                                         SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * MARKER_SIZE,
-                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * MARKER_SIZE * 2.0,
+                                        SHAPE_SIZE
+                                            * std::f32::consts::FRAC_2_SQRT_PI
+                                            * MARKER_SIZE
+                                            * 2.0,
                                     )
                                 };
 
@@ -146,32 +157,28 @@ fn display_collision_markers(
                             }
                         };
 
-
                         commands
                             .spawn(cm)
                             .insert(ShapeBundle {
                                 path,
                                 ..Default::default()
                             })
-
                             .insert(Fill {
                                 color: WARN_COLOR,
                                 options: Default::default(),
                             })
-
-                            .insert(Animator::new(
-                                Tween::new(
-                                    EaseFunction::QuadraticInOut,
-                                    Duration::from_millis(2000),
-                                    TransformScaleLens{
-                                        start: Vec3::ONE,
-                                        end: Vec3::ONE * 0.6,
-                                    }
-                                )
-                                .with_repeat_strategy(bevy_tweening::RepeatStrategy::MirroredRepeat)
-                                .with_repeat_count(RepeatCount::Infinite),
-                            ))
-
+                            // .insert(Animator::new(
+                            //     Tween::new(
+                            //         EaseFunction::QuadraticInOut,
+                            //         Duration::from_millis(2000),
+                            //         TransformScaleLens {
+                            //             start: Vec3::ONE,
+                            //             end: Vec3::ONE * 0.8,
+                            //         },
+                            //     )
+                            //     .with_repeat_strategy(bevy_tweening::RepeatStrategy::MirroredRepeat)
+                            //     .with_repeat_count(RepeatCount::Infinite),
+                            // ))
                             .insert(new_transform);
                     }
                     index += 1;
@@ -185,3 +192,43 @@ fn display_collision_markers(
     }
 }
 
+fn flash_collision_markers(
+    mut query: Query<&mut Transform, With<CollisionMarker>>,
+    time: Res<Time>,
+    mut lerp: Local<Lerp>,
+) {
+
+    let prop = time.delta_seconds() / 2.0;
+    lerp.increment(prop);
+    let scale = Vec3::ONE * 0.75 + (0.25 * lerp.ratio());
+
+    for mut transform in query.iter_mut(){
+        transform.scale = scale;
+    }
+}
+
+
+#[derive(Debug, Clone, Default)]
+pub struct Lerp{
+    forward: bool,
+    proportion: f32
+}
+
+impl Lerp{
+    pub fn increment(&mut self, amount: f32){
+        self.proportion += amount;
+        while self.proportion > 1.0 {
+            self.proportion -= 1.0;
+            self.forward = !self.forward;
+        }
+    }
+
+    pub fn ratio(&self)-> f32{
+        if self.forward{
+            self.proportion
+        }
+        else{
+            1.0 - self.proportion
+        }
+    }
+}

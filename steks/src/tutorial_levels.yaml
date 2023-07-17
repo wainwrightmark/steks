@@ -19,7 +19,7 @@
       shapes:
         - shape: X5
 
-- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again and finish your tower\ntowers cannot touch the ground"
+- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again and finish your tower\n\ntowers cannot touch the ground"
   text_forever: true
   shapes:
     - shape: Triangle

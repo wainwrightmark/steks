@@ -155,12 +155,17 @@ fn get_new_fireworks(
     previous_was_complete: bool,
 ) -> Option<FireworksCountdown> {
     let settings = match &current_level.level {
-        GameLevel::Designed { meta, .. } => match current_level.completion {
+        GameLevel::Designed { meta, .. } => {
+            if meta.is_tutorial(){
+                return None;
+            }
+
+            match current_level.completion {
             LevelCompletion::Incomplete { stage } => {
                 meta.get_level().get_fireworks_settings(&stage)
             }
             LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
-        },
+        }},
         GameLevel::Infinite { .. } | GameLevel::Challenge => FireworksSettings::default(),
     };
 

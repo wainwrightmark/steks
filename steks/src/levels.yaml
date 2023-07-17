@@ -11,7 +11,7 @@
 
 #2
 - title: "Reach For The Sky"
-  text: "Tall towers take trophies"
+  text: "tall towers take trophies"
   end_text: "A towering success"
   shapes:
     - shape: O4
@@ -20,7 +20,7 @@
 
 #3
 - title: "Steks With An X"
-  text: "rotating shapes from further away\nmakes them turn faster\nexperiment! find what works for you"
+  text: "rotating shapes from further away\nmakes them turn faster"
   end_text: "Wow, that was quick."
   shapes:
     - shape: Z5
@@ -315,7 +315,7 @@
 #21
 - title: "Marvin"
   text: "the paranoid and void"
-  end_text: "So long\nand thanks for all the shapes"
+  end_text: "So long and thanks\nfor all the shapes"
   shapes:
     - shape: I5
       x: 0.0

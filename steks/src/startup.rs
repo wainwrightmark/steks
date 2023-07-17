@@ -9,7 +9,7 @@ pub fn main() {
 
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
-            title: "steks".to_string(),
+            title: "Steks".to_string(),
             canvas: Some("#game".to_string()),
             resolution: bevy::window::WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
             resize_constraints: WindowResizeConstraints {

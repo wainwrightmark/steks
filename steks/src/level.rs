@@ -298,7 +298,7 @@ pub enum GameLevel {
     Challenge,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum DesignedLevelMeta {
     Tutorial { index: u8 },
     Campaign { index: u8 },

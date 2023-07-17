@@ -2,6 +2,7 @@ use crate::prelude::*;
 use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::RapierContext;
+use bevy_tweening::{Animator, EaseFunction,  RepeatCount, Tween,  lens::TransformScaleLens};
 use steks_common::prelude::*;
 
 pub struct CollisionPlugin;
@@ -9,7 +10,8 @@ pub struct CollisionPlugin;
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, display_collision_markers)
-            .add_systems(PreUpdate, highlight_voids);
+            .add_systems(PreUpdate, highlight_voids)
+            ;
     }
 }
 
@@ -24,7 +26,7 @@ pub struct CollisionMarker {
 fn highlight_voids(
     rapier_context: Res<RapierContext>,
     mut voids: Query<(Entity, &mut Stroke, &mut VoidShape, &Children), Without<Shadow>>,
-    mut shadows: Query<&mut Stroke, With<Shadow>>
+    mut shadows: Query<&mut Stroke, With<Shadow>>,
 ) {
     const MULTIPLIER: f32 = 5.0;
 
@@ -38,8 +40,8 @@ fn highlight_voids(
                 shape.highlighted = true;
                 stroke.options.line_width = MULTIPLIER;
 
-                for child in children{
-                    if let Ok(mut shadow) = shadows.get_mut(*child){
+                for child in children {
+                    if let Ok(mut shadow) = shadows.get_mut(*child) {
                         shadow.options.line_width = ZOOM_LEVEL * MULTIPLIER;
                     }
                 }
@@ -48,8 +50,8 @@ fn highlight_voids(
             shape.highlighted = false;
             stroke.options.line_width = 1.0;
 
-            for child in children{
-                if let Ok(mut shadow) = shadows.get_mut(*child){
+            for child in children {
+                if let Ok(mut shadow) = shadows.get_mut(*child) {
                     shadow.options.line_width = ZOOM_LEVEL;
                 }
             }
@@ -109,6 +111,8 @@ fn display_collision_markers(
                     new_transform.translation = translation;
                     new_transform.translation.z = 2.0;
 
+                    const MARKER_SIZE: f32 = 0.15;
+
                     if let Some((_, mut transform)) = markers_map.remove(&cm) {
                         //  info!("dcm updated");
                         *transform = new_transform;
@@ -117,13 +121,13 @@ fn display_collision_markers(
                             MarkerType::Horizontal | MarkerType::Vertical => {
                                 let (xr, yr) = if cm.marker_type == MarkerType::Horizontal {
                                     (
-                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
-                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,
+                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * MARKER_SIZE * 2.0,
+                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * MARKER_SIZE,
                                     )
                                 } else {
                                     (
-                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.125,
-                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * 0.25,
+                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * MARKER_SIZE,
+                                        SHAPE_SIZE * std::f32::consts::FRAC_2_SQRT_PI * MARKER_SIZE * 2.0,
                                     )
                                 };
 
@@ -142,16 +146,32 @@ fn display_collision_markers(
                             }
                         };
 
+
                         commands
                             .spawn(cm)
                             .insert(ShapeBundle {
                                 path,
                                 ..Default::default()
                             })
+
                             .insert(Fill {
                                 color: WARN_COLOR,
                                 options: Default::default(),
                             })
+
+                            .insert(Animator::new(
+                                Tween::new(
+                                    EaseFunction::QuadraticInOut,
+                                    Duration::from_millis(2000),
+                                    TransformScaleLens{
+                                        start: Vec3::ONE,
+                                        end: Vec3::ONE * 0.6,
+                                    }
+                                )
+                                .with_repeat_strategy(bevy_tweening::RepeatStrategy::MirroredRepeat)
+                                .with_repeat_count(RepeatCount::Infinite),
+                            ))
+
                             .insert(new_transform);
                     }
                     index += 1;
@@ -164,3 +184,4 @@ fn display_collision_markers(
         commands.entity(*entity).despawn();
     }
 }
+

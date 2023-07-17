@@ -2,7 +2,7 @@
 # https://en.wikipedia.org/wiki/Pentomino
 
 #1
-- title: "Steks marks the spot"
+- title: "Steks Marks The Spot"
   end_text: "Not bad for a beginner"
   shapes:
     - shape: U5
@@ -10,7 +10,7 @@
     - shape: U5
 
 #2
-- title: "Reach for the sky"
+- title: "Reach For The Sky"
   text: "Tall towers take trophies"
   end_text: "A towering success"
   shapes:
@@ -19,8 +19,8 @@
     - shape: L4
 
 #3
-- title: "Steks with an X"
-  text: "Rotating shapes from further away\nmakes them turn faster\nExperiment! Find what works for you"
+- title: "Steks With An X"
+  text: "rotating shapes from further away\nmakes them turn faster\nexperiment! find what works for you"
   end_text: "Wow, that was quick."
   shapes:
     - shape: Z5
@@ -49,7 +49,7 @@
 
 #5
 - title: "The Empire Steks Back"
-  text: "That's no moon..."
+  text: "that's no moon..."
   end_text: "Great shot, kid.\nThat was one in a million!"
   shapes:
     - shape: O4
@@ -58,7 +58,7 @@
     - shape: W5
     - shape: U5
   stages:
-    - text: "It's an imperial space station!"
+    - text: "it's an imperial space station!"
       shapes:
         - shape: Circle
           x: 0.0
@@ -79,7 +79,7 @@
 
 #7
 - title: Cubism
-  text: Wonky towers are encouraged
+  text: wonky towers are encouraged
   end_text: "You're basically Picasso"
   shapes:
     - shape: P5
@@ -91,9 +91,41 @@
     - shape: F5
 
 #8
-- title: "Avoid the Void"
-  text: "Build around or under it"
-  end_text: "Void Avoided"
+
+- title: Uneven Foundations
+  text: white shapes cannot be unlocked
+  end_text: "You're a very stable genius"
+  shapes:
+    - shape: I4
+      x: 0.0
+      y: -150.0
+      r: 0.05
+      state: Fixed
+    - shape: U5
+    - shape: F5
+    - shape: T5
+    - shape: T4
+    - shape: J4
+    - shape: Z4
+
+
+
+#9
+- title: "Tri Hard II: Tri harder"
+  end_text: "Yippee-Ki-Yay!"
+  shapes:
+    - shape: L4
+    - shape: L4
+    - shape: J4
+    - shape: V5
+    - shape: Triangle
+    - shape: U5
+    - shape: Triangle
+
+#10
+- title: "Avoid The Void"
+  text: "build around or under it"
+  end_text: "Void avoided"
   shapes:
     - shape: I5
       x: 0.0
@@ -112,21 +144,10 @@
     - shape: T4
     - shape: Z4
 
-#9
-- title: "Tri Hard II: Tri harder"
-  end_text: "Yippee-Ki-Yay!"
-  shapes:
-    - shape: L4
-    - shape: L4
-    - shape: J4
-    - shape: V5
-    - shape: Triangle
-    - shape: U5
-    - shape: Triangle
 
-#10
-- title: "Things are looking up"
-  end_text: "Now buy the game!"
+#11
+- title: "Things Are Looking Up"
+  end_text: "Is that the end of Dr. Gravity?"
   shapes:
     - shape: L5
     - shape: W5
@@ -143,7 +164,7 @@
         - shape: X5
         - shape: I5
 
-#11
+#12
 - title: "The Empire Steks Building"
   end_text: "Proud of your tower?\nHit share to show it off!"
   shapes:
@@ -156,7 +177,7 @@
     - shape: L4
     - shape: J4
 
-#12
+#13
 - title: "The Steks Factor"
   end_text: "That was just the audition"
   shapes:
@@ -169,7 +190,7 @@
     - shape: circle
     - shape: triangle
 
-#13
+#14
 - title: "Excess"
   end_text: "Touchdown! Great play, coach."
   shapes:
@@ -195,9 +216,9 @@
         - shape: Circle
           id: 2
 
-#14
-- title: "The joy of Steks"
-  end_text: "Extremely Satisfactory"
+#15
+- title: "The Joy Of Steks"
+  end_text: "Extremely satisfactory"
   shapes:
     - shape: P5
     - shape: F5
@@ -208,9 +229,9 @@
     - shape: J4
     - shape: J4
 
-#15
+#16
 - title: Ice Ice Baby
-  text: A brand new invention
+  text: a brand new invention
   shapes:
     - shape: I5
       modifiers: Ice
@@ -226,11 +247,11 @@
       modifiers: Ice
     - shape: X5
       modifiers: Ice
-  end_text: "Yo! You solved it"
+  end_text: "Yo, you solved it!"
 
-#16
+#17
 - title: "Double Trouble"
-  end_text: "Two Thumbs Up!"
+  end_text: "Two thumbs up!"
   shapes:
     - shape: T5
     - shape: T5
@@ -240,9 +261,9 @@
     - shape: F5
     - shape: W5
     - shape: W5
-#17
-- title: "Uneven Foundations"
-  text: "Dr. Gravity is up to his old tricks\nWhite shapes cannot be unlocked"
+#18
+- title: "Uneven Foundations 2"
+  text: "this looks like the work of Dr. Gravity"
   end_text: "Built a crazy tower?\nTag us on social media!"
   shapes:
     - shape: Triangle
@@ -258,7 +279,7 @@
     - shape: S4
     - shape: J4
     - shape: T4
-#18
+#19
 - title: "Circular Logic"
   end_text: "You're a success 'cos you succeeded\nYou succeeded 'cos you're a success"
   shapes:
@@ -270,8 +291,8 @@
     - shape: X5
     - shape: Circle
     - shape: Circle
-#19
-- title: "Tri Hard with a Vengeance"
+#20
+- title: "Tri Hard with A Vengeance"
   end_text: "Just a fly in the ointment, Hans"
   shapes:
     - shape: Triangle
@@ -291,9 +312,9 @@
     shapes:
       - Triangle
 
-#20
+#21
 - title: "Marvin"
-  text: "The Paranoid and Void"
+  text: "the paranoid and void"
   end_text: "So long\nand thanks for all the shapes"
   shapes:
     - shape: I5
@@ -314,7 +335,7 @@
     - shape: Z4
     - shape: T4
 
-#21
+#22
 - title: "Deus Steks Machina"
   end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
   shapes:
@@ -331,7 +352,7 @@
         - shape: Z5
         - shape: F5
 
-#22
+#23
 - title: "The Steks Files"
   end_text: "The truth is out there"
   shapes:
@@ -345,7 +366,7 @@
     - shape: Z4
     - shape: F5
 
-#23
+#24
 - title: "Steks Storm"
   end_text: "You weathered that ok"
   rainfall:
@@ -359,10 +380,39 @@
     - shape: S4
     - shape: I5
     - shape: Z4
+    - shape: 
+    
+#25
+- title: "The Two Towers"
+  text: "you shall not pass"
+  end_text: "One does not simply..."
+  shapes:
+    - shape: S4
+      x: 90.0
+      y: -150.0
+      r: 0.15
+      state: Fixed
+    - shape: Z4
+      x: -90.0
+      y: -150.0
+      r: 0.85
+      state: Fixed
+    - shape: L5   
+    - shape: W5
+    - shape: Z5
+    - shape: X5
+    - shape: T5
+    - shape: U5
+    - shape: J4
+    - shape: T4
     - shape: L4
-#24
-- title: "This one is easy"
-  text: "No surprises we promise"
+    - shape: F5
+    - shape: T4
+
+
+#26
+- title: "This One Is Easy"
+  text: "no surprises we promise"
   end_text: "Fine! You win this round"
   shapes:
     - shape: L5
@@ -387,10 +437,10 @@
         - shape: z5
           modifiers: ice
 
-# 25
-- title: "Uneven Foundations 2"
+# 27
+- title: "Uneven Foundations 3"
   text: "Dr. Gravity is testing you"
-  end_text: "You've beaten Dr. Gravity, for now"
+  end_text: "You've beaten Dr. Gravity, for now..."
   shapes:
     - shape: Z5
       x: 0.0
@@ -406,10 +456,10 @@
     - shape: Z4
     - shape: J4
 
-#26
-- title: "This one is tricky"
-  text: "No surprises we promise"
-  end_text: "Meta Surprise!"
+#28
+- title: "This One Is Tricky"
+  text: "no surprises we promise"
+  end_text: "Meta surprise!"
   shapes:
     - shape: P5
     - shape: F5
@@ -422,8 +472,8 @@
     - shape: J4
     - shape: circle
 
-#27
-- title: "Uneven Foundations 3"
+#29
+- title: "Uneven Foundations 4"
   text: "Dr. Gravity blocks the way"
   end_text: "'tis but a flesh wound"
   shapes:
@@ -442,9 +492,9 @@
     - shape: X5
     - shape: J4
 
-#28
-- title: "Shapes on a plane"
-  end_text: "I've had it with these\nmonkey fighting shapes"
+#30
+- title: "Shapes On A Plane"
+  end_text: "I've had it with these\nmonkey-fighting shapes"
   shapes:
     - shape: I4
       x: 0.0
@@ -466,9 +516,9 @@
     - shape: T4
     - shape: T4
 
-#29
-- title: "A song of Ice and Towers"
-  text: "When you play the game of Steks\nYou win or you... don't?"
+#31
+- title: "A Song Of Ice And Towers"
+  text: "when you play the game of Steks\nYou win or you... don't?"
   end_text: "That was our season eight"
   shapes:
     - shape: L5
@@ -484,7 +534,7 @@
     - shape: U5
       id: 6
   stages:
-    - text: "Winter is coming!"
+    - text: "winter is coming!"
       updates:
         - modifiers: Ice
           vel_x: 100
@@ -504,17 +554,17 @@
         - modifiers: Ice
           vel_x: 100
           id: 6
-    - text: "You know nothing, Jon Steks!"
+    - text: "you know nothing, Jon Steks!"
       rainfall:
         intensity: 2
       shapes:
         - shape: F5
           modifiers: Ice
 
-#30
+#32
 - title: "Dr. Gravity's Laboratory"
   alt_text_color: true
-  text: "In Steks no one can hear you scream"
+  text: "in Steks no one can hear you scream"
   end_text: "Now buy Steks 2"
   shapes:
     - shape: Triangle # mouth
@@ -586,7 +636,7 @@
           state: fixed
       fireworks:
         intensity: 10
-    - text: "The cold never bothered me anyway!"
+    - text: "what killed the dinosaurs?\nthe Ice Age!"
       gravity:
         - 0.0
         - -1000.0 #normal gravity
@@ -642,7 +692,7 @@
       fireworks:
         intensity: 15
 
-    - text: "You've defeated Dr. Gravity!\nBuild a tower to escape the dungeon"
+    - text: "you've defeated Dr. Gravity!\nbuild a tower to escape the dungeon"
       gravity:
         - 0.0
         - -1000.0

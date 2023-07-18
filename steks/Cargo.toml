@@ -43,9 +43,6 @@ winit = { version = "0.28", features=["x11"]}
 insta = "1"
 test-case = "3"
 
-[profile.release]
-opt-level = 'z'
-lto = 'thin'
 # debug=true
 
 # # Enable high optimizations for dependencies (incl. Bevy), but not for our code:

@@ -530,7 +530,8 @@ impl ChangeLevelEvent {
         if path.to_ascii_lowercase().starts_with("/game") {
             //info!("Path starts with game");
             let data = path[6..].to_string();
-            match base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data) {
+            //info!("{data}");
+            match base64::engine::general_purpose::URL_SAFE.decode(data) {
                 Ok(bytes) => {
                     //info!("Decoded data");
                     return Some(ChangeLevelEvent::Load(std::sync::Arc::new(bytes)));

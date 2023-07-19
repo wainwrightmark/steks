@@ -231,6 +231,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
         .insert(shape_with_data.velocity_component())
         .insert(shape_component.dominance())
         .insert(ExternalForce::default())
+        .insert(Sleeping::disabled())
         .insert(shape_component.collider_mass_properties())
         .insert(CollisionGroups {
             memberships: shape_component.collision_group(),

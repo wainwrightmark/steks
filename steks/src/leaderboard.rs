@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bevy::{log, prelude::*, reflect::TypeUuid, tasks::IoTaskPool};
+use bevy::{log, prelude::*, tasks::IoTaskPool};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -29,16 +29,22 @@ pub struct Leaderboard {
     pub map: Option<LevelRecordMap>,
 }
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize, TypeUuid)]
-#[uuid = "fe541444-2224-11ee-be56-0242ac120002"]
+#[derive(Debug, Resource, Default, Serialize, Deserialize)]
 pub struct PersonalBests {
     pub map: LevelRecordMap,
 }
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize, TypeUuid)]
-#[uuid = "65016d08-2253-11ee-be56-0242ac120002"]
+impl TrackableResource for PersonalBests {
+    const KEY: &'static str = "PersonalBests";
+}
+
+#[derive(Debug, Resource, Default, Serialize, Deserialize)]
 pub struct CampaignCompletion {
     pub highest_level_completed: u8,
+}
+
+impl TrackableResource for CampaignCompletion {
+    const KEY: &'static str = "CampaignCompletion";
 }
 
 #[derive(Debug, Event)]

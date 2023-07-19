@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use crate::{infinity, prelude::*, shape_maker};
-use bevy::reflect::TypeUuid;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use steks_common::color;
@@ -123,21 +122,26 @@ fn choose_level_on_game_load(
     }
 }
 
-#[derive(Default, Resource, Clone, Debug, Serialize, Deserialize, TypeUuid)]
-#[uuid = "a2a27354-2222-11ee-be56-0242ac120002"]
+#[derive(Default, Resource, Clone, Debug, Serialize, Deserialize)]
+
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
 }
 
+impl TrackableResource for CurrentLevel {
+    const KEY: &'static str = "CurrentLevel";
+}
+
+
+
 impl CurrentLevel {
-
-
     pub fn text_color(&self) -> Color {
-        let alt = self.completion.is_incomplete() && match &self.level {
-            GameLevel::Designed { meta } => meta.get_level().alt_text_color,
-            _ => false,
-        };
+        let alt = self.completion.is_incomplete()
+            && match &self.level {
+                GameLevel::Designed { meta } => meta.get_level().alt_text_color,
+                _ => false,
+            };
 
         if alt {
             color::LEVEL_TEXT_ALT_COLOR
@@ -360,8 +364,6 @@ impl GameLevel {
             GameLevel::Challenge => false,
         }
     }
-
-
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

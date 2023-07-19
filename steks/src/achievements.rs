@@ -1,11 +1,11 @@
 use std::collections::BTreeSet;
-use bevy::{prelude::*, reflect::TypeUuid};
+use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumCount, EnumIter};
 
 use crate::{
     shape_component::{CurrentLevel, DesignedLevelMeta},
-    tracked_resource::TrackedResourcePlugin,
+    tracked_resource::{TrackedResourcePlugin, TrackableResource},
 };
 
 pub struct AchievementsPlugin;
@@ -17,10 +17,13 @@ impl Plugin for AchievementsPlugin {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Resource, TypeUuid, Default)]
-#[uuid = "6576bd14-24ac-11ee-be56-0242ac120002"]
+#[derive(Debug, Clone, Serialize, Deserialize, Resource,  Default)]
 pub struct Achievements {
     pub completed: BTreeSet<Achievement>,
+}
+
+impl TrackableResource for Achievements {
+    const KEY: &'static str = "Achievements";
 }
 
 fn maybe_add(achievements: &mut ResMut<Achievements>, achievement: Achievement) {

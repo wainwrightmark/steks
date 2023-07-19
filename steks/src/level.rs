@@ -171,7 +171,7 @@ impl CurrentLevel {
         }
     }
 
-    pub fn get_text(&self) -> Option<String> {
+    pub fn get_text(&self, ui: &UIState) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::Designed { meta, .. } => meta
@@ -187,10 +187,10 @@ impl CurrentLevel {
                 }
                 GameLevel::Challenge{..} => None,
             },
-            LevelCompletion::Complete { splash, score_info } => {
+            LevelCompletion::Complete { score_info } => {
                 let height = score_info.height;
-                if !splash {
-                    return Some(format!("{height:.2}",));
+                if ui.is_game_minimized() {
+                    return Some(format!("{height:.2}m",));
                 }
 
                 let message = match &self.level {
@@ -239,7 +239,7 @@ impl CurrentLevel {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum LevelCompletion {
     Incomplete { stage: usize },
-    Complete { splash: bool, score_info: ScoreInfo },
+    Complete { score_info: ScoreInfo },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

@@ -54,20 +54,23 @@ const DEFAULT_INTENSITY: u32 = 5;
 
 fn manage_fireworks(
     current_level: Res<CurrentLevel>,
+    ui_state: Res<UIState>,
     mut previous: Local<CurrentLevel>,
     mut countdown: ResMut<FireworksCountdown>,
 ) {
-    if !current_level.is_changed() {
+    if !current_level.is_changed() && ! ui_state.is_changed() {
         return;
     }
     let swap = previous.clone();
     *previous = current_level.clone();
     let previous = swap;
 
+    if !ui_state.is_game_splash(){
+        countdown.timer.pause();
+        return;
+    }
+
     match current_level.completion {
-        crate::level::LevelCompletion::Complete { splash: false, .. } => {
-            countdown.timer.pause();
-        }
         crate::level::LevelCompletion::Incomplete { .. } => {
             if let Some(new_countdown) =
                 get_new_fireworks(&current_level, None, previous.completion.is_complete())
@@ -78,7 +81,6 @@ fn manage_fireworks(
             }
         }
         crate::level::LevelCompletion::Complete {
-            splash: true,
             score_info,
         } => {
             if let Some(new_countdown) = get_new_fireworks(

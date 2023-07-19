@@ -7,7 +7,7 @@ pub struct ButtonPlugin;
 
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<MenuState>()
+        app.init_resource::<UIState>()
             //.add_systems(Startup, setup.after(setup_level_ui))
             .add_systems(First, button_system)
             .add_systems(Update, handle_menu_state_changes);
@@ -23,11 +23,13 @@ pub enum MenuComponent {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
-pub enum MenuState {
+pub enum UIState {
     #[default]
-    Closed,
-    MenuOpen,
-    LevelsPage(u8),
+    GameSplash,
+    GameMinimized,
+
+    ShowMainMenu,
+    ShowLevelsPage(u8),
 }
 
 const LEVELS_PER_PAGE: u8 = 8;
@@ -37,29 +39,30 @@ pub fn max_page_exclusive() -> u8 {
     t / LEVELS_PER_PAGE + (t % LEVELS_PER_PAGE).min(1) + 1
 }
 
-impl MenuState {
+impl UIState {
     pub fn open_menu(&mut self) {
-        *self = MenuState::MenuOpen
+        *self = UIState::ShowMainMenu
     }
 
     pub fn close_menu(&mut self) {
-        *self = MenuState::Closed
+        *self = UIState::GameSplash
     }
 
     pub fn toggle_levels(&mut self) {
+        use UIState::*;
         match self {
-            MenuState::Closed => *self = MenuState::LevelsPage(0),
-            MenuState::MenuOpen => *self = MenuState::LevelsPage(0),
-            MenuState::LevelsPage(..) => *self = MenuState::Closed,
+            GameSplash | GameMinimized => *self = ShowLevelsPage(0),
+            ShowMainMenu => *self = ShowLevelsPage(0),
+            ShowLevelsPage(..) => *self = GameSplash,
         }
     }
 
     pub fn next_levels_page(&mut self) {
         match self {
-            MenuState::LevelsPage(levels) => {
+            UIState::ShowLevelsPage(levels) => {
                 let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
 
-                *self = MenuState::LevelsPage(new_page)
+                *self = UIState::ShowLevelsPage(new_page)
             }
             _ => (),
         }
@@ -67,19 +70,15 @@ impl MenuState {
 
     pub fn previous_levels_page(&mut self) {
         match self {
-            MenuState::LevelsPage(levels) => {
+            UIState::ShowLevelsPage(levels) => {
                 if let Some(new_page) = levels.checked_sub(1) {
-                    *self = MenuState::LevelsPage(new_page);
+                    *self = UIState::ShowLevelsPage(new_page);
                 } else {
-                    *self = MenuState::MenuOpen;
+                    *self = UIState::ShowMainMenu;
                 }
             }
             _ => (),
         }
-    }
-
-    pub fn close(&mut self) {
-        *self = MenuState::Closed;
     }
 
     pub fn spawn_nodes(
@@ -89,7 +88,7 @@ impl MenuState {
         completion: &CampaignCompletion,
     ) {
         match self {
-            MenuState::Closed => {
+            UIState::GameSplash | UIState::GameMinimized => {
                 let font = asset_server.load(ICON_FONT_PATH);
 
                 commands
@@ -109,10 +108,10 @@ impl MenuState {
                         //todo gravity
                     });
             }
-            MenuState::MenuOpen => {
+            UIState::ShowMainMenu => {
                 spawn_menu(commands, asset_server);
             }
-            MenuState::LevelsPage(page) => {
+            UIState::ShowLevelsPage(page) => {
                 spawn_level_menu(commands, asset_server, *page, completion)
             }
         }
@@ -121,7 +120,7 @@ impl MenuState {
 
 fn handle_menu_state_changes(
     mut commands: Commands,
-    menu_state: Res<MenuState>,
+    menu_state: Res<UIState>,
     menu_components: Query<Entity, &MenuComponent>,
     asset_server: Res<AssetServer>,
     completion: Res<CampaignCompletion>,
@@ -145,12 +144,11 @@ fn button_system(
     mut import_events: EventWriter<ImportEvent>,
     mut purchase_events: EventWriter<TryPurchaseEvent>,
 
-    mut menu_state: ResMut<MenuState>,
-    mut current_level: ResMut<CurrentLevel>,
+    mut menu_state: ResMut<UIState>,
 
     dragged: Query<(), With<BeingDragged>>,
 ) {
-    if! dragged.is_empty(){
+    if !dragged.is_empty() {
         return;
     }
 
@@ -158,9 +156,6 @@ fn button_system(
         if button.disabled {
             continue;
         }
-
-
-
         use ButtonAction::*;
         //info!("{interaction:?} {button:?} {menu_state:?}");
         *bg_color = button
@@ -192,15 +187,12 @@ fn button_system(
                 }
                 ChooseLevel => menu_state.as_mut().toggle_levels(),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
-                MinimizeCompletion => match current_level.completion {
-                    LevelCompletion::Incomplete { stage: _ } => {}
-                    LevelCompletion::Complete { splash, score_info } => {
-                        current_level.completion = LevelCompletion::Complete {
-                            score_info,
-                            splash: !splash,
-                        }
-                    }
-                },
+                MinimizeCompletion => {
+                    *menu_state = match menu_state.as_ref() {
+                        UIState::GameSplash => UIState::GameMinimized,
+                        _=> UIState::GameSplash
+                    };
+                }
                 MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })
@@ -215,7 +207,8 @@ fn button_system(
             }
 
             match button.button_action {
-                OpenMenu | Resume | ChooseLevel | NextLevelsPage | PreviousLevelsPage => {}
+                OpenMenu | Resume | ChooseLevel | NextLevelsPage | PreviousLevelsPage
+                | MinimizeCompletion => {}
                 _ => menu_state.close_menu(),
             }
         }

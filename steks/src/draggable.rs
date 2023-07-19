@@ -325,13 +325,10 @@ pub fn drag_start(
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
 
-    menu: Res<MenuState>
+    menu: Res<UIState>
 ) {
-
-
-
     for event in er_drag_start.iter() {
-        if !menu.is_closed(){
+        if menu.is_show_main_menu() || menu.is_show_levels_page(){
             continue;
         }
         //info!("Drag Started {:?}", event);

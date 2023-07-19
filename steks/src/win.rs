@@ -32,6 +32,7 @@ pub fn check_for_win(
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), Without<WinTimer>>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
+    mut level_ui: ResMut<UIState>,
 
     score_store: Res<Leaderboard>,
     pbs: Res<PersonalBests>,
@@ -53,17 +54,18 @@ pub fn check_for_win(
                         current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
                     } else {
                         let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
-                        current_level.completion = LevelCompletion::Complete {
-                            score_info,
-                            splash: true,
-                        }
+                        current_level.completion = LevelCompletion::Complete { score_info };
+                        level_ui.set_if_neq(UIState::GameSplash);
                     }
                 }
 
-                LevelCompletion::Complete { splash, .. } => {
+                LevelCompletion::Complete { .. } => {
                     let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
-                    let splash = splash | score_info.is_pb | score_info.is_wr;
-                    current_level.completion = LevelCompletion::Complete { score_info, splash }
+                    if score_info.is_pb | score_info.is_wr {
+                        level_ui.set_if_neq(UIState::GameSplash);
+                    }
+
+                    current_level.completion = LevelCompletion::Complete { score_info }
                 }
             }
         } else {

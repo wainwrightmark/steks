@@ -2,7 +2,6 @@ use crate::{infinity, prelude::*, startup};
 use chrono::{Datelike, Days, NaiveDate};
 use itertools::Itertools;
 use rand::RngCore;
-use rand::{rngs::StdRng, SeedableRng};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use steks_common::color;

@@ -8,8 +8,9 @@ use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 use crate::prelude::*;
 
 #[derive(Component)]
+#[component(storage = "SparseSet")]
 pub struct WinTimer {
-    pub win_time: f64,
+    pub remaining: f64,
     pub total_countdown: f64,
 }
 
@@ -28,7 +29,7 @@ impl Plugin for WinPlugin {
 
 pub fn check_for_win(
     mut commands: Commands,
-    mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
+    mut win_timer: Query<(Entity, &mut WinTimer, &mut Transform)>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), Without<WinTimer>>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
@@ -37,10 +38,11 @@ pub fn check_for_win(
     score_store: Res<Leaderboard>,
     pbs: Res<PersonalBests>,
 ) {
-    if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
-        let remaining = timer.win_time - time.elapsed_seconds_f64();
+    if let Ok((timer_entity, mut timer, mut timer_transform)) = win_timer.get_single_mut() {
+        timer.remaining -= time.delta_seconds_f64().min(1./60.);
+        //let remaining = timer.win_time - time.elapsed_seconds_f64();
 
-        if remaining <= 0f64 {
+        if timer.remaining <= 0f64 {
             //scale_time(rapier_config, 1.);
 
             commands.entity(timer_entity).despawn();
@@ -69,7 +71,7 @@ pub fn check_for_win(
                 }
             }
         } else {
-            let new_scale = (remaining / timer.total_countdown) as f32;
+            let new_scale = (timer.remaining / timer.total_countdown) as f32;
 
             timer_transform.scale = Vec3::new(new_scale, new_scale, 1.0);
         }
@@ -80,7 +82,6 @@ pub fn check_for_tower(
     mut commands: Commands,
     mut check_events: EventReader<CheckForWinEvent>,
     win_timer: Query<&WinTimer>,
-    time: Res<Time>,
     draggable: Query<&ShapeComponent>,
 
     mut collision_events: ResMut<Events<CollisionEvent>>,
@@ -135,7 +136,7 @@ pub fn check_for_tower(
 
     commands
         .spawn(WinTimer {
-            win_time: time.elapsed_seconds_f64() + countdown_seconds,
+            remaining:  countdown_seconds,
             total_countdown: countdown_seconds,
         })
         .insert(Circle {}.get_shape_bundle(100f32))

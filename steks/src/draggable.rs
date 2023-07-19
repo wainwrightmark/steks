@@ -324,8 +324,16 @@ pub fn drag_start(
     >,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
+
+    menu: Res<MenuState>
 ) {
+
+
+
     for event in er_drag_start.iter() {
+        if !menu.is_closed(){
+            continue;
+        }
         //info!("Drag Started {:?}", event);
 
         if draggables.iter().all(|x| !x.0.is_dragged()) {

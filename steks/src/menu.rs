@@ -1,4 +1,5 @@
 use steks_common::color;
+use strum::EnumIs;
 
 use crate::{designed_level, prelude::*};
 
@@ -13,7 +14,7 @@ impl Plugin for ButtonPlugin {
     }
 }
 
-#[derive(Component, PartialEq, Eq, Clone, Copy)]
+#[derive(Component, PartialEq, Eq, Clone, Copy, EnumIs)]
 #[component(storage = "SparseSet")]
 pub enum MenuComponent {
     MenuHamburger,
@@ -21,7 +22,7 @@ pub enum MenuComponent {
     LevelsPage(u8),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
 pub enum MenuState {
     #[default]
     Closed,

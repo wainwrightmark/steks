@@ -120,19 +120,26 @@ pub fn check_for_tower(
 
     collision_events.clear();
 
-    let will_collide_with_wall = check_future_collisions(
+    let substeps_till_collision = substeps_till_collision(
         &rapier_context,
         event.future_lookahead_seconds as f32,
         (event.future_lookahead_seconds * 60.).floor() as usize,
         GRAVITY,
     );
 
-    let countdown_seconds = if will_collide_with_wall {
-        let Some(countdown) =  event.future_collision_countdown_seconds else{ return;};
+    let countdown_seconds =match substeps_till_collision {
+        Some(substeps) => {
+            if substeps < 120{
+                return;
+            }
+            else{
+                let Some(countdown) =  event.future_collision_countdown_seconds else{ return;};
         countdown
-    } else {
-        event.no_future_collision_countdown_seconds
+            }
+        },
+        None => event.no_future_collision_countdown_seconds,
     };
+
 
     commands
         .spawn(WinTimer {
@@ -144,15 +151,15 @@ pub fn check_for_tower(
             translation: Vec3::new(00.0, 200.0, 0.0),
             ..Default::default()
         })
-        .insert(Stroke::color(TIMER_COLOR));
+        .insert(Stroke::new(TIMER_COLOR, 3.0));
 }
 
-fn check_future_collisions(
+fn substeps_till_collision(
     context: &RapierContext,
     dt: f32,
     substeps: usize,
     gravity: Vect,
-) -> bool {
+) -> Option<usize> {
     let mut pipeline = PhysicsPipeline::default();
 
     let mut islands = context.islands.clone();
@@ -189,7 +196,7 @@ fn check_future_collisions(
     let mut substep_integration_parameters = context.integration_parameters;
     substep_integration_parameters.dt = dt / (substeps as Real);
     let event_handler = SensorCollisionHandler::default();
-    for _i in 0..substeps {
+    for i in 0..substeps {
         pipeline.step(
             &(gravity / context.physics_scale()).into(),
             &context.integration_parameters,
@@ -207,13 +214,13 @@ fn check_future_collisions(
         );
 
         if event_handler.collisions_found.load() {
-            debug!("Collision found after {_i} substeps");
-            return true;
+            debug!("Collision found after {i} substeps");
+            return Some(i);
         }
     }
 
     debug!("Not Collision found after {substeps} substeps");
-    false
+    None
 }
 
 #[derive(Default, Debug)]

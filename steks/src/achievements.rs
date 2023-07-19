@@ -135,6 +135,17 @@ fn track_level_completion_achievements(
     use DesignedLevelMeta::*;
 
     if current_level.is_changed() {
+        let shapes = ShapesVec::from_query(shapes_query);
+        let height = shapes.calculate_tower_height();
+
+
+        info!("Checking achievements {} shapes, height {height}", shapes.len());
+        for achievement in [GreatPyramid, ThirtyRock, EiffelTower, EmpireStateBuilding] {
+            if achievement.met_by_shapes(shapes.len(), height) {
+                maybe_add(&mut achievements, achievement);
+            }
+        }
+
         match current_level.completion {
             crate::shape_component::LevelCompletion::Incomplete { stage } => {
                 match current_level.level {
@@ -150,15 +161,6 @@ fn track_level_completion_achievements(
                 }
             }
             crate::shape_component::LevelCompletion::Complete { .. } => {
-                let shapes = ShapesVec::from_query(shapes_query);
-                let height = shapes.calculate_tower_height();
-
-                for achievement in [GreatPyramid, ThirtyRock, EiffelTower, EmpireStateBuilding] {
-                    if achievement.met_by_shapes(shapes.len(), height) {
-                        maybe_add(&mut achievements, achievement);
-                    }
-                }
-
                 match current_level.level {
                     Designed {
                         meta: Tutorial { index },

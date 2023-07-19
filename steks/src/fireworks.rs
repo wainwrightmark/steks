@@ -168,7 +168,25 @@ fn get_new_fireworks(
             }
             LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
         }},
-        GameLevel::Infinite { .. } | GameLevel::Challenge{..} => FireworksSettings::default(),
+        GameLevel::Infinite { .. } => {
+            match current_level.completion{
+                LevelCompletion::Incomplete { stage } => {
+                    let shapes = stage + INFINITE_MODE_STARTING_SHAPES;
+                    if shapes % 5 == 0{
+                        FireworksSettings{
+                            intensity:Some(shapes as u32),
+                            shapes: Default::default()
+                        }
+                    }
+                    else{
+                        FireworksSettings::default()
+                    }
+                },
+                _ => FireworksSettings::default(),
+            }
+        }
+
+        GameLevel::Challenge{..} | GameLevel::Loaded { .. } => FireworksSettings::default(),
     };
 
     if match info {

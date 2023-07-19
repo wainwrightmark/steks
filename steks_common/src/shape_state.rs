@@ -3,6 +3,8 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
+use strum::EnumIs;
+
 
 use crate::prelude::*;
 
@@ -19,6 +21,7 @@ use crate::prelude::*;
     TryFromPrimitive,
     Ord,
     PartialOrd,
+    EnumIs
 )]
 #[repr(u8)]
 

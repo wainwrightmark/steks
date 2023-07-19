@@ -47,7 +47,10 @@ impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource > 
                 use bevy_pkv::GetError::*;
                 match e {
                     NotFound => T::default(),
-                    _ => panic!("Failed to read {}: {}", type_name::<T>(), e),
+                    _ => {
+                        error!("Failed to read {}: {}", type_name::<T>(), e);
+                        T::default()
+                    },
                 }
             }
         };

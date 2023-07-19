@@ -14,7 +14,8 @@ bevy_rapier2d = {version = "0.22"}
 bevy = { version = "0.11", default-features = false, features = ["bevy_render"] }
 serde = "1.0.166"
 num_enum = "0.6.1"
-
+strum = { version = "0.25", features = ["derive"] }
+rand = "0.8.5"
 
 [features]
 bevy =[]

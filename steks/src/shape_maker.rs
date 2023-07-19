@@ -1,55 +1,7 @@
 use std::collections::VecDeque;
-
 use bevy::prelude::*;
-
 use bevy_rapier2d::prelude::*;
-use chrono::Datelike;
-use itertools::Itertools;
-
 use crate::prelude::*;
-
-use rand::{rngs::ThreadRng, Rng};
-
-pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<ShapeCreationData>) {
-    let mut shapes: Vec<ShapeCreationData> = match level {
-        GameLevel::Designed { meta, .. } => match meta.get_level().get_stage(&0) {
-            Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
-            None => vec![],
-        },
-        GameLevel::Infinite { bytes } => {
-            if let Some(bytes) = bytes {
-                decode_shapes(bytes)
-                    .into_iter()
-                    .map(ShapeCreationData::from)
-                    .collect_vec()
-            } else {
-                let mut rng: ThreadRng = ThreadRng::default();
-                let mut shapes: Vec<ShapeCreationData> = vec![];
-                for _ in 0..INFINITE_MODE_STARTING_SHAPES {
-                    shapes
-                        .push(ShapeCreationData::random_no_circle(&mut rng).with_random_velocity());
-                }
-                shapes
-            }
-        }
-        GameLevel::Challenge{date,..} => {
-            //let today = get_today_date();
-            let seed =
-                ((date.year().unsigned_abs() * 2000) + (date.month() * 100) + date.day()) as u64;
-            (0..GameLevel::CHALLENGE_SHAPES)
-                .map(|i| {
-                    ShapeCreationData::from_seed_no_circle(seed + i as u64).with_random_velocity()
-                })
-                .collect_vec()
-        }
-    };
-
-    shapes.sort_by_key(|x| x.location.is_some());
-
-    for creation_data in shapes {
-        event_writer.send(creation_data)
-    }
-}
 
 pub fn spawn_and_update_shapes(
     mut commands: Commands,
@@ -110,7 +62,7 @@ pub fn spawn_and_update_shapes(
     }
 }
 
-pub fn place_and_create_shape<RNG: Rng>(
+pub fn place_and_create_shape<RNG: rand::Rng>(
     commands: &mut Commands,
     mut shape_with_data: ShapeCreationData,
     rapier_context: &Res<RapierContext>,

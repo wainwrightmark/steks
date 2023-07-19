@@ -136,7 +136,7 @@ fn manage_raindrops(
                 .rainfall
         }
         GameLevel::Infinite { .. } => None,
-        GameLevel::Challenge{..} => None,
+        GameLevel::Challenge{..} | GameLevel::Loaded { .. } => None,
     };
 
     match settings {

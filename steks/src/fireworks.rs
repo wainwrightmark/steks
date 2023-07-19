@@ -166,7 +166,7 @@ fn get_new_fireworks(
             }
             LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
         }},
-        GameLevel::Infinite { .. } | GameLevel::Challenge => FireworksSettings::default(),
+        GameLevel::Infinite { .. } | GameLevel::Challenge{..} => FireworksSettings::default(),
     };
 
     if match info {

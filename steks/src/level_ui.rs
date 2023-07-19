@@ -18,7 +18,7 @@ impl Plugin for LevelUiPlugin {
 pub fn setup_level_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     let component = LevelUIComponent::Root;
     let current_level = CurrentLevel {
-        level: GameLevel::Challenge,
+        level: GameLevel::default(),
         completion: LevelCompletion::default(),
     };
 
@@ -364,7 +364,7 @@ fn animate_text(
                 .map(|x| !x.text_forever)
                 .unwrap_or(true),
             GameLevel::Infinite { .. } => false,
-            GameLevel::Challenge => true,
+            GameLevel::Challenge{..} => true,
         },
         LevelCompletion::Complete { .. } => false,
     };

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use crate::{infinity, prelude::*, shape_maker};
+use crate::{infinity, prelude::*, shape_maker, startup};
+use chrono::{NaiveDate, Days};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use steks_common::color;
@@ -70,7 +71,7 @@ fn manage_level_shapes(
                                 infinity::get_next_shape(draggables.iter().map(|x| x.0 .1));
                             shape_creation_events.send(creation_data);
                         }
-                        GameLevel::Challenge => {}
+                        GameLevel::Challenge{..} => {}
                     }
                 }
             }
@@ -82,9 +83,10 @@ fn manage_level_shapes(
 fn handle_change_level_events(
     mut change_level_events: EventReader<ChangeLevelEvent>,
     mut current_level: ResMut<CurrentLevel>,
+    streak: Res<Streak>
 ) {
     if let Some(event) = change_level_events.iter().next() {
-        let (level, stage) = event.get_new_level(&current_level.level);
+        let (level, stage) = event.get_new_level(&current_level.level, &streak);
 
         #[cfg(target_arch = "wasm32")]
         {
@@ -154,7 +156,7 @@ impl CurrentLevel {
         match &self.level {
             GameLevel::Designed { meta, .. } => meta.get_level().title.clone(),
             GameLevel::Infinite { .. } => None,
-            GameLevel::Challenge => Some("Daily Challenge".to_string()),
+            GameLevel::Challenge{..} => Some("Daily Challenge".to_string()),
         }
     }
 
@@ -165,7 +167,7 @@ impl CurrentLevel {
                 DesignedLevelMeta::Campaign { index } => Some(format_campaign_level_number(index)),
                 DesignedLevelMeta::Custom { .. } => None,
             },
-            GameLevel::Infinite { .. } | GameLevel::Challenge => None,
+            GameLevel::Infinite { .. } | GameLevel::Challenge{..} => None,
         }
     }
 
@@ -183,7 +185,7 @@ impl CurrentLevel {
                         None
                     }
                 }
-                GameLevel::Challenge => None,
+                GameLevel::Challenge{..} => None,
             },
             LevelCompletion::Complete { splash, score_info } => {
                 let height = score_info.height;
@@ -198,7 +200,7 @@ impl CurrentLevel {
                         .as_deref()
                         .unwrap_or("Level Complete"),
                     GameLevel::Infinite { .. } => "",
-                    GameLevel::Challenge => "Challenge Complete",
+                    GameLevel::Challenge{..} => "Challenge Complete",
                 };
 
                 let mut text = message
@@ -219,6 +221,13 @@ impl CurrentLevel {
                     text.push_str("\nNew World Record");
                 } else if let Some(record) = score_info.wr {
                     text.push_str(format!("\nRecord    {record:.2}m").as_str());
+                }
+
+                match &self.level{
+                    GameLevel::Challenge {  streak,.. }=>{
+                        text.push_str(format!("\nStreak    {streak:.2}").as_str());
+                    }
+                    _=>{}
                 }
 
                 Some(text)
@@ -299,7 +308,7 @@ pub enum GameLevel {
     Designed { meta: DesignedLevelMeta },
 
     Infinite { bytes: Option<Arc<Vec<u8>>> },
-    Challenge,
+    Challenge{date: NaiveDate, streak: u16},
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
@@ -361,7 +370,7 @@ impl GameLevel {
         match self {
             GameLevel::Designed { meta, .. } => meta.get_level().total_stages() > *stage,
             GameLevel::Infinite { .. } => true,
-            GameLevel::Challenge => false,
+            GameLevel::Challenge{..} => false,
         }
     }
 }
@@ -391,7 +400,7 @@ impl From<GameLevel> for LevelLogData {
                 DesignedLevelMeta::Custom { .. } => Self::Custom,
             },
             GameLevel::Infinite { .. } => Self::Infinite,
-            GameLevel::Challenge => Self::Challenge,
+            GameLevel::Challenge{..} => Self::Challenge,
         }
     }
 }
@@ -471,7 +480,7 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
                     GRAVITY
                 }
             }
-            GameLevel::Infinite { .. } | GameLevel::Challenge => GRAVITY,
+            GameLevel::Infinite { .. } | GameLevel::Challenge{..} => GRAVITY,
         };
         rapier_config.gravity = gravity;
     }
@@ -492,7 +501,7 @@ fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<Ch
     }
 }
 
-fn track_level_completion(level: Res<CurrentLevel>) {
+fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<Streak>) {
     if !level.is_changed() {
         return;
     }
@@ -519,14 +528,17 @@ fn track_level_completion(level: Res<CurrentLevel>) {
                 _ => {}
             },
             GameLevel::Infinite { .. } => {}
-            GameLevel::Challenge => {}
+            GameLevel::Challenge{date, streak} => {
+                streak_resource.count = streak.clone();
+                streak_resource.most_recent = date.clone();
+            }
         },
     }
 }
 
 impl ChangeLevelEvent {
     #[must_use]
-    pub fn get_new_level(&self, level: &GameLevel) -> (GameLevel, usize) {
+    pub fn get_new_level(&self, level: &GameLevel, streak_data : & Streak) -> (GameLevel, usize) {
         info!("Changing level {self:?} level {level:?}");
 
         match self {
@@ -540,7 +552,19 @@ impl ChangeLevelEvent {
             }
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
             ChangeLevelEvent::StartInfinite => (GameLevel::Infinite { bytes: None }, 0),
-            ChangeLevelEvent::StartChallenge => (GameLevel::Challenge, 0),
+            ChangeLevelEvent::StartChallenge => {
+
+                let today = startup::get_today_date();
+
+                let streak =
+                if streak_data.most_recent.checked_add_days(Days::new(1)) == Some(today) {
+                    streak_data.count
+                }else{
+                    1
+                };
+
+                (GameLevel::Challenge{date: today, streak}, 0)
+            },
 
             ChangeLevelEvent::ChooseCampaignLevel { index, stage } => {
                 let index = *index;

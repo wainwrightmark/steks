@@ -6,7 +6,7 @@ use bevy_rapier2d::prelude::*;
 use chrono::Datelike;
 use itertools::Itertools;
 
-use crate::{prelude::*, shape_creation_data, startup::get_today_date};
+use crate::prelude::*;
 
 use rand::{rngs::ThreadRng, Rng};
 
@@ -32,10 +32,10 @@ pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<S
                 shapes
             }
         }
-        GameLevel::Challenge => {
-            let today = get_today_date();
+        GameLevel::Challenge{date,..} => {
+            //let today = get_today_date();
             let seed =
-                ((today.year().unsigned_abs() * 2000) + (today.month() * 100) + today.day()) as u64;
+                ((date.year().unsigned_abs() * 2000) + (date.month() * 100) + date.day()) as u64;
             (0..GameLevel::CHALLENGE_SHAPES)
                 .map(|i| {
                     ShapeCreationData::from_seed_no_circle(seed + i as u64).with_random_velocity()
@@ -241,7 +241,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
         .insert(transform);
 
     ec.with_children(|cb| {
-        shape_creation_data::spawn_children(
+        crate::shape_creation_data::spawn_children(
             cb,
             shape_with_data.shape,
             shape_with_data.state,
@@ -252,7 +252,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
     if let Some(id) = shape_with_data.id {
         ec.insert(ShapeWithId { id });
     }
-    shape_creation_data::add_components(&shape_with_data.state, &mut ec);
+    crate::shape_creation_data::add_components(&shape_with_data.state, &mut ec);
 }
 
 #[derive(Component)]

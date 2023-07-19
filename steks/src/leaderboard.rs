@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use bevy::{log, prelude::*, tasks::IoTaskPool};
+use chrono::NaiveDate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +16,7 @@ impl Plugin for LeaderboardPlugin {
         app.add_plugins(AsyncEventPlugin::<LeaderboardDataEvent>::default())
             .add_plugins(TrackedResourcePlugin::<PersonalBests>::default())
             .add_plugins(TrackedResourcePlugin::<CampaignCompletion>::default())
+            .add_plugins(TrackedResourcePlugin::<Streak>::default())
             .init_resource::<Leaderboard>()
             .add_systems(Startup, load_leaderboard_data)
             .add_systems(PostStartup, check_for_cheat_on_game_load)
@@ -45,6 +47,17 @@ pub struct CampaignCompletion {
 
 impl TrackableResource for CampaignCompletion {
     const KEY: &'static str = "CampaignCompletion";
+}
+
+#[derive(Debug, Resource, Default, Serialize, Deserialize)]
+pub struct Streak{
+    pub count: u16,
+    pub most_recent: NaiveDate
+}
+
+
+impl TrackableResource for Streak {
+    const KEY: &'static str = "Streak";
 }
 
 #[derive(Debug, Event)]

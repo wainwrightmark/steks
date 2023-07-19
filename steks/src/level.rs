@@ -202,19 +202,19 @@ impl CurrentLevel {
                     .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
                     .join("\n");
 
-                text.push_str(format!("\n\nHeight    {height:.2}").as_str());
+                text.push_str(format!("\n\nHeight    {height:.2}m").as_str());
 
                 if score_info.is_pb {
                     text.push_str("\nNew Personal Best");
                 } else {
                     let pb = score_info.pb;
-                    text.push_str(format!("\nYour Best {pb:.2}").as_str());
+                    text.push_str(format!("\nYour Best {pb:.2}m").as_str());
                 }
 
                 if score_info.is_wr {
                     text.push_str("\nNew World Record");
                 } else if let Some(record) = score_info.wr {
-                    text.push_str(format!("\nRecord    {record:.2}").as_str());
+                    text.push_str(format!("\nRecord    {record:.2}m").as_str());
                 }
 
                 Some(text)

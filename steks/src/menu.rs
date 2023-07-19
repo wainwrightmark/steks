@@ -121,12 +121,12 @@ impl MenuState {
 fn handle_menu_state_changes(
     mut commands: Commands,
     menu_state: Res<MenuState>,
-    components: Query<Entity, &MenuComponent>,
+    menu_components: Query<Entity, &MenuComponent>,
     asset_server: Res<AssetServer>,
     completion: Res<CampaignCompletion>,
 ) {
     if menu_state.is_changed() {
-        for entity in components.iter() {
+        for entity in menu_components.iter() {
             commands.entity(entity).despawn_recursive();
         }
 

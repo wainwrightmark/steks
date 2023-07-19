@@ -52,9 +52,10 @@ fn insert_component_and_children(
 
 fn hide_when_menu_visible(
     menu_state: Res<MenuState>,
+    current_level: Res<CurrentLevel>,
     mut query: Query<(&mut Visibility, &LevelUIComponent)>,
 ) {
-    if menu_state.is_changed() {
+    if menu_state.is_changed() || current_level.is_changed() {
         let new_visibility = if menu_state.as_ref() == &MenuState::Closed {
             Visibility::Inherited
         } else {

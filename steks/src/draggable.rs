@@ -299,7 +299,7 @@ pub fn detach_stuck_shapes_on_pickup(
                 if let Ok((_, transform)) = draggables.get(intersecting) {
                     if let Some(contact) = rapier_context.contact_pair(event.entity, intersecting) {
                         if let Some(deepest) = contact.find_deepest_contact() {
-                            info!("Found intersection, depth {}", deepest.1.dist());
+                            //info!("Found intersection, depth {}", deepest.1.dist());
                             if deepest.1.dist() <= -0.1 {
                                 let new_transform = transform.with_translation(
                                     transform.translation

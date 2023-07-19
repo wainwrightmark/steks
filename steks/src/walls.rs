@@ -1,8 +1,18 @@
-use bevy::window::WindowResized;
+use bevy::window::{PrimaryWindow, WindowResized};
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
-use strum::{Display, EnumIter, IntoEnumIterator, EnumIs};
+use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};
 
 use crate::prelude::*;
+
+pub struct WallsPlugin;
+
+impl Plugin for WallsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, spawn_walls.after(crate::startup::setup))
+            .add_systems(Update, move_walls_when_window_resized)
+            .add_systems(Update, move_walls_when_physics_changed);
+    }
+}
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display, Hash)]
 pub enum MarkerType {
@@ -23,32 +33,40 @@ pub enum WallPosition {
 #[derive(Debug, Component)]
 pub struct WallSensor;
 
+const WALL_Z: f32 = 2.0;
+const TOP_LEFT_Z: f32 = 1.0;
+
+const TOP_BOTTOM_OFFSET: f32 = 10.0;
+
 impl WallPosition {
-    pub fn get_position(&self, height: f32, width: f32) -> Vec3 {
+    pub fn get_position(&self, height: f32, width: f32, gravity: Vec2) -> Vec3 {
         use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;
+
+        let top_offset = if gravity.y > 0.0 { TOP_BOTTOM_OFFSET * -1.0 } else { 0.0 };
+        let bottom_offset = if gravity.y > 0.0 { 0.0  } else { TOP_BOTTOM_OFFSET };
+
         match self {
-            Top => Vec2::new(0.0, height / 2.0 + OFFSET),
-            Bottom => Vec2::new(0.0, -height / 2.0 - OFFSET) + 10.0,
-            Left => Vec2::new(-width / 2.0 - OFFSET, 0.0),
-            Right => Vec2::new(width / 2.0 + OFFSET, 0.0),
-            TopLeft => Vec2 {
+            Top => Vec3::new(0.0, height / 2.0 + OFFSET + top_offset, WALL_Z),
+            Bottom => Vec3::new(0.0, -height / 2.0 - OFFSET + bottom_offset, WALL_Z),
+            Left => Vec3::new(-width / 2.0 - OFFSET, 0.0, WALL_Z),
+            Right => Vec3::new(width / 2.0 + OFFSET, 0.0, WALL_Z),
+            TopLeft => Vec3 {
                 x: (-width / 2.0) + (TOP_LEFT_SQUARE_SIZE / 2.0),
                 y: (height / 2.0) - (TOP_LEFT_SQUARE_SIZE / 2.0),
+                z: TOP_LEFT_Z,
             },
         }
-        .extend(1.0)
     }
 
     pub fn show_marker(&self, current_level: &CurrentLevel) -> bool {
-
-        if ! self.is_bottom(){
+        if !self.is_bottom() {
             return true;
         }
 
         match &current_level.level {
             GameLevel::Designed { meta } => meta.is_tutorial(),
-            _=> false
+            _ => false,
         }
     }
 
@@ -92,23 +110,32 @@ impl WallPosition {
 
 const TOP_LEFT_SQUARE_SIZE: f32 = 70.0;
 
-pub struct WallsPlugin;
+fn move_walls_when_physics_changed(
+    rapier: Res<RapierConfiguration>,
+    window: Query<&Window, With<PrimaryWindow>>,
+    mut walls_query: Query<(&WallPosition, &mut Transform), Without<ShapeComponent>>,
+) {
+    if !rapier.is_changed() {
+        return;
+    }
 
-impl Plugin for WallsPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_walls.after(crate::startup::setup))
-            .add_systems(Update, move_walls);
+    let Some(window) = window.iter().next() else{return;};
+
+    for (wall, mut transform) in walls_query.iter_mut() {
+        let p: Vec3 = wall.get_position(window.height(), window.width(), rapier.gravity);
+        transform.translation = p;
     }
 }
 
-fn move_walls(
+fn move_walls_when_window_resized(
     mut window_resized_events: EventReader<WindowResized>,
     mut walls_query: Query<(&WallPosition, &mut Transform), Without<ShapeComponent>>,
     mut draggables_query: Query<&mut Transform, With<ShapeComponent>>,
+    rapier: Res<RapierConfiguration>,
 ) {
     for ev in window_resized_events.iter() {
         for (wall, mut transform) in walls_query.iter_mut() {
-            let p: Vec3 = wall.get_position(ev.height, ev.width);
+            let p: Vec3 = wall.get_position(ev.height, ev.width, rapier.gravity);
             transform.translation = p;
         }
 
@@ -128,14 +155,14 @@ fn move_walls(
     }
 }
 
-fn spawn_walls(mut commands: Commands) {
+fn spawn_walls(mut commands: Commands, rapier: Res<RapierConfiguration>) {
     for wall in WallPosition::iter() {
-        spawn_wall(&mut commands, wall);
+        spawn_wall(&mut commands, wall, rapier.gravity);
     }
 }
 
-fn spawn_wall(commands: &mut Commands, wall: WallPosition) {
-    let point = wall.get_position(WINDOW_HEIGHT, WINDOW_WIDTH);
+fn spawn_wall(commands: &mut Commands, wall: WallPosition, gravity: Vec2) {
+    let point = wall.get_position(WINDOW_HEIGHT, WINDOW_WIDTH, gravity);
     let extents = wall.get_extents();
 
     let shape = Rectangle {

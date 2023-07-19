@@ -130,7 +130,10 @@ fn draw_image(game: &str) -> Vec<u8> {
 mod tests {
     use crate::{draw_image, make_svg_from_data};
     use std::hash::{Hash, Hasher};
-    const TEST_DATA: &'static str = "EjCDVGhLHgogf_9ccQAUAHrTZvd3DgB9g332dgkAel51we8MAHuiiKV3";
+
+    // spell-checker: disable
+    const TEST_DATA: &'static str = "EgB5_FtFlhEAeElNfHgOAHcPQeq0FBB41jdZtA==";
+    // spell-checker: enable
 
     #[test]
     fn generate_png_test() {

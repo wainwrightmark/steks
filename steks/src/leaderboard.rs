@@ -200,6 +200,8 @@ fn update_leaderboard_on_completion(
 
     let hash = ShapesVec::from_query(shapes_query).hash();
 
+    //info!("Level complete {hash}");
+
     let pb_changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
         .map
         .entry(hash)

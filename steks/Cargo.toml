@@ -18,7 +18,7 @@ bevy_pkv = {git="https://github.com/wainwrightmark/bevy_pkv"}
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
 base64 = "0.21"
-geometrid = "0.2.0"
+geometrid = {version = "0.3", features= ["glam"]}
 serde_with = "3"
 reqwest = { version = "0.11",default-features = false, features = ["json"] }
 capacitor_bindings = {  features = ["web", "rate_plugin", "game_plugin"], git = "https://github.com/wainwrightmark/capacitor_bindings" }

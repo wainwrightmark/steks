@@ -103,10 +103,10 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
             r
         }));
 
-    let pentominos = Polyomino::FREE_PENTOMINOS
+    let pentominos = STEKS_FREE_PENTOMINOS
         .iter()
         .map(|x| x as &'static dyn GameShapeBody)
-        .zip(Polyomino::FREE_PENTOMINO_NAMES.map(|tn| {
+        .zip(STEKS_FREE_PENTOMINO_NAMES.map(|tn| {
             let r: &'static str = Box::leak((tn.to_string() + "5").into_boxed_str());
             r
         }));
@@ -124,3 +124,21 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
 });
 
 const TRIANGLE: Triangle<4> = Triangle(&[(-1, -1), (-1, 2), (2, -1)]);
+
+const STEKS_FREE_PENTOMINOS: [Polyomino::<5>; 12] = [
+    Polyomino::<5>::F_PENTOMINO,
+    Polyomino::<5>::I_PENTOMINO,
+    Polyomino::<5>::L_PENTOMINO,
+    Polyomino::<5>::N_PENTOMINO,
+    Polyomino::<5>::P_PENTOMINO,
+    Polyomino::<5>::T_PENTOMINO,
+    Polyomino::<5>::U_PENTOMINO,
+    Polyomino::<5>::V_PENTOMINO,
+    Polyomino::<5>::W_PENTOMINO,
+    Polyomino::<5>::X_PENTOMINO,
+    Polyomino::<5>::Y_PENTOMINO,
+    Polyomino::<5>::S_PENTOMINO,
+];
+
+const STEKS_FREE_PENTOMINO_NAMES: [&'static str; 12] =
+    ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "S"];

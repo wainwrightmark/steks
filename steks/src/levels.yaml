@@ -25,7 +25,7 @@
   text: "rotating shapes from further away\nmakes them turn faster"
   end_text: "Wow, that was quick."
   shapes:
-    - shape: Z5
+    - shape: S5
       x: -150.0
       y: -100.0
     - shape: T5
@@ -140,7 +140,7 @@
       r: 0.125
       state: Void
     - shape: F5
-    - shape: Z5
+    - shape: S5
     - shape: N5
     - shape: T5
     - shape: T4
@@ -154,7 +154,7 @@
     - shape: L5
     - shape: W5
     - shape: F5
-    - shape: Z5
+    - shape: S5
     - shape: N5
     - shape: T5
   stages:
@@ -275,7 +275,7 @@
       state: Fixed
     - shape: W5
     - shape: F5
-    - shape: Z5
+    - shape: S5
     - shape: N5
     - shape: T5
     - shape: S4
@@ -330,7 +330,7 @@
       r: 0.25
       state: Void
     - shape: F5
-    - shape: Z5
+    - shape: S5
     - shape: N5
     - shape: T5
     - shape: S4
@@ -351,7 +351,7 @@
   stages:
     - text: "Plot Twist!"
       shapes:
-        - shape: Z5
+        - shape: S5
         - shape: F5
 
 #23
@@ -388,19 +388,19 @@
   text: "you shall not pass"
   end_text: "One does not simply..."
   shapes:
-    - shape: S4
+    - shape: Z4
       x: 90.0
       y: -150.0
       r: 0.15
       state: Fixed
-    - shape: Z4
+    - shape: S4
       x: -90.0
       y: -150.0
       r: 0.85
       state: Fixed
     - shape: L5   
     - shape: W5
-    - shape: Z5
+    - shape: S5
     - shape: X5
     - shape: T5
     - shape: U5
@@ -435,7 +435,7 @@
       shapes:
         - shape: N5
           modifiers: ice
-        - shape: z5
+        - shape: S5
           modifiers: ice
 
 # 27
@@ -443,7 +443,7 @@
   text: "Dr. Gravity is testing you"
   end_text: "You've beaten Dr. Gravity, for now"
   shapes:
-    - shape: Z5
+    - shape: S5
       x: 0.0
       y: -150.0
       r: 0.8
@@ -508,7 +508,7 @@
       r: 0.125
       state: Void
     - shape: F5
-    - shape: Z5
+    - shape: S5
     - shape: N5
     - shape: T5
     - shape: F5
@@ -526,7 +526,7 @@
       id: 1
     - shape: W5
       id: 2
-    - shape: Z5
+    - shape: S5
       id: 3
     - shape: X5
       id: 4
@@ -577,19 +577,19 @@
     - shape: W5 # brow
       x: 0.0
       y: 225.0
-      r: 0.625
+      r: 0.375
       state: void
       id: 2
     - shape: V5 # Left Eyebrow
       x: -125
       y: 200
-      r: 0.125
+      r: 0.375
       state: void
       id: 3
     - shape: V5 # Right Eyebrow
       x: 125
       y: 200
-      r: 0.125
+      r: 0.375
       state: void
       id: 4
     - shape: O4 # Left Eye
@@ -608,13 +608,13 @@
       r: 0.25
       state: void
       id: 7
-    - shape: J4
+    - shape: L4
       id: 8
       x: -125
       y: -75
       r: 0.80
       state: void
-    - shape: L4
+    - shape: J4
       id: 9
       x: 125
       y: -75
@@ -622,7 +622,7 @@
       state: void
     - shape: F5
       id: 10
-    - shape: Z5
+    - shape: S5
       id: 11
 
   stages:

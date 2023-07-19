@@ -361,8 +361,8 @@ pub enum LevelShapeForm {
     X5,
     #[serde(alias = "y5")]
     Y5,
-    #[serde(alias = "z5")]
-    Z5,
+    #[serde(alias = "s5")]
+    S5,
 }
 
 impl From<LevelShapeForm> for &'static GameShape {

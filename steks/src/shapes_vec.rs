@@ -7,6 +7,7 @@ use itertools::Itertools;
 
 use crate::prelude::*;
 
+#[derive(Debug, Deref)]
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
 impl ShapesVec {
@@ -29,6 +30,8 @@ impl ShapesVec {
 
         code
     }
+
+
 
     pub fn calculate_tower_height(&self) -> f32 {
         let mut min = WINDOW_HEIGHT;

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Group;
 
-pub const HEIGHT_MULTIPLIER: f32 = 0.5;
+pub const HEIGHT_MULTIPLIER: f32 = 0.72;
 
 pub const WINDOW_WIDTH: f32 = 360f32;
 

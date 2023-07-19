@@ -1,12 +1,9 @@
-use std::collections::BTreeSet;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 use strum::{Display, EnumCount, EnumIter};
 
-use crate::{
-    shape_component::{CurrentLevel, DesignedLevelMeta},
-    tracked_resource::{TrackedResourcePlugin, TrackableResource},
-};
+use crate::prelude::*;
 
 pub struct AchievementsPlugin;
 
@@ -17,7 +14,7 @@ impl Plugin for AchievementsPlugin {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Resource,  Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Resource, Default)]
 pub struct Achievements {
     pub completed: BTreeSet<Achievement>,
 }
@@ -97,9 +94,13 @@ pub enum Achievement {
     FinishLevel25,
     FinishLevel30,
     FinishLevel32,
-    // Height Thresholds TODO
 
-    //BeatDailyChallenge TODO
+    GreatPyramid,
+    ThirtyRock,
+    EiffelTower,
+    EmpireStateBuilding, // Height Thresholds TODO
+
+                         //BeatDailyChallenge TODO
 }
 
 impl Achievement {
@@ -112,26 +113,36 @@ impl Achievement {
         }
         //spell-checker: enable
     }
+
+    pub fn met_by_shapes(&self, len: usize, height: f32) -> bool {
+        match self {
+            Achievement::GreatPyramid => len <= 3 && height >= 139.0,
+            Achievement::ThirtyRock => len <= 6 && height >= 260.0,
+            Achievement::EiffelTower => len <= 8 && height >= 330.0,
+            Achievement::EmpireStateBuilding => len <= 10 && height >= 373.0,
+            _ => false,
+        }
+    }
 }
 
 fn track_level_completion_achievements(
     current_level: Res<CurrentLevel>,
     mut achievements: ResMut<Achievements>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
 ) {
     use crate::shape_component::GameLevel::*;
     use Achievement::*;
     use DesignedLevelMeta::*;
 
     if current_level.is_changed() {
-
         match current_level.completion {
             crate::shape_component::LevelCompletion::Incomplete { stage } => {
                 match current_level.level {
                     Infinite { .. } => {
                         if let Some(achievement) = match stage + 2 {
-                            5=> Some(Infinite5),
-                            _=> None
-                        }{
+                            5 => Some(Infinite5),
+                            _ => None,
+                        } {
                             maybe_add(&mut achievements, achievement)
                         }
                     }
@@ -139,6 +150,15 @@ fn track_level_completion_achievements(
                 }
             }
             crate::shape_component::LevelCompletion::Complete { .. } => {
+                let shapes = ShapesVec::from_query(shapes_query);
+                let height = shapes.calculate_tower_height();
+
+                for achievement in [GreatPyramid, ThirtyRock, EiffelTower, EmpireStateBuilding] {
+                    if achievement.met_by_shapes(shapes.len(), height) {
+                        maybe_add(&mut achievements, achievement);
+                    }
+                }
+
                 match current_level.level {
                     Designed {
                         meta: Tutorial { index },

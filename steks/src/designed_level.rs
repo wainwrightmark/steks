@@ -170,6 +170,10 @@ pub struct ShapeCreation {
     #[serde(default)]
     #[serde(alias = "Id")]
     pub id: Option<u32>,
+
+    #[serde(default)]
+    #[serde(alias = "Color")]
+    pub color: Option<(u8,u8,u8)>
 }
 
 impl From<EncodableShape> for ShapeCreation {
@@ -184,6 +188,7 @@ impl From<EncodableShape> for ShapeCreation {
             state: value.state,
             modifiers: value.modifiers,
             id: None,
+            color: None
         }
     }
 }
@@ -224,6 +229,10 @@ pub struct ShapeUpdate {
     #[serde(default)]
     #[serde(alias = "Modifiers")]
     pub modifiers: ShapeModifiers,
+
+    #[serde(default)]
+    #[serde(alias = "Color")]
+    pub color: Option<(u8,u8,u8)>
 }
 
 impl From<ShapeUpdate> for ShapeUpdateData {
@@ -264,6 +273,7 @@ impl From<ShapeUpdate> for ShapeUpdateData {
             velocity,
             modifiers: val.modifiers,
             id: val.id,
+            color: val.color.map(|(r,g,b)|Color::rgb_u8(r,g,b))
         }
     }
 }
@@ -311,6 +321,7 @@ impl From<ShapeCreation> for ShapeCreationData {
             velocity,
             modifiers: val.modifiers,
             id: val.id,
+            color: val.color.map(|(r,g,b)|Color::rgb_u8(r,g,b))
         }
     }
 }
@@ -386,6 +397,16 @@ impl From<&'static GameShape> for LevelShapeForm {
 mod tests {
     use super::DesignedLevel;
     use crate::designed_level::*;
+
+    // #[test]
+    // pub fn ser_color(){
+    //     let sud = ShapeCreation{
+    //         color: Some((128,128,128)),
+    //         ..Default::default()
+    //     };
+
+    //     assert_eq!(serde_yaml::to_string(&sud).unwrap(), "red")
+    // }
 
     #[test]
     pub fn test_campaign_levels_deserialize() {

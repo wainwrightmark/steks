@@ -10,10 +10,16 @@ pub struct ShapeUpdateData {
     pub state: Option<ShapeState>,
     pub velocity: Option<Velocity>,
     pub modifiers: ShapeModifiers,
+    pub color: Option<Color>
 }
 
 impl ShapeUpdateData {
     pub fn fill(&self) -> Option<Fill> {
+
+        if let Some(color) = self.color{
+            return Some(Fill{color, options: FillOptions::DEFAULT});
+        }
+
         self.state
             .and_then(|x| x.fill())
             .or_else(|| self.shape.map(|x| x.fill()))

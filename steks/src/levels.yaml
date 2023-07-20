@@ -17,6 +17,10 @@
   end_text: "Press  to try for a taller tower\nPress  for the next level"
   shapes:
     - shape: O4
+      # color:
+      #   - 255
+      #   - 0
+      #   - 0
     - shape: L4
     - shape: L4
 

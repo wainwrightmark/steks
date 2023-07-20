@@ -257,7 +257,7 @@ pub fn drag_move(
                     let previous_angle = rotate.centre.angle_between(rotate.previous);
                     let new_angle = rotate.centre.angle_between(event.new_position);
 
-                    let angle = new_angle - previous_angle;
+                    let angle = (new_angle - previous_angle) * constants::ROTATION_COEFFICIENT;
 
                     //info!("Touch Rotate: angle: {angle} center {}, previous {} new position {} prev_angle {} new_angle {}", rotate.centre, rotate.previous, event.new_position, previous_angle, new_angle);
 

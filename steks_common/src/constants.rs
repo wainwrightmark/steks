@@ -69,13 +69,13 @@ pub const LEVEL_TITLE_MAX_CHARS: usize = "The Empire Steks Building".len();
 pub const LEVEL_STAGE_TEXT_MAX_CHARS: usize = "Use the black outlines to guide you".len();
 pub const LEVEL_END_TEXT_MAX_CHARS: usize = "if it weren't for you meddling kids!".len();
 
-const FIRA_FONT_PATH: &str = "fonts/FiraMono-Medium.ttf";
+const FIRA_FONT_PATH: &str = "fonts/merged-font.ttf";
 
 pub const LEVEL_TEXT_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const LEVEL_TITLE_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const LEVEL_NUMBER_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const MENU_TEXT_FONT_PATH: &str = FIRA_FONT_PATH;
-pub const ICON_FONT_PATH: &str = "fonts/fontello.ttf";
+pub const ICON_FONT_PATH: &str = "fonts/merged-font.ttf";
 
 pub const ICON_FONT_SIZE: f32 = 30.0;
 pub const BUTTON_FONT_SIZE: f32 = 22.0;

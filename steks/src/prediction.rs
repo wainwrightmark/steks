@@ -20,12 +20,12 @@ impl From<&CheckForWinEvent> for PredictionSettings {
             CheckForWinEvent::OnDrop => PredictionSettings {
                 max_substeps: 60 * 6,
                 early_sensor_substeps: 90,
-                max_non_sensor_collisions: 1,
+                max_non_sensor_collisions: 3,
             },
             CheckForWinEvent::OnLastSpawn => PredictionSettings {
                 max_substeps: 60 * 6,
                 early_sensor_substeps: 90,
-                max_non_sensor_collisions: 1,
+                max_non_sensor_collisions: 3,
             },
         }
     }

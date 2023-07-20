@@ -16,7 +16,8 @@ fn get_vertices<const S: usize>(
 
     shape
         .draw_outline()
-        .map(move |qr| qr.get_center(u) - offset).map(|v| Vec2 { x: v.x, y: -v.y })
+        .map(move |qr| qr.get_center(u) - offset)
+        .map(|v| Vec2 { x: v.x, y: -v.y })
 }
 impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn to_collider_shape(&self, shape_size: f32) -> Collider {
@@ -28,7 +29,10 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
             .deconstruct_into_rectangles()
             .map(|rectangle| {
                 let vect = rectangle.get_center(u) - offset;
-                let vect = Vec2 { x: vect.x, y: -vect.y };
+                let vect = Vec2 {
+                    x: vect.x,
+                    y: -vect.y,
+                };
 
                 let x_len = rectangle.width as f32;
                 let y_len = rectangle.height as f32;
@@ -99,19 +103,5 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
         let stroke = color_to_svg_stroke(stroke);
 
         format!(r#"<path {fill} {stroke} {stroke_width} d="{path}"  />"#)
-    }
-}
-
-
-#[cfg(test)]
-pub mod tests{
-    use crate::prelude::GameShapeBody;
-
-
-    #[test]
-    pub fn make_svg(){
-        let svg = geometrid::polyomino::Polyomino::S_TETROMINO.as_svg(100., Some(bevy::prelude::Color::GREEN), Some(bevy::prelude::Color::BLACK));
-        let expected = "<path fill=\"#00FF00FF\" stroke=\"#000000FF\" stroke-width=\"1\" d=\"M-65 0L -35 0A 10 10 0 0 0 -25 -10L -25 -40A 10 10 0 0 1 -15 -50L 65 -50A 10 10 0 0 1 75 -40L 75 -10A 10 10 0 0 1 65 0L 35 0A 10 10 0 0 0 25 10L 25 40A 10 10 0 0 1 15 50L -65 50A 10 10 0 0 1 -75 40L -75 10A 10 10 0 0 1 -65 0z\"  />";
-        assert_eq!(svg, expected)
     }
 }

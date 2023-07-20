@@ -128,6 +128,8 @@ fn draw_image(game: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
+    use steks_common::prelude::{Location, ALL_SHAPES, SHAPE_SIZE};
+
     use crate::{draw_image, make_svg_from_data};
     use std::hash::{Hash, Hasher};
 
@@ -167,5 +169,43 @@ mod tests {
         let mut s = std::collections::hash_map::DefaultHasher::new();
         t.hash(&mut s);
         s.finish()
+    }
+
+    #[test]
+    pub fn all_shapes_svg() {
+        let mut svg = String::new();
+
+        svg.push_str(r#"<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">"#);
+
+        for (index, shape) in ALL_SHAPES.iter().enumerate() {
+            svg.push('\n');
+
+            let x = ((index % 5) as f32 * 100.) + 50.;
+            let y = ((index / 5) as f32 * 100.) + 50.;
+
+            let location = Location::new(x, y, 0.0);
+
+            let transform = location.svg_transform();
+
+            svg.push_str(format!(r#"<g transform="{transform}">"#).as_str());
+
+            svg.push('\n');
+            let shape_svg = shape
+                .body
+                .as_svg(SHAPE_SIZE, Some(shape.fill().color), None);
+
+            println!("{shape_svg}");
+            svg.push_str(shape_svg.as_str());
+
+            svg.push('\n');
+
+            svg.push_str("</g>");
+        }
+
+        svg.push_str(r#"</svg>"#);
+
+        std::fs::write("all_shapes.svg", svg.clone()).unwrap();
+
+        insta::assert_debug_snapshot!(svg);
     }
 }

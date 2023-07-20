@@ -125,7 +125,7 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
 
 const TRIANGLE: Triangle<4> = Triangle(&[(-1, -1), (-1, 2), (2, -1)]);
 
-const STEKS_FREE_PENTOMINOS: [Polyomino::<5>; 12] = [
+const STEKS_FREE_PENTOMINOS: [Polyomino<5>; 12] = [
     Polyomino::<5>::F_PENTOMINO,
     Polyomino::<5>::I_PENTOMINO,
     Polyomino::<5>::L_PENTOMINO,
@@ -142,3 +142,4 @@ const STEKS_FREE_PENTOMINOS: [Polyomino::<5>; 12] = [
 
 const STEKS_FREE_PENTOMINO_NAMES: [&'static str; 12] =
     ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "S"];
+

@@ -187,11 +187,11 @@ fn button_system(
                 }
                 ChooseLevel => menu_state.as_mut().toggle_levels(),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
-                MinimizeCompletion => {
-                    *menu_state = match menu_state.as_ref() {
-                        UIState::GameSplash => UIState::GameMinimized,
-                        _=> UIState::GameSplash
-                    };
+                MinimizeSplash => {
+                    *menu_state = UIState::GameMinimized;
+                }
+                RestoreSplash => {
+                    *menu_state = UIState::GameSplash;
                 }
                 MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
@@ -209,7 +209,7 @@ fn button_system(
 
             match button.button_action {
                 OpenMenu | Resume | ChooseLevel | NextLevelsPage | PreviousLevelsPage
-                | MinimizeCompletion => {}
+                | MinimizeSplash | RestoreSplash => {}
                 _ => menu_state.close_menu(),
             }
         }

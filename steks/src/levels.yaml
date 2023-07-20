@@ -14,7 +14,7 @@
 #2
 - title: "Reach For The Sky"
   text: "tall towers take trophies"
-  end_text: "A towering success"
+  end_text: "Press  to try for a taller tower\nPress  for the next level"
   shapes:
     - shape: O4
     - shape: L4
@@ -168,7 +168,7 @@
 
 #12
 - title: "The Empire Steks Building"
-  end_text: "Proud of your tower?\nHit share to show it off!"
+  end_text: "Proud of your tower?\nHit  to show it off!"
   shapes:
     - shape: I5
     - shape: L4

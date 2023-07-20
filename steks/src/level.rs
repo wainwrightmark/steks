@@ -376,7 +376,7 @@ impl LevelCompletion {
         use LevelCompletion::*;
         match self {
             Incomplete { .. } => false,
-            Complete { .. } => matches!(button, NextLevel | Share | MinimizeCompletion),
+            Complete { .. } => matches!(button, NextLevel | Share | RestoreSplash | MinimizeSplash),
         }
     }
 }

@@ -99,15 +99,18 @@ enum LevelUIComponent {
     Message,
     ButtonPanel,
     Button(ButtonAction),
+    MinimizeButton
 }
 
 impl LevelUIComponent {
     pub fn get_child_components(&self) -> &[Self] {
         use LevelUIComponent::*;
         const BUTTONS: [LevelUIComponent; 3] = [
-            Button(ButtonAction::NextLevel),
+            MinimizeButton,
             Button(ButtonAction::Share),
-            Button(ButtonAction::MinimizeCompletion),
+            Button(ButtonAction::NextLevel),
+
+
         ];
 
         match self {
@@ -119,6 +122,7 @@ impl LevelUIComponent {
             Button(_) => &[],
             ButtonPanel => &BUTTONS,
             Title => &[],
+            MinimizeButton => &[],
         }
     }
 }
@@ -526,39 +530,7 @@ fn insert_bundle(
             commands.insert(get_button_panel(args));
         }
         LevelUIComponent::Button(button_action) => {
-            if first_time {
-                let font = asset_server.load(ICON_FONT_PATH);
-
-                let text_bundle = TextBundle {
-                    text: Text::from_section(
-                        button_action.icon(),
-                        TextStyle {
-                            font,
-                            font_size: ICON_FONT_SIZE,
-                            color: BUTTON_TEXT_COLOR,
-                        },
-                    ),
-                    ..Default::default()
-                }
-                .with_no_wrap();
-
-                commands.insert(ButtonComponent {
-                    button_type: ButtonType::Icon,
-                    button_action: *button_action,
-                    disabled: false,
-                });
-                commands.insert(icon_button_bundle(false));
-
-                commands.with_children(|parent| {
-                    parent.spawn(text_bundle);
-                });
-            }
-
-            if current_level.completion.is_button_visible(button_action) {
-                commands.insert(Visibility::Inherited);
-            } else {
-                commands.insert(Visibility::Hidden);
-            }
+            make_button(commands, button_action, first_time, current_level,  asset_server)
         }
         LevelUIComponent::AllText => {
             commands.insert(get_all_text_bundle(args));
@@ -566,5 +538,59 @@ fn insert_bundle(
         LevelUIComponent::LevelNumber => {
             commands.insert(get_level_number_bundle(args));
         }
+        LevelUIComponent::MinimizeButton => {
+            commands.despawn_descendants();
+
+            let button_action = match ui_state.as_ref(){
+                UIState::GameSplash => ButtonAction::MinimizeSplash,
+                _ => ButtonAction::RestoreSplash,
+            };
+
+            make_button(commands, &button_action, true, current_level,  asset_server)
+        },
     };
+}
+
+
+fn make_button(
+    commands: &mut EntityCommands,
+    button_action: &ButtonAction,
+    first_time: bool,
+    current_level: &CurrentLevel,
+
+    asset_server: &Res<AssetServer>,
+    ){
+    if first_time {
+        let font = asset_server.load(ICON_FONT_PATH);
+
+        let text_bundle = TextBundle {
+            text: Text::from_section(
+                button_action.icon(),
+                TextStyle {
+                    font,
+                    font_size: ICON_FONT_SIZE,
+                    color: BUTTON_TEXT_COLOR,
+                },
+            ),
+            ..Default::default()
+        }
+        .with_no_wrap();
+
+        commands.insert(ButtonComponent {
+            button_type: ButtonType::Icon,
+            button_action: *button_action,
+            disabled: false,
+        });
+        commands.insert(icon_button_bundle(false));
+
+        commands.with_children(|parent| {
+            parent.spawn(text_bundle);
+        });
+    }
+
+    if current_level.completion.is_button_visible(button_action) {
+        commands.insert(Visibility::Inherited);
+    } else {
+        commands.insert(Visibility::Hidden);
+    }
 }

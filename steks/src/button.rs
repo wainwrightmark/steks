@@ -68,7 +68,8 @@ pub enum ButtonAction {
     ClipboardImport,
     GotoLevel { level: u8 },
     NextLevel,
-    MinimizeCompletion,
+    MinimizeSplash,
+    RestoreSplash,
     MinimizeApp,
     Unlock,
     NextLevelsPage,
@@ -116,13 +117,15 @@ impl ButtonAction {
             ChooseLevel => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
             GotoLevel { level } => crate::designed_level::format_campaign_level_number(level),
             NextLevel => "\u{e808}".to_string(),          //play
-            MinimizeCompletion => "\u{e814}".to_string(), //minus
+
             MinimizeApp => "\u{e813}".to_string(),        //logout
             ClipboardImport => "\u{e818}".to_string(),    //clipboard
             Unlock => "\u{f513}".to_string(),           //unlock
             PreviousLevelsPage => "\u{e81b}".to_string(),
             NextLevelsPage => "\u{e81a}".to_string(),
-            Credits => "\u{e811}".to_string()
+            Credits => "\u{e811}".to_string(),
+            RestoreSplash => "\u{f149}".to_string(),
+            MinimizeSplash => "\u{f148}".to_string(),
         }
     }
 
@@ -155,7 +158,8 @@ impl ButtonAction {
                 }
             }
             NextLevel => "Next Level".to_string(),
-            MinimizeCompletion => "Minimize Completion".to_string(),
+            MinimizeSplash => "Minimize Splash".to_string(),
+            RestoreSplash => "Restore Splash".to_string(),
             MinimizeApp => "Quit".to_string(),
             Unlock => "Unlock Game".to_string(),
             NextLevelsPage => "Next Levels".to_string(),

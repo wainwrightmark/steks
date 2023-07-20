@@ -128,7 +128,7 @@ fn draw_image(game: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use steks_common::prelude::{Location, ALL_SHAPES, SHAPE_SIZE};
+    use steks_common::prelude::{Location, ALL_SHAPES, SHAPE_SIZE, choose_color};
 
     use crate::{draw_image, make_svg_from_data};
     use std::hash::{Hash, Hasher};
@@ -204,8 +204,55 @@ mod tests {
 
         svg.push_str(r#"</svg>"#);
 
-        std::fs::write("all_shapes.svg", svg.clone()).unwrap();
+        let hash = calculate_hash(&svg);
+        std::fs::write("all_shapes.svg", svg).unwrap();
 
-        insta::assert_debug_snapshot!(svg);
+        insta::assert_debug_snapshot!(hash);
+    }
+
+    #[test]
+    pub fn all_colors_svg() {
+        let mut svg = String::new();
+
+        svg.push_str(r#"<svg width="500" height="1000" xmlns="http://www.w3.org/2000/svg">"#);
+
+
+        for alt in [false, true]{
+
+            for (index, shape) in ALL_SHAPES.iter().enumerate() {
+                svg.push('\n');
+
+                let x = ((index % 5) as f32 * 100.) + 50.;
+                let y = ((index / 5) as f32 * 100.) + 50. + if alt {500.} else{0.};
+
+                let location = Location::new(x, y, 0.0);
+
+                let transform = location.svg_transform();
+
+                svg.push_str(format!(r#"<g transform="{transform}">"#).as_str());
+
+                svg.push('\n');
+
+                let color = choose_color(index, alt);
+
+                let shape_svg = shape
+                    .body
+                    .as_svg(SHAPE_SIZE, Some(color), None);
+
+                println!("{shape_svg}");
+                svg.push_str(shape_svg.as_str());
+
+                svg.push('\n');
+
+                svg.push_str("</g>");
+            }
+        }
+
+        svg.push_str(r#"</svg>"#);
+
+        let hash = calculate_hash(&svg);
+        std::fs::write("all_colors.svg", svg).unwrap();
+
+        insta::assert_debug_snapshot!(hash);
     }
 }

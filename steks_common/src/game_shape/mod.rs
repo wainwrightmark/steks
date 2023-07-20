@@ -52,7 +52,13 @@ impl PartialEq for GameShape {
 
 impl GameShape {
     pub fn default_fill_color(&self) -> Color {
-        choose_color(self.index.0)
+        let alt = match self.index.0 {
+
+            2 | 6  => true,
+            _ => false,
+        };
+
+        choose_color(self.index.0, alt)
     }
 
     pub fn fill(&self) -> Fill {
@@ -142,4 +148,3 @@ const STEKS_FREE_PENTOMINOS: [Polyomino<5>; 12] = [
 
 const STEKS_FREE_PENTOMINO_NAMES: [&'static str; 12] =
     ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "S"];
-

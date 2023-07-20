@@ -9,7 +9,7 @@ edition = "2021"
 base64 = "0.21"
 geometrid = {version = "0.3", features= ["glam"]}
 once_cell = "1.18.0"
-bevy_prototype_lyon = {version="0.9"}
+bevy_prototype_lyon = {version="0.9", default-features = false}
 bevy_rapier2d = {version = "0.22"}
 bevy = { version = "0.11", default-features = false, features = ["bevy_render"] }
 serde = "1.0.166"

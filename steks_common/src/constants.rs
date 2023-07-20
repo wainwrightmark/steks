@@ -15,11 +15,16 @@ pub const WALL_WIDTH: f32 = 1920f32;
 
 pub const PHYSICS_SCALE: f32 = 64f32;
 
+pub const SECONDS_PER_FRAME: f32 = 1. / 60.;
+
+pub const LONG_WIN_SECONDS: f32 = 5.0;
+pub const SHORT_WIN_SECONDS: f32 = 1.5;
+
 pub const SHAPE_COLLISION_GROUP: Group = Group::GROUP_1;
 pub const WALL_COLLISION_GROUP: Group = Group::GROUP_2;
 pub const RAIN_COLLISION_GROUP: Group = Group::GROUP_3;
 pub const VOID_COLLISION_GROUP: Group = Group::GROUP_4;
-pub const FIREWORK_COLLISION_GROUP: Group = Group::NONE;
+//pub const FIREWORK_COLLISION_GROUP: Group = Group::NONE;
 
 pub const SHAPE_COLLISION_FILTERS: Group = SHAPE_COLLISION_GROUP
     .union(WALL_COLLISION_GROUP)

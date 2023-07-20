@@ -1,4 +1,5 @@
 use steks_common::constants;
+use strum::EnumIs;
 
 use crate::input;
 use crate::prelude::*;
@@ -115,7 +116,7 @@ pub fn drag_end(
                 } else {
                     ShapeComponent::Free
                 };
-                ew_end_drag.send(CheckForWinEvent::ON_DROP);
+                ew_end_drag.send(CheckForWinEvent::OnDrop);
             }
         }
 
@@ -325,10 +326,10 @@ pub fn drag_start(
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
 
-    menu: Res<UIState>
+    menu: Res<UIState>,
 ) {
     for event in er_drag_start.iter() {
-        if menu.is_show_main_menu() || menu.is_show_levels_page(){
+        if menu.is_show_main_menu() || menu.is_show_levels_page() {
             continue;
         }
         //info!("Drag Started {:?}", event);
@@ -483,25 +484,27 @@ pub struct DragEndingEvent {
 }
 
 /// Event to indicate that we should check for a win
-#[derive(Debug, Event)]
-pub struct CheckForWinEvent {
-    pub no_future_collision_countdown_seconds: f64,
-    pub future_collision_countdown_seconds: Option<f64>,
-    pub future_lookahead_seconds: f64,
+#[derive(Debug, Event, Copy, Clone, EnumIs, PartialEq, Eq)]
+pub enum CheckForWinEvent {
+    OnDrop,
+    OnLastSpawn,
 }
 
 impl CheckForWinEvent {
-    pub const ON_DROP: CheckForWinEvent = CheckForWinEvent {
-        no_future_collision_countdown_seconds: 1.5,
-        future_collision_countdown_seconds: Some(5.0),
-        future_lookahead_seconds: 10.0,
-    };
+    pub fn get_countdown_seconds(&self, prediction: PredictionResult) -> Option<f32> {
+        match (self, prediction) {
+            (_, PredictionResult::EarlyWall) => None,
+            (_, PredictionResult::ManyNonWall) => Some(LONG_WIN_SECONDS),
+            (_, PredictionResult::Wall) => Some(LONG_WIN_SECONDS),
 
-    pub const ON_LAST_SPAWN: CheckForWinEvent = CheckForWinEvent {
-        no_future_collision_countdown_seconds: 5.0,
-        future_collision_countdown_seconds: None,
-        future_lookahead_seconds: 20.0,
-    };
+            (CheckForWinEvent::OnDrop, PredictionResult::MinimalCollision) => {
+                Some(SHORT_WIN_SECONDS)
+            }
+            (CheckForWinEvent::OnLastSpawn, PredictionResult::MinimalCollision) => {
+                Some(LONG_WIN_SECONDS)
+            }
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]

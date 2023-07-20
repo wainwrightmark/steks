@@ -52,7 +52,7 @@
 #5
 - title: "The Empire Steks Back"
   text: "that's no moon..."
-  end_text: "Great shot, kid.\nThat was one in a million!"
+  end_text: "Great shot, kid."
   shapes:
     - shape: O4
     - shape: I5

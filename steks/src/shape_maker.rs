@@ -56,7 +56,7 @@ pub fn spawn_and_update_shapes(
     } else {
         if *recently_finished {
             //send this event one frame after spawning shapes
-            check_win.send(CheckForWinEvent::ON_LAST_SPAWN);
+            check_win.send(CheckForWinEvent::OnLastSpawn);
         }
         *recently_finished = false;
     }

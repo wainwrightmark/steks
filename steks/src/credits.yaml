@@ -1,0 +1,16 @@
+- title: "Thanks for Playing"
+  text: "Mark Wainwright\nSamuel Johnston"
+  end_text: ""
+  text_forever: true
+  shapes:
+    - shape: W5
+    - shape: S5
+  stages:
+    - text: "Miriam Thomas\nProduct Design"
+      text_forever: true
+      shapes:
+        - shape: L5
+    - text: "Stephanie Cheung\nGrowth Manager"
+      text_forever: true
+      shapes:
+        - shape: S4

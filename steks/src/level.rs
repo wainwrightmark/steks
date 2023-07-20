@@ -42,7 +42,13 @@ fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<Shape
                 .collect_vec()
         }
 
-        GameLevel::Infinite { seed } => infinity::get_all_shapes(*seed, INFINITE_MODE_STARTING_SHAPES),
+        GameLevel::Infinite { seed } => {
+            infinity::get_all_shapes(*seed, INFINITE_MODE_STARTING_SHAPES)
+        }
+
+        GameLevel::Begging => {
+            vec![]
+        }
     };
 
     shapes.sort_by_key(|x| (x.state.is_locked(), x.location.is_some()));
@@ -93,17 +99,18 @@ fn manage_level_shapes(
                             }
                         }
                         GameLevel::Infinite { seed } => {
-                            //TODO get many extra shapes
-                            // let creation_data =
-                            //     infinity::get_next_shape();
-                            //let shapes = draggables.iter().map(|x| x.0 .1);
                             let next_shapes = infinity::get_all_shapes(
                                 *seed,
                                 stage + INFINITE_MODE_STARTING_SHAPES,
                             );
-                            shape_creation_events.send_batch(next_shapes.into_iter().skip(INFINITE_MODE_STARTING_SHAPES + previous_stage));
+                            shape_creation_events.send_batch(
+                                next_shapes
+                                    .into_iter()
+                                    .skip(INFINITE_MODE_STARTING_SHAPES + previous_stage),
+                            );
                         }
                         GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => {}
+                        GameLevel::Begging => {}
                     }
                 }
             }
@@ -188,6 +195,7 @@ impl CurrentLevel {
             GameLevel::Infinite { .. } => None,
             GameLevel::Challenge { .. } => Some("Daily Challenge".to_string()),
             GameLevel::Loaded { .. } => None,
+            GameLevel::Begging { .. } => Some("Please buy the game!".to_string()),
         }
     }
 
@@ -196,11 +204,12 @@ impl CurrentLevel {
             GameLevel::Designed { meta, .. } => match meta {
                 DesignedLevelMeta::Tutorial { .. } => None,
                 DesignedLevelMeta::Campaign { index } => Some(format_campaign_level_number(index)),
-                DesignedLevelMeta::Custom { .. } => None,
+                DesignedLevelMeta::Custom { .. } | DesignedLevelMeta::Credits => None,
             },
-            GameLevel::Infinite { .. } | GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => {
-                None
-            }
+            GameLevel::Infinite { .. }
+            | GameLevel::Challenge { .. }
+            | GameLevel::Loaded { .. }
+            | GameLevel::Begging => None,
         }
     }
 
@@ -252,6 +261,7 @@ impl CurrentLevel {
                 }
                 GameLevel::Loaded { .. } => Some("Loaded Game".to_string()),
                 GameLevel::Challenge { .. } => None,
+                GameLevel::Begging => None,
             },
             LevelCompletion::Complete { score_info } => {
                 let height = score_info.height;
@@ -268,6 +278,7 @@ impl CurrentLevel {
                     GameLevel::Infinite { .. } => "",
                     GameLevel::Challenge { .. } => "Challenge Complete",
                     GameLevel::Loaded { .. } => "Level Complete",
+                    GameLevel::Begging => "Please buy the game",
                 };
 
                 let mut text = message
@@ -378,6 +389,8 @@ pub enum GameLevel {
     Challenge { date: NaiveDate, streak: u16 },
 
     Loaded { bytes: Arc<Vec<u8>> },
+
+    Begging,
 }
 
 impl GameLevel {
@@ -387,10 +400,13 @@ impl GameLevel {
 
         Self::Infinite { seed }
     }
+
+    pub const CREDITS: Self = GameLevel::Designed { meta: DesignedLevelMeta::Credits };
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum DesignedLevelMeta {
+    Credits,
     Tutorial { index: u8 },
     Campaign { index: u8 },
     Custom { level: Arc<DesignedLevel> },
@@ -417,6 +433,8 @@ impl DesignedLevelMeta {
                 }
             }
             DesignedLevelMeta::Custom { .. } => None,
+
+            DesignedLevelMeta::Credits => None,
         }
     }
 
@@ -424,6 +442,7 @@ impl DesignedLevelMeta {
         match self {
             DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS.get(*index as usize).cloned(),
             DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS.get(*index as usize).cloned(),
+            DesignedLevelMeta::Credits => CREDITS_LEVELS.get(0).cloned(),
             DesignedLevelMeta::Custom { level } => Some(level.clone()),
         }
     }
@@ -439,6 +458,10 @@ impl DesignedLevelMeta {
                 .expect("Could not get campaign level")
                 .as_ref(),
             DesignedLevelMeta::Custom { level } => level.as_ref(),
+            DesignedLevelMeta::Credits => CREDITS_LEVELS
+                .get(0)
+                .expect("Could not get credits level")
+                .as_ref(),
         }
     }
 }
@@ -450,6 +473,7 @@ impl GameLevel {
             GameLevel::Infinite { .. } => true, //todo maybe up to five stages, then show screen
             GameLevel::Challenge { .. } => false,
             GameLevel::Loaded { .. } => false,
+            GameLevel::Begging => false,
         }
     }
 }
@@ -463,6 +487,8 @@ pub enum LevelLogData {
     Challenge,
     Custom,
     Loaded,
+    Credits,
+    Begging,
 }
 
 impl Default for LevelLogData {
@@ -478,9 +504,11 @@ impl From<GameLevel> for LevelLogData {
                 DesignedLevelMeta::Tutorial { index } => Self::TutorialLevel { index },
                 DesignedLevelMeta::Campaign { index } => Self::CampaignLevel { index },
                 DesignedLevelMeta::Custom { .. } => Self::Custom,
+                DesignedLevelMeta::Credits { .. } => Self::Credits,
             },
             GameLevel::Infinite { .. } => Self::Infinite,
             GameLevel::Challenge { .. } => Self::Challenge,
+            GameLevel::Begging => Self::Begging,
             GameLevel::Loaded { .. } => Self::Loaded,
         }
     }
@@ -517,6 +545,8 @@ pub enum ChangeLevelEvent {
     StartInfinite,
     StartChallenge,
     Load(std::sync::Arc<Vec<u8>>),
+    Credits,
+    Begging,
 
     Custom {
         level: std::sync::Arc<DesignedLevel>,
@@ -562,7 +592,7 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
                     GRAVITY
                 }
             }
-            GameLevel::Infinite { .. } | GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => {
+            GameLevel::Infinite { .. } | GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
                 GRAVITY
             }
         };
@@ -611,7 +641,7 @@ fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<
                 }
                 _ => {}
             },
-            GameLevel::Infinite { .. } | GameLevel::Loaded { .. } => {}
+            GameLevel::Infinite { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {}
             GameLevel::Challenge { date, streak } => {
                 streak_resource.count = streak.clone();
                 streak_resource.most_recent = date.clone();
@@ -632,11 +662,17 @@ impl ChangeLevelEvent {
                         return (GameLevel::Designed { meta }, 0);
                     }
 
-                    (GameLevel::new_infinite(), 0)
+                    if meta.is_credits(){
+                        (GameLevel::Begging, 0)
+                    }else{
+                        (GameLevel::CREDITS, 0)
+                    }
+
+
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),
-                GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => {
-                    (GameLevel::new_infinite(), 0)
+                GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
+                    (GameLevel::CREDITS, 0)
                 }
             },
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
@@ -719,6 +755,8 @@ impl ChangeLevelEvent {
                 },
                 0,
             ),
+            ChangeLevelEvent::Begging=>(GameLevel::Begging, 0),
+            ChangeLevelEvent::Credits=>(GameLevel::CREDITS, 0),
         }
     }
 

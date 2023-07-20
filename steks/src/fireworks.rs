@@ -186,7 +186,7 @@ fn get_new_fireworks(
             }
         }
 
-        GameLevel::Challenge{..} | GameLevel::Loaded { .. } => FireworksSettings::default(),
+        GameLevel::Challenge{..} | GameLevel::Loaded { .. } | GameLevel::Begging => FireworksSettings::default(),
     };
 
     if match info {

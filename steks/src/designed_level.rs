@@ -22,6 +22,15 @@ lazy_static::lazy_static! {
     };
 }
 
+lazy_static::lazy_static! {
+    pub static ref CREDITS_LEVELS: Vec<Arc<DesignedLevel>> ={
+        let s = include_str!("credits.yaml");
+        let list: Vec<Arc<DesignedLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+
+        list
+    };
+}
+
 pub fn get_campaign_level(index: u8) -> Option<Arc<DesignedLevel>> {
     CAMPAIGN_LEVELS.get(index as usize).cloned()
 }
@@ -100,10 +109,6 @@ pub struct LevelStage {
     #[serde(default)]
     #[serde(alias = "Text_forever")]
     pub text_forever: bool,
-
-    // #[serde(default)]
-    // #[serde(alias = "Text_seconds")]
-    // pub text_seconds: Option<u32>,
     #[serde(default)]
     #[serde(alias = "Shapes")]
     pub shapes: Arc<Vec<ShapeCreation>>,
@@ -395,17 +400,26 @@ mod tests {
     }
 
     #[test]
+    pub fn test_credits_levels_deserialize() {
+        let list = &crate::designed_level::CREDITS_LEVELS;
+        assert_eq!(list.len(), 1)
+    }
+
+
+    #[test]
     pub fn test_set_levels_string_lengths() {
         let levels = crate::designed_level::CAMPAIGN_LEVELS
             .iter()
-            .chain(crate::designed_level::TUTORIAL_LEVELS.iter());
+            .chain(crate::designed_level::TUTORIAL_LEVELS.iter())
+            .chain(crate::designed_level::CREDITS_LEVELS.iter())
+            ;
         let mut errors: Vec<String> = vec![];
         for (index, level) in levels.enumerate() {
             check_level(level, index, &mut errors);
         }
 
         if !errors.is_empty() {
-            panic!("levels.yaml contains errors:\n{}", errors.join("\n"))
+            panic!("levels contains errors:\n{}", errors.join("\n"))
         }
     }
 

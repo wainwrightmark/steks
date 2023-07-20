@@ -135,7 +135,7 @@ fn manage_raindrops(
                 .get_current_stage(current_level.completion)
                 .rainfall
         }
-        GameLevel::Infinite { .. } => None,
+        GameLevel::Infinite { .. } | GameLevel::Begging => None,
         GameLevel::Challenge{..} | GameLevel::Loaded { .. } => None,
     };
 

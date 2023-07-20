@@ -355,8 +355,8 @@ fn animate_text(
                 .get_stage(&stage)
                 .map(|x| !x.text_forever)
                 .unwrap_or(true),
-            GameLevel::Infinite { .. } => false,
-            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => true,
+            GameLevel::Infinite { .. } | GameLevel::Begging => false,
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. }  => true,
         },
         LevelCompletion::Complete { .. } => false,
     };

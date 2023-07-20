@@ -204,6 +204,7 @@ fn button_system(
                 NextLevelsPage => menu_state.as_mut().next_levels_page(),
 
                 PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
+                Credits => change_level_events.send(ChangeLevelEvent::Credits),
             }
 
             match button.button_action {

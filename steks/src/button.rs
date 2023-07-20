@@ -73,6 +73,7 @@ pub enum ButtonAction {
     Unlock,
     NextLevelsPage,
     PreviousLevelsPage,
+    Credits
 }
 
 impl ButtonAction {
@@ -96,6 +97,8 @@ impl ButtonAction {
             GoFullscreen,
             #[cfg(all(feature = "android", target_arch = "wasm32"))]
             MinimizeApp,
+
+            Credits
         ]
     }
 
@@ -119,6 +122,7 @@ impl ButtonAction {
             Unlock => "\u{f513}".to_string(),           //unlock
             PreviousLevelsPage => "\u{e81b}".to_string(),
             NextLevelsPage => "\u{e81a}".to_string(),
+            Credits => "\u{e811}".to_string()
         }
     }
 
@@ -156,6 +160,7 @@ impl ButtonAction {
             Unlock => "Unlock Game".to_string(),
             NextLevelsPage => "Next Levels".to_string(),
             PreviousLevelsPage => "Previous Levels".to_string(),
+            Credits=> "Credits".to_string()
         }
     }
 }

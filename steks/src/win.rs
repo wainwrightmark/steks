@@ -81,6 +81,7 @@ pub fn check_for_tower(
 
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
+    rapier_config: Res<RapierConfiguration>,
     wall_sensors: Query<Entity, With<WallSensor>>,
     walls: Query<Entity, With<WallPosition>>,
 ) {
@@ -116,7 +117,7 @@ pub fn check_for_tower(
     collision_events.clear();
 
     let prediction_result =
-        prediction::substeps_till_collision(&rapier_context, event.into(), GRAVITY);
+        prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity);
 
     let countdown_seconds = event.get_countdown_seconds(prediction_result);
 

@@ -39,7 +39,7 @@ pub enum PredictionResult {
     ManyNonWall,
 }
 
-pub fn substeps_till_collision(
+pub fn make_prediction(
     context: &RapierContext,
     prediction_settings: PredictionSettings,
     gravity: Vect,
@@ -105,7 +105,7 @@ pub fn substeps_till_collision(
             .load(std::sync::atomic::Ordering::Relaxed);
 
         if sensor_found {
-            debug!("Sensor collision found after {i} substeps");
+            info!("Sensor collision found after {i} substeps");
         }
 
         if i < prediction_settings.early_sensor_substeps {
@@ -127,7 +127,7 @@ pub fn substeps_till_collision(
         }
     }
 
-    debug!(
+    info!(
         "Minimum collisions found after {} substeps. {} collisions found",
         prediction_settings.max_substeps,
         event_handler

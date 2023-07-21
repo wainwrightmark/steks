@@ -74,7 +74,12 @@ pub enum ButtonAction {
     Unlock,
     NextLevelsPage,
     PreviousLevelsPage,
-    Credits
+    Credits,
+
+
+    GooglePlay,
+    Apple,
+    Steam
 }
 
 impl ButtonAction {
@@ -126,6 +131,10 @@ impl ButtonAction {
             Credits => "\u{e811}".to_string(),
             RestoreSplash => "\u{f149}".to_string(),
             MinimizeSplash => "\u{f148}".to_string(),
+
+            GooglePlay => "\u{f1a0}".to_string(),
+            Apple => "\u{f179}".to_string(),
+            Steam => "\u{f1b6}".to_string(),
         }
     }
 
@@ -164,7 +173,11 @@ impl ButtonAction {
             Unlock => "Unlock Game".to_string(),
             NextLevelsPage => "Next Levels".to_string(),
             PreviousLevelsPage => "Previous Levels".to_string(),
-            Credits=> "Credits".to_string()
+            Credits=> "Credits".to_string(),
+
+            GooglePlay=> "Google Play".to_string(),
+            Apple=> "Apple".to_string(),
+            Steam=> "Steam".to_string(),
         }
     }
 }

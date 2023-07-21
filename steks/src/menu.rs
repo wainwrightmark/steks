@@ -205,6 +205,8 @@ fn button_system(
 
                 PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
                 Credits => change_level_events.send(ChangeLevelEvent::Credits),
+
+                Steam | GooglePlay | Apple => {}
             }
 
             match button.button_action {

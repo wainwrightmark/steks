@@ -52,13 +52,14 @@ impl PartialEq for GameShape {
 
 impl GameShape {
     pub fn default_fill_color(&self) -> Color {
-        let alt = match self.index.0 {
+        let index = match self.index.0 {
 
-            2 | 6  => true,
-            _ => false,
+            2  => 4,
+            4 => 2,
+            i => i,
         };
 
-        choose_color(self.index.0, alt)
+        choose_color(index, false)
     }
 
     pub fn fill(&self) -> Fill {

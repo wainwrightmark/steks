@@ -1,7 +1,7 @@
-use std::collections::VecDeque;
+use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use crate::prelude::*;
+use std::collections::VecDeque;
 
 pub fn spawn_and_update_shapes(
     mut commands: Commands,
@@ -24,32 +24,42 @@ pub fn spawn_and_update_shapes(
     creation_queue.extend(creations.iter());
     update_queue.extend(updates.iter());
 
-    //info!("Spawn and update shapes {} {}", creation_queue.len(), update_queue.len());
-    let changed = if let Some(creation) = creation_queue.pop() {
-        let mut rng = rand::thread_rng();
+    let mut changed = false;
 
-        place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng);
-        true
-    } else if let Some(update) = update_queue.pop_front() {
-        if let Some((existing_entity, _, shape_component, shape_index, transform)) =
-            existing_query.iter().find(|x| x.1.id == update.id)
-        {
-            let prev: &'static GameShape = (*shape_index).into();
-            update.update_shape(
-                &mut commands,
-                existing_entity,
-                prev,
-                shape_component,
-                transform,
-            );
-            true
-        } else {
-            error!("Could not find shape with id {}", update.id);
-            false
+    'creation: while !creation_queue.is_empty() || !update_queue.is_empty() {
+        if changed {
+            if let Some(next) = creation_queue.first() {
+                if next.location.is_none() {
+                    break 'creation; //we need to wait before creating this shape
+                }
+            }
         }
-    } else {
-        false
-    };
+
+        if let Some(creation) = creation_queue.pop() {
+            let mut rng = rand::thread_rng();
+
+            place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng);
+            changed = true;
+        } else if let Some(update) = update_queue.pop_front() {
+            if let Some((existing_entity, _, shape_component, shape_index, transform)) =
+                existing_query.iter().find(|x| x.1.id == update.id)
+            {
+                let prev: &'static GameShape = (*shape_index).into();
+                update.update_shape(
+                    &mut commands,
+                    existing_entity,
+                    prev,
+                    shape_component,
+                    transform,
+                );
+                changed = true;
+            } else {
+                error!("Could not find shape with id {}", update.id);
+            }
+        };
+    }
+
+    //info!("Spawn and update shapes {} {}", creation_queue.len(), update_queue.len());
 
     if changed {
         *recently_finished = true;

@@ -1,11 +1,5 @@
-use bevy::{
-    core_pipeline::{bloom::BloomSettings, tonemapping::Tonemapping},
-    prelude::*,
-};
-
 use crate::shape_maker::Shadow;
-
-// use crate::ZOOM_ENTITY_LAYER;
+use bevy::prelude::*;
 
 pub struct CameraPlugin;
 
@@ -21,17 +15,10 @@ impl Plugin for CameraPlugin {
 pub const ZOOM_LEVEL: f32 = 3.;
 
 pub fn camera_setup(mut commands: Commands) {
-    commands.spawn((
-        Camera2dBundle {
-            camera: Camera {
-                //      hdr: true, // 1. HDR is required for bloom
-                ..default()
-            },
-            //tonemapping: Tonemapping::TonyMcMapface, // 2. Using a tonemapper that desaturates to white is recommended
-            ..default()
-        },
-        //BloomSettings::default(), // 3. Enable bloom for the camera
-    ));
+    commands.spawn((Camera2dBundle {
+        camera: Camera { ..default() },
+        ..default()
+    },));
 }
 
 #[derive(Component)]

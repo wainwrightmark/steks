@@ -1,6 +1,9 @@
 pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
+use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
+
+
 
 pub fn main() {
     // When building for WASM, print panics to the browser console
@@ -70,6 +73,7 @@ pub fn main() {
         .add_plugins(SharePlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
+
         //.add_plugins(RecordingPlugin)
         .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
@@ -90,6 +94,10 @@ pub fn main() {
     }
 
     if cfg!(debug_assertions) {
+
+        builder.add_plugins( ScreenDiagnosticsPlugin::default());
+        builder.add_plugins(ScreenFrameDiagnosticsPlugin);
+
         //builder.add_plugins(RapierDebugRenderPlugin::default());
         //builder.add_plugins(ScreenDiagsPlugin);
         // builder.add_plugins(bevy::diagnostic::LogDiagnosticsPlugin::default());

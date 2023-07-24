@@ -27,6 +27,7 @@ lazy_static = "1.4.0"
 serde_yaml = "0.9.21"
 async-channel = "1.8.0"
 steks_common = {path= "../steks_common"}
+bevy_screen_diagnostics = "0.3.0"
 
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

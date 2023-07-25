@@ -5,7 +5,6 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 use strum::EnumIs;
 
-
 use crate::prelude::*;
 
 #[derive(
@@ -21,7 +20,7 @@ use crate::prelude::*;
     TryFromPrimitive,
     Ord,
     PartialOrd,
-    EnumIs
+    EnumIs,
 )]
 #[repr(u8)]
 
@@ -78,7 +77,7 @@ impl ShapeModifiers {
             ShapeModifiers::Normal => None,
             ShapeModifiers::Ice => Some(Stroke {
                 color: ICE_SHAPE_STROKE,
-                options: StrokeOptions::default().with_line_width(1.0),
+                options: StrokeOptions::default().with_line_width(SHAPE_STROKE_WIDTH),
             }),
         }
     }
@@ -105,12 +104,12 @@ impl ShapeState {
         if *self == ShapeState::Fixed {
             Some(Stroke {
                 color: FIXED_SHAPE_STROKE,
-                options: StrokeOptions::default().with_line_width(1.0),
+                options: StrokeOptions::default().with_line_width(SHAPE_STROKE_WIDTH),
             })
         } else if *self == ShapeState::Void {
             Some(Stroke {
                 color: VOID_SHAPE_STROKE,
-                options: StrokeOptions::default().with_line_width(1.0),
+                options: StrokeOptions::default().with_line_width(SHAPE_STROKE_WIDTH),
             })
         } else {
             None

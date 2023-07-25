@@ -83,3 +83,5 @@ pub const BUTTON_FONT_SIZE: f32 = 22.0;
 pub const LEVEL_TITLE_FONT_SIZE: f32 = 30.0;
 pub const LEVEL_TEXT_FONT_SIZE: f32 = 20.0;
 pub const LEVEL_NUMBER_FONT_SIZE: f32 = 30.0;
+
+pub const SHAPE_STROKE_WIDTH: f32 = 2.0;

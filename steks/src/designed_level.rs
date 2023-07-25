@@ -63,6 +63,10 @@ pub struct DesignedLevel {
     #[serde(default)]
     #[serde(alias = "End_fireworks")]
     pub end_fireworks: FireworksSettings,
+
+    #[serde(default)]
+    #[serde(alias = "Show_rotate")]
+    pub show_rotate: bool
 }
 
 impl DesignedLevel {

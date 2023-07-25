@@ -1,8 +1,10 @@
+use bevy_prototype_lyon::prelude::Path;
 use steks_common::constants;
 use strum::EnumIs;
 
 use crate::input;
 use crate::prelude::*;
+use std::f32::consts::TAU;
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
@@ -44,6 +46,7 @@ impl Plugin for DragPlugin {
             .add_systems(Update, detach_stuck_shapes_on_pickup)
             .add_systems(Update, apply_forces.after(handle_rotate_events))
             .add_systems(Update, handle_drag_changes.after(apply_forces))
+            .add_systems(Update, draw_rotate_arrows)
             .add_event::<RotateEvent>()
             .add_event::<ShapePickedUpEvent>()
             .add_event::<DragStartEvent>()
@@ -254,20 +257,110 @@ pub fn drag_move(
         } else if let DragSource::Touch { touch_id } = event.drag_source {
             if let Some(mut rotate) = touch_rotate.0 {
                 if rotate.touch_id == touch_id {
-                    let previous_angle = rotate.centre.angle_between(rotate.previous);
+                    let previous_angle = rotate.centre.angle_between(rotate.current);
                     let new_angle = rotate.centre.angle_between(event.new_position);
 
                     let angle = (new_angle - previous_angle) * constants::ROTATION_COEFFICIENT;
-
-                    //info!("Touch Rotate: angle: {angle} center {}, previous {} new position {} prev_angle {} new_angle {}", rotate.centre, rotate.previous, event.new_position, previous_angle, new_angle);
 
                     ev_rotate.send(RotateEvent {
                         angle,
                         snap_resolution: None,
                     });
-                    rotate.previous = event.new_position;
+                    rotate.current = event.new_position;
                     *touch_rotate = TouchRotateResource(Some(rotate));
                 }
+            }
+        }
+    }
+}
+
+#[derive(Component)]
+struct RotateArrow;
+
+fn closest_angle_representation(radians: f32, close_to: f32) -> f32 {
+    let options = [radians, radians + TAU, radians - TAU];
+
+    options
+        .into_iter()
+        .min_by(|&a, &b| (a - close_to).abs().total_cmp(&(b - &close_to).abs()))
+        .unwrap()
+}
+
+fn draw_rotate_arrows(
+    mut commands: Commands,
+    touch_rotate: Res<TouchRotateResource>,
+    mut query: Query<(Entity, &mut Path), With<RotateArrow>>,
+    mut previous_angle: Local<Option<f32>>,
+    current_level: Res<CurrentLevel>
+) {
+    if touch_rotate.is_changed() {
+
+        if !current_level.show_rotate_arrow(){
+            for e in query.iter() {
+                commands.entity(e.0).despawn_recursive();
+            }
+
+            *previous_angle = None;
+            return;
+        }
+
+        match touch_rotate.0 {
+            Some(touch) => {
+                //let mut svg_path = bevy_prototype_lyon::
+
+                let mut path = bevy_prototype_lyon::path::PathBuilder::new();
+                let dist = touch.centre.distance(touch.start);
+
+
+                let current_angle = touch.centre.angle_between(touch.current);
+                let start_angle = touch.centre.angle_between(touch.start);
+
+                let sweep_angle = closest_angle_representation(
+                    current_angle - start_angle,
+                    previous_angle.unwrap_or_default(),
+                );
+
+                *previous_angle = Some(sweep_angle);
+
+                const MIN_SWEEP_RADIANS: f32 = 0.05 * TAU;
+                const ARROW_WIDTH: f32 = 12.0;
+                const ARROW_LENGTH: f32 = 200.0;
+
+                if sweep_angle.abs() > MIN_SWEEP_RADIANS{
+                    let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (dist * TAU);
+                    path.move_to(touch.start);
+                    path.arc(touch.centre, Vec2 { x: dist, y: dist }, sweep_angle -arrow_angle, 0.0);
+                    let arrow_point = path.current_position();
+
+                    path.arc(touch.centre, Vec2 { x: dist, y: dist }, arrow_angle, 0.0);
+                    //let arc_end = path.current_position();
+                    path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
+                    //path.move_to(arc_end);
+                    //path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
+                    path.line_to(arrow_point);
+                }
+
+                if let Some(mut p) = query.iter_mut().next() {
+                    *p.1 = path.build();
+                } else {
+                    commands
+                        .spawn((
+                            bevy_prototype_lyon::prelude::ShapeBundle {
+                                path: path.build(),
+                                ..default()
+                            },
+                            bevy_prototype_lyon::prelude::Stroke::new(Color::BLACK, 10.0),
+                        ))
+                        .insert(Transform::from_translation(Vec3::Z * 50.0))
+                        .insert(RotateArrow);
+                }
+            }
+            None => {
+                for e in query.iter() {
+                    commands.entity(e.0).despawn_recursive();
+                }
+
+                *previous_angle = None;
             }
         }
     }
@@ -357,7 +450,8 @@ pub fn drag_start(
         } else if let DragSource::Touch { touch_id } = event.drag_source {
             if let Some((_, transform)) = draggables.iter().find(|x| x.0.touch_id().is_some()) {
                 *touch_rotate = TouchRotateResource(Some(TouchRotate {
-                    previous: event.position,
+                    start: event.position,
+                    current: event.position,
                     centre: transform.translation.truncate(),
                     touch_id,
                 }));
@@ -456,7 +550,8 @@ pub struct TouchRotateResource(Option<TouchRotate>);
 
 #[derive(Copy, Clone)]
 pub struct TouchRotate {
-    pub previous: Vec2,
+    pub start: Vec2,
+    pub current: Vec2,
     pub centre: Vec2,
     pub touch_id: u64,
 }

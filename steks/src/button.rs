@@ -33,7 +33,7 @@ impl ButtonType {
             return DISABLED_BUTTON_BACKGROUND.into();
         }
 
-        const ICON_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.3);
+        const ICON_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.0);
         const ICON_PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
 
         const TEXT_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.9);

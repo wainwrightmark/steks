@@ -189,6 +189,15 @@ impl CurrentLevel {
         }
     }
 
+    pub fn show_rotate_arrow(&self)-> bool{
+        match &self.level {
+            GameLevel::Designed { meta } => {
+                meta.get_level().show_rotate
+            },
+            _=> false
+        }
+    }
+
     pub fn get_title(&self) -> Option<String> {
         match &self.level {
             GameLevel::Designed { meta, .. } => meta.get_level().title.clone(),
@@ -735,6 +744,7 @@ impl ChangeLevelEvent {
                     initial_stage,
                     stages: vec![],
                     end_text: None,
+                    show_rotate: false,
                     end_fireworks: FireworksSettings::default(),
                 };
 

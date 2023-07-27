@@ -66,6 +66,10 @@ pub struct DesignedLevel {
 
     #[serde(default)]
     #[serde(alias = "Show_rotate")]
+    #[serde(alias = "Show_arrow")]
+    #[serde(alias = "Show_arrows")]
+    #[serde(alias = "show_arrow")]
+    #[serde(alias = "show_arrows")]
     pub show_rotate: bool,
 
     #[serde(default)]

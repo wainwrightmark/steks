@@ -257,10 +257,10 @@ pub fn drag_move(
         } else if let DragSource::Touch { touch_id } = event.drag_source {
             if let Some(mut rotate) = touch_rotate.0 {
                 if rotate.touch_id == touch_id {
-                    let previous_angle = rotate.centre.angle_between(rotate.current);
-                    let new_angle = rotate.centre.angle_between(event.new_position);
+                    let new_angle = angle_to(event.new_position - rotate.centre);
+                    let previous_angle = angle_to(rotate.current - rotate.centre);
 
-                    let angle = (new_angle - previous_angle) * constants::ROTATION_COEFFICIENT;
+                    let angle = (previous_angle - new_angle) * constants::ROTATION_COEFFICIENT;
 
                     ev_rotate.send(RotateEvent {
                         angle,
@@ -286,16 +286,20 @@ fn closest_angle_representation(radians: f32, close_to: f32) -> f32 {
         .unwrap()
 }
 
+fn angle_to(v: Vec2) -> f32 {
+    v.x.atan2(v.y)
+}
+
 fn draw_rotate_arrows(
     mut commands: Commands,
     touch_rotate: Res<TouchRotateResource>,
     mut query: Query<(Entity, &mut Path), With<RotateArrow>>,
     mut previous_angle: Local<Option<f32>>,
-    current_level: Res<CurrentLevel>
+    current_level: Res<CurrentLevel>,
+    //mut gizmos: Gizmos,
 ) {
     if touch_rotate.is_changed() {
-
-        if !current_level.show_rotate_arrow(){
+        if !current_level.show_rotate_arrow() {
             for e in query.iter() {
                 commands.entity(e.0).despawn_recursive();
             }
@@ -306,37 +310,49 @@ fn draw_rotate_arrows(
 
         match touch_rotate.0 {
             Some(touch) => {
-                //let mut svg_path = bevy_prototype_lyon::
 
                 let mut path = bevy_prototype_lyon::path::PathBuilder::new();
                 let dist = touch.centre.distance(touch.start);
 
-
-                let current_angle = touch.centre.angle_between(touch.current);
-                let start_angle = touch.centre.angle_between(touch.start);
+                let current_angle = angle_to(touch.current - touch.centre);
+                let start_angle = angle_to(touch.start - touch.centre);
 
                 let sweep_angle = closest_angle_representation(
-                    current_angle - start_angle,
+                    start_angle - current_angle,
                     previous_angle.unwrap_or_default(),
                 );
 
                 *previous_angle = Some(sweep_angle);
 
-                const MIN_SWEEP_RADIANS: f32 = 0.05 * TAU;
-                const ARROW_WIDTH: f32 = 12.0;
-                const ARROW_LENGTH: f32 = 200.0;
+                //const MIN_SWEEP_RADIANS: f32 = 0.0 * TAU;
+                const ARROW_WIDTH: f32 = 6.0;
+                const ARROW_LENGTH: f32 = 100.0;
+                let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (dist * TAU);
+                if sweep_angle.abs() > arrow_angle.abs() {
 
-                if sweep_angle.abs() > MIN_SWEEP_RADIANS{
-                    let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (dist * TAU);
                     path.move_to(touch.start);
-                    path.arc(touch.centre, Vec2 { x: dist, y: dist }, sweep_angle -arrow_angle, 0.0);
+                    path.arc(
+                        touch.centre,
+                        Vec2 { x: dist, y: dist },
+                        sweep_angle - arrow_angle,
+                        0.0,
+                    );
                     let arrow_point = path.current_position();
 
-                    path.arc(touch.centre, Vec2 { x: dist, y: dist }, arrow_angle, 0.0);
+                    //path.
+
+                    //path.arc(touch.centre, Vec2 { x: dist, y: dist }, arrow_angle, 0.0);
                     //let arc_end = path.current_position();
-                    path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
+                    path.line_to(arrow_point.lerp(touch.centre, ARROW_WIDTH / dist));
+
+                    let path_end = touch.centre.lerp(touch.current, dist / (touch.current.distance(touch.centre)));
+                    path.line_to(path_end);
+
                     //path.move_to(arc_end);
-                    //path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
+                    path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
+
+
+
                     path.line_to(arrow_point);
                 }
 

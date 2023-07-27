@@ -142,7 +142,6 @@ fn button_system(
     mut change_level_events: EventWriter<ChangeLevelEvent>,
     mut share_events: EventWriter<ShareEvent>,
     mut import_events: EventWriter<ImportEvent>,
-    mut purchase_events: EventWriter<TryPurchaseEvent>,
 
     mut menu_state: ResMut<UIState>,
 
@@ -197,9 +196,6 @@ fn button_system(
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })
                         .detach();
-                }
-                Unlock => {
-                    purchase_events.send(TryPurchaseEvent);
                 }
                 NextLevelsPage => menu_state.as_mut().next_levels_page(),
 

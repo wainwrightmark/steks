@@ -17,8 +17,8 @@ pub mod lens;
 pub mod level;
 pub mod level_ui;
 pub mod menu;
-pub mod prediction;
 pub mod padlock;
+pub mod prediction;
 pub mod rain;
 pub mod shape_component;
 pub mod shape_creation_data;
@@ -38,8 +38,6 @@ pub mod logging;
 pub mod notifications;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
-
-pub mod purchases;
 
 pub mod prelude {
 
@@ -89,8 +87,6 @@ pub mod prelude {
     pub use crate::notifications::*;
     #[cfg(target_arch = "wasm32")]
     pub use crate::wasm::*;
-
-    pub use crate::purchases::*;
 }
 
 pub fn main() {

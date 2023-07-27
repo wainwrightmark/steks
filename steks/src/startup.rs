@@ -69,7 +69,6 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(SharePlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
-        .add_plugins(PurchasesPlugin)
         //.add_plugins(RecordingPlugin)
         .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
@@ -83,7 +82,7 @@ pub fn setup_app(app: &mut App) {
     #[cfg(target_arch = "wasm32")]
     {
         app.add_plugins(WASMPlugin);
-        //builder.add_plugins(PurchasesPlugin);
+
         if !cfg!(debug_assertions) {
             app.add_plugins(NotificationPlugin);
         }

@@ -27,8 +27,6 @@ pub enum ButtonType {
 
 impl ButtonType {
     pub fn background_color(&self, interaction: &Interaction, disabled: bool) -> BackgroundColor {
-
-
         if disabled {
             return DISABLED_BUTTON_BACKGROUND.into();
         }
@@ -71,15 +69,14 @@ pub enum ButtonAction {
     MinimizeSplash,
     RestoreSplash,
     MinimizeApp,
-    Unlock,
+
     NextLevelsPage,
     PreviousLevelsPage,
     Credits,
 
-
     GooglePlay,
     Apple,
-    Steam
+    Steam,
 }
 
 impl ButtonAction {
@@ -87,24 +84,17 @@ impl ButtonAction {
         use ButtonAction::*;
         &[
             Resume,
-
             ChooseLevel,
             DailyChallenge,
             Infinite,
             Tutorial,
             Share,
-
-            #[cfg(all(any(feature = "android", feature = "ios"), target_arch = "wasm32"))]
-            Unlock,
-
             ClipboardImport, //TODO
-
             #[cfg(all(feature = "web", target_arch = "wasm32"))]
             GoFullscreen,
             #[cfg(all(feature = "android", target_arch = "wasm32"))]
             MinimizeApp,
-
-            Credits
+            Credits,
         ]
     }
 
@@ -112,20 +102,19 @@ impl ButtonAction {
         use ButtonAction::*;
         match self {
             OpenMenu => "\u{f0c9}".to_string(),       // "Menu",
-            Resume => "\u{e817}".to_string(),      // "Menu",
+            Resume => "\u{e817}".to_string(),         // "Menu",
             ResetLevel => "\u{e800}".to_string(),     //"Reset Level",image
             GoFullscreen => "\u{f0b2}".to_string(),   //"Fullscreen",
             Tutorial => "\u{e801}".to_string(),       //"Tutorial",
             Infinite => "\u{e802}".to_string(),       //"Infinite",
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
-            ChooseLevel => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
+            ChooseLevel => "\u{e812}".to_string(),    // "\u{e812};".to_string(),
             GotoLevel { level } => crate::designed_level::format_campaign_level_number(level),
-            NextLevel => "\u{e808}".to_string(),          //play
+            NextLevel => "\u{e808}".to_string(), //play
 
-            MinimizeApp => "\u{e813}".to_string(),        //logout
-            ClipboardImport => "\u{e818}".to_string(),    //clipboard
-            Unlock => "\u{f513}".to_string(),           //unlock
+            MinimizeApp => "\u{e813}".to_string(),     //logout
+            ClipboardImport => "\u{e818}".to_string(), //clipboard
             PreviousLevelsPage => "\u{e81b}".to_string(),
             NextLevelsPage => "\u{e81a}".to_string(),
             Credits => "\u{e811}".to_string(),
@@ -170,14 +159,13 @@ impl ButtonAction {
             MinimizeSplash => "Minimize Splash".to_string(),
             RestoreSplash => "Restore Splash".to_string(),
             MinimizeApp => "Quit".to_string(),
-            Unlock => "Unlock Game".to_string(),
             NextLevelsPage => "Next Levels".to_string(),
             PreviousLevelsPage => "Previous Levels".to_string(),
-            Credits=> "Credits".to_string(),
+            Credits => "Credits".to_string(),
 
-            GooglePlay=> "Google Play".to_string(),
-            Apple=> "Apple".to_string(),
-            Steam=> "Steam".to_string(),
+            GooglePlay => "Google Play".to_string(),
+            Apple => "Apple".to_string(),
+            Steam => "Steam".to_string(),
         }
     }
 }
@@ -199,7 +187,6 @@ pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
         ..default()
     }
 }
-
 
 pub fn spawn_text_button(
     parent: &mut ChildBuilder,

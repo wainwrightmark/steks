@@ -112,7 +112,7 @@
     - shape: F5
 
 #9
-- title: "At an angle"
+- title: "At An Angle"
   text: 
   end_text: "That's acute tower"
   shapes:
@@ -130,7 +130,7 @@
 
 
 
-#9
+#10
 - title: "Tri Hard II: Tri Harder"
   end_text: "Yippee-Ki-Yay!"
   shapes:
@@ -142,7 +142,7 @@
     - shape: U5
     - shape: Triangle
 
-#10
+#11
 - title: "Avoid The Void"
   text: "build around or under it"
   end_text: "Void avoided"
@@ -165,7 +165,7 @@
     - shape: Z4
 
 
-#11
+#12
 - title: "Things Are Looking Up"
   end_text: "Is that the end of Dr. Gravity?"
   shapes:
@@ -184,7 +184,7 @@
         - shape: X5
         - shape: I5
 
-#12
+#13
 - title: "The Empire Steks Building"
   end_text: "Proud of your tower?\nHit  to show it off!"
   shapes:
@@ -197,7 +197,7 @@
     - shape: L4
     - shape: J4
 
-#13
+#14
 - title: "The Steks Factor"
   end_text: "That was just the audition"
   shapes:
@@ -210,7 +210,7 @@
     - shape: circle
     - shape: triangle
 
-#14
+#15
 - title: "Excess"
   end_text: "Touchdown! Great play, coach."
   shapes:
@@ -257,7 +257,7 @@
     - shape: T4
     - shape: J4
 
-#15
+#16
 - title: "The Joy Of Steks"
   end_text: "Extremely satisfactory"
   shapes:
@@ -270,7 +270,7 @@
     - shape: J4
     - shape: J4
 
-#16
+#17
 - title: Ice Ice Baby
   text: a brand new invention
   shapes:
@@ -290,7 +290,7 @@
       modifiers: Ice
   end_text: "Yo, you solved it!"
 
-#17
+#18
 - title: "Double Trouble"
   end_text: "Two thumbs up!"
   shapes:
@@ -302,7 +302,7 @@
     - shape: F5
     - shape: W5
     - shape: W5
-#18
+#19
 - title: "Galileo's Folly" 
   text: "Dr. Gravity is making things harder"
   end_text: "Dr. Gravity has gone too far!"
@@ -320,7 +320,7 @@
     - shape: S4
     - shape: J4
     - shape: T4
-#19
+#20
 - title: "Circular Logic"
   end_text: "You're a success 'cos you succeeded\nYou succeeded 'cos you're a success"
   shapes:
@@ -332,7 +332,7 @@
     - shape: X5
     - shape: Circle
     - shape: Circle
-#20
+#21
 - title: "Tri Hard with A Vengeance"
   end_text: "Just a fly in the ointment, Hans"
   shapes:
@@ -353,6 +353,7 @@
     shapes:
       - Triangle
 
+#22
 - title: "Antarctica"
   text:
   gravity:
@@ -376,7 +377,7 @@
   end_text: "Great Scott!"
 
 
-#21
+#23
 - title: "Marvin"
   text: "the paranoid and void"
   end_text: "So long and thanks\nfor all the shapes"
@@ -399,7 +400,7 @@
     - shape: Z4
     - shape: T4
 
-#22
+#24
 - title: "Deus Steks Machina"
   end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
   shapes:
@@ -465,7 +466,7 @@
       x: 110.0
       y: 115.0
 
-#23
+#26
 - title: "The Steks Files"
   end_text: "The truth is out there"
   shapes:
@@ -479,7 +480,7 @@
     - shape: Z4
     - shape: F5
 
-#24
+#27
 - title: "Steks Storm"
   end_text: "You weathered that ok"
   rainfall:
@@ -494,8 +495,9 @@
     - shape: I5
     - shape: Z4
     
+#28
 - title: "Platform Game"
-  text: ""
+  text: "Dr. Gravity's polar base\nis guarded by penguins"
   end_text: "Built a crazy tower?\nTag us on social media!"
   shapes:
     - shape: L4

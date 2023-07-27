@@ -16,3 +16,4 @@ package.json
 android/capacitor.settings.gradle
 android/app/capacitor.build.gradle
 android/.idea/deploymentTargetDropDown.xml
+netlify/functions/image/parse_test_no_overlay.png

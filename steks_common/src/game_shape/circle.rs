@@ -5,7 +5,7 @@ use bevy_prototype_lyon::{
 };
 use bevy_rapier2d::prelude::Collider;
 
-use crate::prelude::{color_to_svg_fill, color_to_svg_stroke};
+use crate::prelude::{svg_style};
 
 use super::GameShapeBody;
 
@@ -38,14 +38,8 @@ impl GameShapeBody for Circle {
 
     fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String {
         let size = size * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
-        let stroke_width = if stroke.is_some() {
-            "stroke-width=\"1\""
-        } else {
-            "stroke-width=\"0\""
-        };
-        let fill = color_to_svg_fill(fill);
-        let stroke = color_to_svg_stroke(stroke);
+        let style = svg_style(fill, stroke);
 
-        format!(r#"<circle r="{size}" {fill} {stroke} {stroke_width}  />"#)
+        format!(r#"<circle r="{size}" {style}  />"#)
     }
 }

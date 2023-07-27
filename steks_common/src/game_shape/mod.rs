@@ -1,6 +1,11 @@
 use std::fmt::Debug;
 
-use crate::{color::choose_color, location::Location, shape_index::ShapeIndex};
+use crate::{
+    color::choose_color,
+    location::Location,
+    prelude::{color_to_rgb_and_opacity, FIXED_STROKE_WIDTH},
+    shape_index::ShapeIndex,
+};
 
 use bevy::prelude::{Color, Rect};
 use bevy_prototype_lyon::prelude::*;
@@ -53,8 +58,7 @@ impl PartialEq for GameShape {
 impl GameShape {
     pub fn default_fill_color(&self) -> Color {
         let index = match self.index.0 {
-
-            2  => 4,
+            2 => 4,
             4 => 2,
             i => i,
         };
@@ -149,3 +153,36 @@ const STEKS_FREE_PENTOMINOS: [Polyomino<5>; 12] = [
 
 const STEKS_FREE_PENTOMINO_NAMES: [&'static str; 12] =
     ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "S"];
+
+pub fn svg_style(fill: Option<Color>, stroke: Option<Color>) -> String {
+
+    let mut result = "".to_string();
+
+    if let Some(fill) = fill{
+        let (fill, opacity) = color_to_rgb_and_opacity(fill);
+        result.push_str(r#"fill=""#);
+        result.push_str(fill.as_str());
+        result.push('"');
+
+        if let Some(opacity) = opacity{
+            result.push_str(r#"fill-opacity=""#);
+            result.push_str(opacity.to_string().as_str());
+            result.push('"');
+        }
+    }
+
+    if let Some(stroke) = stroke{
+        let (stroke, opacity) = color_to_rgb_and_opacity(stroke);
+        result.push_str(r#"stroke=""#);
+        result.push_str(stroke.as_str());
+        result.push('"');
+
+        if let Some(opacity) = opacity{
+            result.push_str(r#"stroke-opacity=""#);
+            result.push_str(opacity.to_string().as_str());
+            result.push('"');
+        }
+    }
+
+    result
+}

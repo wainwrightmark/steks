@@ -48,30 +48,39 @@ pub fn choose_color(index: usize, alt: bool) -> Color {
     Color::hsla(hue, saturation, lightness, alpha)
 }
 
-pub fn color_to_rgba(color: Color) -> String {
+pub fn color_to_rgb_and_opacity(color: Color) -> (String, Option<f32>) {
     let [r, g, b, a] = color.as_rgba_u32().to_le_bytes();
-    format!("#{:02X}{:02X}{:02X}{:02X}", r, g, b, a)
+
+    let c = format!("#{:02X}{:02X}{:02X}", r, g, b);
+    if a == u8::MAX{
+        (c, None)
+    }else{
+        let alpha = color.a();
+        (c, Some(alpha))
+    }
+
+
 }
 
-pub fn color_to_svg_fill(color: Option<Color>) -> String {
-    match color {
-        Some(color) => {
-            let rgba = color_to_rgba(color);
-            format!("fill=\"{rgba}\"")
-        }
-        None => "".to_string(),
-    }
-}
+// pub fn color_to_svg_fill(color: Option<Color>) -> String {
+//     match color {
+//         Some(color) => {
+//             let rgba = color_to_rgba(color);
+//             format!("fill=\"{rgba}\"")
+//         }
+//         None => "".to_string(),
+//     }
+// }
 
-pub fn color_to_svg_stroke(color: Option<Color>) -> String {
-    match color {
-        Some(color) => {
-            let rgba = color_to_rgba(color);
-            format!("stroke=\"{rgba}\"")
-        }
-        None => "".to_string(),
-    }
-}
+// pub fn color_to_svg_stroke(color: Option<Color>) -> String {
+//     match color {
+//         Some(color) => {
+//             let rgba = color_to_rgba(color);
+//             format!("stroke=\"{rgba}\"")
+//         }
+//         None => "".to_string(),
+//     }
+// }
 
 #[cfg(test)]
 mod tests {

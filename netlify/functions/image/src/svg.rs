@@ -7,7 +7,7 @@ const SHAPE_SIZE: f32 = 50.0;
 
 pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I) -> String {
     let mut str: String = "".to_owned();
-    let background = color_to_rgba(BACKGROUND_COLOR);
+    //let (background_color, _) = color_to_rgb_and_opacity(BACKGROUND_COLOR);
 
     str.push('\n');
     for shape in iterator {
@@ -38,7 +38,7 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I) -> String
     format!(
         r#"<svg
         viewbox = "0 0 {WIDTH} {HEIGHT}"
-        xmlns="http://www.w3.org/2000/svg" fill="{background}">
+        xmlns="http://www.w3.org/2000/svg">
         <g transform="translate({left} {top}) scale(1,-1) ">
         {str}
         </g>

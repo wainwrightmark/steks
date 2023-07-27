@@ -87,14 +87,8 @@ impl<const S: usize> GameShapeBody for Triangle<S> {
 
         let path =
             crate::game_shape::rounded_polygon::make_rounded_polygon_path(&points, size / 10.0);
-        let stroke_width = if stroke.is_some() {
-            "stroke-width=\"1\""
-        } else {
-            "stroke-width=\"0\""
-        };
-        let fill = color_to_svg_fill(fill);
-        let stroke = color_to_svg_stroke(stroke);
+        let style = svg_style(fill, stroke);
 
-        format!(r#"<path {fill} {stroke} {stroke_width} d="{path}"  />"#)
+        format!(r#"<path {style} d="{path}"  />"#)
     }
 }

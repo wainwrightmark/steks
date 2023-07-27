@@ -1,4 +1,6 @@
 pub mod svg;
+
+use aws_lambda_events::query_map::QueryMap;
 use base64::Engine;
 pub use steks_common::prelude::*;
 
@@ -37,17 +39,66 @@ pub(crate) async fn my_handler(
         .next()
         .unwrap_or_else(|| "myriad123");
 
-    let data = draw_image(game);
+    let result_type: ResultType = ResultType::from_query_map(&e.payload.query_string_parameters);
+
+    let body = result_type.get_response_body(game);
 
     let resp = ApiGatewayProxyResponse {
         status_code: 200,
         headers,
         multi_value_headers: HeaderMap::new(),
-        body: Some(Body::Binary(data)),
+        body: Some(body),
         is_base64_encoded: true,
     };
 
     Ok(resp)
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
+pub enum ResultType {
+    #[default]
+    Default,
+    NoOverlay,
+    SVG,
+    //TODO level yaml
+}
+
+impl ResultType {
+    pub fn from_query_map(query_map: &QueryMap) -> Self {
+        let r = query_map
+            .iter()
+            .filter(|x| x.0.eq_ignore_ascii_case("format"))
+            .map(|x| x.1.to_ascii_lowercase())
+            .next()
+            .unwrap_or_default();
+
+
+        match r.as_str() {
+            "default" | "" => Self::Default,
+            //spellchecker:disable-next-line
+            "nooverlay" => Self::NoOverlay,
+            "svg" => Self::SVG,
+            _=> Self::Default
+        }
+    }
+
+    pub fn get_response_body(&self, game: &str) -> Body {
+        match self {
+            ResultType::Default => {
+                let data = draw_image(game, true);
+                Body::Binary(data)
+            }
+            ResultType::NoOverlay => {
+                let data = draw_image(game, false);
+                Body::Binary(data)
+            }
+            ResultType::SVG => {
+                let data = make_svg_from_data(game);
+
+                Body::Text(data)
+            }
+        }
+    }
 }
 
 fn make_svg_from_data(data: &str) -> String {
@@ -59,18 +110,11 @@ fn make_svg_from_data(data: &str) -> String {
     svg
 }
 
-fn draw_image(game: &str) -> Vec<u8> {
+fn draw_image(game: &str, include_overlay: bool) -> Vec<u8> {
     let opt: resvg::usvg::Options = Default::default();
     let svg_data = make_svg_from_data(game);
 
     let mut game_tree = match Tree::from_data(&svg_data.as_bytes(), &opt) {
-        Ok(tree) => tree,
-        Err(e) => panic!("{e}"),
-    };
-
-    let logo_bytes = include_bytes!("logo_monochrome.svg");
-
-    let logo_tree = match Tree::from_data(logo_bytes, &opt) {
         Ok(tree) => tree,
         Err(e) => panic!("{e}"),
     };
@@ -116,19 +160,28 @@ fn draw_image(game: &str) -> Vec<u8> {
         &mut pixmap.as_mut(),
     );
 
-    let logo_scale = WIDTH as f32 / logo_tree.size.width() as f32;
-    resvg::Tree::render(
-        &resvg::Tree::from_usvg(&logo_tree),
-        Transform::from_scale(logo_scale, logo_scale),
-        &mut pixmap.as_mut(),
-    );
+    if include_overlay {
+        let logo_bytes = include_bytes!("logo_monochrome.svg");
+
+        let logo_tree = match Tree::from_data(logo_bytes, &opt) {
+            Ok(tree) => tree,
+            Err(e) => panic!("{e}"),
+        };
+
+        let logo_scale = WIDTH as f32 / logo_tree.size.width() as f32;
+        resvg::Tree::render(
+            &resvg::Tree::from_usvg(&logo_tree),
+            Transform::from_scale(logo_scale, logo_scale),
+            &mut pixmap.as_mut(),
+        );
+    }
 
     pixmap.encode_png().expect("Could not encode png")
 }
 
 #[cfg(test)]
 mod tests {
-    use steks_common::prelude::{Location, ALL_SHAPES, SHAPE_SIZE, choose_color};
+    use steks_common::prelude::{choose_color, Location, ALL_SHAPES, SHAPE_SIZE};
 
     use crate::{draw_image, make_svg_from_data};
     use std::hash::{Hash, Hasher};
@@ -139,7 +192,7 @@ mod tests {
 
     #[test]
     fn generate_png_test() {
-        let data = draw_image(TEST_DATA);
+        let data = draw_image(TEST_DATA, true);
         let len = data.len();
         std::fs::write("parse_test.png", data.as_slice()).unwrap();
 
@@ -149,14 +202,29 @@ mod tests {
     }
 
     #[test]
+    fn generate_png_no_overlay() {
+        let data = draw_image(TEST_DATA, false);
+        let len = data.len();
+        std::fs::write("parse_test_no_overlay.png", data.as_slice()).unwrap();
+
+        assert!(len < 300000, "Image is too big - {len} bytes");
+        let hash = calculate_hash(&data);
+        insta::assert_debug_snapshot!(hash);
+    }
+
+    #[test]
     fn generate_svg_test() {
         let svg: String = make_svg_from_data(TEST_DATA);
+        let hash = calculate_hash(&svg);
         std::fs::write("og_example.svg", svg).unwrap();
+
+
+        insta::assert_debug_snapshot!(hash);
     }
 
     #[test]
     fn unknown_test() {
-        let data = draw_image("null");
+        let data = draw_image("null", true);
         let len = data.len();
         std::fs::write("unknown.png", data.as_slice()).unwrap();
 
@@ -216,14 +284,12 @@ mod tests {
 
         svg.push_str(r#"<svg width="500" height="1000" xmlns="http://www.w3.org/2000/svg">"#);
 
-
-        for alt in [false, true]{
-
+        for alt in [false, true] {
             for (index, shape) in ALL_SHAPES.iter().enumerate() {
                 svg.push('\n');
 
                 let x = ((index % 5) as f32 * 100.) + 50.;
-                let y = ((index / 5) as f32 * 100.) + 50. + if alt {500.} else{0.};
+                let y = ((index / 5) as f32 * 100.) + 50. + if alt { 500. } else { 0. };
 
                 let location = Location::new(x, y, 0.0);
 
@@ -235,9 +301,7 @@ mod tests {
 
                 let color = choose_color(index, alt);
 
-                let shape_svg = shape
-                    .body
-                    .as_svg(SHAPE_SIZE, Some(color), None);
+                let shape_svg = shape.body.as_svg(SHAPE_SIZE, Some(color), None);
 
                 println!("{shape_svg}");
                 svg.push_str(shape_svg.as_str());

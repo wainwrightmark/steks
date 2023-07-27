@@ -66,7 +66,12 @@ pub struct DesignedLevel {
 
     #[serde(default)]
     #[serde(alias = "Show_rotate")]
-    pub show_rotate: bool
+    pub show_rotate: bool,
+
+    #[serde(default)]
+    #[serde(alias = "Hide_shadows")]
+    pub hide_shadows: bool,
+
 }
 
 impl DesignedLevel {

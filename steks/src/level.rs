@@ -198,6 +198,15 @@ impl CurrentLevel {
         }
     }
 
+    pub fn hide_shadows(&self)-> bool{
+        match &self.level {
+            GameLevel::Designed { meta } => {
+                meta.get_level().hide_shadows
+            },
+            _=> false
+        }
+    }
+
     pub fn get_title(&self) -> Option<String> {
         match &self.level {
             GameLevel::Designed { meta, .. } => meta.get_level().title.clone(),
@@ -745,6 +754,7 @@ impl ChangeLevelEvent {
                     stages: vec![],
                     end_text: None,
                     show_rotate: false,
+                    hide_shadows: false,
                     end_fireworks: FireworksSettings::default(),
                 };
 

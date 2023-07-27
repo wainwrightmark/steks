@@ -310,7 +310,6 @@ fn draw_rotate_arrows(
 
         match touch_rotate.0 {
             Some(touch) => {
-
                 let mut path = bevy_prototype_lyon::path::PathBuilder::new();
                 let dist = touch.centre.distance(touch.start);
 
@@ -329,7 +328,6 @@ fn draw_rotate_arrows(
                 const ARROW_LENGTH: f32 = 100.0;
                 let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (dist * TAU);
                 if sweep_angle.abs() > arrow_angle.abs() {
-
                     path.move_to(touch.start);
                     path.arc(
                         touch.centre,
@@ -345,13 +343,13 @@ fn draw_rotate_arrows(
                     //let arc_end = path.current_position();
                     path.line_to(arrow_point.lerp(touch.centre, ARROW_WIDTH / dist));
 
-                    let path_end = touch.centre.lerp(touch.current, dist / (touch.current.distance(touch.centre)));
+                    let path_end = touch
+                        .centre
+                        .lerp(touch.current, dist / (touch.current.distance(touch.centre)));
                     path.line_to(path_end);
 
                     //path.move_to(arc_end);
                     path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
-
-
 
                     path.line_to(arrow_point);
                 }
@@ -436,9 +434,17 @@ pub fn drag_start(
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
 
     menu: Res<UIState>,
+    interactions: Query<&Interaction>,
 ) {
     for event in er_drag_start.iter() {
         if menu.is_show_main_menu() || menu.is_show_levels_page() {
+            continue;
+        }
+
+        if interactions
+            .iter()
+            .any(|x: &Interaction| x != &Interaction::None)
+        {
             continue;
         }
         //info!("Drag Started {:?}", event);

@@ -29,6 +29,19 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I) -> String
 
         str.push('\n');
 
+        if shape.state.is_locked() || shape.state.is_fixed(){
+            let scale_x = PADLOCK_SCALE.x;
+            let scale_y = -PADLOCK_SCALE.y;
+
+            str.push_str(
+                format!(r##"
+                <g transform="translate(-10 10) scale({scale_x} {scale_y}) ">
+                <path fill="#000000" d="{PLAIN_PADLOCK_OUTLINE}">
+                </path>
+                </g>
+                "##).as_str())
+        }
+
         str.push_str("</g>");
     }
 

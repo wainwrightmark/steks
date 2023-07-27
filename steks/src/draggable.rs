@@ -1,3 +1,4 @@
+use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
 use steks_common::constants;
 use strum::EnumIs;
@@ -434,20 +435,35 @@ pub fn drag_start(
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
 
     menu: Res<UIState>,
-    interactions: Query<&Interaction>,
+    current_level: Res<CurrentLevel>,
+    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<LevelUIComponent>>,
+    windows: Query<&Window, With<PrimaryWindow>>,
 ) {
-    for event in er_drag_start.iter() {
+    'events: for event in er_drag_start.iter() {
         if menu.is_show_main_menu() || menu.is_show_levels_page() {
-            continue;
+            continue 'events;
         }
+        if menu.is_game_splash() && current_level.completion.is_complete() {
+            if let Some(window) = windows.get_single().ok() {
+                let event_ui_position = Vec2 {
+                    x: event.position.x + (window.width() * 0.5),
+                    y: (window.height() * 0.5) - event.position.y,
+                };
+                for (node, global_transform, _) in node_query.iter().filter(|x| x.2.is_visible()) {
+                    let node_position = global_transform.translation().truncate();
 
-        if interactions
-            .iter()
-            .any(|x: &Interaction| x != &Interaction::None)
-        {
-            continue;
+                    let half_size = 0.5 * node.size();
+                    let min = node_position - half_size;
+                    let max = node_position + half_size;
+                    let captured = (min.x..max.x).contains(&event_ui_position.x)
+                        && (min.y..max.y).contains(&event_ui_position.y);
+
+                    if captured {
+                        continue 'events;
+                    }
+                }
+            }
         }
-        //info!("Drag Started {:?}", event);
 
         if draggables.iter().all(|x| !x.0.is_dragged()) {
             rapier_context.intersections_with_point(event.position, default(), |entity| {

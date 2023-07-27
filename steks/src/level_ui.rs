@@ -90,7 +90,7 @@ fn update_ui_on_level_change(
 }
 
 #[derive(Debug, Component, Clone, Copy, Eq, PartialEq, EnumIs)]
-enum LevelUIComponent {
+pub enum LevelUIComponent {
     Root,
     MainPanel,
     AllText,

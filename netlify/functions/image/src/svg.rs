@@ -1,7 +1,7 @@
 use std::format;
 
 use crate::*;
-use steks_common::{encodable_shape::EncodableShape, prelude::*};
+use steks_common::encodable_shape::EncodableShape;
 
 const SHAPE_SIZE: f32 = 50.0;
 

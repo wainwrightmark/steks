@@ -355,7 +355,7 @@
 
 #22
 - title: "Antarctica"
-  text:
+  text: "Dr. Gravity's polar base\nis guarded by penguins"
   gravity:
         - 0.0
         - 1000.0
@@ -497,7 +497,7 @@
     
 #28
 - title: "Platform Game"
-  text: "Dr. Gravity's polar base\nis guarded by penguins"
+  text: ""
   end_text: "Built a crazy tower?\nTag us on social media!"
   shapes:
     - shape: L4

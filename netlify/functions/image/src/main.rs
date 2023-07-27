@@ -37,7 +37,7 @@ pub(crate) async fn my_handler(
         .filter(|x| x.0.eq_ignore_ascii_case("game"))
         .map(|x| x.1)
         .next()
-        .unwrap_or_else(|| "myriad123");
+        .unwrap_or_else(|| "");
 
     let result_type: ResultType = ResultType::from_query_map(&e.payload.query_string_parameters);
 
@@ -48,7 +48,7 @@ pub(crate) async fn my_handler(
         headers,
         multi_value_headers: HeaderMap::new(),
         body: Some(body),
-        is_base64_encoded: true,
+        is_base64_encoded: result_type.is_base64_encoded(),
     };
 
     Ok(resp)
@@ -79,6 +79,14 @@ impl ResultType {
             "nooverlay" => Self::NoOverlay,
             "svg" => Self::SVG,
             _=> Self::Default
+        }
+    }
+
+    pub fn is_base64_encoded(&self)-> bool{
+        match self{
+            ResultType::Default => true,
+            ResultType::NoOverlay => true,
+            ResultType::SVG => false,
         }
     }
 
@@ -186,9 +194,8 @@ mod tests {
     use crate::{draw_image, make_svg_from_data};
     use std::hash::{Hash, Hasher};
 
-    // spell-checker: disable
-    const TEST_DATA: &'static str = "EgB5_FtFlhEAeElNfHgOAHcPQeq0FBB41jdZtA==";
-    // spell-checker: enable
+    // spell-checker: disable-next-line
+    const TEST_DATA: &'static str = "CACFeXBT7wUAgklpIncOAHeZj7uyBQB0VZzfMw4Ae3iaYLUEAH8Cd_3tAwBzjIdNPQwAfgiHhssJAH2ipQ-1AyCDVF7QAAYgdf9__wASMHX_tCUAEjCHVIXsAA==";
 
     #[test]
     fn generate_png_test() {

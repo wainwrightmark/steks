@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use crate::{
     color::choose_color,
     location::Location,
-    prelude::{color_to_rgb_and_opacity, FIXED_STROKE_WIDTH},
+    prelude::color_to_rgb_and_opacity,
     shape_index::ShapeIndex,
 };
 
@@ -163,11 +163,13 @@ pub fn svg_style(fill: Option<Color>, stroke: Option<Color>) -> String {
         result.push_str(r#"fill=""#);
         result.push_str(fill.as_str());
         result.push('"');
+        result.push(' ');
 
         if let Some(opacity) = opacity{
             result.push_str(r#"fill-opacity=""#);
             result.push_str(opacity.to_string().as_str());
             result.push('"');
+            result.push(' ');
         }
     }
 
@@ -176,11 +178,13 @@ pub fn svg_style(fill: Option<Color>, stroke: Option<Color>) -> String {
         result.push_str(r#"stroke=""#);
         result.push_str(stroke.as_str());
         result.push('"');
+        result.push(' ');
 
         if let Some(opacity) = opacity{
             result.push_str(r#"stroke-opacity=""#);
             result.push_str(opacity.to_string().as_str());
             result.push('"');
+            result.push(' ');
         }
     }
 

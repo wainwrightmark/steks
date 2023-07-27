@@ -112,9 +112,9 @@
     - shape: F5
 
 #9
-- title: "Uneven Foundations 2" 
+- title: "At an angle"
   text: 
-  end_text: "You're a very stable genius"
+  end_text: "That's acute tower"
   shapes:
     - shape: I4
       x: 0.0
@@ -612,7 +612,7 @@
 
 - title: "Leaning Tower Of Steks-a"
   text: ""
-  end_text: "Steks-a is the capital of Stekstopia\n this is now"
+  end_text: "Steks-a is the capital of Stekstopia\n this is now canon"
   shapes:
     - shape: I4
       x: 90.0

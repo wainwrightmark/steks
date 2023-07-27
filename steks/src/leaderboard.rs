@@ -50,11 +50,10 @@ impl TrackableResource for CampaignCompletion {
 }
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize)]
-pub struct Streak{
+pub struct Streak {
     pub count: u16,
-    pub most_recent: NaiveDate
+    pub most_recent: NaiveDate,
 }
-
 
 impl TrackableResource for Streak {
     const KEY: &'static str = "Streak";
@@ -198,6 +197,15 @@ fn update_campaign_completion(
     } + 1;
 
     if campaign_completion.highest_level_completed < index {
+        if index == 7 || index == 25 || index == 40 {
+            #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
+            {
+                bevy::tasks::IoTaskPool::get()
+                    .spawn(async move { capacitor_bindings::rate::Rate::request_review().await })
+                    .detach();
+            }
+        }
+
         campaign_completion.highest_level_completed = index;
     }
 }

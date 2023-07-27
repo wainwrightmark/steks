@@ -189,21 +189,17 @@ impl CurrentLevel {
         }
     }
 
-    pub fn show_rotate_arrow(&self)-> bool{
+    pub fn show_rotate_arrow(&self) -> bool {
         match &self.level {
-            GameLevel::Designed { meta } => {
-                meta.get_level().show_rotate
-            },
-            _=> false
+            GameLevel::Designed { meta } => meta.get_level().show_rotate,
+            _ => false,
         }
     }
 
-    pub fn hide_shadows(&self)-> bool{
+    pub fn hide_shadows(&self) -> bool {
         match &self.level {
-            GameLevel::Designed { meta } => {
-                meta.get_level().hide_shadows
-            },
-            _=> false
+            GameLevel::Designed { meta } => meta.get_level().hide_shadows,
+            _ => false,
         }
     }
 
@@ -419,7 +415,9 @@ impl GameLevel {
         Self::Infinite { seed }
     }
 
-    pub const CREDITS: Self = GameLevel::Designed { meta: DesignedLevelMeta::Credits };
+    pub const CREDITS: Self = GameLevel::Designed {
+        meta: DesignedLevelMeta::Credits,
+    };
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
@@ -610,9 +608,10 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
                     GRAVITY
                 }
             }
-            GameLevel::Infinite { .. } | GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
-                GRAVITY
-            }
+            GameLevel::Infinite { .. }
+            | GameLevel::Challenge { .. }
+            | GameLevel::Loaded { .. }
+            | GameLevel::Begging => GRAVITY,
         };
         rapier_config.gravity = gravity;
     }
@@ -641,28 +640,22 @@ fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<
     match level.completion {
         LevelCompletion::Incomplete { .. } => {}
         LevelCompletion::Complete { .. } => match &level.level {
-            GameLevel::Designed { meta, .. } => match meta {
-                DesignedLevelMeta::Campaign { index } => {
-                    if *index > 0 && (index - 1) % 10 == 0 {
-                        #[cfg(all(
-                            target_arch = "wasm32",
-                            any(feature = "android", feature = "ios")
-                        ))]
-                        {
-                            bevy::tasks::IoTaskPool::get()
-                                .spawn(async move {
-                                    capacitor_bindings::rate::Rate::request_review().await
-                                })
-                                .detach();
-                        }
-                    }
-                }
-                _ => {}
-            },
+            GameLevel::Designed {  .. } => {},
             GameLevel::Infinite { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {}
             GameLevel::Challenge { date, streak } => {
                 streak_resource.count = streak.clone();
                 streak_resource.most_recent = date.clone();
+
+                if streak > &2 {
+                    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
+                    {
+                        bevy::tasks::IoTaskPool::get()
+                                .spawn(async move {
+                                    capacitor_bindings::rate::Rate::request_review().await
+                                })
+                                .detach();
+                    }
+                }
             }
         },
     }
@@ -680,13 +673,11 @@ impl ChangeLevelEvent {
                         return (GameLevel::Designed { meta }, 0);
                     }
 
-                    if meta.is_credits(){
+                    if meta.is_credits() {
                         (GameLevel::Begging, 0)
-                    }else{
+                    } else {
                         (GameLevel::CREDITS, 0)
                     }
-
-
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),
                 GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
@@ -775,8 +766,8 @@ impl ChangeLevelEvent {
                 },
                 0,
             ),
-            ChangeLevelEvent::Begging=>(GameLevel::Begging, 0),
-            ChangeLevelEvent::Credits=>(GameLevel::CREDITS, 0),
+            ChangeLevelEvent::Begging => (GameLevel::Begging, 0),
+            ChangeLevelEvent::Credits => (GameLevel::CREDITS, 0),
         }
     }
 

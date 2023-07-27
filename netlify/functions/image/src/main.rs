@@ -27,8 +27,7 @@ const HEIGHT: u32 = 1024;
 pub(crate) async fn my_handler(
     e: LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, Error> {
-    let mut headers = HeaderMap::new();
-    headers.insert("Content-Type", HeaderValue::from_static("image/png"));
+
 
     let game = e
         .payload
@@ -40,6 +39,9 @@ pub(crate) async fn my_handler(
         .unwrap_or_else(|| "");
 
     let result_type: ResultType = ResultType::from_query_map(&e.payload.query_string_parameters);
+
+    let mut headers = HeaderMap::new();
+    headers.insert("Content-Type", result_type.content_type_header_value());
 
     let body = result_type.get_response_body(game);
 
@@ -87,6 +89,14 @@ impl ResultType {
             ResultType::Default => true,
             ResultType::NoOverlay => true,
             ResultType::SVG => false,
+        }
+    }
+
+    pub fn content_type_header_value(&self)-> HeaderValue{
+        match self{
+            ResultType::Default => HeaderValue::from_static("image/png"),
+            ResultType::NoOverlay => HeaderValue::from_static("image/png"),
+            ResultType::SVG => HeaderValue::from_static("image/svg+xml"),
         }
     }
 

@@ -1,3 +1,5 @@
+use bevy::prelude::App;
+
 pub mod achievements;
 pub mod app_redirect;
 pub mod async_event_writer;
@@ -92,5 +94,9 @@ pub mod prelude {
 }
 
 pub fn main() {
-    crate::startup::main()
+    let mut app = App::new();
+
+    startup::setup_app(&mut app);
+
+    app.run();
 }

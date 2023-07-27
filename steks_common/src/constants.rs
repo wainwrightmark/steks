@@ -84,4 +84,6 @@ pub const LEVEL_TITLE_FONT_SIZE: f32 = 30.0;
 pub const LEVEL_TEXT_FONT_SIZE: f32 = 20.0;
 pub const LEVEL_NUMBER_FONT_SIZE: f32 = 30.0;
 
-pub const SHAPE_STROKE_WIDTH: f32 = 1.0;
+pub const ICE_STROKE_WIDTH: f32 = 1.0; //TODO make 2 and make the shapes smaller
+pub const VOID_STROKE_WIDTH: f32 = 1.0;
+pub const FIXED_STROKE_WIDTH: f32 = 1.0;

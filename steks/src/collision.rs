@@ -29,7 +29,7 @@ fn highlight_voids(
     mut voids: Query<(Entity, &mut Stroke, &mut VoidShape, &Children), Without<Shadow>>,
     mut shadows: Query<&mut Stroke, With<Shadow>>,
 ) {
-    const MULTIPLIER: f32 = 5.0;
+    const MULTIPLIER: f32 = 4.0;
 
     for (entity, mut stroke, mut shape, children) in voids.iter_mut() {
         let has_contact = rapier_context
@@ -39,21 +39,21 @@ fn highlight_voids(
         if has_contact {
             if !shape.highlighted {
                 shape.highlighted = true;
-                stroke.options.line_width = MULTIPLIER;
+                stroke.options.line_width = MULTIPLIER * VOID_STROKE_WIDTH;
 
                 for child in children {
                     if let Ok(mut shadow) = shadows.get_mut(*child) {
-                        shadow.options.line_width = ZOOM_LEVEL * MULTIPLIER;
+                        shadow.options.line_width = ZOOM_LEVEL * MULTIPLIER * VOID_STROKE_WIDTH;
                     }
                 }
             }
         } else if shape.highlighted {
             shape.highlighted = false;
-            stroke.options.line_width = 1.0;
+            stroke.options.line_width = VOID_STROKE_WIDTH;
 
             for child in children {
                 if let Ok(mut shadow) = shadows.get_mut(*child) {
-                    shadow.options.line_width = ZOOM_LEVEL;
+                    shadow.options.line_width = ZOOM_LEVEL * VOID_STROKE_WIDTH;
                 }
             }
         }

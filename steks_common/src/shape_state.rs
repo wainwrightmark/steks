@@ -77,7 +77,7 @@ impl ShapeModifiers {
             ShapeModifiers::Normal => None,
             ShapeModifiers::Ice => Some(Stroke {
                 color: ICE_SHAPE_STROKE,
-                options: StrokeOptions::default().with_line_width(SHAPE_STROKE_WIDTH),
+                options: StrokeOptions::default().with_line_width(ICE_STROKE_WIDTH),
             }),
         }
     }
@@ -104,12 +104,12 @@ impl ShapeState {
         if *self == ShapeState::Fixed {
             Some(Stroke {
                 color: FIXED_SHAPE_STROKE,
-                options: StrokeOptions::default().with_line_width(SHAPE_STROKE_WIDTH),
+                options: StrokeOptions::default().with_line_width(FIXED_STROKE_WIDTH),
             })
         } else if *self == ShapeState::Void {
             Some(Stroke {
                 color: VOID_SHAPE_STROKE,
-                options: StrokeOptions::default().with_line_width(SHAPE_STROKE_WIDTH),
+                options: StrokeOptions::default().with_line_width(VOID_STROKE_WIDTH),
             })
         } else {
             None

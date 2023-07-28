@@ -1,5 +1,7 @@
 pub mod svg;
 
+use std::fmt::Display;
+
 use aws_lambda_events::query_map::QueryMap;
 use base64::Engine;
 pub use steks_common::prelude::*;
@@ -19,16 +21,9 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-const RESOLUTION: u32 = 1024;
-
-const WIDTH: u32 = 1024;
-const HEIGHT: u32 = 1024;
-
 pub(crate) async fn my_handler(
     e: LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, Error> {
-
-
     let game = e
         .payload
         .query_string_parameters
@@ -38,12 +33,14 @@ pub(crate) async fn my_handler(
         .next()
         .unwrap_or_else(|| "");
 
-    let result_type: ResultType = ResultType::from_query_map(&e.payload.query_string_parameters);
+    let result_type: Command = Command::from_query_map(&e.payload.query_string_parameters);
 
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", result_type.content_type_header_value());
 
-    let body = result_type.get_response_body(game);
+    let dimensions = Dimensions::from_query_map(&e.payload.query_string_parameters);
+
+    let body = result_type.get_response_body(game, dimensions);
 
     let resp = ApiGatewayProxyResponse {
         status_code: 200,
@@ -57,7 +54,7 @@ pub(crate) async fn my_handler(
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
-pub enum ResultType {
+pub enum Command {
     #[default]
     Default,
     NoOverlay,
@@ -65,53 +62,103 @@ pub enum ResultType {
     //TODO level yaml
 }
 
-impl ResultType {
+impl Display for Command {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Command::Default => f.write_str("Default"),
+            Command::NoOverlay => f.write_str("No_Overlay"),
+            Command::SVG => f.write_str("SVG"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct Dimensions {
+    pub width: u32,
+    pub height: u32,
+}
+
+impl Default for Dimensions {
+    fn default() -> Self {
+        Self {
+            width: 1024,
+            height: 1024,
+        }
+    }
+}
+
+impl Dimensions {
     pub fn from_query_map(query_map: &QueryMap) -> Self {
-        let r = query_map
+        let mut width: u32 = 1024;
+        let mut height: u32 = 1024;
+
+        for (key, value) in query_map.iter() {
+            if key.eq_ignore_ascii_case("width") {
+                if let Ok(parsed_width) = value.parse::<u32>() {
+                    width = parsed_width;
+                }
+            }
+
+            if key.eq_ignore_ascii_case("height") {
+                if let Ok(parsed_height) = value.parse::<u32>() {
+                    height = parsed_height;
+                }
+            }
+        }
+
+        Dimensions { width, height }
+    }
+}
+
+impl Command {
+    pub fn from_query_map(query_map: &QueryMap) -> Self {
+        let s = query_map
             .iter()
             .filter(|x| x.0.eq_ignore_ascii_case("format"))
-            .map(|x| x.1.to_ascii_lowercase())
             .next()
             .unwrap_or_default();
 
+        Self::from_str_ignore_case(s.1)
+    }
 
-        match r.as_str() {
+    pub fn from_str_ignore_case(s: &str) -> Self {
+        match s.to_ascii_lowercase().as_str() {
             "default" | "" => Self::Default,
             //spellchecker:disable-next-line
-            "nooverlay" => Self::NoOverlay,
+            "nooverlay" | "no_overlay" | "no-overlay" => Self::NoOverlay,
             "svg" => Self::SVG,
-            _=> Self::Default
+            _ => Self::Default,
         }
     }
 
-    pub fn is_base64_encoded(&self)-> bool{
-        match self{
-            ResultType::Default => true,
-            ResultType::NoOverlay => true,
-            ResultType::SVG => false,
-        }
-    }
-
-    pub fn content_type_header_value(&self)-> HeaderValue{
-        match self{
-            ResultType::Default => HeaderValue::from_static("image/png"),
-            ResultType::NoOverlay => HeaderValue::from_static("image/png"),
-            ResultType::SVG => HeaderValue::from_static("image/svg+xml"),
-        }
-    }
-
-    pub fn get_response_body(&self, game: &str) -> Body {
+    pub fn is_base64_encoded(&self) -> bool {
         match self {
-            ResultType::Default => {
-                let data = draw_image(game, true);
+            Command::Default => true,
+            Command::NoOverlay => true,
+            Command::SVG => false,
+        }
+    }
+
+    pub fn content_type_header_value(&self) -> HeaderValue {
+        match self {
+            Command::Default => HeaderValue::from_static("image/png"),
+            Command::NoOverlay => HeaderValue::from_static("image/png"),
+            Command::SVG => HeaderValue::from_static("image/svg+xml"),
+        }
+    }
+
+    pub fn get_response_body(&self, game: &str, dimensions: Dimensions) -> Body {
+        match self {
+            Command::Default => {
+                let data = draw_image(game, true, dimensions);
                 Body::Binary(data)
             }
-            ResultType::NoOverlay => {
-                let data = draw_image(game, false);
+            Command::NoOverlay => {
+                let data = draw_image(game, false, dimensions);
                 Body::Binary(data)
             }
-            ResultType::SVG => {
-                let data = make_svg_from_data(game);
+            Command::SVG => {
+                let data = make_svg_from_data(game, dimensions);
 
                 Body::Text(data)
             }
@@ -119,31 +166,31 @@ impl ResultType {
     }
 }
 
-fn make_svg_from_data(data: &str) -> String {
+fn make_svg_from_data(data: &str, dimensions: Dimensions) -> String {
     let Ok(bytes) = base64::engine::general_purpose::URL_SAFE.decode(data) else {return "".to_string();};
 
     let shapes = decode_shapes(&bytes);
 
-    let svg = svg::create_svg(shapes.into_iter());
+    let svg = svg::create_svg(shapes.into_iter(), dimensions);
     svg
 }
 
-fn draw_image(game: &str, include_overlay: bool) -> Vec<u8> {
+fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<u8> {
     let opt: resvg::usvg::Options = Default::default();
-    let svg_data = make_svg_from_data(game);
+    let svg_data = make_svg_from_data(game, dimensions);
 
     let mut game_tree = match Tree::from_data(&svg_data.as_bytes(), &opt) {
         Ok(tree) => tree,
         Err(e) => panic!("{e}"),
     };
 
-    let bbox = game_tree
-        .root
-        .calculate_bbox()
-        .unwrap_or(resvg::usvg::Rect::from_xywh(0., 0., WIDTH as f32, HEIGHT as f32).unwrap());
+    let bbox = game_tree.root.calculate_bbox().unwrap_or(
+        resvg::usvg::Rect::from_xywh(0., 0., dimensions.width as f32, dimensions.height as f32)
+            .unwrap(),
+    );
 
-    let mut pixmap =
-        resvg::tiny_skia::Pixmap::new(RESOLUTION, RESOLUTION).expect("Could not create pixmap");
+    let mut pixmap = resvg::tiny_skia::Pixmap::new(dimensions.width, dimensions.height)
+        .expect("Could not create pixmap");
 
     let [r, g, b, a] = steks_common::color::BACKGROUND_COLOR
         .as_rgba_u32()
@@ -152,14 +199,19 @@ fn draw_image(game: &str, include_overlay: bool) -> Vec<u8> {
 
     const SPACE_RATIO: f32 = 1.1;
 
-    let length_to_use = (bbox.width().max(bbox.height())) * SPACE_RATIO;
+    let ratio_to_use = (bbox.width() / dimensions.width as f32   ).max( bbox.height() /dimensions.height as f32 ) * SPACE_RATIO;
+
+    let w = ratio_to_use * (dimensions.width as f32);
+    let h = ratio_to_use * (dimensions.height as f32);
+
+
+    //let length_to_use = (bbox.width().max(bbox.height())) * SPACE_RATIO;
 
     game_tree.view_box = ViewBox {
         rect: NonZeroRect::from_xywh(
-            bbox.x() - ((length_to_use - bbox.width()) * 0.75),
-            bbox.y() - ((length_to_use - bbox.height()) * 0.75),
-            length_to_use,
-            length_to_use,
+            bbox.x() - ((w - bbox.width()) * 0.75),
+            bbox.y() - ((h - bbox.height()) * 0.75),
+            w, h
         )
         .unwrap(),
         aspect: AspectRatio {
@@ -169,8 +221,8 @@ fn draw_image(game: &str, include_overlay: bool) -> Vec<u8> {
         },
     };
 
-    let game_scale = (HEIGHT as f32 / game_tree.size.height() as f32)
-        .min(WIDTH as f32 / game_tree.size.width() as f32);
+    let game_scale = (dimensions.height as f32 / game_tree.size.height() as f32)
+        .min(dimensions.width as f32 / game_tree.size.width() as f32);
 
     resvg::Tree::render(
         &resvg::Tree::from_usvg(&game_tree),
@@ -186,7 +238,7 @@ fn draw_image(game: &str, include_overlay: bool) -> Vec<u8> {
             Err(e) => panic!("{e}"),
         };
 
-        let logo_scale = WIDTH as f32 / logo_tree.size.width() as f32;
+        let logo_scale = (dimensions.width as f32 / logo_tree.size.width() as f32).min(dimensions.height as f32 / logo_tree.size.height() as f32);
         resvg::Tree::render(
             &resvg::Tree::from_usvg(&logo_tree),
             Transform::from_scale(logo_scale, logo_scale),
@@ -201,53 +253,69 @@ fn draw_image(game: &str, include_overlay: bool) -> Vec<u8> {
 mod tests {
     use steks_common::prelude::{choose_color, Location, ALL_SHAPES, SHAPE_SIZE};
 
-    use crate::{draw_image, make_svg_from_data};
+    use crate::{draw_image, make_svg_from_data, Command, Dimensions};
     use std::hash::{Hash, Hasher};
+    use test_case::test_case;
 
     // spell-checker: disable-next-line
     const TEST_DATA: &'static str = "CACFeXBT7wUAgklpIncOAHeZj7uyBQB0VZzfMw4Ae3iaYLUEAH8Cd_3tAwBzjIdNPQwAfgiHhssJAH2ipQ-1AyCDVF7QAAYgdf9__wASMHX_tCUAEjCHVIXsAA==";
 
-    #[test]
-    fn generate_png_test() {
-        let data = draw_image(TEST_DATA, true);
-        let len = data.len();
-        std::fs::write("parse_test.png", data.as_slice()).unwrap();
+    fn test_image(data: &'static str, command: Command, dimensions: Dimensions) {
+        let data_name = if data == TEST_DATA {
+            "test_data"
+        } else {
+            "no_data"
+        };
+        let format = if command == Command::SVG {
+            "svg"
+        } else {
+            "png"
+        };
+        let name = format!(
+            "{data_name}_{command}_{width}x{height}.{format}",
+            width = dimensions.width,
+            height = dimensions.height
+        );
 
-        assert!(len < 300000, "Image is too big - {len} bytes");
-        let hash = calculate_hash(&data);
-        insta::assert_debug_snapshot!(hash);
+        let hash: u64 = match command {
+            Command::SVG => {
+                let svg: String = make_svg_from_data(data, dimensions);
+                let hash = calculate_hash(&svg);
+                std::fs::write(name.clone(), svg).unwrap();
+                hash
+            }
+            Command::NoOverlay | Command::Default => {
+                let include_overlay = command == Command::Default;
+                let data = draw_image(data, include_overlay, dimensions);
+                let len = data.len();
+                std::fs::write(name.clone(), data.as_slice()).unwrap();
+
+                assert!(len < 300000, "Image is too big - {len} bytes");
+                let hash = calculate_hash(&data);
+                hash
+            }
+        };
+
+        insta::assert_debug_snapshot!(name, hash);
     }
 
-    #[test]
-    fn generate_png_no_overlay() {
-        let data = draw_image(TEST_DATA, false);
-        let len = data.len();
-        std::fs::write("parse_test_no_overlay.png", data.as_slice()).unwrap();
+    #[test_case(true, "svg", 1024, 1024)]
+    #[test_case(true, "svg", 512, 512)]
+    #[test_case(true, "svg", 512, 1024)]
+    #[test_case(true, "default", 1024, 1024)]
+    #[test_case(true, "default", 512, 1024)]
+    #[test_case(true, "default", 512, 512)]
+    #[test_case(true, "default", 1024, 512)]
+    #[test_case(false, "default", 1024, 1024)]
+    #[test_case(true, "no_overlay", 1024, 1024)]
+    #[test_case(true, "no_overlay", 512, 512)]
+    #[test_case(true, "no_overlay", 512, 1024)]
+    fn do_test(use_data: bool, command: &'static str, width: u32, height: u32) {
+        let data = if use_data { TEST_DATA } else { "" };
 
-        assert!(len < 300000, "Image is too big - {len} bytes");
-        let hash = calculate_hash(&data);
-        insta::assert_debug_snapshot!(hash);
-    }
+        let command = Command::from_str_ignore_case(command);
 
-    #[test]
-    fn generate_svg_test() {
-        let svg: String = make_svg_from_data(TEST_DATA);
-        let hash = calculate_hash(&svg);
-        std::fs::write("og_example.svg", svg).unwrap();
-
-
-        insta::assert_debug_snapshot!(hash);
-    }
-
-    #[test]
-    fn unknown_test() {
-        let data = draw_image("null", true);
-        let len = data.len();
-        std::fs::write("unknown.png", data.as_slice()).unwrap();
-
-        assert!(len < 300000, "Image is too big - {len} bytes");
-        let hash = calculate_hash(&data);
-        insta::assert_debug_snapshot!(hash);
+        test_image(data, command, Dimensions { width, height });
     }
 
     fn calculate_hash<T: Hash>(t: &T) -> u64 {

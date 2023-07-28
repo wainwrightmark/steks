@@ -2111,6 +2111,7 @@ dependencies = [
  "once_cell",
  "resvg",
  "steks_common",
+ "test-case",
  "tokio",
 ]
 

@@ -5,7 +5,7 @@ use steks_common::encodable_shape::EncodableShape;
 
 const SHAPE_SIZE: f32 = 50.0;
 
-pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I) -> String {
+pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I, dimensions: Dimensions) -> String {
     let mut str: String = "".to_owned();
     //let (background_color, _) = color_to_rgb_and_opacity(BACKGROUND_COLOR);
 
@@ -45,16 +45,20 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I) -> String
         str.push_str("</g>");
     }
 
-    let left = (WIDTH as f32) * 0.5;
-    let top = (HEIGHT as f32) * 0.5;
+    let left = (dimensions.width as f32) * 0.5;
+    let top = (dimensions.height as f32) * 0.5;
 
     format!(
         r#"<svg
-        viewbox = "0 0 {WIDTH} {HEIGHT}"
+        viewbox = "0 0 {width} {height}"
+        width="{width}"
+        height="{height}"
         xmlns="http://www.w3.org/2000/svg">
         <g transform="translate({left} {top}) scale(1,-1) ">
         {str}
         </g>
-        </svg>"#
+        </svg>"#,
+        width = dimensions.width,
+        height = dimensions.height
     )
 }

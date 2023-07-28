@@ -1,4 +1,5 @@
 pub mod svg;
+pub mod placement;
 
 use std::fmt::Display;
 
@@ -13,6 +14,8 @@ use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use resvg::tiny_skia::Transform;
 use resvg::usvg::{AspectRatio, NodeExt, NonZeroRect, Tree, TreeParsing, ViewBox};
+
+use crate::placement::{HorizontalPlacement, VerticalPlacement};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -239,8 +242,11 @@ fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<
         };
 
         let logo_scale = (dimensions.width as f32 / logo_tree.size.width() as f32).min(dimensions.height as f32 / logo_tree.size.height() as f32);
-        let x_offset = (dimensions.width as f32 - ( logo_tree.size.width() * logo_scale)) * 0.5;
-        let y_offset = (dimensions.height as f32 - ( logo_tree.size.height() * logo_scale)) * 0.5;
+        let h_placement: HorizontalPlacement = HorizontalPlacement::Centre;
+        let v_placement : VerticalPlacement = VerticalPlacement::Centre;
+
+        let x_offset = h_placement.get_x(dimensions.width as f32,logo_tree.size.width() * logo_scale);
+        let y_offset = v_placement.get_y(dimensions.height as f32, logo_tree.size.height() * logo_scale );
         let transform = Transform::from_scale(logo_scale, logo_scale).post_translate(x_offset, y_offset);
 
         resvg::Tree::render(
@@ -252,6 +258,8 @@ fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<
 
     pixmap.encode_png().expect("Could not encode png")
 }
+
+
 
 #[cfg(test)]
 mod tests {

@@ -142,6 +142,11 @@ pub struct FireworksSettings {
     #[serde(alias = "Intensity")]
     pub intensity: Option<u32>,
 
+    /// Interval between fireworks in millis
+    #[serde(default)]
+    #[serde(alias = "Interval")]
+    pub interval: Option<u32>,
+
     #[serde(default)]
     #[serde(alias = "Shapes")]
     pub shapes: Arc<Vec<LevelShapeForm>>,

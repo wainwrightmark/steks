@@ -28,7 +28,7 @@ struct FireworksCountdown {
     timer: Timer,
 
     intensity: u32,
-    max_delay_seconds: Option<f32>,
+    repeat_interval: Option<Duration>,
     shapes: Arc<Vec<LevelShapeForm>>,
 }
 
@@ -40,7 +40,7 @@ impl Default for FireworksCountdown {
             timer,
             shapes: Arc::new(vec![]),
             intensity: DEFAULT_INTENSITY,
-            max_delay_seconds: None,
+            repeat_interval: None,
         }
     }
 }
@@ -132,8 +132,8 @@ fn spawn_fireworks(
     if countdown.timer.just_finished() {
         let mut rng: ThreadRng = rand::thread_rng();
 
-        if let Some(duration) = countdown.max_delay_seconds {
-            countdown.timer = Timer::from_seconds(duration, TimerMode::Once);
+        if let Some(duration) = countdown.repeat_interval {
+            countdown.timer = Timer::new(duration, TimerMode::Once);
         } else {
             countdown.timer.pause();
         }
@@ -175,6 +175,7 @@ fn get_new_fireworks(
                     if shapes % 5 == 0{
                         FireworksSettings{
                             intensity:Some(shapes as u32),
+                            interval: None,
                             shapes: Default::default()
                         }
                     }
@@ -189,47 +190,51 @@ fn get_new_fireworks(
         GameLevel::Challenge{..} | GameLevel::Loaded { .. } | GameLevel::Begging => FireworksSettings::default(),
     };
 
+    // New World Record
     if match info {
         None => false,
         Some(x) => x.is_wr,
     } {
         return Some(FireworksCountdown {
             timer: Timer::from_seconds(0.0, TimerMode::Once),
-            max_delay_seconds: Some(1.0),
+            repeat_interval: Some(Duration::from_secs(1)),
             intensity: 20,
             shapes: settings.shapes,
         });
     }
 
     if !previous_was_complete {
+        // First Win
         if match info {
             None => false,
             Some(x) => x.is_first_win,
         } {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(4.0, TimerMode::Once),
-                max_delay_seconds: Some(4.0),
+                repeat_interval: Some(Duration::from_secs(4)),
                 intensity: 10,
                 shapes: settings.shapes,
             });
         }
 
+        // New pb
         if match info {
             None => false,
             Some(x) => x.is_pb,
         } {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(0.0, TimerMode::Once),
-                max_delay_seconds: Some(4.0),
+                repeat_interval: Some(Duration::from_secs(4)),
                 intensity: 20,
                 shapes: settings.shapes,
             });
         }
 
+        // Level has fireworks
         if let Some(intensity) = settings.intensity {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(0.0, TimerMode::Once),
-                max_delay_seconds: None,
+                repeat_interval: settings.interval.map(|i| Duration::from_millis(i as u64)),
                 intensity,
                 shapes: settings.shapes,
             });

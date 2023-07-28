@@ -1,5 +1,5 @@
-pub mod svg;
 pub mod placement;
+pub mod svg;
 
 use std::fmt::Display;
 
@@ -12,8 +12,8 @@ use aws_lambda_events::event::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyRes
 use http::header::HeaderMap;
 use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
-use resvg::tiny_skia::Transform;
-use resvg::usvg::{AspectRatio, NodeExt, NonZeroRect, Tree, TreeParsing, ViewBox};
+use resvg::tiny_skia::{Pixmap, Transform};
+use resvg::usvg::{AspectRatio, NodeExt, NonZeroRect, Options, Tree, TreeParsing, ViewBox};
 
 use crate::placement::{HorizontalPlacement, VerticalPlacement};
 
@@ -153,11 +153,11 @@ impl Command {
     pub fn get_response_body(&self, game: &str, dimensions: Dimensions) -> Body {
         match self {
             Command::Default => {
-                let data = draw_image(game, true, dimensions);
+                let data = draw_image(game, &OverlayChooser::text_overlay(), dimensions);
                 Body::Binary(data)
             }
             Command::NoOverlay => {
-                let data = draw_image(game, false, dimensions);
+                let data = draw_image(game, &OverlayChooser::no_overlay(), dimensions);
                 Body::Binary(data)
             }
             Command::SVG => {
@@ -178,7 +178,7 @@ fn make_svg_from_data(data: &str, dimensions: Dimensions) -> String {
     svg
 }
 
-fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<u8> {
+fn draw_image(game: &str, overlay_chooser: &OverlayChooser, dimensions: Dimensions) -> Vec<u8> {
     let opt: resvg::usvg::Options = Default::default();
     let svg_data = make_svg_from_data(game, dimensions);
 
@@ -200,13 +200,14 @@ fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<
         .to_le_bytes();
     pixmap.fill(resvg::tiny_skia::Color::from_rgba8(r, g, b, a));
 
-    const SPACE_RATIO: f32 = 1.1;
+    let h_scale = bbox.width() / dimensions.width as f32;
+    let v_scale = bbox.height() / dimensions.height as f32;
+    let (ratio, overlay) = overlay_chooser.choose_scale_and_overlay(h_scale, v_scale);
 
-    let ratio_to_use = (bbox.width() / dimensions.width as f32   ).max( bbox.height() /dimensions.height as f32 ) * SPACE_RATIO;
+    //let ratio_to_use = h_scale.max(v_scale) * SPACE_RATIO;
 
-    let w = ratio_to_use * (dimensions.width as f32);
-    let h = ratio_to_use * (dimensions.height as f32);
-
+    let w = ratio * (dimensions.width as f32);
+    let h = ratio * (dimensions.height as f32);
 
     //let length_to_use = (bbox.width().max(bbox.height())) * SPACE_RATIO;
 
@@ -214,7 +215,8 @@ fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<
         rect: NonZeroRect::from_xywh(
             bbox.x() - ((w - bbox.width()) * 0.5),
             bbox.y() - ((h - bbox.height()) * 0.5),
-            w, h
+            w,
+            h,
         )
         .unwrap(),
         aspect: AspectRatio {
@@ -233,21 +235,115 @@ fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<
         &mut pixmap.as_mut(),
     );
 
-    if include_overlay {
-        let logo_bytes = include_bytes!("logo_monochrome.svg");
+    if let Some(overlay) = overlay {
+        overlay.include(&mut pixmap, &opt, dimensions);
+    }
 
-        let logo_tree = match Tree::from_data(logo_bytes, &opt) {
+    pixmap.encode_png().expect("Could not encode png")
+}
+
+pub struct OverlayChooser {
+    pub options: Vec<Overlay>,
+}
+
+pub const DEFAULT_SCALE_MULTIPLIER: f32 = 1.1;
+impl OverlayChooser {
+    pub fn no_overlay() -> Self {
+        Self { options: vec![] }
+    }
+
+    pub fn text_overlay() -> Self {
+        Self {
+            options: vec![Overlay::TEXT_RIGHT_OVERLAY, Overlay::TEXT_BOTTOM_OVERLAY],
+        }
+    }
+
+    pub fn choose_scale_and_overlay(&self, h_scale: f32, v_scale: f32) -> (f32, Option<&Overlay>) {
+
+        println!("h: {h_scale} v: {v_scale}");
+        if self.options.is_empty() {
+            return (h_scale.max(v_scale) * DEFAULT_SCALE_MULTIPLIER, None);
+        }
+
+        let mut result = (f32::MAX, None);
+
+        for ov in self.options.iter() {
+
+            let scale = match ov.ratio {
+                Ratio::WiderThanTall(r) => (r * h_scale).max(v_scale),
+                Ratio::TallerThanWide(r) => (r * v_scale).max(h_scale),
+            };
+
+            println!("Scale: {scale}");
+
+            let scale = scale * DEFAULT_SCALE_MULTIPLIER;
+
+            if scale < result.0 {
+                result = (scale, Some(ov))
+            }
+        }
+
+        return result;
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Overlay {
+    pub h_placement: HorizontalPlacement,
+    pub v_placement: VerticalPlacement,
+
+    pub ratio: Ratio,
+
+    pub bytes: &'static [u8],
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Ratio {
+    WiderThanTall(f32),
+    TallerThanWide(f32),
+}
+
+impl Overlay {
+    // pub const DEFAULT_OVERLAY: Overlay = Overlay {
+    //     h_placement: HorizontalPlacement::Centre,
+    //     v_placement: VerticalPlacement::Centre,
+    //     min_h: DEFAULT_SCALE_MULTIPLIER,
+    //     min_v: DEFAULT_SCALE_MULTIPLIER,
+    //     bytes: include_bytes!("logo_monochrome.svg"),
+    // };
+
+    pub const TEXT_BOTTOM_OVERLAY: Overlay = Overlay {
+        h_placement: HorizontalPlacement::Centre,
+        v_placement: VerticalPlacement::Bottom,
+        ratio: Ratio::TallerThanWide(1.2),
+        bytes: include_bytes!("text_bottom.svg"),
+    };
+
+    pub const TEXT_RIGHT_OVERLAY: Overlay = Overlay {
+        h_placement: HorizontalPlacement::Right,
+        v_placement: VerticalPlacement::Centre,
+        ratio: Ratio::WiderThanTall(1.4),
+        bytes: include_bytes!("text_right.svg"),
+    };
+
+    pub fn include(&self, pixmap: &mut Pixmap, opt: &Options, dimensions: Dimensions) {
+        let logo_tree = match Tree::from_data(self.bytes, &opt) {
             Ok(tree) => tree,
             Err(e) => panic!("{e}"),
         };
 
-        let logo_scale = (dimensions.width as f32 / logo_tree.size.width() as f32).min(dimensions.height as f32 / logo_tree.size.height() as f32);
-        let h_placement: HorizontalPlacement = HorizontalPlacement::Centre;
-        let v_placement : VerticalPlacement = VerticalPlacement::Centre;
+        let logo_scale = (dimensions.width as f32 / logo_tree.size.width() as f32)
+            .min(dimensions.height as f32 / logo_tree.size.height() as f32);
 
-        let x_offset = h_placement.get_x(dimensions.width as f32,logo_tree.size.width() * logo_scale);
-        let y_offset = v_placement.get_y(dimensions.height as f32, logo_tree.size.height() * logo_scale );
-        let transform = Transform::from_scale(logo_scale, logo_scale).post_translate(x_offset, y_offset);
+        let x_offset = self
+            .h_placement
+            .get_x(dimensions.width as f32, logo_tree.size.width() * logo_scale);
+        let y_offset = self.v_placement.get_y(
+            dimensions.height as f32,
+            logo_tree.size.height() * logo_scale,
+        );
+        let transform =
+            Transform::from_scale(logo_scale, logo_scale).post_translate(x_offset, y_offset);
 
         resvg::Tree::render(
             &resvg::Tree::from_usvg(&logo_tree),
@@ -255,17 +351,13 @@ fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<
             &mut pixmap.as_mut(),
         );
     }
-
-    pixmap.encode_png().expect("Could not encode png")
 }
-
-
 
 #[cfg(test)]
 mod tests {
     use steks_common::prelude::{choose_color, Location, ALL_SHAPES, SHAPE_SIZE};
 
-    use crate::{draw_image, make_svg_from_data, Command, Dimensions};
+    use crate::*;
     use std::hash::{Hash, Hasher};
     use test_case::test_case;
 
@@ -297,8 +389,12 @@ mod tests {
                 hash
             }
             Command::NoOverlay | Command::Default => {
-                let include_overlay = command == Command::Default;
-                let data = draw_image(data, include_overlay, dimensions);
+                let overlay_chooser = if command == Command::Default {
+                    OverlayChooser::text_overlay()
+                } else {
+                    OverlayChooser::no_overlay()
+                };
+                let data = draw_image(data, &overlay_chooser, dimensions);
                 let len = data.len();
                 std::fs::write(name.clone(), data.as_slice()).unwrap();
 
@@ -359,7 +455,7 @@ mod tests {
                 .body
                 .as_svg(SHAPE_SIZE, Some(shape.fill().color), None);
 
-            println!("{shape_svg}");
+            //println!("{shape_svg}");
             svg.push_str(shape_svg.as_str());
 
             svg.push('\n');
@@ -400,7 +496,7 @@ mod tests {
 
                 let shape_svg = shape.body.as_svg(SHAPE_SIZE, Some(color), None);
 
-                println!("{shape_svg}");
+                //println!("{shape_svg}");
                 svg.push_str(shape_svg.as_str());
 
                 svg.push('\n');

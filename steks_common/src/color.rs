@@ -82,19 +82,21 @@ pub fn color_to_rgb_and_opacity(color: Color) -> (String, Option<f32>) {
 //     }
 // }
 
-#[cfg(test)]
-mod tests {
-    use super::choose_color;
+// #[cfg(test)]
+// mod tests {
+//     use super::choose_color;
 
-    #[test]
-    pub fn show_colors() {
-        for alt in [false, true]{
-            for index in 0..25 {
-                let color = choose_color(index, alt);
-                let [h, s, l, a] = color.as_hsla_f32();
-                println!("h: {h}, s: {s}, l: {l}, a: {a}");
-            }
-        }
+//     #[test]
+//     pub fn show_colors() {
+//         for alt in [false, true]{
+//             for index in 0..25 {
+//                 let color = choose_color(index, alt);
+//                 let [h, s, l, a] = color.as_hsla_f32();
+//                 println!("h: {h}, s: {s}, l: {l}, a: {a}");
+//             }
+//         }
 
-    }
-}
+
+
+//     }
+// }

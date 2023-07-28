@@ -24,7 +24,7 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I, dimension
                 .body
                 .as_svg(SHAPE_SIZE, shape.fill_color(), shape.stroke_color());
 
-        println!("{shape_svg}");
+        //println!("{shape_svg}");
         str.push_str(shape_svg.as_str());
 
         str.push('\n');

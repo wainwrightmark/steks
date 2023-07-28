@@ -258,7 +258,7 @@ mod tests {
     use test_case::test_case;
 
     // spell-checker: disable-next-line
-    const TEST_DATA: &'static str = "CACFeXBT7wUAgklpIncOAHeZj7uyBQB0VZzfMw4Ae3iaYLUEAH8Cd_3tAwBzjIdNPQwAfgiHhssJAH2ipQ-1AyCDVF7QAAYgdf9__wASMHX_tCUAEjCHVIXsAA==";
+    const TEST_DATA: &'static str = "CQB7soTHrQwAfo2RbxMCAIPljd2LBQB8kF4O6RMAfQJmCOsIAIENmyiQBACA4qV-cg4AerRv1DcJAHq5eoKvCzCOqpxxPAIgi_-UJTwDIHlUV7Pp";
 
     fn test_image(data: &'static str, command: Command, dimensions: Dimensions) {
         let data_name = if data == TEST_DATA {

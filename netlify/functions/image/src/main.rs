@@ -209,8 +209,8 @@ fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<
 
     game_tree.view_box = ViewBox {
         rect: NonZeroRect::from_xywh(
-            bbox.x() - ((w - bbox.width()) * 0.75),
-            bbox.y() - ((h - bbox.height()) * 0.75),
+            bbox.x() - ((w - bbox.width()) * 0.5),
+            bbox.y() - ((h - bbox.height()) * 0.5),
             w, h
         )
         .unwrap(),
@@ -239,9 +239,13 @@ fn draw_image(game: &str, include_overlay: bool, dimensions: Dimensions) -> Vec<
         };
 
         let logo_scale = (dimensions.width as f32 / logo_tree.size.width() as f32).min(dimensions.height as f32 / logo_tree.size.height() as f32);
+        let x_offset = (dimensions.width as f32 - ( logo_tree.size.width() * logo_scale)) * 0.5;
+        let y_offset = (dimensions.height as f32 - ( logo_tree.size.height() * logo_scale)) * 0.5;
+        let transform = Transform::from_scale(logo_scale, logo_scale).post_translate(x_offset, y_offset);
+
         resvg::Tree::render(
             &resvg::Tree::from_usvg(&logo_tree),
-            Transform::from_scale(logo_scale, logo_scale),
+            transform,
             &mut pixmap.as_mut(),
         );
     }

@@ -1,5 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_prototype_lyon::prelude::{ShapeBundle, Stroke, StrokeOptions};
+use bevy_prototype_lyon::prelude::{ShapeBundle, Stroke, StrokeOptions, Fill, FillOptions};
 use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 use serde::{Deserialize, Serialize};
@@ -32,7 +32,7 @@ pub struct RaindropSettings {
     pub intensity: usize,
 }
 
-pub const RAINDROP_INTERVAL_SECONDS: f32 = 0.5;
+pub const RAINDROP_INTERVAL_SECONDS: f32 = 0.25;
 
 impl Default for RaindropCountdown {
     fn default() -> Self {
@@ -89,7 +89,8 @@ fn spawn_raindrops(
     if countdown.timer.just_finished() {
         let mut rng: ThreadRng = rand::thread_rng();
         countdown.timer = Timer::from_seconds(
-            rng.gen_range(0.0..=RAINDROP_INTERVAL_SECONDS),
+            RAINDROP_INTERVAL_SECONDS,
+            //rng.gen_range(0.0..=RAINDROP_INTERVAL_SECONDS),
             TimerMode::Once,
         );
 
@@ -98,10 +99,10 @@ fn spawn_raindrops(
         let count = rng.gen_range(countdown.settings.intensity..(countdown.settings.intensity * 2));
 
         for _ in 0..count {
-            let x = rng.gen_range((MAX_WINDOW_WIDTH * -0.5)..=(MAX_WINDOW_WIDTH * 0.5));
-            if x < window.width() * -0.6 || x > window.width() * 0.6 {
-                continue; //don't bother spawning too far outside window
-            }
+            let x = rng.gen_range((WINDOW_WIDTH * -0.5)..=(WINDOW_HEIGHT * 0.5));
+            // if x < window.width() * -0.6 || x > window.width() * 0.6 {
+            //     continue; //don't bother spawning too far outside window
+            // }
 
             let y = rng.gen_range((MAX_WINDOW_HEIGHT * 0.5)..(MAX_WINDOW_HEIGHT * 0.9));
             //bevy::log::info!("Spawning raindrop");
@@ -150,7 +151,7 @@ fn manage_raindrops(
     }
 }
 
-const RAIN_DENSITY: f32 = 100.0;
+const RAIN_DENSITY: f32 = 60.0;
 
 const RAIN_VELOCITY: f32 = 500.0;
 
@@ -189,6 +190,10 @@ fn spawn_drop<R: Rng>(
         .insert(Stroke {
             color: Color::WHITE,
             options: StrokeOptions::DEFAULT,
+        })
+        .insert(Fill{
+            color: Color::ANTIQUE_WHITE,
+            options: FillOptions::DEFAULT
         })
         .insert(RigidBody::Dynamic)
         .insert(velocity)

@@ -138,15 +138,7 @@ fn manage_raindrops(
     *previous = current_level.clone();
     let _previous = swap;
 
-    let settings = match &current_level.level {
-        GameLevel::Designed { meta, .. } => {
-            meta.get_level()
-                .get_current_stage(current_level.completion)
-                .rainfall
-        }
-        GameLevel::Infinite { .. } | GameLevel::Begging => None,
-        GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => None,
-    };
+    let settings = current_level.raindrop_settings();
 
     match settings {
         Some(settings) => {

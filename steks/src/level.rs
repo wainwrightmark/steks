@@ -189,6 +189,19 @@ impl CurrentLevel {
         }
     }
 
+    pub fn raindrop_settings(&self)->Option<RaindropSettings>{
+        let settings = match &self.level {
+            GameLevel::Designed { meta, .. } => {
+                meta.get_level()
+                    .get_current_stage(self.completion)
+                    .rainfall
+            }
+            GameLevel::Infinite { .. } | GameLevel::Begging => None,
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => None,
+        };
+        settings
+    }
+
     pub fn show_rotate_arrow(&self) -> bool {
         match &self.level {
             GameLevel::Designed { meta } => meta.get_level().show_rotate,

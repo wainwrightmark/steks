@@ -5,6 +5,8 @@ use strum::EnumIs;
 
 use crate::input;
 use crate::prelude::*;
+use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::PI;
 use std::f32::consts::TAU;
 
 const POSITION_DAMPING: f32 = 1.0;
@@ -205,9 +207,6 @@ pub fn assign_padlock(
 fn apply_forces(
     mut dragged_entities: Query<(&Transform, &mut ExternalForce, &Velocity, &BeingDragged)>,
 ) {
-    // const ROTATION_DAMPING: f32 = 1.0;
-    // const ROTATION_STIFFNESS: f32 = 1.0;
-
     for (transform, mut external_force, velocity, dragged) in dragged_entities.iter_mut() {
         let distance = dragged.desired_position - transform.translation.truncate();
 
@@ -259,10 +258,12 @@ pub fn drag_move(
             if let Some(mut rotate) = touch_rotate.0 {
                 if rotate.touch_id == touch_id {
                     let new_angle = angle_to(event.new_position - rotate.centre);
+
                     let previous_angle = angle_to(rotate.current - rotate.centre);
+                    let new_angle = closest_angle_representation(new_angle, previous_angle);
+                    let angle = (new_angle - previous_angle) * constants::ROTATION_COEFFICIENT;
 
-                    let angle = (previous_angle - new_angle) * constants::ROTATION_COEFFICIENT;
-
+                    //let angle = closest_angle_representation(angle, previous_angle);
                     ev_rotate.send(RotateEvent {
                         angle,
                         snap_resolution: None,
@@ -288,7 +289,13 @@ fn closest_angle_representation(radians: f32, close_to: f32) -> f32 {
 }
 
 fn angle_to(v: Vec2) -> f32 {
-    v.x.atan2(v.y)
+    v.y.atan2(v.x)
+}
+
+fn point_at_angle(dist: f32, radians: f32) -> Vec2 {
+    let x = dist * (radians).cos();
+    let y = dist * (radians).sin();
+    Vec2 { x, y }
 }
 
 fn draw_rotate_arrows(
@@ -317,11 +324,13 @@ fn draw_rotate_arrows(
                 let current_angle = angle_to(touch.current - touch.centre);
                 let start_angle = angle_to(touch.start - touch.centre);
 
-                let sweep_angle = closest_angle_representation(
-                    start_angle - current_angle,
-                    previous_angle.unwrap_or_default(),
-                );
+                let sweep_angle = current_angle - start_angle;
 
+                let sweep_angle =
+                    closest_angle_representation(sweep_angle, previous_angle.unwrap_or_default())
+                        * ROTATION_COEFFICIENT;
+
+                let path_end = touch.centre + point_at_angle(dist, start_angle + sweep_angle);
                 *previous_angle = Some(sweep_angle);
 
                 //const MIN_SWEEP_RADIANS: f32 = 0.0 * TAU;
@@ -338,15 +347,11 @@ fn draw_rotate_arrows(
                     );
                     let arrow_point = path.current_position();
 
-                    //path.
-
-                    //path.arc(touch.centre, Vec2 { x: dist, y: dist }, arrow_angle, 0.0);
-                    //let arc_end = path.current_position();
                     path.line_to(arrow_point.lerp(touch.centre, ARROW_WIDTH / dist));
 
-                    let path_end = touch
-                        .centre
-                        .lerp(touch.current, dist / (touch.current.distance(touch.centre)));
+                    // let path_end = touch
+                    //     .centre
+                    //     .lerp(touch.current, dist / (touch.current.distance(touch.centre)));
                     path.line_to(path_end);
 
                     //path.move_to(arc_end);

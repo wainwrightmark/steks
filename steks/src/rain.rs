@@ -151,7 +151,7 @@ fn manage_raindrops(
     }
 }
 
-const RAIN_DENSITY: f32 = 100.0;
+const RAIN_DENSITY: f32 = 50.0;
 
 //const RAIN_VELOCITY: f32 = 500.0;
 const ROOT_RAIN_VELOCITY: f32 =  22.0;

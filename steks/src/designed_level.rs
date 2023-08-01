@@ -64,17 +64,17 @@ pub struct DesignedLevel {
     #[serde(alias = "End_fireworks")]
     pub end_fireworks: FireworksSettings,
 
-    #[serde(default)]
-    #[serde(alias = "Show_rotate")]
-    #[serde(alias = "Show_arrow")]
-    #[serde(alias = "Show_arrows")]
-    #[serde(alias = "show_arrow")]
-    #[serde(alias = "show_arrows")]
-    pub show_rotate: bool,
+    // #[serde(default)]
+    // #[serde(alias = "Show_rotate")]
+    // #[serde(alias = "Show_arrow")]
+    // #[serde(alias = "Show_arrows")]
+    // #[serde(alias = "show_arrow")]
+    // #[serde(alias = "show_arrows")]
+    // pub show_rotate: bool,
 
-    #[serde(default)]
-    #[serde(alias = "Hide_shadows")]
-    pub hide_shadows: bool,
+    // #[serde(default)]
+    // #[serde(alias = "Hide_shadows")]
+    // pub hide_shadows: bool,
 
 }
 

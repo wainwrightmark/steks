@@ -1,5 +1,5 @@
 use steks_common::color;
-use strum::EnumIs;
+use strum::{Display, EnumIs};
 
 use crate::{designed_level, prelude::*};
 
@@ -8,6 +8,7 @@ pub struct ButtonPlugin;
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<UIState>()
+        .add_plugins(TrackedResourcePlugin::<GameSettings>::default())
             //.add_systems(Startup, setup.after(setup_level_ui))
             .add_systems(First, button_system)
             .add_systems(Update, handle_menu_state_changes);
@@ -20,16 +21,83 @@ pub enum MenuComponent {
     MenuHamburger,
     MainMenu,
     LevelsPage(u8),
+    SettingsPage,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Resource, serde::Serialize, serde::Deserialize)]
+pub struct GameSettings {
+    pub show_arrows: bool,
+    pub show_touch_outlines: bool,
+    pub rotation_sensitivity: RotationSensitivity,
+}
+
+impl TrackableResource for GameSettings {
+    const KEY: &'static str = "GameSettings";
+}
+
+impl GameSettings {
+    pub fn toggle_arrows(&mut self) {
+        self.show_arrows = !self.show_arrows;
+    }
+
+    pub fn toggle_touch_outlines(&mut self) {
+        self.show_touch_outlines = !self.show_touch_outlines;
+    }
+
+    pub fn set_rotation_sensitivity(&mut self, rs: RotationSensitivity) {
+        self.rotation_sensitivity = rs;
+    }
+}
+
+impl Default for GameSettings {
+    fn default() -> Self {
+        Self {
+            show_arrows: false,
+            show_touch_outlines: true,
+            rotation_sensitivity: RotationSensitivity::Medium,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, EnumIs, Display, serde::Serialize, serde::Deserialize)]
+pub enum RotationSensitivity {
+    Low,
+    #[default]
+    Medium,
+    High,
+    Extreme,
+}
+
+impl RotationSensitivity {
+    pub fn next(&self) -> Self {
+        use RotationSensitivity::*;
+        match self {
+            Low => Medium,
+            Medium => High,
+            High => Extreme,
+            Extreme => Low,
+        }
+    }
+
+    pub fn coefficient(&self) -> f32 {
+        match self {
+            RotationSensitivity::Low => 0.75,
+            RotationSensitivity::Medium => 1.00,
+            RotationSensitivity::High => 1.50,
+            RotationSensitivity::Extreme => 2.00,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
 pub enum UIState {
     #[default]
-    GameSplash,
+    GameSplash, //TODO move these options to separate enum
     GameMinimized,
 
     ShowMainMenu,
     ShowLevelsPage(u8),
+    SettingsPage,
 }
 
 const LEVELS_PER_PAGE: u8 = 8;
@@ -48,11 +116,19 @@ impl UIState {
         *self = UIState::GameSplash
     }
 
-    pub fn toggle_levels(&mut self) {
+    pub fn toggle_settings(&mut self) {
         use UIState::*;
         match self {
-            GameSplash | GameMinimized => *self = ShowLevelsPage(0),
-            ShowMainMenu => *self = ShowLevelsPage(0),
+            SettingsPage => *self = ShowMainMenu,
+            _ => *self = SettingsPage,
+        }
+    }
+
+    pub fn toggle_levels(&mut self) {
+        //TODO go to current level page
+        use UIState::*;
+        match self {
+            GameSplash | GameMinimized | ShowMainMenu | SettingsPage => *self = ShowLevelsPage(0),
             ShowLevelsPage(..) => *self = GameSplash,
         }
     }
@@ -86,6 +162,7 @@ impl UIState {
         commands: &mut Commands,
         asset_server: &AssetServer,
         completion: &CampaignCompletion,
+        game_settings: &GameSettings,
     ) {
         match self {
             UIState::GameSplash | UIState::GameMinimized => {
@@ -114,6 +191,7 @@ impl UIState {
             UIState::ShowLevelsPage(page) => {
                 spawn_level_menu(commands, asset_server, *page, completion)
             }
+            UIState::SettingsPage => spawn_settings_menu(commands, asset_server, game_settings),
         }
     }
 }
@@ -124,13 +202,19 @@ fn handle_menu_state_changes(
     menu_components: Query<Entity, &MenuComponent>,
     asset_server: Res<AssetServer>,
     completion: Res<CampaignCompletion>,
+    game_settings: Res<GameSettings>,
 ) {
-    if menu_state.is_changed() {
+    if menu_state.is_changed() || game_settings.is_changed() {
         for entity in menu_components.iter() {
             commands.entity(entity).despawn_recursive();
         }
 
-        menu_state.spawn_nodes(&mut commands, asset_server.as_ref(), &completion);
+        menu_state.spawn_nodes(
+            &mut commands,
+            asset_server.as_ref(),
+            &completion,
+            game_settings.as_ref(),
+        );
     }
 }
 
@@ -144,6 +228,7 @@ fn button_system(
     mut import_events: EventWriter<ImportEvent>,
 
     mut menu_state: ResMut<UIState>,
+    mut settings: ResMut<GameSettings>,
 
     dragged: Query<(), With<BeingDragged>>,
 ) {
@@ -203,11 +288,15 @@ fn button_system(
                 Credits => change_level_events.send(ChangeLevelEvent::Credits),
 
                 Steam | GooglePlay | Apple => {}
+                ToggleSettings => menu_state.as_mut().toggle_settings(),
+                ToggleArrows => settings.toggle_arrows(),
+                ToggleTouchOutlines => settings.toggle_touch_outlines(),
+                SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
             }
 
             match button.button_action {
-                OpenMenu | Resume | ChooseLevel | NextLevelsPage | PreviousLevelsPage
-                | MinimizeSplash | RestoreSplash => {}
+                OpenMenu | Resume | ChooseLevel | NextLevelsPage | PreviousLevelsPage | ToggleSettings
+                | MinimizeSplash | RestoreSplash | ToggleArrows | ToggleTouchOutlines | SetRotationSensitivity(_) => {}
                 _ => menu_state.close_menu(),
             }
         }
@@ -244,6 +333,80 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
             for button in ButtonAction::main_buttons() {
                 spawn_text_button(parent, *button, font.clone(), false, JustifyContent::Center);
             }
+        });
+}
+
+fn spawn_settings_menu(
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+    settings: &GameSettings,
+) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                left: Val::Percent(50.0),  // Val::Px(MENU_OFFSET),
+                right: Val::Percent(50.0), // Val::Px(MENU_OFFSET),
+                top: Val::Px(MENU_OFFSET),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+
+                ..Default::default()
+            },
+            z_index: ZIndex::Global(10),
+            ..Default::default()
+        })
+        .insert(MenuComponent::MainMenu)
+        .with_children(|parent| {
+            let font = asset_server.load(MENU_TEXT_FONT_PATH);
+
+            let arrows_text = if settings.show_arrows {
+                "Rotation Arrows  "
+            } else {
+                "Rotation Arrows  "
+            };
+
+            spawn_text_button_with_text(
+                arrows_text.to_string(),
+                parent,
+                ButtonAction::ToggleArrows,
+                font.clone(),
+                false,
+                JustifyContent::Center,
+            );
+
+            let outlines_text = if settings.show_touch_outlines {
+                "Touch Outlines   "
+            } else {
+                "Touch Outlines   "
+            };
+
+            spawn_text_button_with_text(
+                outlines_text.to_string(),
+                parent,
+                ButtonAction::ToggleTouchOutlines,
+                font.clone(),
+                false,
+                JustifyContent::Center,
+            );
+
+            let sensitivity_text = match settings.rotation_sensitivity {
+                RotationSensitivity::Low =>     "Sensitivity    Low",
+                RotationSensitivity::Medium =>  "Sensitivity Medium",
+                RotationSensitivity::High =>    "Sensitivity   High",
+                RotationSensitivity::Extreme => "Sensitivity Extreme",
+            };
+
+            spawn_text_button_with_text(
+                sensitivity_text.to_string(),
+                parent,
+                ButtonAction::SetRotationSensitivity(settings.rotation_sensitivity.next()),
+                font.clone(),
+                false,
+                JustifyContent::Center,
+            );
+
+            spawn_text_button_with_text("Back".to_string(), parent,ButtonAction::ToggleSettings,  font.clone(), false, JustifyContent::Center);
         });
 }
 

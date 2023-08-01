@@ -204,17 +204,17 @@ impl CurrentLevel {
 
     pub fn show_rotate_arrow(&self) -> bool {
         match &self.level {
-            GameLevel::Designed { meta } => meta.get_level().show_rotate,
+            GameLevel::Designed { meta } => meta.is_tutorial(),
             _ => false,
         }
     }
 
-    pub fn hide_shadows(&self) -> bool {
-        match &self.level {
-            GameLevel::Designed { meta } => meta.get_level().hide_shadows,
-            _ => false,
-        }
-    }
+    // pub fn hide_shadows(&self) -> bool {
+    //     match &self.level {
+    //         GameLevel::Designed { meta } => meta.get_level().hide_shadows,
+    //         _ => false,
+    //     }
+    // }
 
     pub fn get_title(&self) -> Option<String> {
         match &self.level {
@@ -757,8 +757,6 @@ impl ChangeLevelEvent {
                     initial_stage,
                     stages: vec![],
                     end_text: None,
-                    show_rotate: false,
-                    hide_shadows: false,
                     end_fireworks: FireworksSettings::default(),
                 };
 

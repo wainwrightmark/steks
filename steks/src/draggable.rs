@@ -5,8 +5,6 @@ use strum::EnumIs;
 
 use crate::input;
 use crate::prelude::*;
-use std::f32::consts::FRAC_PI_2;
-use std::f32::consts::PI;
 use std::f32::consts::TAU;
 
 const POSITION_DAMPING: f32 = 1.0;
@@ -233,6 +231,7 @@ pub fn drag_move(
     mut dragged_entities: Query<(&ShapeComponent, &mut BeingDragged)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ev_rotate: EventWriter<RotateEvent>,
+    settings: Res<GameSettings>,
 ) {
     for event in er_drag_move.iter() {
         if let Some((draggable, mut bd)) = dragged_entities
@@ -261,7 +260,8 @@ pub fn drag_move(
 
                     let previous_angle = angle_to(rotate.current - rotate.centre);
                     let new_angle = closest_angle_representation(new_angle, previous_angle);
-                    let angle = (new_angle - previous_angle) * constants::ROTATION_COEFFICIENT;
+                    let angle =
+                        (new_angle - previous_angle) * settings.rotation_sensitivity.coefficient();
 
                     //let angle = closest_angle_representation(angle, previous_angle);
                     ev_rotate.send(RotateEvent {
@@ -304,10 +304,10 @@ fn draw_rotate_arrows(
     mut query: Query<(Entity, &mut Path), With<RotateArrow>>,
     mut previous_angle: Local<Option<f32>>,
     current_level: Res<CurrentLevel>,
-    //mut gizmos: Gizmos,
+    settings: Res<GameSettings>, //mut gizmos: Gizmos,
 ) {
     if touch_rotate.is_changed() {
-        if !current_level.show_rotate_arrow() {
+        if !settings.show_arrows && !current_level.show_rotate_arrow() {
             for e in query.iter() {
                 commands.entity(e.0).despawn_recursive();
             }
@@ -328,7 +328,7 @@ fn draw_rotate_arrows(
 
                 let sweep_angle =
                     closest_angle_representation(sweep_angle, previous_angle.unwrap_or_default())
-                        * ROTATION_COEFFICIENT;
+                        * settings.rotation_sensitivity.coefficient();
 
                 let path_end = touch.centre + point_at_angle(dist, start_angle + sweep_angle);
                 *previous_angle = Some(sweep_angle);

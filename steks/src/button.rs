@@ -69,6 +69,11 @@ pub enum ButtonAction {
     MinimizeSplash,
     RestoreSplash,
     MinimizeApp,
+    ToggleSettings,
+
+    ToggleArrows,
+    ToggleTouchOutlines,
+    SetRotationSensitivity(RotationSensitivity),
 
     NextLevelsPage,
     PreviousLevelsPage,
@@ -89,7 +94,8 @@ impl ButtonAction {
             Infinite,
             Tutorial,
             Share,
-            ClipboardImport, //TODO
+            ToggleSettings,
+            ClipboardImport, //TODO remove
             #[cfg(all(feature = "web", target_arch = "wasm32"))]
             GoFullscreen,
             #[cfg(all(feature = "android", target_arch = "wasm32"))]
@@ -124,6 +130,10 @@ impl ButtonAction {
             GooglePlay => "\u{f1a0}".to_string(),
             Apple => "\u{f179}".to_string(),
             Steam => "\u{f1b6}".to_string(),
+            ToggleSettings => "Settings".to_string(),
+            ToggleArrows => "Toggle Arrows".to_string(),
+            ToggleTouchOutlines => "Toggle Markers".to_string(),
+            SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
         }
     }
 
@@ -166,6 +176,10 @@ impl ButtonAction {
             GooglePlay => "Google Play".to_string(),
             Apple => "Apple".to_string(),
             Steam => "Steam".to_string(),
+            ToggleSettings => "Settings".to_string(),
+            ToggleArrows => "Toggle Arrows".to_string(),
+            ToggleTouchOutlines => "Toggle Markers".to_string(),
+            SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
         }
     }
 }
@@ -195,9 +209,20 @@ pub fn spawn_text_button(
     disabled: bool,
     justify_content: JustifyContent,
 ) {
+    spawn_text_button_with_text(button_action.text(), parent, button_action, font, disabled, justify_content)
+}
+
+pub fn spawn_text_button_with_text(
+    text: String,
+    parent: &mut ChildBuilder,
+    button_action: ButtonAction,
+    font: Handle<Font>,
+    disabled: bool,
+    justify_content: JustifyContent,
+) {
     let text_bundle = TextBundle {
         text: Text::from_section(
-            button_action.text(),
+            text,
             TextStyle {
                 font,
                 font_size: BUTTON_FONT_SIZE,

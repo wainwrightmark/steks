@@ -20,7 +20,7 @@ pub const SECONDS_PER_FRAME: f32 = 1. / 60.;
 pub const LONG_WIN_SECONDS: f32 = 5.0;
 pub const SHORT_WIN_SECONDS: f32 = 1.5;
 
-pub const ROTATION_COEFFICIENT: f32 = 1.5;
+// pub const ROTATION_COEFFICIENT: f32 = 1.5;
 
 pub const SHAPE_COLLISION_GROUP: Group = Group::GROUP_1;
 pub const WALL_COLLISION_GROUP: Group = Group::GROUP_2;

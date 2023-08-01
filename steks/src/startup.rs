@@ -3,9 +3,7 @@ use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
 use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
 
-
-
-pub fn main() {
+pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
@@ -33,10 +31,8 @@ pub fn main() {
         level: bevy::log::Level::INFO,
         ..Default::default()
     };
-    let mut builder = App::new();
 
-    builder
-        .insert_resource(Msaa::Sample4)
+    app.insert_resource(Msaa::Sample4)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_plugins(
             DefaultPlugins
@@ -73,8 +69,6 @@ pub fn main() {
         .add_plugins(SharePlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
-        .add_plugins(PurchasesPlugin)
-
         //.add_plugins(RecordingPlugin)
         .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
@@ -87,17 +81,16 @@ pub fn main() {
 
     #[cfg(target_arch = "wasm32")]
     {
-        builder.add_plugins(WASMPlugin);
-        //builder.add_plugins(PurchasesPlugin);
+        app.add_plugins(WASMPlugin);
+
         if !cfg!(debug_assertions) {
-            builder.add_plugins(NotificationPlugin);
+            app.add_plugins(NotificationPlugin);
         }
     }
 
     if cfg!(debug_assertions) {
-
-        builder.add_plugins( ScreenDiagnosticsPlugin::default());
-        builder.add_plugins(ScreenFrameDiagnosticsPlugin);
+        app.add_plugins(ScreenDiagnosticsPlugin::default());
+        app.add_plugins(ScreenFrameDiagnosticsPlugin);
 
         //builder.add_plugins(RapierDebugRenderPlugin::default());
         //builder.add_plugins(ScreenDiagsPlugin);
@@ -105,20 +98,21 @@ pub fn main() {
         // builder.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
 
-    builder.add_systems(Startup, disable_back);
-    builder.add_systems(Startup, hide_splash);
-    builder.add_systems(Startup, set_status_bar.after(hide_splash));
+    app.add_systems(Startup, disable_back);
+    app.add_systems(Startup, hide_splash);
+    app.add_systems(Startup, set_status_bar.after(hide_splash));
 
     if !cfg!(debug_assertions) {
-        builder.add_systems(PostStartup, log_start);
+        app.add_systems(PostStartup, log_start);
     }
-
-    builder.run();
 }
 
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
     rapier_config.gravity = GRAVITY;
-    rapier_config.timestep_mode = TimestepMode::Fixed { dt: SECONDS_PER_FRAME, substeps: 1 }
+    rapier_config.timestep_mode = TimestepMode::Fixed {
+        dt: SECONDS_PER_FRAME,
+        substeps: 1,
+    }
 }
 
 pub fn get_today_date() -> chrono::NaiveDate {
@@ -221,4 +215,18 @@ async fn log_start_async<'a>(_user_exists: bool) {
         let application_start = crate::wasm::application_start().await;
         application_start.try_log_async1(device_id).await;
     }
+}
+
+#[cfg(test)]
+pub mod test {
+    //use bevy::prelude::*;
+
+    //use super::setup_app;
+
+    // #[test]
+    // pub fn check_systems() {
+    //     let mut app = App::new();
+
+    //     setup_app(&mut app);
+    // }
 }

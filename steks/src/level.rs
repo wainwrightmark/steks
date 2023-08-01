@@ -70,7 +70,6 @@ fn manage_level_shapes(
         let previous = swap;
         match current_level.completion {
             LevelCompletion::Incomplete { stage } => {
-                // TODO: spawn shapes for earlier stages if needed
                 let previous_stage = if stage == 0 || previous.level != current_level.level {
                     for ((e, _), _) in draggables.iter() {
                         commands.entity(e).despawn_recursive();
@@ -189,14 +188,30 @@ impl CurrentLevel {
         }
     }
 
-    pub fn show_rotate_arrow(&self)-> bool{
+    pub fn raindrop_settings(&self) -> Option<RaindropSettings> {
+        let settings = match &self.level {
+            GameLevel::Designed { meta, .. } => {
+                meta.get_level().get_current_stage(self.completion).rainfall
+            }
+            GameLevel::Infinite { .. } | GameLevel::Begging => None,
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => None,
+        };
+        settings
+    }
+
+    pub fn show_rotate_arrow(&self) -> bool {
         match &self.level {
-            GameLevel::Designed { meta } => {
-                meta.get_level().show_rotate
-            },
-            _=> false
+            GameLevel::Designed { meta } => meta.is_tutorial(),
+            _ => false,
         }
     }
+
+    // pub fn hide_shadows(&self) -> bool {
+    //     match &self.level {
+    //         GameLevel::Designed { meta } => meta.get_level().hide_shadows,
+    //         _ => false,
+    //     }
+    // }
 
     pub fn get_title(&self) -> Option<String> {
         match &self.level {
@@ -251,7 +266,7 @@ impl CurrentLevel {
         "an overwhelming surplus of nice!",
     ];
 
-    pub fn get_text(&self, ui: &UIState) -> Option<String> {
+    pub fn get_text(&self, ui: &GameUIState) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::Designed { meta, .. } => meta
@@ -359,7 +374,6 @@ impl ScoreInfo {
         let pb = *old_height.unwrap_or(&0.0);
 
         let is_wr = wr.map(|x| x < height).unwrap_or_default();
-        //TODO use is_some_and when netlify updates
         let is_pb = pb < height;
 
         ScoreInfo {
@@ -410,7 +424,9 @@ impl GameLevel {
         Self::Infinite { seed }
     }
 
-    pub const CREDITS: Self = GameLevel::Designed { meta: DesignedLevelMeta::Credits };
+    pub const CREDITS: Self = GameLevel::Designed {
+        meta: DesignedLevelMeta::Credits,
+    };
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
@@ -601,9 +617,10 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
                     GRAVITY
                 }
             }
-            GameLevel::Infinite { .. } | GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
-                GRAVITY
-            }
+            GameLevel::Infinite { .. }
+            | GameLevel::Challenge { .. }
+            | GameLevel::Loaded { .. }
+            | GameLevel::Begging => GRAVITY,
         };
         rapier_config.gravity = gravity;
     }
@@ -632,28 +649,22 @@ fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<
     match level.completion {
         LevelCompletion::Incomplete { .. } => {}
         LevelCompletion::Complete { .. } => match &level.level {
-            GameLevel::Designed { meta, .. } => match meta {
-                DesignedLevelMeta::Campaign { index } => {
-                    if *index > 0 && (index - 1) % 10 == 0 {
-                        #[cfg(all(
-                            target_arch = "wasm32",
-                            any(feature = "android", feature = "ios")
-                        ))]
-                        {
-                            bevy::tasks::IoTaskPool::get()
+            GameLevel::Designed { .. } => {}
+            GameLevel::Infinite { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {}
+            GameLevel::Challenge { date, streak } => {
+                streak_resource.count = *streak;
+                streak_resource.most_recent = *date;
+
+                if streak > &2 {
+                    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
+                    {
+                        bevy::tasks::IoTaskPool::get()
                                 .spawn(async move {
                                     capacitor_bindings::rate::Rate::request_review().await
                                 })
                                 .detach();
-                        }
                     }
                 }
-                _ => {}
-            },
-            GameLevel::Infinite { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {}
-            GameLevel::Challenge { date, streak } => {
-                streak_resource.count = streak.clone();
-                streak_resource.most_recent = date.clone();
             }
         },
     }
@@ -671,13 +682,11 @@ impl ChangeLevelEvent {
                         return (GameLevel::Designed { meta }, 0);
                     }
 
-                    if meta.is_credits(){
+                    if meta.is_credits() {
                         (GameLevel::Begging, 0)
-                    }else{
+                    } else {
                         (GameLevel::CREDITS, 0)
                     }
-
-
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),
                 GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
@@ -744,7 +753,6 @@ impl ChangeLevelEvent {
                     initial_stage,
                     stages: vec![],
                     end_text: None,
-                    show_rotate: false,
                     end_fireworks: FireworksSettings::default(),
                 };
 
@@ -765,8 +773,8 @@ impl ChangeLevelEvent {
                 },
                 0,
             ),
-            ChangeLevelEvent::Begging=>(GameLevel::Begging, 0),
-            ChangeLevelEvent::Credits=>(GameLevel::CREDITS, 0),
+            ChangeLevelEvent::Begging => (GameLevel::Begging, 0),
+            ChangeLevelEvent::Credits => (GameLevel::CREDITS, 0),
         }
     }
 

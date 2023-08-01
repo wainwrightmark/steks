@@ -25,28 +25,28 @@ impl TrackableResource for Achievements {
 
 fn maybe_add(achievements: &mut ResMut<Achievements>, achievement: Achievement) {
     if !achievements.completed.contains(&achievement) {
-        achievements.completed.insert(achievement.clone());
+        achievements.completed.insert(achievement);
 
         info!("Achievement Unlocked: {achievement}");
 
         #[cfg(all(target_arch = "wasm32"))]
         {
-            #[cfg(any(feature = "android", feature = "ios"))]
-            {
-                use capacitor_bindings::game_connect::UnlockAchievementOptions;
-                bevy::tasks::IoTaskPool::get()
-                    .spawn(async move {
-                        crate::logging::do_or_report_error_async(move || {
-                            capacitor_bindings::game_connect::GameConnect::unlock_achievement(
-                                UnlockAchievementOptions {
-                                    achievement_id: achievement.android_id().to_string(),
-                                },
-                            )
-                        })
-                        .await;
-                    })
-                    .detach();
-            }
+            // #[cfg(any(feature = "android", feature = "ios"))]
+            // {
+            //     use capacitor_bindings::game_connect::UnlockAchievementOptions;
+            //     bevy::tasks::IoTaskPool::get()
+            //         .spawn(async move {
+            //             crate::logging::do_or_report_error_async(move || {
+            //                 capacitor_bindings::game_connect::GameConnect::unlock_achievement(
+            //                     UnlockAchievementOptions {
+            //                         achievement_id: achievement.android_id().to_string(),
+            //                     },
+            //                 )
+            //             })
+            //             .await;
+            //         })
+            //         .detach();
+            // }
 
             #[cfg(any(feature = "web"))]
             {
@@ -138,8 +138,10 @@ fn track_level_completion_achievements(
         let shapes = ShapesVec::from_query(shapes_query);
         let height = shapes.calculate_tower_height();
 
-
-        info!("Checking achievements {} shapes, height {height}", shapes.len());
+        info!(
+            "Checking achievements {} shapes, height {height}",
+            shapes.len()
+        );
         for achievement in [GreatPyramid, ThirtyRock, EiffelTower, EmpireStateBuilding] {
             if achievement.met_by_shapes(shapes.len(), height) {
                 maybe_add(&mut achievements, achievement);

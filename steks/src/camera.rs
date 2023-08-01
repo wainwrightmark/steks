@@ -1,4 +1,4 @@
-use crate::shape_maker::Shadow;
+use crate::{shape_component::GameSettings, shape_maker::Shadow};
 use bevy::prelude::*;
 
 pub struct CameraPlugin;
@@ -28,8 +28,9 @@ pub struct TouchDragged;
 fn show_shadows(
     added: Query<(), Added<TouchDragged>>,
     mut shadows: Query<(&mut Visibility, With<Shadow>)>,
+    settings: Res<GameSettings>,
 ) {
-    if !added.is_empty() {
+    if !added.is_empty() && settings.show_touch_outlines {
         for mut shadow in shadows.iter_mut() {
             *shadow.0 = Visibility::Inherited;
         }

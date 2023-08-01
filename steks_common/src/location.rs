@@ -7,8 +7,8 @@ pub struct Location {
 }
 
 impl Location {
-    pub fn new(x: f32, y: f32, angle: f32)-> Self{
-        Self{
+    pub fn new(x: f32, y: f32, angle: f32) -> Self {
+        Self {
             position: Vec2 { x, y },
             angle,
         }

@@ -48,44 +48,51 @@ pub fn choose_color(index: usize, alt: bool) -> Color {
     Color::hsla(hue, saturation, lightness, alpha)
 }
 
-pub fn color_to_rgba(color: Color) -> String {
+pub fn color_to_rgb_and_opacity(color: Color) -> (String, Option<f32>) {
     let [r, g, b, a] = color.as_rgba_u32().to_le_bytes();
-    format!("#{:02X}{:02X}{:02X}{:02X}", r, g, b, a)
-}
 
-pub fn color_to_svg_fill(color: Option<Color>) -> String {
-    match color {
-        Some(color) => {
-            let rgba = color_to_rgba(color);
-            format!("fill=\"{rgba}\"")
-        }
-        None => "".to_string(),
+    let c = format!("#{:02X}{:02X}{:02X}", r, g, b);
+    if a == u8::MAX {
+        (c, None)
+    } else {
+        let alpha = color.a();
+        (c, Some(alpha))
     }
 }
 
-pub fn color_to_svg_stroke(color: Option<Color>) -> String {
-    match color {
-        Some(color) => {
-            let rgba = color_to_rgba(color);
-            format!("stroke=\"{rgba}\"")
-        }
-        None => "".to_string(),
-    }
-}
+// pub fn color_to_svg_fill(color: Option<Color>) -> String {
+//     match color {
+//         Some(color) => {
+//             let rgba = color_to_rgba(color);
+//             format!("fill=\"{rgba}\"")
+//         }
+//         None => "".to_string(),
+//     }
+// }
 
-#[cfg(test)]
-mod tests {
-    use super::choose_color;
+// pub fn color_to_svg_stroke(color: Option<Color>) -> String {
+//     match color {
+//         Some(color) => {
+//             let rgba = color_to_rgba(color);
+//             format!("stroke=\"{rgba}\"")
+//         }
+//         None => "".to_string(),
+//     }
+// }
 
-    #[test]
-    pub fn show_colors() {
-        for alt in [false, true]{
-            for index in 0..25 {
-                let color = choose_color(index, alt);
-                let [h, s, l, a] = color.as_hsla_f32();
-                println!("h: {h}, s: {s}, l: {l}, a: {a}");
-            }
-        }
+// #[cfg(test)]
+// mod tests {
+//     use super::choose_color;
 
-    }
-}
+//     #[test]
+//     pub fn show_colors() {
+//         for alt in [false, true]{
+//             for index in 0..25 {
+//                 let color = choose_color(index, alt);
+//                 let [h, s, l, a] = color.as_hsla_f32();
+//                 println!("h: {h}, s: {s}, l: {l}, a: {a}");
+//             }
+//         }
+
+//     }
+// }

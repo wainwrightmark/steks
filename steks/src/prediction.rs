@@ -135,7 +135,7 @@ pub fn make_prediction(
             .load(std::sync::atomic::Ordering::Relaxed)
     );
 
-    return PredictionResult::MinimalCollision;
+    PredictionResult::MinimalCollision
 }
 
 #[derive(Default, Debug)]

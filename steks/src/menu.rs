@@ -1,5 +1,5 @@
 use steks_common::color;
-use strum::EnumIs;
+use strum::{Display, EnumIs};
 
 use crate::{designed_level, prelude::*};
 
@@ -7,7 +7,9 @@ pub struct ButtonPlugin;
 
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<UIState>()
+        app.init_resource::<MenuState>()
+            .init_resource::<GameUIState>()
+            .add_plugins(TrackedResourcePlugin::<GameSettings>::default())
             //.add_systems(Startup, setup.after(setup_level_ui))
             .add_systems(First, button_system)
             .add_systems(Update, handle_menu_state_changes);
@@ -20,16 +22,99 @@ pub enum MenuComponent {
     MenuHamburger,
     MainMenu,
     LevelsPage(u8),
+    SettingsPage,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Resource, serde::Serialize, serde::Deserialize)]
+pub struct GameSettings {
+    pub show_arrows: bool,
+    pub show_touch_outlines: bool,
+    pub rotation_sensitivity: RotationSensitivity,
+}
+
+impl TrackableResource for GameSettings {
+    const KEY: &'static str = "GameSettings";
+}
+
+impl GameSettings {
+    pub fn toggle_arrows(&mut self) {
+        self.show_arrows = !self.show_arrows;
+    }
+
+    pub fn toggle_touch_outlines(&mut self) {
+        self.show_touch_outlines = !self.show_touch_outlines;
+    }
+
+    pub fn set_rotation_sensitivity(&mut self, rs: RotationSensitivity) {
+        self.rotation_sensitivity = rs;
+    }
+}
+
+impl Default for GameSettings {
+    fn default() -> Self {
+        Self {
+            show_arrows: false,
+            show_touch_outlines: true,
+            rotation_sensitivity: RotationSensitivity::Medium,
+        }
+    }
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Default,
+    EnumIs,
+    Display,
+    serde::Serialize,
+    serde::Deserialize,
+)]
+pub enum RotationSensitivity {
+    Low,
+    #[default]
+    Medium,
+    High,
+    Extreme,
+}
+
+impl RotationSensitivity {
+    pub fn next(&self) -> Self {
+        use RotationSensitivity::*;
+        match self {
+            Low => Medium,
+            Medium => High,
+            High => Extreme,
+            Extreme => Low,
+        }
+    }
+
+    pub fn coefficient(&self) -> f32 {
+        match self {
+            RotationSensitivity::Low => 0.75,
+            RotationSensitivity::Medium => 1.00,
+            RotationSensitivity::High => 1.50,
+            RotationSensitivity::Extreme => 2.00,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
-pub enum UIState {
+pub enum GameUIState {
     #[default]
     GameSplash,
     GameMinimized,
+}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
+pub enum MenuState {
+    #[default]
+    Minimized,
     ShowMainMenu,
     ShowLevelsPage(u8),
+    SettingsPage,
 }
 
 const LEVELS_PER_PAGE: u8 = 8;
@@ -39,30 +124,43 @@ pub fn max_page_exclusive() -> u8 {
     t / LEVELS_PER_PAGE + (t % LEVELS_PER_PAGE).min(1) + 1
 }
 
-impl UIState {
+impl MenuState {
     pub fn open_menu(&mut self) {
-        *self = UIState::ShowMainMenu
+        *self = MenuState::ShowMainMenu
     }
 
     pub fn close_menu(&mut self) {
-        *self = UIState::GameSplash
+        *self = MenuState::Minimized
     }
 
-    pub fn toggle_levels(&mut self) {
-        use UIState::*;
+    pub fn toggle_settings(&mut self) {
+        use MenuState::*;
         match self {
-            GameSplash | GameMinimized => *self = ShowLevelsPage(0),
-            ShowMainMenu => *self = ShowLevelsPage(0),
-            ShowLevelsPage(..) => *self = GameSplash,
+            SettingsPage => *self = ShowMainMenu,
+            _ => *self = SettingsPage,
+        }
+    }
+
+    pub fn toggle_levels(&mut self, current_level: &CurrentLevel) {
+        use MenuState::*;
+
+        let page = match current_level.level {
+            GameLevel::Designed { meta: DesignedLevelMeta::Campaign { index } } => index / LEVELS_PER_PAGE,
+            _=> 0
+        };
+
+        match self {
+            Minimized | ShowMainMenu | SettingsPage => *self = ShowLevelsPage(page),
+            ShowLevelsPage(..) => *self = Minimized,
         }
     }
 
     pub fn next_levels_page(&mut self) {
         match self {
-            UIState::ShowLevelsPage(levels) => {
+            MenuState::ShowLevelsPage(levels) => {
                 let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
 
-                *self = UIState::ShowLevelsPage(new_page)
+                *self = MenuState::ShowLevelsPage(new_page)
             }
             _ => (),
         }
@@ -70,11 +168,11 @@ impl UIState {
 
     pub fn previous_levels_page(&mut self) {
         match self {
-            UIState::ShowLevelsPage(levels) => {
+            MenuState::ShowLevelsPage(levels) => {
                 if let Some(new_page) = levels.checked_sub(1) {
-                    *self = UIState::ShowLevelsPage(new_page);
+                    *self = MenuState::ShowLevelsPage(new_page);
                 } else {
-                    *self = UIState::ShowMainMenu;
+                    *self = MenuState::ShowMainMenu;
                 }
             }
             _ => (),
@@ -86,9 +184,10 @@ impl UIState {
         commands: &mut Commands,
         asset_server: &AssetServer,
         completion: &CampaignCompletion,
+        game_settings: &GameSettings,
     ) {
         match self {
-            UIState::GameSplash | UIState::GameMinimized => {
+            MenuState::Minimized => {
                 let font = asset_server.load(ICON_FONT_PATH);
 
                 commands
@@ -105,32 +204,38 @@ impl UIState {
                     .insert(MenuComponent::MenuHamburger)
                     .with_children(|parent| {
                         spawn_icon_button(parent, ButtonAction::OpenMenu, font, false)
-                        //todo gravity
                     });
             }
-            UIState::ShowMainMenu => {
+            MenuState::ShowMainMenu => {
                 spawn_menu(commands, asset_server);
             }
-            UIState::ShowLevelsPage(page) => {
+            MenuState::ShowLevelsPage(page) => {
                 spawn_level_menu(commands, asset_server, *page, completion)
             }
+            MenuState::SettingsPage => spawn_settings_menu(commands, asset_server, game_settings),
         }
     }
 }
 
 fn handle_menu_state_changes(
     mut commands: Commands,
-    menu_state: Res<UIState>,
+    menu_state: Res<MenuState>,
     menu_components: Query<Entity, &MenuComponent>,
     asset_server: Res<AssetServer>,
     completion: Res<CampaignCompletion>,
+    game_settings: Res<GameSettings>,
 ) {
-    if menu_state.is_changed() {
+    if menu_state.is_changed() || game_settings.is_changed() {
         for entity in menu_components.iter() {
             commands.entity(entity).despawn_recursive();
         }
 
-        menu_state.spawn_nodes(&mut commands, asset_server.as_ref(), &completion);
+        menu_state.spawn_nodes(
+            &mut commands,
+            asset_server.as_ref(),
+            &completion,
+            game_settings.as_ref(),
+        );
     }
 }
 
@@ -142,9 +247,12 @@ fn button_system(
     mut change_level_events: EventWriter<ChangeLevelEvent>,
     mut share_events: EventWriter<ShareEvent>,
     mut import_events: EventWriter<ImportEvent>,
-    mut purchase_events: EventWriter<TryPurchaseEvent>,
 
-    mut menu_state: ResMut<UIState>,
+    mut menu_state: ResMut<MenuState>,
+    mut game_ui_state: ResMut<GameUIState>,
+    mut settings: ResMut<GameSettings>,
+
+    current_level: Res<CurrentLevel>,
 
     dragged: Query<(), With<BeingDragged>>,
 ) {
@@ -185,21 +293,18 @@ fn button_system(
                         stage: 0,
                     })
                 }
-                ChooseLevel => menu_state.as_mut().toggle_levels(),
+                ChooseLevel => menu_state.as_mut().toggle_levels(current_level.as_ref()),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeSplash => {
-                    *menu_state = UIState::GameMinimized;
+                    *game_ui_state = GameUIState::GameMinimized;
                 }
                 RestoreSplash => {
-                    *menu_state = UIState::GameSplash;
+                    *game_ui_state = GameUIState::GameSplash;
                 }
                 MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })
                         .detach();
-                }
-                Unlock => {
-                    purchase_events.send(TryPurchaseEvent);
                 }
                 NextLevelsPage => menu_state.as_mut().next_levels_page(),
 
@@ -207,11 +312,24 @@ fn button_system(
                 Credits => change_level_events.send(ChangeLevelEvent::Credits),
 
                 Steam | GooglePlay | Apple => {}
+                ToggleSettings => menu_state.as_mut().toggle_settings(),
+                ToggleArrows => settings.toggle_arrows(),
+                ToggleTouchOutlines => settings.toggle_touch_outlines(),
+                SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
             }
 
             match button.button_action {
-                OpenMenu | Resume | ChooseLevel | NextLevelsPage | PreviousLevelsPage
-                | MinimizeSplash | RestoreSplash => {}
+                OpenMenu
+                | Resume
+                | ChooseLevel
+                | NextLevelsPage
+                | PreviousLevelsPage
+                | ToggleSettings
+                | MinimizeSplash
+                | RestoreSplash
+                | ToggleArrows
+                | ToggleTouchOutlines
+                | SetRotationSensitivity(_) => {}
                 _ => menu_state.close_menu(),
             }
         }
@@ -248,6 +366,87 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
             for button in ButtonAction::main_buttons() {
                 spawn_text_button(parent, *button, font.clone(), false, JustifyContent::Center);
             }
+        });
+}
+
+fn spawn_settings_menu(
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+    settings: &GameSettings,
+) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                left: Val::Percent(50.0),  // Val::Px(MENU_OFFSET),
+                right: Val::Percent(50.0), // Val::Px(MENU_OFFSET),
+                top: Val::Px(MENU_OFFSET),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+
+                ..Default::default()
+            },
+            z_index: ZIndex::Global(10),
+            ..Default::default()
+        })
+        .insert(MenuComponent::MainMenu)
+        .with_children(|parent| {
+            let font = asset_server.load(MENU_TEXT_FONT_PATH);
+
+            let arrows_text = if settings.show_arrows {
+                "Rotation Arrows  "
+            } else {
+                "Rotation Arrows  "
+            };
+
+            spawn_text_button_with_text(
+                arrows_text.to_string(),
+                parent,
+                ButtonAction::ToggleArrows,
+                font.clone(),
+                false,
+                JustifyContent::Center,
+            );
+
+            let outlines_text = if settings.show_touch_outlines {
+                "Touch Outlines   "
+            } else {
+                "Touch Outlines   "
+            };
+
+            spawn_text_button_with_text(
+                outlines_text.to_string(),
+                parent,
+                ButtonAction::ToggleTouchOutlines,
+                font.clone(),
+                false,
+                JustifyContent::Center,
+            );
+
+            let sensitivity_text = match settings.rotation_sensitivity {
+                RotationSensitivity::Low => "Sensitivity    Low",
+                RotationSensitivity::Medium => "Sensitivity Medium",
+                RotationSensitivity::High => "Sensitivity   High",
+                RotationSensitivity::Extreme => "Sensitivity Extreme",
+            };
+
+            spawn_text_button_with_text(
+                sensitivity_text.to_string(),
+                parent,
+                ButtonAction::SetRotationSensitivity(settings.rotation_sensitivity.next()),
+                font.clone(),
+                false,
+                JustifyContent::Center,
+            );
+
+            spawn_text_button_with_text(
+                "Back".to_string(),
+                parent,
+                ButtonAction::ToggleSettings,
+                font.clone(),
+                false,
+                JustifyContent::Center,
+            );
         });
 }
 
@@ -343,9 +542,11 @@ fn spawn_level_menu(
                     ..Default::default()
                 })
                 .with_children(|panel| {
-                    let back_action = (page == 0)
-                        .then(|| ButtonAction::OpenMenu)
-                        .unwrap_or(ButtonAction::PreviousLevelsPage);
+                    let back_action = if page == 0 {
+                        ButtonAction::OpenMenu
+                    } else {
+                        ButtonAction::PreviousLevelsPage
+                    };
                     spawn_icon_button(panel, back_action, icon_font.clone(), false);
 
                     if end + 1 >= CAMPAIGN_LEVELS.len() as u8 {

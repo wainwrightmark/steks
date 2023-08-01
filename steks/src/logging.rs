@@ -1,8 +1,5 @@
 use bevy::{log, prelude::*, tasks::IoTaskPool};
-use capacitor_bindings::{
-    app::AppInfo,
-    device::*,
-};
+use capacitor_bindings::{app::AppInfo, device::*};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum::EnumDiscriminants;

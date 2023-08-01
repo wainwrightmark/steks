@@ -31,7 +31,7 @@ pub fn check_for_win(
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), Without<WinTimer>>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
-    mut level_ui: ResMut<UIState>,
+    mut level_ui: ResMut<GameUIState>,
 
     score_store: Res<Leaderboard>,
     pbs: Res<PersonalBests>,
@@ -52,21 +52,21 @@ pub fn check_for_win(
                     } else {
                         let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
                         current_level.completion = LevelCompletion::Complete { score_info };
-                        level_ui.set_if_neq(UIState::GameSplash);
+                        level_ui.set_if_neq(GameUIState::GameSplash);
                     }
                 }
 
                 LevelCompletion::Complete { .. } => {
                     let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
                     if score_info.is_pb | score_info.is_wr {
-                        level_ui.set_if_neq(UIState::GameSplash);
+                        level_ui.set_if_neq(GameUIState::GameSplash);
                     }
 
                     current_level.completion = LevelCompletion::Complete { score_info }
                 }
             }
         } else {
-            let new_scale = (timer.remaining / timer.total_countdown) as f32;
+            let new_scale = timer.remaining / timer.total_countdown;
 
             timer_transform.scale = Vec3::new(new_scale, new_scale, 1.0);
         }
@@ -84,6 +84,7 @@ pub fn check_for_tower(
     rapier_config: Res<RapierConfiguration>,
     wall_sensors: Query<Entity, With<WallSensor>>,
     walls: Query<Entity, With<WallPosition>>,
+    level: Res<CurrentLevel>,
 ) {
     let Some(event) = check_events.iter().next() else{return;};
 
@@ -116,8 +117,11 @@ pub fn check_for_tower(
 
     collision_events.clear();
 
-    let prediction_result =
-        prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity);
+    let prediction_result: PredictionResult = if level.raindrop_settings().is_some() {
+        PredictionResult::ManyNonWall
+    } else {
+        prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity)
+    };
 
     let countdown_seconds = event.get_countdown_seconds(prediction_result);
 

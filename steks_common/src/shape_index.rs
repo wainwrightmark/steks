@@ -1,6 +1,6 @@
-use bevy::prelude::Component;
-use rand::{Rng, rngs::StdRng};
 use crate::{game_shape::ALL_SHAPES, prelude::GameShape};
+use bevy::prelude::Component;
+use rand::{rngs::StdRng, Rng};
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub struct ShapeIndex(pub usize);
@@ -16,7 +16,7 @@ impl ShapeIndex {
         Self::random_no_circle(&mut shape_rng)
     }
 
-    pub fn random_no_circle( rng:&mut impl Rng)-> Self{
+    pub fn random_no_circle(rng: &mut impl Rng) -> Self {
         ShapeIndex(rng.gen_range(1..Self::exclusive_max().0))
     }
 }

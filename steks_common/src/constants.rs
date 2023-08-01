@@ -20,7 +20,7 @@ pub const SECONDS_PER_FRAME: f32 = 1. / 60.;
 pub const LONG_WIN_SECONDS: f32 = 5.0;
 pub const SHORT_WIN_SECONDS: f32 = 1.5;
 
-pub const ROTATION_COEFFICIENT: f32 = 1.00;
+// pub const ROTATION_COEFFICIENT: f32 = 1.5;
 
 pub const SHAPE_COLLISION_GROUP: Group = Group::GROUP_1;
 pub const WALL_COLLISION_GROUP: Group = Group::GROUP_2;
@@ -84,4 +84,6 @@ pub const LEVEL_TITLE_FONT_SIZE: f32 = 30.0;
 pub const LEVEL_TEXT_FONT_SIZE: f32 = 20.0;
 pub const LEVEL_NUMBER_FONT_SIZE: f32 = 30.0;
 
-pub const SHAPE_STROKE_WIDTH: f32 = 2.0;
+pub const ICE_STROKE_WIDTH: f32 = 1.0; //TODO make 2 and make the shapes smaller
+pub const VOID_STROKE_WIDTH: f32 = 1.0;
+pub const FIXED_STROKE_WIDTH: f32 = 1.0;

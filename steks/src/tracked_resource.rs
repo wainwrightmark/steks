@@ -5,18 +5,19 @@ use bevy_pkv::PkvStore;
 use serde::{de::DeserializeOwned, Serialize};
 
 #[derive(Debug, Default)]
-pub struct TrackedResourcePlugin<T: Resource + FromWorld + Serialize + DeserializeOwned + TrackableResource >
-{
+pub struct TrackedResourcePlugin<
+    T: Resource + FromWorld + Serialize + DeserializeOwned + TrackableResource,
+> {
     phantom: PhantomData<T>,
 }
 
-pub trait TrackableResource: Resource{
+pub trait TrackableResource: Resource {
     const KEY: &'static str;
-
-
 }
 
-impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource > TrackedResourcePlugin<T> {
+impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource>
+    TrackedResourcePlugin<T>
+{
     fn track_changes(mut pkv: ResMut<PkvStore>, data: Res<T>) {
         if data.is_changed() {
             let key = <T as TrackableResource>::KEY;
@@ -26,7 +27,7 @@ impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource > 
     }
 }
 
-impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource > Plugin
+impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource> Plugin
     for TrackedResourcePlugin<T>
 {
     fn build(&self, app: &mut App) {
@@ -50,7 +51,7 @@ impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource > 
                     _ => {
                         error!("Failed to read {}: {}", type_name::<T>(), e);
                         T::default()
-                    },
+                    }
                 }
             }
         };
@@ -64,5 +65,4 @@ impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource > 
     fn is_unique(&self) -> bool {
         true
     }
-
 }

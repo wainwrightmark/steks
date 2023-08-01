@@ -31,8 +31,6 @@ impl ShapesVec {
         code
     }
 
-
-
     pub fn calculate_tower_height(&self) -> f32 {
         let mut min = WINDOW_HEIGHT;
         let mut max = -WINDOW_HEIGHT;

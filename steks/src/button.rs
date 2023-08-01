@@ -27,8 +27,6 @@ pub enum ButtonType {
 
 impl ButtonType {
     pub fn background_color(&self, interaction: &Interaction, disabled: bool) -> BackgroundColor {
-
-
         if disabled {
             return DISABLED_BUTTON_BACKGROUND.into();
         }
@@ -71,15 +69,19 @@ pub enum ButtonAction {
     MinimizeSplash,
     RestoreSplash,
     MinimizeApp,
-    Unlock,
+    ToggleSettings,
+
+    ToggleArrows,
+    ToggleTouchOutlines,
+    SetRotationSensitivity(RotationSensitivity),
+
     NextLevelsPage,
     PreviousLevelsPage,
     Credits,
 
-
     GooglePlay,
     Apple,
-    Steam
+    Steam,
 }
 
 impl ButtonAction {
@@ -87,24 +89,18 @@ impl ButtonAction {
         use ButtonAction::*;
         &[
             Resume,
-
             ChooseLevel,
             DailyChallenge,
             Infinite,
             Tutorial,
             Share,
-
-            #[cfg(all(any(feature = "android", feature = "ios"), target_arch = "wasm32"))]
-            Unlock,
-
-            ClipboardImport, //TODO
-
+            ToggleSettings,
+            ClipboardImport, //TODO remove
             #[cfg(all(feature = "web", target_arch = "wasm32"))]
             GoFullscreen,
             #[cfg(all(feature = "android", target_arch = "wasm32"))]
             MinimizeApp,
-
-            Credits
+            Credits,
         ]
     }
 
@@ -112,20 +108,19 @@ impl ButtonAction {
         use ButtonAction::*;
         match self {
             OpenMenu => "\u{f0c9}".to_string(),       // "Menu",
-            Resume => "\u{e817}".to_string(),      // "Menu",
+            Resume => "\u{e817}".to_string(),         // "Menu",
             ResetLevel => "\u{e800}".to_string(),     //"Reset Level",image
             GoFullscreen => "\u{f0b2}".to_string(),   //"Fullscreen",
             Tutorial => "\u{e801}".to_string(),       //"Tutorial",
             Infinite => "\u{e802}".to_string(),       //"Infinite",
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
-            ChooseLevel => "\u{e812}".to_string(),         // "\u{e812};".to_string(),
+            ChooseLevel => "\u{e812}".to_string(),    // "\u{e812};".to_string(),
             GotoLevel { level } => crate::designed_level::format_campaign_level_number(level),
-            NextLevel => "\u{e808}".to_string(),          //play
+            NextLevel => "\u{e808}".to_string(), //play
 
-            MinimizeApp => "\u{e813}".to_string(),        //logout
-            ClipboardImport => "\u{e818}".to_string(),    //clipboard
-            Unlock => "\u{f513}".to_string(),           //unlock
+            MinimizeApp => "\u{e813}".to_string(),     //logout
+            ClipboardImport => "\u{e818}".to_string(), //clipboard
             PreviousLevelsPage => "\u{e81b}".to_string(),
             NextLevelsPage => "\u{e81a}".to_string(),
             Credits => "\u{e811}".to_string(),
@@ -135,6 +130,10 @@ impl ButtonAction {
             GooglePlay => "\u{f1a0}".to_string(),
             Apple => "\u{f179}".to_string(),
             Steam => "\u{f1b6}".to_string(),
+            ToggleSettings => "Settings".to_string(),
+            ToggleArrows => "Toggle Arrows".to_string(),
+            ToggleTouchOutlines => "Toggle Markers".to_string(),
+            SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
         }
     }
 
@@ -170,14 +169,17 @@ impl ButtonAction {
             MinimizeSplash => "Minimize Splash".to_string(),
             RestoreSplash => "Restore Splash".to_string(),
             MinimizeApp => "Quit".to_string(),
-            Unlock => "Unlock Game".to_string(),
             NextLevelsPage => "Next Levels".to_string(),
             PreviousLevelsPage => "Previous Levels".to_string(),
-            Credits=> "Credits".to_string(),
+            Credits => "Credits".to_string(),
 
-            GooglePlay=> "Google Play".to_string(),
-            Apple=> "Apple".to_string(),
-            Steam=> "Steam".to_string(),
+            GooglePlay => "Google Play".to_string(),
+            Apple => "Apple".to_string(),
+            Steam => "Steam".to_string(),
+            ToggleSettings => "Settings".to_string(),
+            ToggleArrows => "Toggle Arrows".to_string(),
+            ToggleTouchOutlines => "Toggle Markers".to_string(),
+            SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
         }
     }
 }
@@ -200,8 +202,25 @@ pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
     }
 }
 
-
 pub fn spawn_text_button(
+    parent: &mut ChildBuilder,
+    button_action: ButtonAction,
+    font: Handle<Font>,
+    disabled: bool,
+    justify_content: JustifyContent,
+) {
+    spawn_text_button_with_text(
+        button_action.text(),
+        parent,
+        button_action,
+        font,
+        disabled,
+        justify_content,
+    )
+}
+
+pub fn spawn_text_button_with_text(
+    text: String,
     parent: &mut ChildBuilder,
     button_action: ButtonAction,
     font: Handle<Font>,
@@ -210,7 +229,7 @@ pub fn spawn_text_button(
 ) {
     let text_bundle = TextBundle {
         text: Text::from_section(
-            button_action.text(),
+            text,
             TextStyle {
                 font,
                 font_size: BUTTON_FONT_SIZE,

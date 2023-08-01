@@ -1,5 +1,5 @@
-use bevy::{prelude::*, window::PrimaryWindow};
-use bevy_prototype_lyon::prelude::{ShapeBundle, Stroke, StrokeOptions};
+use bevy::prelude::*;
+use bevy_prototype_lyon::prelude::{Fill, FillOptions, ShapeBundle, Stroke, StrokeOptions};
 use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 use serde::{Deserialize, Serialize};
@@ -32,7 +32,7 @@ pub struct RaindropSettings {
     pub intensity: usize,
 }
 
-pub const RAINDROP_INTERVAL_SECONDS: f32 = 0.5;
+pub const RAINDROP_INTERVAL_SECONDS: f32 = 0.50;
 
 impl Default for RaindropCountdown {
     fn default() -> Self {
@@ -77,8 +77,6 @@ fn spawn_raindrops(
 
     mut countdown: ResMut<RaindropCountdown>,
     time: Res<Time>,
-    window: Query<&Window, With<PrimaryWindow>>,
-    //rapier: Res<RapierConfiguration>,
 ) {
     if countdown.timer.paused() {
         return;
@@ -88,29 +86,40 @@ fn spawn_raindrops(
 
     if countdown.timer.just_finished() {
         let mut rng: ThreadRng = rand::thread_rng();
-        countdown.timer = Timer::from_seconds(
-            rng.gen_range(0.0..=RAINDROP_INTERVAL_SECONDS),
-            TimerMode::Once,
-        );
-
-        let window = window.get_single().unwrap();
+        countdown.timer = Timer::from_seconds(RAINDROP_INTERVAL_SECONDS, TimerMode::Once);
 
         let count = rng.gen_range(countdown.settings.intensity..(countdown.settings.intensity * 2));
 
-        for _ in 0..count {
-            let x = rng.gen_range((MAX_WINDOW_WIDTH * -0.5)..=(MAX_WINDOW_WIDTH * 0.5));
-            if x < window.width() * -0.6 || x > window.width() * 0.6 {
-                continue; //don't bother spawning too far outside window
-            }
+        let linvel_x = rng.gen_range(-ROOT_RAIN_VELOCITY..ROOT_RAIN_VELOCITY);
+        let linvel_x = linvel_x * linvel_x * linvel_x.signum();
 
-            let y = rng.gen_range((MAX_WINDOW_HEIGHT * 0.5)..(MAX_WINDOW_HEIGHT * 0.9));
-            //bevy::log::info!("Spawning raindrop");
+        for _ in 0..count {
+            let x = if linvel_x < 10.0 {
+                rng.gen_range(0.0..=(WINDOW_HEIGHT * 0.5))
+            } else if linvel_x > 10.0 {
+                rng.gen_range((WINDOW_WIDTH * -0.5)..=0.0)
+            } else {
+                rng.gen_range((WINDOW_WIDTH * -0.5)..=(WINDOW_HEIGHT * 0.5))
+            };
+
+            let y = MAX_WINDOW_HEIGHT; // rng.gen_range((MAX_WINDOW_HEIGHT * 0.5)..(MAX_WINDOW_HEIGHT * 0.6));
+
+            let linvel_x = linvel_x * rng.gen_range(0.9..1.1);
+            let linvel_y = rng.gen_range(0.0..ROOT_RAIN_VELOCITY);
+            let linvel_y = linvel_y * linvel_y * -1.0;
 
             let translation = Vec2 { x, y }.extend(0.0);
             spawn_drop(
                 &mut commands,
                 translation,
                 &mut rng,
+                Velocity {
+                    linvel: Vec2 {
+                        x: linvel_x,
+                        y: linvel_y,
+                    },
+                    angvel: 0.0,
+                },
                 time.elapsed_seconds() + DROP_LIFETIME_SECONDS,
             );
         }
@@ -129,15 +138,7 @@ fn manage_raindrops(
     *previous = current_level.clone();
     let _previous = swap;
 
-    let settings = match &current_level.level {
-        GameLevel::Designed { meta, .. } => {
-            meta.get_level()
-                .get_current_stage(current_level.completion)
-                .rainfall
-        }
-        GameLevel::Infinite { .. } | GameLevel::Begging => None,
-        GameLevel::Challenge{..} | GameLevel::Loaded { .. } => None,
-    };
+    let settings = current_level.raindrop_settings();
 
     match settings {
         Some(settings) => {
@@ -150,9 +151,10 @@ fn manage_raindrops(
     }
 }
 
-const RAIN_DENSITY: f32 = 100.0;
+const RAIN_DENSITY: f32 = 50.0;
 
-const RAIN_VELOCITY: f32 = 500.0;
+//const RAIN_VELOCITY: f32 = 500.0;
+const ROOT_RAIN_VELOCITY: f32 = 22.0;
 
 const DROP_LIFETIME_SECONDS: f32 = 5.0;
 
@@ -160,18 +162,12 @@ fn spawn_drop<R: Rng>(
     commands: &mut Commands,
     translation: Vec3,
     rng: &mut R,
+    velocity: Velocity,
     finish_time: f32, //gravity_factor: f32,
 ) {
     let size = rng.gen_range(0.5..3.0) * RAINDROP_SIZE;
     let shape_bundle = Circle.get_shape_bundle(size);
     let collider_shape = Collider::ball(size * std::f32::consts::FRAC_2_SQRT_PI * 0.5);
-
-    let x = rng.gen_range(-RAIN_VELOCITY..RAIN_VELOCITY);
-
-    let velocity: Velocity = Velocity {
-        linvel: Vec2 { x, y: 0.0 },
-        angvel: 0.0,
-    };
 
     commands
         .spawn(ShapeBundle {
@@ -189,6 +185,10 @@ fn spawn_drop<R: Rng>(
         .insert(Stroke {
             color: Color::WHITE,
             options: StrokeOptions::DEFAULT,
+        })
+        .insert(Fill {
+            color: Color::ANTIQUE_WHITE,
+            options: FillOptions::DEFAULT,
         })
         .insert(RigidBody::Dynamic)
         .insert(velocity)

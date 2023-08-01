@@ -43,8 +43,16 @@ impl WallPosition {
         use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;
 
-        let top_offset = if gravity.y > 0.0 { TOP_BOTTOM_OFFSET * -1.0 } else { 0.0 };
-        let bottom_offset = if gravity.y > 0.0 { 0.0  } else { TOP_BOTTOM_OFFSET };
+        let top_offset = if gravity.y > 0.0 {
+            TOP_BOTTOM_OFFSET * -1.0
+        } else {
+            0.0
+        };
+        let bottom_offset = if gravity.y > 0.0 {
+            0.0
+        } else {
+            TOP_BOTTOM_OFFSET
+        };
 
         match self {
             Top => Vec3::new(0.0, height / 2.0 + OFFSET + top_offset, WALL_Z),

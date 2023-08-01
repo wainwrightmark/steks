@@ -4,6 +4,7 @@ use bevy_tweening::{Animator, EaseFunction, Tween};
 use strum::EnumIs;
 
 use crate::prelude::*;
+
 pub struct LevelUiPlugin;
 
 impl Plugin for LevelUiPlugin {
@@ -76,7 +77,7 @@ fn update_ui_on_level_change(
     ui_state: Res<GameUIState>,
     menu_state: Res<MenuState>,
 ) {
-    if current_level.is_changed() || ui_state.is_changed() {
+    if current_level.is_changed() || ui_state.is_changed() || menu_state.is_changed() {
         let swap = previous.clone();
         *previous = (current_level.clone(), *ui_state);
         let previous = swap;
@@ -85,6 +86,8 @@ fn update_ui_on_level_change(
             MenuState::Minimized => Visibility::Inherited,
             _ => Visibility::Hidden,
         };
+
+        //info!("Set visibility: {new_visibility:?}");
 
         for (entity, _transform, _style, component) in level_ui.iter() {
             let commands = &mut commands.entity(entity);

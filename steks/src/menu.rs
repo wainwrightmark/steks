@@ -141,11 +141,16 @@ impl MenuState {
         }
     }
 
-    pub fn toggle_levels(&mut self) {
-        //TODO go to current level page
+    pub fn toggle_levels(&mut self, current_level: &CurrentLevel) {
         use MenuState::*;
+
+        let page = match current_level.level {
+            GameLevel::Designed { meta: DesignedLevelMeta::Campaign { index } } => index / LEVELS_PER_PAGE,
+            _=> 0
+        };
+
         match self {
-            Minimized | ShowMainMenu | SettingsPage => *self = ShowLevelsPage(0),
+            Minimized | ShowMainMenu | SettingsPage => *self = ShowLevelsPage(page),
             ShowLevelsPage(..) => *self = Minimized,
         }
     }
@@ -247,6 +252,8 @@ fn button_system(
     mut game_ui_state: ResMut<GameUIState>,
     mut settings: ResMut<GameSettings>,
 
+    current_level: Res<CurrentLevel>,
+
     dragged: Query<(), With<BeingDragged>>,
 ) {
     if !dragged.is_empty() {
@@ -286,7 +293,7 @@ fn button_system(
                         stage: 0,
                     })
                 }
-                ChooseLevel => menu_state.as_mut().toggle_levels(),
+                ChooseLevel => menu_state.as_mut().toggle_levels(current_level.as_ref()),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeSplash => {
                     *game_ui_state = GameUIState::GameMinimized;
@@ -535,7 +542,7 @@ fn spawn_level_menu(
                     ..Default::default()
                 })
                 .with_children(|panel| {
-                    let back_action = if (page == 0) {
+                    let back_action = if page == 0 {
                         ButtonAction::OpenMenu
                     } else {
                         ButtonAction::PreviousLevelsPage

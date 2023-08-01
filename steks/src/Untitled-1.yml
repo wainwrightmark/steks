@@ -1,0 +1,16 @@
+- title: Uneven Foundations
+  text: white shapes cannot be unlocked
+  end_text: "you're a very stable genius"
+  shapes:
+    - shape: I4
+      x: 0.0
+      y: -150.0
+      r: 0.05
+      state: Fixed
+    - shape: U5
+    - shape: F5
+    - shape: T5
+    - shape: T4
+    - shape: J4
+    - shape: Z4
+

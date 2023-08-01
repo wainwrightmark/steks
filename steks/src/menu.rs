@@ -156,26 +156,20 @@ impl MenuState {
     }
 
     pub fn next_levels_page(&mut self) {
-        match self {
-            MenuState::ShowLevelsPage(levels) => {
-                let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
+        if let MenuState::ShowLevelsPage(levels) = self {
+            let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
 
-                *self = MenuState::ShowLevelsPage(new_page)
-            }
-            _ => (),
+            *self = MenuState::ShowLevelsPage(new_page)
         }
     }
 
     pub fn previous_levels_page(&mut self) {
-        match self {
-            MenuState::ShowLevelsPage(levels) => {
-                if let Some(new_page) = levels.checked_sub(1) {
-                    *self = MenuState::ShowLevelsPage(new_page);
-                } else {
-                    *self = MenuState::ShowMainMenu;
-                }
+        if let MenuState::ShowLevelsPage(levels) = self {
+            if let Some(new_page) = levels.checked_sub(1) {
+                *self = MenuState::ShowLevelsPage(new_page);
+            } else {
+                *self = MenuState::ShowMainMenu;
             }
-            _ => (),
         }
     }
 

@@ -56,7 +56,7 @@ fn insert_component_and_children(
         current_level,
         component,
         asset_server,
-        &ui_state,
+        ui_state,
     );
     ec.insert(*component);
 
@@ -78,7 +78,7 @@ fn update_ui_on_level_change(
 ) {
     if current_level.is_changed() || ui_state.is_changed() {
         let swap = previous.clone();
-        *previous = (current_level.clone(), ui_state.clone());
+        *previous = (current_level.clone(), *ui_state);
         let previous = swap;
 
         let new_visibility = match menu_state.as_ref() {
@@ -100,7 +100,7 @@ fn update_ui_on_level_change(
                 commands,
                 component,
                 current_level.as_ref(),
-                &ui_state.as_ref(),
+                ui_state.as_ref(),
                 (&previous.0, &previous.1),
             );
 
@@ -178,7 +178,7 @@ fn get_root_position(current_level: &CurrentLevel, ui_state: &GameUIState) -> Ui
 
 fn get_root_bundle(args: UIArgs) -> NodeBundle {
     let z_index = ZIndex::Global(15);
-    let position = get_root_position(args.current_level, &args.ui_state);
+    let position = get_root_position(args.current_level, args.ui_state);
 
     NodeBundle {
         style: Style {
@@ -226,7 +226,7 @@ fn get_panel_bundle(args: UIArgs) -> NodeBundle {
     };
 
     let background_color: BackgroundColor =
-        get_panel_color(args.current_level, &args.ui_state).into();
+        get_panel_color(args.current_level, args.ui_state).into();
 
     let flex_direction =
         if args.current_level.completion.is_complete() && args.ui_state.is_game_splash() {
@@ -248,7 +248,7 @@ fn get_panel_bundle(args: UIArgs) -> NodeBundle {
             ..Default::default()
         },
         visibility,
-        border_color: BorderColor(get_border_color(args.current_level, &args.ui_state)),
+        border_color: BorderColor(get_border_color(args.current_level, args.ui_state)),
         background_color,
         ..Default::default()
     }
@@ -348,7 +348,7 @@ pub struct UIArgs<'a, 'world> {
 }
 
 fn get_message_bundle(args: UIArgs) -> TextBundle {
-    if let Some(text) = args.current_level.get_text(&args.ui_state) {
+    if let Some(text) = args.current_level.get_text(args.ui_state) {
         let color = args.current_level.text_color();
         TextBundle::from_section(
             text,

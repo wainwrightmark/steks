@@ -11,8 +11,7 @@ impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, display_collision_markers)
             .add_systems(PreUpdate, highlight_voids)
-            .add_systems(Update, flash_collision_markers)
-            ;
+            .add_systems(Update, flash_collision_markers);
     }
 }
 
@@ -197,25 +196,23 @@ fn flash_collision_markers(
     time: Res<Time>,
     mut lerp: Local<Lerp>,
 ) {
-
     let prop = time.delta_seconds() / 2.0;
     lerp.increment(prop);
     let scale = Vec3::ONE * 0.75 + (0.25 * lerp.ratio());
 
-    for mut transform in query.iter_mut(){
+    for mut transform in query.iter_mut() {
         transform.scale = scale;
     }
 }
 
-
 #[derive(Debug, Clone, Default)]
-pub struct Lerp{
+pub struct Lerp {
     forward: bool,
-    proportion: f32
+    proportion: f32,
 }
 
-impl Lerp{
-    pub fn increment(&mut self, amount: f32){
+impl Lerp {
+    pub fn increment(&mut self, amount: f32) {
         self.proportion += amount;
         while self.proportion > 1.0 {
             self.proportion -= 1.0;
@@ -223,11 +220,10 @@ impl Lerp{
         }
     }
 
-    pub fn ratio(&self)-> f32{
-        if self.forward{
+    pub fn ratio(&self) -> f32 {
+        if self.forward {
             self.proportion
-        }
-        else{
+        } else {
             1.0 - self.proportion
         }
     }

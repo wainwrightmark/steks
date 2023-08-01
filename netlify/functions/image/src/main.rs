@@ -259,7 +259,6 @@ impl OverlayChooser {
     }
 
     pub fn choose_scale_and_overlay(&self, h_scale: f32, v_scale: f32) -> (f32, Option<&Overlay>) {
-
         println!("h: {h_scale} v: {v_scale}");
         if self.options.is_empty() {
             return (h_scale.max(v_scale) * DEFAULT_SCALE_MULTIPLIER, None);
@@ -268,7 +267,6 @@ impl OverlayChooser {
         let mut result = (f32::MAX, None);
 
         for ov in self.options.iter() {
-
             let scale = match ov.ratio {
                 Ratio::WiderThanTall(r) => (r * h_scale).max(v_scale),
                 Ratio::TallerThanWide(r) => (r * v_scale).max(h_scale),

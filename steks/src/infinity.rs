@@ -15,7 +15,11 @@ pub fn get_initial_shapes(seed: u64) -> Vec<ShapeIndex> {
 
 pub fn get_all_shapes<'a>(seed: u64, total_shapes: usize) -> Vec<ShapeCreationData> {
     let mut collected = get_initial_shapes(seed);
-    let mut results: Vec<ShapeCreationData> = collected.iter().map(|x|ShapeCreationData::from(*x)) .clone().collect_vec();
+    let mut results: Vec<ShapeCreationData> = collected
+        .iter()
+        .map(|x| ShapeCreationData::from(*x))
+        .clone()
+        .collect_vec();
     collected.sort();
 
     while collected.len() < total_shapes {

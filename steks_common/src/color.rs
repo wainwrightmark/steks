@@ -52,14 +52,12 @@ pub fn color_to_rgb_and_opacity(color: Color) -> (String, Option<f32>) {
     let [r, g, b, a] = color.as_rgba_u32().to_le_bytes();
 
     let c = format!("#{:02X}{:02X}{:02X}", r, g, b);
-    if a == u8::MAX{
+    if a == u8::MAX {
         (c, None)
-    }else{
+    } else {
         let alpha = color.a();
         (c, Some(alpha))
     }
-
-
 }
 
 // pub fn color_to_svg_fill(color: Option<Color>) -> String {
@@ -95,8 +93,6 @@ pub fn color_to_rgb_and_opacity(color: Color) -> (String, Option<f32>) {
 //                 println!("h: {h}, s: {s}, l: {l}, a: {a}");
 //             }
 //         }
-
-
 
 //     }
 // }

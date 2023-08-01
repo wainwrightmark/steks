@@ -63,7 +63,6 @@ pub struct DesignedLevel {
     #[serde(default)]
     #[serde(alias = "End_fireworks")]
     pub end_fireworks: FireworksSettings,
-
     // #[serde(default)]
     // #[serde(alias = "Show_rotate")]
     // #[serde(alias = "Show_arrow")]
@@ -75,7 +74,6 @@ pub struct DesignedLevel {
     // #[serde(default)]
     // #[serde(alias = "Hide_shadows")]
     // pub hide_shadows: bool,
-
 }
 
 impl DesignedLevel {
@@ -189,7 +187,7 @@ pub struct ShapeCreation {
 
     #[serde(default)]
     #[serde(alias = "Color")]
-    pub color: Option<(u8,u8,u8)>
+    pub color: Option<(u8, u8, u8)>,
 }
 
 impl From<EncodableShape> for ShapeCreation {
@@ -204,7 +202,7 @@ impl From<EncodableShape> for ShapeCreation {
             state: value.state,
             modifiers: value.modifiers,
             id: None,
-            color: None
+            color: None,
         }
     }
 }
@@ -248,7 +246,7 @@ pub struct ShapeUpdate {
 
     #[serde(default)]
     #[serde(alias = "Color")]
-    pub color: Option<(u8,u8,u8)>
+    pub color: Option<(u8, u8, u8)>,
 }
 
 impl From<ShapeUpdate> for ShapeUpdateData {
@@ -289,7 +287,7 @@ impl From<ShapeUpdate> for ShapeUpdateData {
             velocity,
             modifiers: val.modifiers,
             id: val.id,
-            color: val.color.map(|(r,g,b)|Color::rgb_u8(r,g,b))
+            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
         }
     }
 }
@@ -337,12 +335,10 @@ impl From<ShapeCreation> for ShapeCreationData {
             velocity,
             modifiers: val.modifiers,
             id: val.id,
-            color: val.color.map(|(r,g,b)|Color::rgb_u8(r,g,b))
+            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
         }
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -377,14 +373,12 @@ mod tests {
         assert_eq!(list.len(), 1)
     }
 
-
     #[test]
     pub fn test_set_levels_string_lengths() {
         let levels = crate::designed_level::CAMPAIGN_LEVELS
             .iter()
             .chain(crate::designed_level::TUTORIAL_LEVELS.iter())
-            .chain(crate::designed_level::CREDITS_LEVELS.iter())
-            ;
+            .chain(crate::designed_level::CREDITS_LEVELS.iter());
         let mut errors: Vec<String> = vec![];
         for (index, level) in levels.enumerate() {
             check_level(level, index, &mut errors);

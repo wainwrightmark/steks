@@ -70,7 +70,6 @@ fn manage_level_shapes(
         let previous = swap;
         match current_level.completion {
             LevelCompletion::Incomplete { stage } => {
-                // TODO: spawn shapes for earlier stages if needed
                 let previous_stage = if stage == 0 || previous.level != current_level.level {
                     for ((e, _), _) in draggables.iter() {
                         commands.entity(e).despawn_recursive();
@@ -189,12 +188,10 @@ impl CurrentLevel {
         }
     }
 
-    pub fn raindrop_settings(&self)->Option<RaindropSettings>{
+    pub fn raindrop_settings(&self) -> Option<RaindropSettings> {
         let settings = match &self.level {
             GameLevel::Designed { meta, .. } => {
-                meta.get_level()
-                    .get_current_stage(self.completion)
-                    .rainfall
+                meta.get_level().get_current_stage(self.completion).rainfall
             }
             GameLevel::Infinite { .. } | GameLevel::Begging => None,
             GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => None,
@@ -377,7 +374,6 @@ impl ScoreInfo {
         let pb = *old_height.unwrap_or(&0.0);
 
         let is_wr = wr.map(|x| x < height).unwrap_or_default();
-        //TODO use is_some_and when netlify updates
         let is_pb = pb < height;
 
         ScoreInfo {
@@ -653,11 +649,11 @@ fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<
     match level.completion {
         LevelCompletion::Incomplete { .. } => {}
         LevelCompletion::Complete { .. } => match &level.level {
-            GameLevel::Designed {  .. } => {},
+            GameLevel::Designed { .. } => {}
             GameLevel::Infinite { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {}
             GameLevel::Challenge { date, streak } => {
-                streak_resource.count = streak.clone();
-                streak_resource.most_recent = date.clone();
+                streak_resource.count = *streak;
+                streak_resource.most_recent = *date;
 
                 if streak > &2 {
                     #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]

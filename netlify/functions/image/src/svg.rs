@@ -5,7 +5,10 @@ use steks_common::encodable_shape::EncodableShape;
 
 const SHAPE_SIZE: f32 = 50.0;
 
-pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I, dimensions: Dimensions) -> String {
+pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(
+    iterator: I,
+    dimensions: Dimensions,
+) -> String {
     let mut str: String = "".to_owned();
     //let (background_color, _) = color_to_rgb_and_opacity(BACKGROUND_COLOR);
 
@@ -29,18 +32,22 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(iterator: I, dimension
 
         str.push('\n');
 
-        if shape.state.is_locked() || shape.state.is_fixed(){
+        if shape.state.is_locked() || shape.state.is_fixed() {
             let scale_x = PADLOCK_SCALE.x;
             let scale_y = -PADLOCK_SCALE.y;
             let rotate = 360.0 - shape.location.angle.to_degrees();
 
             str.push_str(
-                format!(r##"
+                format!(
+                    r##"
                 <g transform="rotate({rotate}) translate(-10 10)  scale({scale_x} {scale_y}) ">
                 <path fill="#000000" d="{PLAIN_PADLOCK_OUTLINE}">
                 </path>
                 </g>
-                "##).as_str())
+                "##
+                )
+                .as_str(),
+            )
         }
 
         str.push_str("</g>");

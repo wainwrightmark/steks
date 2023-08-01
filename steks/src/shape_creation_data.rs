@@ -10,7 +10,7 @@ pub struct ShapeCreationData {
     pub velocity: Option<Velocity>,
     pub modifiers: ShapeModifiers,
     pub id: Option<u32>,
-    pub color: Option<Color>
+    pub color: Option<Color>,
 }
 
 pub fn add_components(state: &ShapeState, ec: &mut EntityCommands) {
@@ -83,9 +83,12 @@ pub fn spawn_children(
 
 impl ShapeCreationData {
     pub fn fill(&self) -> Fill {
-        if let Some(color) = self.color{
-            return Fill{color, options: FillOptions::DEFAULT};        }
-
+        if let Some(color) = self.color {
+            return Fill {
+                color,
+                options: FillOptions::DEFAULT,
+            };
+        }
 
         self.state.fill().unwrap_or_else(|| self.shape.fill())
     }
@@ -120,7 +123,7 @@ impl From<EncodableShape> for ShapeCreationData {
             velocity: None,
             modifiers,
             id: None,
-            color: None
+            color: None,
         }
     }
 }
@@ -134,7 +137,7 @@ impl ShapeCreationData {
             velocity: Some(Default::default()),
             modifiers: ShapeModifiers::Normal,
             id: None,
-            color: None
+            color: None,
         })
     }
 
@@ -168,7 +171,7 @@ impl From<ShapeIndex> for ShapeCreationData {
             velocity: Some(Default::default()),
             modifiers: ShapeModifiers::Normal,
             id: None,
-            color: None
+            color: None,
         }
     }
 }

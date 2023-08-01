@@ -66,7 +66,7 @@ pub fn check_for_win(
                 }
             }
         } else {
-            let new_scale = (timer.remaining / timer.total_countdown) as f32;
+            let new_scale = timer.remaining / timer.total_countdown;
 
             timer_transform.scale = Vec3::new(new_scale, new_scale, 1.0);
         }
@@ -84,7 +84,7 @@ pub fn check_for_tower(
     rapier_config: Res<RapierConfiguration>,
     wall_sensors: Query<Entity, With<WallSensor>>,
     walls: Query<Entity, With<WallPosition>>,
-    level: Res<CurrentLevel>
+    level: Res<CurrentLevel>,
 ) {
     let Some(event) = check_events.iter().next() else{return;};
 
@@ -117,12 +117,9 @@ pub fn check_for_tower(
 
     collision_events.clear();
 
-    let prediction_result: PredictionResult =
-
-    if level.raindrop_settings().is_some(){
+    let prediction_result: PredictionResult = if level.raindrop_settings().is_some() {
         PredictionResult::ManyNonWall
-    }
-    else{
+    } else {
         prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity)
     };
 

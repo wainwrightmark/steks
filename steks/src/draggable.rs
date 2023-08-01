@@ -450,7 +450,7 @@ pub fn drag_start(
             continue 'events;
         }
         if ui_state.is_game_splash() && current_level.completion.is_complete() {
-            if let Some(window) = windows.get_single().ok() {
+            if let Ok(window) = windows.get_single() {
                 let event_ui_position = Vec2 {
                     x: event.position.x + (window.width() * 0.5),
                     y: (window.height() * 0.5) - event.position.y,

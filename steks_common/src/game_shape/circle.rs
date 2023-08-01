@@ -5,7 +5,7 @@ use bevy_prototype_lyon::{
 };
 use bevy_rapier2d::prelude::Collider;
 
-use crate::prelude::{svg_style};
+use crate::prelude::svg_style;
 
 use super::GameShapeBody;
 

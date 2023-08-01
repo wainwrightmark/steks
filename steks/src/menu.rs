@@ -7,10 +7,9 @@ pub struct ButtonPlugin;
 
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
-        app
-        .init_resource::<MenuState>()
-        .init_resource::<GameUIState>()
-        .add_plugins(TrackedResourcePlugin::<GameSettings>::default())
+        app.init_resource::<MenuState>()
+            .init_resource::<GameUIState>()
+            .add_plugins(TrackedResourcePlugin::<GameSettings>::default())
             //.add_systems(Startup, setup.after(setup_level_ui))
             .add_systems(First, button_system)
             .add_systems(Update, handle_menu_state_changes);
@@ -61,7 +60,18 @@ impl Default for GameSettings {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, EnumIs, Display, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Default,
+    EnumIs,
+    Display,
+    serde::Serialize,
+    serde::Deserialize,
+)]
 pub enum RotationSensitivity {
     Low,
     #[default]
@@ -92,15 +102,14 @@ impl RotationSensitivity {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
-pub enum GameUIState{
+pub enum GameUIState {
     #[default]
-    GameSplash, //TODO move these options to separate enum
+    GameSplash,
     GameMinimized,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
 pub enum MenuState {
-
     #[default]
     Minimized,
     ShowMainMenu,
@@ -173,7 +182,7 @@ impl MenuState {
         game_settings: &GameSettings,
     ) {
         match self {
-            MenuState::Minimized  => {
+            MenuState::Minimized => {
                 let font = asset_server.load(ICON_FONT_PATH);
 
                 commands
@@ -190,7 +199,6 @@ impl MenuState {
                     .insert(MenuComponent::MenuHamburger)
                     .with_children(|parent| {
                         spawn_icon_button(parent, ButtonAction::OpenMenu, font, false)
-                        //todo gravity
                     });
             }
             MenuState::ShowMainMenu => {
@@ -304,8 +312,17 @@ fn button_system(
             }
 
             match button.button_action {
-                OpenMenu | Resume | ChooseLevel | NextLevelsPage | PreviousLevelsPage | ToggleSettings
-                | MinimizeSplash | RestoreSplash | ToggleArrows | ToggleTouchOutlines | SetRotationSensitivity(_) => {}
+                OpenMenu
+                | Resume
+                | ChooseLevel
+                | NextLevelsPage
+                | PreviousLevelsPage
+                | ToggleSettings
+                | MinimizeSplash
+                | RestoreSplash
+                | ToggleArrows
+                | ToggleTouchOutlines
+                | SetRotationSensitivity(_) => {}
                 _ => menu_state.close_menu(),
             }
         }
@@ -400,9 +417,9 @@ fn spawn_settings_menu(
             );
 
             let sensitivity_text = match settings.rotation_sensitivity {
-                RotationSensitivity::Low =>     "Sensitivity    Low",
-                RotationSensitivity::Medium =>  "Sensitivity Medium",
-                RotationSensitivity::High =>    "Sensitivity   High",
+                RotationSensitivity::Low => "Sensitivity    Low",
+                RotationSensitivity::Medium => "Sensitivity Medium",
+                RotationSensitivity::High => "Sensitivity   High",
                 RotationSensitivity::Extreme => "Sensitivity Extreme",
             };
 
@@ -415,7 +432,14 @@ fn spawn_settings_menu(
                 JustifyContent::Center,
             );
 
-            spawn_text_button_with_text("Back".to_string(), parent,ButtonAction::ToggleSettings,  font.clone(), false, JustifyContent::Center);
+            spawn_text_button_with_text(
+                "Back".to_string(),
+                parent,
+                ButtonAction::ToggleSettings,
+                font.clone(),
+                false,
+                JustifyContent::Center,
+            );
         });
 }
 
@@ -511,9 +535,11 @@ fn spawn_level_menu(
                     ..Default::default()
                 })
                 .with_children(|panel| {
-                    let back_action = (page == 0)
-                        .then(|| ButtonAction::OpenMenu)
-                        .unwrap_or(ButtonAction::PreviousLevelsPage);
+                    let back_action = if (page == 0) {
+                        ButtonAction::OpenMenu
+                    } else {
+                        ButtonAction::PreviousLevelsPage
+                    };
                     spawn_icon_button(panel, back_action, icon_font.clone(), false);
 
                     if end + 1 >= CAMPAIGN_LEVELS.len() as u8 {

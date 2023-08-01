@@ -94,15 +94,15 @@ fn spawn_raindrops(
         let linvel_x = linvel_x * linvel_x * linvel_x.signum();
 
         for _ in 0..count {
-            let x = if linvel_x < 10.0{
+            let x = if linvel_x < 10.0 {
                 rng.gen_range(0.0..=(WINDOW_HEIGHT * 0.5))
-            } else if linvel_x > 10.0{
+            } else if linvel_x > 10.0 {
                 rng.gen_range((WINDOW_WIDTH * -0.5)..=0.0)
-            }else{
+            } else {
                 rng.gen_range((WINDOW_WIDTH * -0.5)..=(WINDOW_HEIGHT * 0.5))
             };
 
-            let y = MAX_WINDOW_HEIGHT;// rng.gen_range((MAX_WINDOW_HEIGHT * 0.5)..(MAX_WINDOW_HEIGHT * 0.6));
+            let y = MAX_WINDOW_HEIGHT; // rng.gen_range((MAX_WINDOW_HEIGHT * 0.5)..(MAX_WINDOW_HEIGHT * 0.6));
 
             let linvel_x = linvel_x * rng.gen_range(0.9..1.1);
             let linvel_y = rng.gen_range(0.0..ROOT_RAIN_VELOCITY);
@@ -154,7 +154,7 @@ fn manage_raindrops(
 const RAIN_DENSITY: f32 = 50.0;
 
 //const RAIN_VELOCITY: f32 = 500.0;
-const ROOT_RAIN_VELOCITY: f32 =  22.0;
+const ROOT_RAIN_VELOCITY: f32 = 22.0;
 
 const DROP_LIFETIME_SECONDS: f32 = 5.0;
 

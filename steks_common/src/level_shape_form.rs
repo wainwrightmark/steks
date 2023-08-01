@@ -1,9 +1,11 @@
+use crate::prelude::*;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::prelude::*;
-use strum::{FromRepr, EnumIs, EnumCount};
+use strum::{EnumCount, EnumIs, FromRepr};
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, FromRepr, EnumIs, EnumCount)]
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, FromRepr, EnumIs, EnumCount,
+)]
 #[repr(u8)]
 pub enum LevelShapeForm {
     #[default]
@@ -70,8 +72,8 @@ impl From<&'static GameShape> for LevelShapeForm {
     }
 }
 
-impl LevelShapeForm{
-    pub fn get_color(&self)-> Color{
+impl LevelShapeForm {
+    pub fn get_color(&self) -> Color {
         panic!()
     }
 }

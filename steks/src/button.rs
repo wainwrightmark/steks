@@ -209,7 +209,14 @@ pub fn spawn_text_button(
     disabled: bool,
     justify_content: JustifyContent,
 ) {
-    spawn_text_button_with_text(button_action.text(), parent, button_action, font, disabled, justify_content)
+    spawn_text_button_with_text(
+        button_action.text(),
+        parent,
+        button_action,
+        font,
+        disabled,
+        justify_content,
+    )
 }
 
 pub fn spawn_text_button_with_text(

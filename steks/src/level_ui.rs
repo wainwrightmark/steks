@@ -6,8 +6,6 @@ use strum::EnumIs;
 use crate::prelude::*;
 pub struct LevelUiPlugin;
 
-//
-
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_level_ui)
@@ -15,7 +13,11 @@ impl Plugin for LevelUiPlugin {
     }
 }
 
-pub fn setup_level_ui(mut commands: Commands, asset_server: Res<AssetServer>, ui_state: Res<UIState>) {
+pub fn setup_level_ui(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    ui_state: Res<GameUIState>,
+) {
     let component = LevelUIComponent::Root;
     let current_level = CurrentLevel {
         level: GameLevel::default(),
@@ -24,7 +26,14 @@ pub fn setup_level_ui(mut commands: Commands, asset_server: Res<AssetServer>, ui
 
     let mut ec = commands.spawn_empty();
     ec.insert(LevelUIComponent::Root);
-    insert_bundle(&mut ec, true, &current_level, &component, &asset_server, &ui_state);
+    insert_bundle(
+        &mut ec,
+        true,
+        &current_level,
+        &component,
+        &asset_server,
+        &ui_state,
+    );
 
     ec.with_children(|builder| {
         for child in component.get_child_components() {
@@ -38,10 +47,17 @@ fn insert_component_and_children(
     current_level: &CurrentLevel,
     component: &LevelUIComponent,
     asset_server: &Res<AssetServer>,
-    ui_state: &Res<UIState>
+    ui_state: &Res<GameUIState>,
 ) {
     let mut ec = commands.spawn_empty();
-    insert_bundle(&mut ec, true, current_level, component, asset_server, &ui_state);
+    insert_bundle(
+        &mut ec,
+        true,
+        current_level,
+        component,
+        asset_server,
+        &ui_state,
+    );
     ec.insert(*component);
 
     ec.with_children(|builder| {
@@ -51,22 +67,22 @@ fn insert_component_and_children(
     });
 }
 
-
 fn update_ui_on_level_change(
     mut commands: Commands,
     current_level: Res<CurrentLevel>,
     level_ui: Query<(Entity, &Transform, &Style, &LevelUIComponent)>,
     asset_server: Res<AssetServer>,
-    mut previous: Local<(CurrentLevel, UIState)>,
-    ui_state: Res<UIState>
+    mut previous: Local<(CurrentLevel, GameUIState)>,
+    ui_state: Res<GameUIState>,
+    menu_state: Res<MenuState>,
 ) {
     if current_level.is_changed() || ui_state.is_changed() {
         let swap = previous.clone();
         *previous = (current_level.clone(), ui_state.clone());
         let previous = swap;
 
-        let new_visibility = match ui_state.as_ref() {
-            UIState::GameSplash | UIState::GameMinimized => Visibility::Inherited,
+        let new_visibility = match menu_state.as_ref() {
+            MenuState::Minimized => Visibility::Inherited,
             _ => Visibility::Hidden,
         };
 
@@ -78,11 +94,17 @@ fn update_ui_on_level_change(
                 current_level.as_ref(),
                 component,
                 &asset_server,
-                &ui_state
+                &ui_state,
             );
-            handle_animations(commands, component, current_level.as_ref(),   &ui_state.as_ref(), (&previous.0, &previous.1));
+            handle_animations(
+                commands,
+                component,
+                current_level.as_ref(),
+                &ui_state.as_ref(),
+                (&previous.0, &previous.1),
+            );
 
-            if component.is_root(){
+            if component.is_root() {
                 commands.insert(new_visibility);
             }
         }
@@ -99,7 +121,7 @@ pub enum LevelUIComponent {
     Message,
     ButtonPanel,
     Button(ButtonAction),
-    MinimizeButton
+    MinimizeButton,
 }
 
 impl LevelUIComponent {
@@ -109,8 +131,6 @@ impl LevelUIComponent {
             MinimizeButton,
             Button(ButtonAction::Share),
             Button(ButtonAction::NextLevel),
-
-
         ];
 
         match self {
@@ -127,7 +147,7 @@ impl LevelUIComponent {
     }
 }
 
-fn get_root_position(current_level: &CurrentLevel, ui_state: &UIState) -> UiRect {
+fn get_root_position(current_level: &CurrentLevel, ui_state: &GameUIState) -> UiRect {
     match current_level.completion {
         LevelCompletion::Complete { score_info: _ } => {
             if ui_state.is_game_minimized() {
@@ -205,7 +225,8 @@ fn get_panel_bundle(args: UIArgs) -> NodeBundle {
         _ => Visibility::Inherited,
     };
 
-    let background_color: BackgroundColor = get_panel_color(args.current_level, &args.ui_state).into();
+    let background_color: BackgroundColor =
+        get_panel_color(args.current_level, &args.ui_state).into();
 
     let flex_direction =
         if args.current_level.completion.is_complete() && args.ui_state.is_game_splash() {
@@ -323,7 +344,7 @@ fn get_level_number_bundle(args: UIArgs) -> TextBundle {
 pub struct UIArgs<'a, 'world> {
     current_level: &'a CurrentLevel,
     asset_server: &'a Res<'world, AssetServer>,
-    ui_state: &'a Res<'world, UIState>,
+    ui_state: &'a Res<'world, GameUIState>,
 }
 
 fn get_message_bundle(args: UIArgs) -> TextBundle {
@@ -348,10 +369,7 @@ fn get_message_bundle(args: UIArgs) -> TextBundle {
     }
 }
 
-fn animate_text(
-    commands: &mut EntityCommands,
-    current_level: &CurrentLevel,
-) {
+fn animate_text(commands: &mut EntityCommands, current_level: &CurrentLevel) {
     let fade = match current_level.completion {
         LevelCompletion::Incomplete { stage } => match &current_level.level {
             GameLevel::Designed { meta, .. } => meta
@@ -360,7 +378,7 @@ fn animate_text(
                 .map(|x| !x.text_forever)
                 .unwrap_or(true),
             GameLevel::Infinite { .. } | GameLevel::Begging => false,
-            GameLevel::Challenge { .. } | GameLevel::Loaded { .. }  => true,
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => true,
         },
         LevelCompletion::Complete { .. } => false,
     };
@@ -397,9 +415,8 @@ const MINIMIZE_MILLIS: u64 = 1000;
 fn animate_root(
     commands: &mut EntityCommands,
     current_level: &CurrentLevel,
-    ui_state: &UIState,
-    previous: (&CurrentLevel, &UIState),
-
+    ui_state: &GameUIState,
+    previous: (&CurrentLevel, &GameUIState),
 ) {
     match current_level.completion {
         LevelCompletion::Complete { .. } => {
@@ -418,7 +435,7 @@ fn animate_root(
     }
 }
 
-fn get_panel_color(level: &CurrentLevel, ui_state: &UIState) -> Color {
+fn get_panel_color(level: &CurrentLevel, ui_state: &GameUIState) -> Color {
     match level.completion {
         LevelCompletion::Incomplete { .. } => Color::NONE,
         LevelCompletion::Complete { .. } => {
@@ -431,7 +448,7 @@ fn get_panel_color(level: &CurrentLevel, ui_state: &UIState) -> Color {
     }
 }
 
-fn get_border_color(level: &CurrentLevel, ui_state: &UIState) -> Color {
+fn get_border_color(level: &CurrentLevel, ui_state: &GameUIState) -> Color {
     match level.completion {
         LevelCompletion::Incomplete { .. } => Color::NONE,
         LevelCompletion::Complete { .. } => {
@@ -447,15 +464,14 @@ fn get_border_color(level: &CurrentLevel, ui_state: &UIState) -> Color {
 fn animate_panel(
     commands: &mut EntityCommands,
     current_level: &CurrentLevel,
-    ui_state: &UIState,
-    previous: (&CurrentLevel, &UIState),
-
+    ui_state: &GameUIState,
+    previous: (&CurrentLevel, &GameUIState),
 ) {
     match current_level.completion {
         LevelCompletion::Complete { .. } => {
             let lens = BackgroundColorLens {
                 start: get_panel_color(previous.0, previous.1),
-                end: get_panel_color(current_level,ui_state),
+                end: get_panel_color(current_level, ui_state),
             };
 
             commands.insert(Animator::new(Tween::new(
@@ -484,15 +500,14 @@ fn handle_animations(
     commands: &mut EntityCommands,
     component: &LevelUIComponent,
     current_level: &CurrentLevel,
-    ui_state: &UIState,
+    ui_state: &GameUIState,
 
-    previous: (&CurrentLevel, &UIState)
-
+    previous: (&CurrentLevel, &GameUIState),
 ) {
     match component {
         LevelUIComponent::Root => animate_root(commands, current_level, ui_state, previous),
         LevelUIComponent::Message => animate_text(commands, current_level),
-        LevelUIComponent::MainPanel => animate_panel(commands, current_level,  ui_state, previous),
+        LevelUIComponent::MainPanel => animate_panel(commands, current_level, ui_state, previous),
         LevelUIComponent::Title => animate_text(commands, current_level),
         LevelUIComponent::LevelNumber => animate_text(commands, current_level),
         _ => {}
@@ -505,12 +520,12 @@ fn insert_bundle(
     current_level: &CurrentLevel,
     component: &LevelUIComponent,
     asset_server: &Res<AssetServer>,
-    ui_state: &Res<UIState>
+    ui_state: &Res<GameUIState>,
 ) {
     let args = UIArgs {
         current_level,
         asset_server,
-        ui_state
+        ui_state,
     };
 
     match component {
@@ -529,9 +544,13 @@ fn insert_bundle(
         LevelUIComponent::ButtonPanel => {
             commands.insert(get_button_panel(args));
         }
-        LevelUIComponent::Button(button_action) => {
-            make_button(commands, button_action, first_time, current_level,  asset_server)
-        }
+        LevelUIComponent::Button(button_action) => make_button(
+            commands,
+            button_action,
+            first_time,
+            current_level,
+            asset_server,
+        ),
         LevelUIComponent::AllText => {
             commands.insert(get_all_text_bundle(args));
         }
@@ -541,16 +560,15 @@ fn insert_bundle(
         LevelUIComponent::MinimizeButton => {
             commands.despawn_descendants();
 
-            let button_action = match ui_state.as_ref(){
-                UIState::GameSplash => ButtonAction::MinimizeSplash,
+            let button_action = match ui_state.as_ref() {
+                GameUIState::GameSplash => ButtonAction::MinimizeSplash,
                 _ => ButtonAction::RestoreSplash,
             };
 
-            make_button(commands, &button_action, true, current_level,  asset_server)
-        },
+            make_button(commands, &button_action, true, current_level, asset_server)
+        }
     };
 }
-
 
 fn make_button(
     commands: &mut EntityCommands,
@@ -559,7 +577,7 @@ fn make_button(
     current_level: &CurrentLevel,
 
     asset_server: &Res<AssetServer>,
-    ){
+) {
     if first_time {
         let font = asset_server.load(ICON_FONT_PATH);
 

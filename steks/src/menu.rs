@@ -7,7 +7,9 @@ pub struct ButtonPlugin;
 
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<UIState>()
+        app
+        .init_resource::<MenuState>()
+        .init_resource::<GameUIState>()
         .add_plugins(TrackedResourcePlugin::<GameSettings>::default())
             //.add_systems(Startup, setup.after(setup_level_ui))
             .add_systems(First, button_system)
@@ -90,11 +92,17 @@ impl RotationSensitivity {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
-pub enum UIState {
+pub enum GameUIState{
     #[default]
     GameSplash, //TODO move these options to separate enum
     GameMinimized,
+}
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
+pub enum MenuState {
+
+    #[default]
+    Minimized,
     ShowMainMenu,
     ShowLevelsPage(u8),
     SettingsPage,
@@ -107,17 +115,17 @@ pub fn max_page_exclusive() -> u8 {
     t / LEVELS_PER_PAGE + (t % LEVELS_PER_PAGE).min(1) + 1
 }
 
-impl UIState {
+impl MenuState {
     pub fn open_menu(&mut self) {
-        *self = UIState::ShowMainMenu
+        *self = MenuState::ShowMainMenu
     }
 
     pub fn close_menu(&mut self) {
-        *self = UIState::GameSplash
+        *self = MenuState::Minimized
     }
 
     pub fn toggle_settings(&mut self) {
-        use UIState::*;
+        use MenuState::*;
         match self {
             SettingsPage => *self = ShowMainMenu,
             _ => *self = SettingsPage,
@@ -126,19 +134,19 @@ impl UIState {
 
     pub fn toggle_levels(&mut self) {
         //TODO go to current level page
-        use UIState::*;
+        use MenuState::*;
         match self {
-            GameSplash | GameMinimized | ShowMainMenu | SettingsPage => *self = ShowLevelsPage(0),
-            ShowLevelsPage(..) => *self = GameSplash,
+            Minimized | ShowMainMenu | SettingsPage => *self = ShowLevelsPage(0),
+            ShowLevelsPage(..) => *self = Minimized,
         }
     }
 
     pub fn next_levels_page(&mut self) {
         match self {
-            UIState::ShowLevelsPage(levels) => {
+            MenuState::ShowLevelsPage(levels) => {
                 let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
 
-                *self = UIState::ShowLevelsPage(new_page)
+                *self = MenuState::ShowLevelsPage(new_page)
             }
             _ => (),
         }
@@ -146,11 +154,11 @@ impl UIState {
 
     pub fn previous_levels_page(&mut self) {
         match self {
-            UIState::ShowLevelsPage(levels) => {
+            MenuState::ShowLevelsPage(levels) => {
                 if let Some(new_page) = levels.checked_sub(1) {
-                    *self = UIState::ShowLevelsPage(new_page);
+                    *self = MenuState::ShowLevelsPage(new_page);
                 } else {
-                    *self = UIState::ShowMainMenu;
+                    *self = MenuState::ShowMainMenu;
                 }
             }
             _ => (),
@@ -165,7 +173,7 @@ impl UIState {
         game_settings: &GameSettings,
     ) {
         match self {
-            UIState::GameSplash | UIState::GameMinimized => {
+            MenuState::Minimized  => {
                 let font = asset_server.load(ICON_FONT_PATH);
 
                 commands
@@ -185,20 +193,20 @@ impl UIState {
                         //todo gravity
                     });
             }
-            UIState::ShowMainMenu => {
+            MenuState::ShowMainMenu => {
                 spawn_menu(commands, asset_server);
             }
-            UIState::ShowLevelsPage(page) => {
+            MenuState::ShowLevelsPage(page) => {
                 spawn_level_menu(commands, asset_server, *page, completion)
             }
-            UIState::SettingsPage => spawn_settings_menu(commands, asset_server, game_settings),
+            MenuState::SettingsPage => spawn_settings_menu(commands, asset_server, game_settings),
         }
     }
 }
 
 fn handle_menu_state_changes(
     mut commands: Commands,
-    menu_state: Res<UIState>,
+    menu_state: Res<MenuState>,
     menu_components: Query<Entity, &MenuComponent>,
     asset_server: Res<AssetServer>,
     completion: Res<CampaignCompletion>,
@@ -227,7 +235,8 @@ fn button_system(
     mut share_events: EventWriter<ShareEvent>,
     mut import_events: EventWriter<ImportEvent>,
 
-    mut menu_state: ResMut<UIState>,
+    mut menu_state: ResMut<MenuState>,
+    mut game_ui_state: ResMut<GameUIState>,
     mut settings: ResMut<GameSettings>,
 
     dragged: Query<(), With<BeingDragged>>,
@@ -272,10 +281,10 @@ fn button_system(
                 ChooseLevel => menu_state.as_mut().toggle_levels(),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeSplash => {
-                    *menu_state = UIState::GameMinimized;
+                    *game_ui_state = GameUIState::GameMinimized;
                 }
                 RestoreSplash => {
-                    *menu_state = UIState::GameSplash;
+                    *game_ui_state = GameUIState::GameSplash;
                 }
                 MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()

@@ -439,16 +439,17 @@ pub fn drag_start(
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
 
-    menu: Res<UIState>,
+    ui_state: Res<GameUIState>,
+    menu_state: Res<MenuState>,
     current_level: Res<CurrentLevel>,
     node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<LevelUIComponent>>,
     windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     'events: for event in er_drag_start.iter() {
-        if menu.is_show_main_menu() || menu.is_show_levels_page() {
+        if menu_state.is_show_main_menu() || menu_state.is_show_levels_page() {
             continue 'events;
         }
-        if menu.is_game_splash() && current_level.completion.is_complete() {
+        if ui_state.is_game_splash() && current_level.completion.is_complete() {
             if let Some(window) = windows.get_single().ok() {
                 let event_ui_position = Vec2 {
                     x: event.position.x + (window.width() * 0.5),

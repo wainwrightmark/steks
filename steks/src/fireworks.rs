@@ -54,7 +54,7 @@ const DEFAULT_INTENSITY: u32 = 5;
 
 fn manage_fireworks(
     current_level: Res<CurrentLevel>,
-    ui_state: Res<UIState>,
+    ui_state: Res<GameUIState>,
     mut previous: Local<CurrentLevel>,
     mut countdown: ResMut<FireworksCountdown>,
 ) {

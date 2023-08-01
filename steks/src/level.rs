@@ -269,7 +269,7 @@ impl CurrentLevel {
         "an overwhelming surplus of nice!",
     ];
 
-    pub fn get_text(&self, ui: &UIState) -> Option<String> {
+    pub fn get_text(&self, ui: &GameUIState) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::Designed { meta, .. } => meta

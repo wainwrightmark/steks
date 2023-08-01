@@ -32,7 +32,13 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(
 
         str.push('\n');
 
-        if shape.state.is_locked() || shape.state.is_fixed() {
+        let padlock = match shape.state {
+            ShapeState::Normal | ShapeState::Void => None,
+            ShapeState::Locked => Some(CLOSED_PADLOCK_OUTLINE),
+            ShapeState::Fixed => Some(PLAIN_PADLOCK_OUTLINE),
+        };
+
+        if let Some(padlock) = padlock {
             let scale_x = PADLOCK_SCALE.x;
             let scale_y = -PADLOCK_SCALE.y;
             let rotate = 360.0 - shape.location.angle.to_degrees();
@@ -41,7 +47,7 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(
                 format!(
                     r##"
                 <g transform="rotate({rotate}) translate(-10 10)  scale({scale_x} {scale_y}) ">
-                <path fill="#000000" d="{PLAIN_PADLOCK_OUTLINE}">
+                <path fill="#000000" d="{padlock}">
                 </path>
                 </g>
                 "##

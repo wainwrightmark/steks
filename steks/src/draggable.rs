@@ -284,7 +284,7 @@ fn closest_angle_representation(radians: f32, close_to: f32) -> f32 {
 
     options
         .into_iter()
-        .min_by(|&a, &b| (a - close_to).abs().total_cmp(&(b - &close_to).abs()))
+        .min_by(|&a, &b| (a - close_to).abs().total_cmp(&(b - close_to).abs()))
         .unwrap()
 }
 

@@ -325,11 +325,8 @@ impl CurrentLevel {
                     text.push_str(format!("\nRecord    {record:.2}m").as_str());
                 }
 
-                match &self.level {
-                    GameLevel::Challenge { streak, .. } => {
-                        text.push_str(format!("\nStreak    {streak:.2}").as_str());
-                    }
-                    _ => {}
+                if let GameLevel::Challenge { streak, .. } = &self.level {
+                    text.push_str(format!("\nStreak    {streak:.2}").as_str());
                 }
 
                 Some(text)
@@ -629,13 +626,10 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
 fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
     if level.is_changed()
         && level.completion.is_complete()
-        && match &level.level {
-            GameLevel::Designed { meta, .. } => match meta {
-                DesignedLevelMeta::Tutorial { .. } => true,
-                _ => false,
-            },
-            _ => false,
-        }
+        && matches!(&level.level, GameLevel::Designed {
+                meta: DesignedLevelMeta::Tutorial { .. },
+                ..
+            })
     {
         events.send(ChangeLevelEvent::Next);
     }
@@ -698,9 +692,9 @@ impl ChangeLevelEvent {
             ChangeLevelEvent::StartChallenge => {
                 let today = startup::get_today_date();
 
-                let streak = if streak_data.most_recent == today {
-                    streak_data.count
-                } else if streak_data.most_recent.checked_add_days(Days::new(1)) == Some(today) {
+                let streak = if streak_data.most_recent == today
+                    || streak_data.most_recent.checked_add_days(Days::new(1)) == Some(today)
+                {
                     streak_data.count
                 } else {
                     1

@@ -23,15 +23,15 @@
      inkscape:pagecheckerboard="true"
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="0.39746094"
-     inkscape:cx="62.899263"
-     inkscape:cy="1080.6093"
+     inkscape:zoom="0.28104733"
+     inkscape:cx="-1031.8547"
+     inkscape:cy="1136.8192"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
-     inkscape:window-x="1227"
-     inkscape:window-y="1341"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg60" />
+     inkscape:current-layer="g58" />
   <g
      transform="matrix(1,0,0,-1,509.71149,509.71149)"
      id="g58">
@@ -48,7 +48,7 @@
        transform="scale(1,-1)" />
     <g
        id="g375-6"
-       transform="matrix(1.2296868,0,0,1.2296868,-36.752454,57.363417)">
+       transform="matrix(1.3839391,0,0,1.3839391,-59.662373,107.0302)">
       <path
          fill="#0c99ed"
          d="m 314.68163,43.808252 h 12.36068 a 5,5 0 0 1 5,4.999999 v 12.36068 a 5,5 0 0 0 5,5 h 34.72136 a 5,5 0 0 0 5,-5 v -12.36068 a 5,5 0 0 0 -5,-4.999999 h -12.36068 a 5,5 0 0 1 -5,-5 V 4.0868921 a 5,5 0 0 0 -5,-5.00000002 h -12.36068 a 5,5 0 0 0 -5,5.00000002 V 16.447572 a 5,5 0 0 1 -5,5 h -12.36068 a 5,5 0 0 0 -5,5 v 12.36068 a 5,5 0 0 0 5,5 z"

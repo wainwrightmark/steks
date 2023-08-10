@@ -13,7 +13,7 @@ bevy_rapier2d = {version = "0.22"}
 strum = { version = "0.25", features = ["derive"] }
 bevy_tweening = { git = "https://github.com/wainwrightmark/bevy_tweening", default-features = false, features = ["bevy_text", "bevy_ui"] }
 chrono = {version="0.4", features = ["serde", "wasmbind"]}
-bevy_pkv = {git="https://github.com/wainwrightmark/bevy_pkv"}
+bevy_pkv = "0.8"
 
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
@@ -33,7 +33,6 @@ bevy_screen_diagnostics = "0.3.0"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }
 wasm-bindgen = "0.2"
-
 web-sys = {version = "0.3", features = ['Url', 'Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
 console_error_panic_hook = "0.1"
 
@@ -43,6 +42,7 @@ winit = { version = "0.28", features=["x11"]}
 [dev-dependencies]
 insta = "1"
 test-case = "3"
+
 
 # debug=true
 

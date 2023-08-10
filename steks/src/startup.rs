@@ -1,7 +1,6 @@
 pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
-use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
 
 pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
@@ -88,14 +87,13 @@ pub fn setup_app(app: &mut App) {
         }
     }
 
-    if cfg!(debug_assertions) {
+    #[cfg(debug_assertions)]
+    {
+        use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
         app.add_plugins(ScreenDiagnosticsPlugin::default());
         app.add_plugins(ScreenFrameDiagnosticsPlugin);
 
         //builder.add_plugins(RapierDebugRenderPlugin::default());
-        //builder.add_plugins(ScreenDiagsPlugin);
-        // builder.add_plugins(bevy::diagnostic::LogDiagnosticsPlugin::default());
-        // builder.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
 
     app.add_systems(Startup, disable_back);

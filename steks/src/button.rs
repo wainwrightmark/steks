@@ -21,14 +21,14 @@ impl Plugin for ButtonPlugin{
 }
 
 
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy, Component, PartialEq)]
 pub struct ButtonComponent {
     pub disabled: bool,
     pub button_action: ButtonAction,
     pub button_type: ButtonType,
 }
 
-#[derive(Debug, Clone, Copy, Display)]
+#[derive(Debug, Clone, Copy, Display, PartialEq, Eq)]
 pub enum ButtonType {
     Icon,
     Text,
@@ -91,6 +91,8 @@ pub enum ButtonAction {
     GooglePlay,
     Apple,
     Steam,
+
+    None
 }
 
 impl ButtonAction {
@@ -143,6 +145,7 @@ impl ButtonAction {
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
+            None=> "".to_string()
         }
     }
 
@@ -189,6 +192,7 @@ impl ButtonAction {
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
+            None=> "".to_string()
         }
     }
 }
@@ -395,7 +399,7 @@ fn button_system(
                 PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
                 Credits => change_level_events.send(ChangeLevelEvent::Credits),
 
-                Steam | GooglePlay | Apple => {}
+                Steam | GooglePlay | Apple | None => {}
                 ToggleSettings => menu_state.as_mut().toggle_settings(),
                 ToggleArrows => settings.toggle_arrows(),
                 ToggleTouchOutlines => settings.toggle_touch_outlines(),
@@ -404,6 +408,7 @@ fn button_system(
 
             match button.button_action {
                 OpenMenu
+                | None
                 | Resume
                 | ChooseLevel
                 | NextLevelsPage

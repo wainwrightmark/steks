@@ -91,7 +91,7 @@ fn update_ui_on_level_change(
         let previous = swap;
 
         let new_visibility = match menu_state.as_ref() {
-            MenuState::Minimized => Visibility::Inherited,
+            MenuState::Closed => Visibility::Inherited,
             _ => Visibility::Hidden,
         };
 

@@ -12,6 +12,15 @@ pub const MENU_OFFSET: f32 = 10.;
 
 pub const UI_BORDER_WIDTH: Val = Val::Px(3.0);
 
+pub struct ButtonPlugin;
+
+impl Plugin for ButtonPlugin{
+    fn build(&self, app: &mut App) {
+        app.add_systems(First, button_system);
+    }
+}
+
+
 #[derive(Debug, Clone, Copy, Component)]
 pub struct ButtonComponent {
     pub disabled: bool,
@@ -310,4 +319,111 @@ pub fn spawn_icon_button(
             button_action,
             button_type: ButtonType::Icon,
         });
+}
+
+
+
+fn button_system(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor, &ButtonComponent),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut change_level_events: EventWriter<ChangeLevelEvent>,
+    mut share_events: EventWriter<ShareEvent>,
+    mut import_events: EventWriter<ImportEvent>,
+
+    mut menu_state: ResMut<MenuState>,
+    mut game_ui_state: ResMut<GameUIState>,
+    mut settings: ResMut<GameSettings>,
+
+    current_level: Res<CurrentLevel>,
+
+    dragged: Query<(), With<BeingDragged>>,
+) {
+    if !dragged.is_empty() {
+        return;
+    }
+
+    for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
+        if button.disabled {
+            continue;
+        }
+        use ButtonAction::*;
+        //info!("{interaction:?} {button:?} {menu_state:?}");
+        *bg_color = button
+            .button_type
+            .background_color(interaction, button.disabled);
+
+        if interaction == &Interaction::Pressed {
+            match button.button_action {
+                OpenMenu => menu_state.as_mut().open_menu(),
+                Resume => menu_state.as_mut().close_menu(),
+                GoFullscreen => {
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        crate::wasm::request_fullscreen();
+                    }
+                }
+                ClipboardImport => import_events.send(ImportEvent),
+                Tutorial => change_level_events
+                    .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
+                Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
+                DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
+                ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
+                Share => share_events.send(ShareEvent),
+                GotoLevel { level } => {
+                    change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
+                        index: level,
+                        stage: 0,
+                    })
+                }
+                ChooseLevel => menu_state.as_mut().toggle_levels(current_level.as_ref()),
+                NextLevel => change_level_events.send(ChangeLevelEvent::Next),
+                MinimizeSplash => {
+                    *game_ui_state = GameUIState::GameMinimized;
+                }
+                RestoreSplash => {
+                    *game_ui_state = GameUIState::GameSplash;
+                }
+                MinimizeApp => {
+                    bevy::tasks::IoTaskPool::get()
+                        .spawn(async move { minimize_app_async().await })
+                        .detach();
+                }
+                NextLevelsPage => menu_state.as_mut().next_levels_page(),
+
+                PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
+                Credits => change_level_events.send(ChangeLevelEvent::Credits),
+
+                Steam | GooglePlay | Apple => {}
+                ToggleSettings => menu_state.as_mut().toggle_settings(),
+                ToggleArrows => settings.toggle_arrows(),
+                ToggleTouchOutlines => settings.toggle_touch_outlines(),
+                SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
+            }
+
+            match button.button_action {
+                OpenMenu
+                | Resume
+                | ChooseLevel
+                | NextLevelsPage
+                | PreviousLevelsPage
+                | ToggleSettings
+                | MinimizeSplash
+                | RestoreSplash
+                | ToggleArrows
+                | ToggleTouchOutlines
+                | SetRotationSensitivity(_) => {}
+                _ => menu_state.close_menu(),
+            }
+        }
+    }
+}
+
+async fn minimize_app_async() {
+    #[cfg(all(feature = "android", target_arch = "wasm32"))]
+    {
+        crate::logging::do_or_report_error_async(|| capacitor_bindings::app::App::minimize_app())
+            .await;
+    }
 }

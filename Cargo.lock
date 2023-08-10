@@ -3770,6 +3770,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "state_hierarchy"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3802,6 +3809,7 @@ dependencies = [
  "serde",
  "serde_with",
  "serde_yaml",
+ "state_hierarchy",
  "steks_common",
  "strum",
  "test-case",

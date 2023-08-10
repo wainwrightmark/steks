@@ -1,17 +1,14 @@
 use steks_common::color;
-use strum::{Display, EnumIs};
+use strum::EnumIs;
 
 use crate::{designed_level, prelude::*};
 
-pub struct ButtonPlugin;
+pub struct MenuPlugin;
 
-impl Plugin for ButtonPlugin {
+impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<MenuState>()
-            .init_resource::<GameUIState>()
-            .add_plugins(TrackedResourcePlugin::<GameSettings>::default())
-            //.add_systems(Startup, setup.after(setup_level_ui))
-            .add_systems(First, button_system)
+
             .add_systems(Update, handle_menu_state_changes);
     }
 }
@@ -25,88 +22,7 @@ pub enum MenuComponent {
     SettingsPage,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Resource, serde::Serialize, serde::Deserialize)]
-pub struct GameSettings {
-    pub show_arrows: bool,
-    pub show_touch_outlines: bool,
-    pub rotation_sensitivity: RotationSensitivity,
-}
 
-impl TrackableResource for GameSettings {
-    const KEY: &'static str = "GameSettings";
-}
-
-impl GameSettings {
-    pub fn toggle_arrows(&mut self) {
-        self.show_arrows = !self.show_arrows;
-    }
-
-    pub fn toggle_touch_outlines(&mut self) {
-        self.show_touch_outlines = !self.show_touch_outlines;
-    }
-
-    pub fn set_rotation_sensitivity(&mut self, rs: RotationSensitivity) {
-        self.rotation_sensitivity = rs;
-    }
-}
-
-impl Default for GameSettings {
-    fn default() -> Self {
-        Self {
-            show_arrows: false,
-            show_touch_outlines: true,
-            rotation_sensitivity: RotationSensitivity::Medium,
-        }
-    }
-}
-
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Default,
-    EnumIs,
-    Display,
-    serde::Serialize,
-    serde::Deserialize,
-)]
-pub enum RotationSensitivity {
-    Low,
-    #[default]
-    Medium,
-    High,
-    Extreme,
-}
-
-impl RotationSensitivity {
-    pub fn next(&self) -> Self {
-        use RotationSensitivity::*;
-        match self {
-            Low => Medium,
-            Medium => High,
-            High => Extreme,
-            Extreme => Low,
-        }
-    }
-
-    pub fn coefficient(&self) -> f32 {
-        match self {
-            RotationSensitivity::Low => 0.75,
-            RotationSensitivity::Medium => 1.00,
-            RotationSensitivity::High => 1.50,
-            RotationSensitivity::Extreme => 2.00,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
-pub enum GameUIState {
-    #[default]
-    GameSplash,
-    GameMinimized,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
 pub enum MenuState {
@@ -145,8 +61,10 @@ impl MenuState {
         use MenuState::*;
 
         let page = match current_level.level {
-            GameLevel::Designed { meta: DesignedLevelMeta::Campaign { index } } => index / LEVELS_PER_PAGE,
-            _=> 0
+            GameLevel::Designed {
+                meta: DesignedLevelMeta::Campaign { index },
+            } => index / LEVELS_PER_PAGE,
+            _ => 0,
         };
 
         match self {
@@ -230,111 +148,6 @@ fn handle_menu_state_changes(
             &completion,
             game_settings.as_ref(),
         );
-    }
-}
-
-fn button_system(
-    mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &ButtonComponent),
-        (Changed<Interaction>, With<Button>),
-    >,
-    mut change_level_events: EventWriter<ChangeLevelEvent>,
-    mut share_events: EventWriter<ShareEvent>,
-    mut import_events: EventWriter<ImportEvent>,
-
-    mut menu_state: ResMut<MenuState>,
-    mut game_ui_state: ResMut<GameUIState>,
-    mut settings: ResMut<GameSettings>,
-
-    current_level: Res<CurrentLevel>,
-
-    dragged: Query<(), With<BeingDragged>>,
-) {
-    if !dragged.is_empty() {
-        return;
-    }
-
-    for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
-        if button.disabled {
-            continue;
-        }
-        use ButtonAction::*;
-        //info!("{interaction:?} {button:?} {menu_state:?}");
-        *bg_color = button
-            .button_type
-            .background_color(interaction, button.disabled);
-
-        if interaction == &Interaction::Pressed {
-            match button.button_action {
-                OpenMenu => menu_state.as_mut().open_menu(),
-                Resume => menu_state.as_mut().close_menu(),
-                GoFullscreen => {
-                    #[cfg(target_arch = "wasm32")]
-                    {
-                        crate::wasm::request_fullscreen();
-                    }
-                }
-                ClipboardImport => import_events.send(ImportEvent),
-                Tutorial => change_level_events
-                    .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
-                Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
-                DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
-                ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
-                Share => share_events.send(ShareEvent),
-                GotoLevel { level } => {
-                    change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
-                        index: level,
-                        stage: 0,
-                    })
-                }
-                ChooseLevel => menu_state.as_mut().toggle_levels(current_level.as_ref()),
-                NextLevel => change_level_events.send(ChangeLevelEvent::Next),
-                MinimizeSplash => {
-                    *game_ui_state = GameUIState::GameMinimized;
-                }
-                RestoreSplash => {
-                    *game_ui_state = GameUIState::GameSplash;
-                }
-                MinimizeApp => {
-                    bevy::tasks::IoTaskPool::get()
-                        .spawn(async move { minimize_app_async().await })
-                        .detach();
-                }
-                NextLevelsPage => menu_state.as_mut().next_levels_page(),
-
-                PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
-                Credits => change_level_events.send(ChangeLevelEvent::Credits),
-
-                Steam | GooglePlay | Apple => {}
-                ToggleSettings => menu_state.as_mut().toggle_settings(),
-                ToggleArrows => settings.toggle_arrows(),
-                ToggleTouchOutlines => settings.toggle_touch_outlines(),
-                SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
-            }
-
-            match button.button_action {
-                OpenMenu
-                | Resume
-                | ChooseLevel
-                | NextLevelsPage
-                | PreviousLevelsPage
-                | ToggleSettings
-                | MinimizeSplash
-                | RestoreSplash
-                | ToggleArrows
-                | ToggleTouchOutlines
-                | SetRotationSensitivity(_) => {}
-                _ => menu_state.close_menu(),
-            }
-        }
-    }
-}
-
-async fn minimize_app_async() {
-    #[cfg(all(feature = "android", target_arch = "wasm32"))]
-    {
-        crate::logging::do_or_report_error_async(|| capacitor_bindings::app::App::minimize_app())
-            .await;
     }
 }
 

@@ -10,8 +10,16 @@ pub struct LevelUiPlugin;
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_level_ui)
+            .init_resource::<GameUIState>()
             .add_systems(First, update_ui_on_level_change); //must be in first so tweening happens before the frame
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
+pub enum GameUIState {
+    #[default]
+    GameSplash,
+    GameMinimized,
 }
 
 pub fn setup_level_ui(

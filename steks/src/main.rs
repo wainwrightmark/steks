@@ -33,6 +33,7 @@ pub mod startup;
 pub mod tracked_resource;
 pub mod walls;
 pub mod win;
+pub mod settings;
 
 //#[cfg(target_arch = "wasm32")]
 pub mod logging;
@@ -70,6 +71,7 @@ pub mod prelude {
     pub use crate::prediction::*;
     pub use crate::rain::*;
     pub use crate::tracked_resource::*;
+    pub use crate::settings::*;
 
     pub use crate::designed_level::*;
     pub use crate::prediction::*;

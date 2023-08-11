@@ -11,7 +11,6 @@ bevy_prototype_lyon = {version="0.9"}
 bevy_rapier2d = {version = "0.22"}
 
 strum = { version = "0.25", features = ["derive"] }
-# bevy_tweening = { git = "https://github.com/wainwrightmark/bevy_tweening", default-features = false, features = ["bevy_text", "bevy_ui"] }
 chrono = {version="0.4", features = ["serde", "wasmbind"]}
 bevy_pkv = "0.8"
 
@@ -28,7 +27,7 @@ serde_yaml = "0.9.21"
 async-channel = "1.8.0"
 steks_common = {path= "../steks_common"}
 bevy_screen_diagnostics = "0.3.0"
-state_hierarchy= {path= 'C:\Source\rust\state_hierarchy'}
+state_hierarchy= {git= 'https://github.com/wainwrightmark/state_hierarchy'}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }

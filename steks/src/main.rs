@@ -35,6 +35,7 @@ pub mod tracked_resource;
 pub mod ui;
 pub mod walls;
 pub mod win;
+pub mod win_timer_state;
 
 //#[cfg(target_arch = "wasm32")]
 pub mod logging;
@@ -86,6 +87,7 @@ pub mod prelude {
     pub(crate) use crate::ui::*;
     pub use crate::walls::*;
     pub use crate::win::*;
+    pub use crate::win_timer_state::*;
 
     //#[cfg(target_arch = "wasm32")]
     pub use crate::logging::*;

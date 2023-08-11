@@ -3,7 +3,7 @@ use bevy::prelude::*;
 pub const BACKGROUND_COLOR: Color = Color::hsla(216., 0.7, 0.72, 1.0); // #86AEEA
 pub const ACCENT_COLOR: Color = Color::hsla(218., 0.69, 0.62, 1.0); // #5B8BE2
 pub const WARN_COLOR: Color = Color::hsla(0., 0.81, 0.51, 1.0); // #FF6E5F
-pub const TIMER_COLOR: Color = Color::BLACK;
+
 
 pub const FIXED_SHAPE_FILL: Color = Color::WHITE;
 pub const VOID_SHAPE_FILL: Color = Color::BLACK;

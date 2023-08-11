@@ -3,7 +3,7 @@ use strum::EnumIs;
 
 use crate::{designed_level, prelude::*};
 
-const TRANSITION_DURATION_SECS: f32 = 0.5;
+
 
 pub struct MenuPlugin;
 
@@ -105,6 +105,7 @@ impl ChildrenAspect for MenuRoot {
         context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ChildCommands,
     ) {
+        const TRANSITION_DURATION_SECS: f32 = 0.2;
         let transition_duration: Duration = Duration::from_secs_f32(TRANSITION_DURATION_SECS);
 
         fn get_carousel_child(page: u32) -> Option<Either3<SettingsPage, MainMenu, LevelMenu>> {
@@ -120,10 +121,10 @@ impl ChildrenAspect for MenuRoot {
                 commands.add_child("open_icon", menu_button_node(), &context.2);
                 return;
             }
-            MenuState::SettingsPage => Carousel::new(0, get_carousel_child, transition_duration),
-            MenuState::ShowMainMenu => Carousel::new(1, get_carousel_child, transition_duration),
+            MenuState::SettingsPage => Carousel::new(0,7, get_carousel_child, transition_duration),
+            MenuState::ShowMainMenu => Carousel::new(1, 7, get_carousel_child, transition_duration),
             MenuState::ShowLevelsPage(n) => {
-                Carousel::new((n + 2) as u32, get_carousel_child, transition_duration)
+                Carousel::new((n + 2) as u32, 7, get_carousel_child, transition_duration)
             }
         };
 

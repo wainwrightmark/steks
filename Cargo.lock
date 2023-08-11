@@ -3779,7 +3779,7 @@ dependencies = [
 [[package]]
 name = "state_hierarchy"
 version = "0.1.0"
-source = "git+https://github.com/wainwrightmark/state_hierarchy#9d15fc876949c2dce3e77048a712e58ddf57c11c"
+source = "git+https://github.com/wainwrightmark/state_hierarchy#33b9a7721512dd11ccd5d0b618153f0f9803087b"
 dependencies = [
  "bevy",
 ]

@@ -67,7 +67,6 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(DragPlugin)
         .add_plugins(WinPlugin)
         .add_plugins(LevelPlugin)
-        .add_plugins(bevy_tweening::TweeningPlugin)
         .add_plugins(SharePlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)

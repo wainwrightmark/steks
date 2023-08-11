@@ -1,6 +1,7 @@
 pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
+use state_hierarchy::prelude::StateTreePlugin;
 
 pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
@@ -53,7 +54,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(LeaderboardPlugin)
         .add_plugins(SpiritPlugin)
         .add_plugins(LevelUiPlugin)
-        .add_plugins(LensPlugin)
+        //.add_plugins(LensPlugin)
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)
         .add_plugins(RainPlugin)
@@ -70,6 +71,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(SharePlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
+        .add_plugins(StateTreePlugin)
         //.add_plugins(RecordingPlugin)
         .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
         .insert_resource(bevy::winit::WinitSettings {

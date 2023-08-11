@@ -12,8 +12,11 @@ impl Plugin for MenuPlugin {
         app.init_resource::<MenuState>();
 
         app.add_plugins(TransitionPlugin::<StyleLeftLens>::default());
-        app.add_plugins(TransitionPlugin::<TransformScaleLens>::default());
-        //app.add_plugins(TransitionPlugin::<BackgroundColorLens>::default());
+        //app.add_plugins(TransitionPlugin::<TransformScaleLens>::default());
+        app.add_plugins(TransitionPlugin::<StyleTopLens>::default());
+        app.add_plugins(TransitionPlugin::<BackgroundColorLens>::default());
+        app.add_plugins(TransitionPlugin::<TextColorLens<0>>::default());
+        app.add_plugins(TransitionPlugin::<BorderColorLens>::default());
 
         register_state_tree::<MenuRoot>(&mut app);
     }

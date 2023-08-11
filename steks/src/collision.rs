@@ -166,18 +166,6 @@ fn display_collision_markers(
                                 color: WARN_COLOR,
                                 options: Default::default(),
                             })
-                            // .insert(Animator::new(
-                            //     Tween::new(
-                            //         EaseFunction::QuadraticInOut,
-                            //         Duration::from_millis(2000),
-                            //         TransformScaleLens {
-                            //             start: Vec3::ONE,
-                            //             end: Vec3::ONE * 0.8,
-                            //         },
-                            //     )
-                            //     .with_repeat_strategy(bevy_tweening::RepeatStrategy::MirroredRepeat)
-                            //     .with_repeat_count(RepeatCount::Infinite),
-                            // ))
                             .insert(new_transform);
                     }
                     index += 1;

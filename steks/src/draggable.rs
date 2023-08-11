@@ -442,7 +442,7 @@ pub fn drag_start(
     ui_state: Res<GameUIState>,
     menu_state: Res<MenuState>,
     current_level: Res<CurrentLevel>,
-    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<LevelUIComponent>>,
+    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<Button>>,
     windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     'events: for event in er_drag_start.iter() {

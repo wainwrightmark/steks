@@ -1,17 +1,16 @@
-use bevy::ecs::system::EntityCommands;
-use bevy_tweening::lens::*;
-use bevy_tweening::{Animator, EaseFunction, Tween};
-use strum::EnumIs;
-
 use crate::prelude::*;
-
+use state_hierarchy::{
+    impl_hierarchy_root, impl_static_components,
+    prelude::*,
+    transition::speed::ScalarSpeed,
+};
+use strum::EnumIs;
 pub struct LevelUiPlugin;
 
 impl Plugin for LevelUiPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_level_ui)
-            .init_resource::<GameUIState>()
-            .add_systems(First, update_ui_on_level_change); //must be in first so tweening happens before the frame
+    fn build(&self, mut app: &mut App) {
+        app.init_resource::<GameUIState>();
+        register_state_tree::<LevelUiRoot>(&mut app);
     }
 }
 
@@ -22,255 +21,313 @@ pub enum GameUIState {
     GameMinimized,
 }
 
-pub fn setup_level_ui(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    ui_state: Res<GameUIState>,
-) {
-    let component = LevelUIComponent::Root;
-    let current_level = CurrentLevel {
-        level: GameLevel::default(),
-        completion: LevelCompletion::default(),
-    };
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct LevelUiRoot;
 
-    let mut ec = commands.spawn_empty();
-    ec.insert(LevelUIComponent::Root);
-    insert_bundle(
-        &mut ec,
-        true,
-        &current_level,
-        &component,
-        &asset_server,
-        &ui_state,
-    );
-
-    ec.with_children(|builder| {
-        for child in component.get_child_components() {
-            insert_component_and_children(builder, &current_level, child, &asset_server, &ui_state);
-        }
-    });
+impl HasContext for LevelUiRoot {
+    type Context = NC2<MenuState, NC3<GameUIState, CurrentLevel, AssetServer>>;
 }
 
-fn insert_component_and_children(
-    commands: &mut ChildBuilder,
-    current_level: &CurrentLevel,
-    component: &LevelUIComponent,
-    asset_server: &Res<AssetServer>,
-    ui_state: &Res<GameUIState>,
-) {
-    let mut ec = commands.spawn_empty();
-    insert_bundle(
-        &mut ec,
-        true,
-        current_level,
-        component,
-        asset_server,
-        ui_state,
-    );
-    ec.insert(*component);
+impl ChildrenAspect for LevelUiRoot {
+    fn set_children(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
+        commands: &mut impl ChildCommands,
+    ) {
+        if context.0.is_closed() {
+            let (top, _) = match context.1 .1.completion {
+                LevelCompletion::Complete { score_info: _ } => {
+                    if context.1 .0.is_game_minimized() {
+                        (Val::Percent(00.), Val::Percent(90.))
+                    } else {
+                        (Val::Percent(30.), Val::Percent(70.))
+                    }
+                }
 
-    ec.with_children(|builder| {
-        for child in component.get_child_components() {
-            insert_component_and_children(builder, current_level, child, asset_server, ui_state);
-        }
-    });
-}
+                _ => (Val::Percent(30.), Val::Percent(70.)),
+            };
 
-fn update_ui_on_level_change(
-    mut commands: Commands,
-    current_level: Res<CurrentLevel>,
-    level_ui: Query<(Entity, &Transform, &Style, &LevelUIComponent)>,
-    asset_server: Res<AssetServer>,
-    mut previous: Local<(CurrentLevel, GameUIState)>,
-    ui_state: Res<GameUIState>,
-    menu_state: Res<MenuState>,
-) {
-    if current_level.is_changed() || ui_state.is_changed() || menu_state.is_changed() {
-        let swap = previous.clone();
-        *previous = (current_level.clone(), *ui_state);
-        let previous = swap;
-
-        let new_visibility = match menu_state.as_ref() {
-            MenuState::Closed => Visibility::Inherited,
-            _ => Visibility::Hidden,
-        };
-
-        //info!("Set visibility: {new_visibility:?}");
-
-        for (entity, _transform, _style, component) in level_ui.iter() {
-            let commands = &mut commands.entity(entity);
-            insert_bundle(
-                commands,
-                false,
-                current_level.as_ref(),
-                component,
-                &asset_server,
-                &ui_state,
+            commands.add_child(
+                0,
+                MainPanelWrapper.with_transition_to::<StyleTopLens>(top, ScalarSpeed::new(20.0)),
+                &context.1,
             );
-            handle_animations(
-                commands,
-                component,
-                current_level.as_ref(),
-                ui_state.as_ref(),
-                (&previous.0, &previous.1),
-            );
-
-            if component.is_root() {
-                commands.insert(new_visibility);
-            }
         }
     }
 }
 
-#[derive(Debug, Component, Clone, Copy, Eq, PartialEq, EnumIs)]
-pub enum LevelUIComponent {
-    Root,
-    MainPanel,
-    AllText,
-    LevelNumber,
-    Title,
-    Message,
-    ButtonPanel,
-    Button(ButtonAction),
-    MinimizeButton,
+impl_hierarchy_root!(LevelUiRoot);
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct MainPanelWrapper;
+
+impl HasContext for MainPanelWrapper {
+    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 }
 
-impl LevelUIComponent {
-    pub fn get_child_components(&self) -> &[Self] {
-        use LevelUIComponent::*;
-        const BUTTONS: [LevelUIComponent; 3] = [
-            MinimizeButton,
-            Button(ButtonAction::Share),
-            Button(ButtonAction::NextLevel),
-        ];
-
-        match self {
-            Root => &[Self::MainPanel],
-            MainPanel => &[Self::AllText, Self::ButtonPanel],
-            AllText => &[Self::LevelNumber, Self::Title, Self::Message],
-            Message => &[],
-            LevelNumber => &[],
-            Button(_) => &[],
-            ButtonPanel => &BUTTONS,
-            Title => &[],
-            MinimizeButton => &[],
-        }
-    }
-}
-
-fn get_root_position(current_level: &CurrentLevel, ui_state: &GameUIState) -> UiRect {
-    match current_level.completion {
-        LevelCompletion::Complete { score_info: _ } => {
-            if ui_state.is_game_minimized() {
-                UiRect::new(
-                    Val::Percent(50.0),
-                    Val::Percent(50.0),
-                    Val::Percent(10.0),
-                    Val::Percent(90.0),
-                )
-            } else {
-                UiRect::new(
-                    Val::Percent(50.0),
-                    Val::Percent(50.0),
-                    Val::Percent(30.0),
-                    Val::Percent(70.0),
-                )
-            }
-        }
-
-        _ => UiRect::new(
-            Val::Percent(50.0),
-            Val::Percent(50.0),
-            Val::Percent(30.0),
-            Val::Percent(70.0),
-        ),
-    }
-}
-
-fn get_root_bundle(args: UIArgs) -> NodeBundle {
-    let z_index = ZIndex::Global(15);
-    let position = get_root_position(args.current_level, args.ui_state);
-
+impl_static_components!(
+    MainPanelWrapper,
     NodeBundle {
         style: Style {
             position_type: PositionType::Absolute,
-            left: position.left,
-            top: position.top,
-            right: position.right,
-            bottom: position.bottom,
+            left: Val::Percent(50.0),
+            top: Val::Percent(30.0),
+            right: Val::Percent(50.0),
+            bottom: Val::Percent(90.0),
             justify_content: JustifyContent::Center,
             flex_direction: FlexDirection::Column,
             ..Default::default()
         },
 
-        z_index,
+        z_index: ZIndex::Global(15),
         ..Default::default()
+    }
+);
+
+impl ChildrenAspect for MainPanelWrapper {
+    fn set_children<'r>(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ChildCommands,
+    ) {
+        commands.add_child(0, MainPanel, &context);
     }
 }
 
-fn get_all_text_bundle(_args: UIArgs) -> NodeBundle {
-    NodeBundle {
-        style: Style {
-            display: Display::Flex,
-            align_items: AlignItems::Center,
-            flex_direction: FlexDirection::Column,
-            margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-            justify_content: JustifyContent::Center,
-            ..Default::default()
-        },
-        ..Default::default()
-    }
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct MainPanel;
+
+impl HasContext for MainPanel {
+    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 }
 
-fn get_panel_bundle(args: UIArgs) -> NodeBundle {
-    let visibility = match &args.current_level {
-        CurrentLevel {
-            completion: LevelCompletion::Complete { .. },
-            level:
-                GameLevel::Designed {
-                    meta: DesignedLevelMeta::Tutorial { .. },
-                    ..
-                },
-        } => Visibility::Hidden,
+impl ComponentsAspect for MainPanel {
+    fn set_components<'r>(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ComponentCommands,
+        _event: SetComponentsEvent,
+    ) {
 
-        _ => Visibility::Inherited,
-    };
-
-    let background_color: BackgroundColor =
-        get_panel_color(args.current_level, args.ui_state).into();
-
-    let flex_direction =
-        if args.current_level.completion.is_complete() && args.ui_state.is_game_splash() {
-            FlexDirection::Column
-        } else {
-            FlexDirection::RowReverse
+        let (background, border)= match (context.1.completion, context.0.is_game_splash()){
+            (LevelCompletion::Complete { .. }, true) => (Color::WHITE, Color::BLACK),
+            _=> (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0)),
         };
 
-    NodeBundle {
-        style: Style {
-            display: Display::Flex,
-            align_items: AlignItems::Center,
-            flex_direction,
-            // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-            margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-            justify_content: JustifyContent::Center,
-            border: UiRect::all(UI_BORDER_WIDTH),
+        let color_speed = context.1.completion.is_complete().then_some(ScalarSpeed{amount_per_second:1.0});
 
+        let background = commands.transition_value::<BackgroundColorLens>(
+            background,
+            background,
+            color_speed
+        );
+
+        let border = commands.transition_value::<BorderColorLens>(
+            border,
+            border,
+            color_speed
+        );
+
+        let visibility = context
+            .1
+            .level
+            .skip_completion()
+            .then_some(Visibility::Hidden)
+            .unwrap_or(Visibility::Inherited);
+
+        let z_index = ZIndex::Global(15);
+
+        let flex_direction: FlexDirection =
+            if context.1.completion.is_complete() && context.0.is_game_splash() {
+                FlexDirection::Column
+            } else {
+                FlexDirection::RowReverse
+            };
+
+        let bundle = NodeBundle {
+            style: Style {
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                flex_direction,
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                justify_content: JustifyContent::Center,
+                border: UiRect::all(UI_BORDER_WIDTH),
+                ..Default::default()
+            },
+
+            background_color: BackgroundColor(background),
+            border_color: BorderColor(border),
+            visibility,
+            z_index,
             ..Default::default()
-        },
-        visibility,
-        border_color: BorderColor(get_border_color(args.current_level, args.ui_state)),
-        background_color,
-        ..Default::default()
+        };
+
+        commands.insert(bundle);
     }
 }
 
-fn get_button_panel(args: UIArgs) -> NodeBundle {
-    let (width, height) = match args.current_level.completion {
-        LevelCompletion::Incomplete { .. } => (Val::Px(0.0), Val::Px(0.0)),
-        LevelCompletion::Complete { .. } => (Val::Auto, Val::Auto),
-    };
+impl ChildrenAspect for MainPanel {
+    fn set_children<'r>(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ChildCommands,
+    ) {
+        commands.add_child(0, TextPanel, context);
+        commands.add_child(1, ButtonPanel, context);
+    }
+}
 
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct TextPanel;
+
+impl HasContext for TextPanel {
+    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+}
+
+impl ChildrenAspect for TextPanel {
+    fn set_children<'r>(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ChildCommands,
+    ) {
+        if context.1.completion.is_incomplete() {
+            let initial_color = context.1.text_color();
+            let destination_color = if context.1.text_fade() {
+                initial_color.with_a(0.0)
+            } else {
+                initial_color
+            };
+
+            const FADE_SECS: f32 = 20.;
+            if let Some(level_number_text) = context.1.get_level_number_text(true) {
+                commands.add_child(
+                    "level_number",
+                    TextNode {
+                        text: level_number_text,
+                        style: LEVEL_NUMBER_TEXT_STYLE.clone(),
+                    }
+                    .with_transition_in::<TextColorLens<0>>(
+                        initial_color,
+                        destination_color,
+                        Duration::from_secs_f32(FADE_SECS),
+                    ),
+                    &context.2,
+                );
+            }
+
+            if let Some(title_text) = context.1.get_title() {
+                commands.add_child(
+                    "title",
+                    TextNode {
+                        text: title_text,
+                        style: TITLE_TEXT_STYLE.clone(),
+                    }
+                    .with_transition_in::<TextColorLens<0>>(
+                        initial_color,
+                        destination_color,
+                        Duration::from_secs_f32(FADE_SECS),
+                    ),
+                    &context.2,
+                );
+            }
+
+            if let Some(message) = context.1.get_text(&context.0) {
+                commands.add_child(
+                    "message",
+                    TextNode {
+                        text: message,
+                        style: LEVEL_MESSAGE_TEXT_STYLE.clone(),
+                    }
+                    .with_transition_in::<TextColorLens<0>>(
+                        initial_color,
+                        destination_color,
+                        Duration::from_secs_f32(FADE_SECS),
+                    ),
+                    &context.2,
+                )
+            }
+        } else {
+            if let Some(message) = context.1.get_text(&context.0) {
+                commands.add_child(
+                    "completion_message",
+                    TextNode {
+                        text: message,
+                        style: LEVEL_MESSAGE_TEXT_STYLE.clone(),
+                    },
+                    &context.2,
+                )
+            }
+        }
+    }
+}
+
+impl ComponentsAspect for TextPanel {
+    fn set_components<'r>(
+        &self,
+        _context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ComponentCommands,
+        event: SetComponentsEvent,
+    ) {
+        if event == SetComponentsEvent::Created {
+            commands.insert(
+                NodeBundle {
+                    style: Style {
+                        display: Display::Flex,
+                        align_items: AlignItems::Center,
+                        flex_direction: FlexDirection::Column,
+                        margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                        justify_content: JustifyContent::Center,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+            )
+        }
+
+        commands.insert(Transition {
+            step: TransitionStep::<TextColorLens<0>>::new_arc(
+                Color::NONE,
+                Some(ScalarSpeed {
+                    amount_per_second: 0.05,
+                }),
+                None,
+            ),
+        })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct ButtonPanel;
+
+impl HasContext for ButtonPanel {
+    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+}
+
+impl ChildrenAspect for ButtonPanel {
+    fn set_children<'r>(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ChildCommands,
+    ) {
+        if context.1.completion.is_complete() {
+            if context.0.is_game_splash() {
+                commands.add_child(
+                    0,
+                    icon_button_node(ButtonAction::MinimizeSplash),
+                    &context.2,
+                );
+            } else {
+                commands.add_child(0, icon_button_node(ButtonAction::RestoreSplash), &context.2);
+            }
+
+            commands.add_child(1, icon_button_node(ButtonAction::Share), &context.2);
+            commands.add_child(2, icon_button_node(ButtonAction::NextLevel), &context.2);
+        }
+    }
+}
+
+impl_static_components!(
+    ButtonPanel,
     NodeBundle {
         style: Style {
             display: Display::Flex,
@@ -279,347 +336,11 @@ fn get_button_panel(args: UIArgs) -> NodeBundle {
             // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
             margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
             justify_content: JustifyContent::Center,
-            width,
-            height,
+            width: Val::Auto,
+            height: Val::Auto,
 
             ..Default::default()
         },
         ..Default::default()
     }
-}
-
-fn get_title_bundle(args: UIArgs) -> TextBundle {
-    if args.current_level.completion != (LevelCompletion::Incomplete { stage: 0 }) {
-        return TextBundle::default();
-    }
-
-    let color = args.current_level.text_color();
-
-    if let Some(text) = args.current_level.get_title() {
-        TextBundle::from_section(
-            text,
-            TextStyle {
-                font: args.asset_server.load(LEVEL_TITLE_FONT_PATH),
-                font_size: LEVEL_TITLE_FONT_SIZE,
-                color,
-            },
-        )
-        .with_text_alignment(TextAlignment::Center)
-        .with_style(Style {
-            align_self: AlignSelf::Center,
-            ..Default::default()
-        })
-        .with_no_wrap()
-    } else {
-        TextBundle::default()
-    }
-}
-
-fn get_level_number_bundle(args: UIArgs) -> TextBundle {
-    match args.current_level.completion {
-        LevelCompletion::Incomplete { stage } => {
-            if stage != 0 {
-                return TextBundle::default();
-            }
-        }
-        LevelCompletion::Complete { .. } => {
-            if args.ui_state.is_game_minimized() {
-                return TextBundle::default();
-            }
-        }
-    }
-
-    let color = args.current_level.text_color();
-
-    if let Some(text) = args.current_level.get_level_number_text() {
-        TextBundle::from_section(
-            text,
-            TextStyle {
-                font: args.asset_server.load(LEVEL_NUMBER_FONT_PATH),
-                font_size: LEVEL_NUMBER_FONT_SIZE,
-                color,
-            },
-        )
-        .with_text_alignment(TextAlignment::Center)
-        .with_style(Style {
-            align_self: AlignSelf::Center,
-            ..Default::default()
-        })
-        .with_no_wrap()
-    } else {
-        TextBundle::default()
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct UIArgs<'a, 'world> {
-    current_level: &'a CurrentLevel,
-    asset_server: &'a Res<'world, AssetServer>,
-    ui_state: &'a Res<'world, GameUIState>,
-}
-
-fn get_message_bundle(args: UIArgs) -> TextBundle {
-    if let Some(text) = args.current_level.get_text(args.ui_state) {
-        let color = args.current_level.text_color();
-        TextBundle::from_section(
-            text,
-            TextStyle {
-                font: args.asset_server.load(LEVEL_TEXT_FONT_PATH),
-                font_size: LEVEL_TEXT_FONT_SIZE,
-                color,
-            },
-        )
-        .with_text_alignment(TextAlignment::Center)
-        .with_style(Style {
-            align_self: AlignSelf::Center,
-            ..Default::default()
-        })
-        .with_no_wrap()
-    } else {
-        TextBundle::default()
-    }
-}
-
-fn animate_text(commands: &mut EntityCommands, current_level: &CurrentLevel) {
-    let fade = match current_level.completion {
-        LevelCompletion::Incomplete { stage } => match &current_level.level {
-            GameLevel::Designed { meta, .. } => meta
-                .get_level()
-                .get_stage(&stage)
-                .map(|x| !x.text_forever)
-                .unwrap_or(true),
-            GameLevel::Infinite { .. } | GameLevel::Begging => false,
-            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => true,
-        },
-        LevelCompletion::Complete { .. } => false,
-    };
-
-    let start = current_level.text_color();
-
-    if fade {
-        let end = start.with_a(0.0);
-        commands.insert(Animator::new(Tween::new(
-            EaseFunction::QuadraticInOut,
-            Duration::from_secs(DEFAULT_TEXT_FADE_SECONDS),
-            TextColorLens {
-                section: 0,
-                start,
-                end,
-            },
-        )));
-    } else {
-        commands.insert(Animator::new(Tween::new(
-            EaseFunction::QuadraticInOut,
-            Duration::from_secs(0),
-            TextColorLens {
-                section: 0,
-                start,
-                end: start,
-            },
-        )));
-    }
-}
-
-const DEFAULT_TEXT_FADE_SECONDS: u64 = 20;
-const MINIMIZE_MILLIS: u64 = 1000;
-
-fn animate_root(
-    commands: &mut EntityCommands,
-    current_level: &CurrentLevel,
-    ui_state: &GameUIState,
-    previous: (&CurrentLevel, &GameUIState),
-) {
-    match current_level.completion {
-        LevelCompletion::Complete { .. } => {
-            commands.insert(Animator::new(Tween::new(
-                EaseFunction::QuadraticInOut,
-                Duration::from_millis(MINIMIZE_MILLIS),
-                UiPositionLens {
-                    start: get_root_position(previous.0, previous.1),
-                    end: get_root_position(current_level, ui_state),
-                },
-            )));
-        }
-        LevelCompletion::Incomplete { .. } => {
-            commands.remove::<Animator<Style>>();
-        }
-    }
-}
-
-fn get_panel_color(level: &CurrentLevel, ui_state: &GameUIState) -> Color {
-    match level.completion {
-        LevelCompletion::Incomplete { .. } => Color::NONE,
-        LevelCompletion::Complete { .. } => {
-            if ui_state.is_game_splash() {
-                Color::WHITE
-            } else {
-                Color::NONE
-            }
-        }
-    }
-}
-
-fn get_border_color(level: &CurrentLevel, ui_state: &GameUIState) -> Color {
-    match level.completion {
-        LevelCompletion::Incomplete { .. } => Color::NONE,
-        LevelCompletion::Complete { .. } => {
-            if ui_state.is_game_splash() {
-                BUTTON_BORDER
-            } else {
-                Color::NONE
-            }
-        }
-    }
-}
-
-fn animate_panel(
-    commands: &mut EntityCommands,
-    current_level: &CurrentLevel,
-    ui_state: &GameUIState,
-    previous: (&CurrentLevel, &GameUIState),
-) {
-    match current_level.completion {
-        LevelCompletion::Complete { .. } => {
-            let lens = BackgroundColorLens {
-                start: get_panel_color(previous.0, previous.1),
-                end: get_panel_color(current_level, ui_state),
-            };
-
-            commands.insert(Animator::new(Tween::new(
-                EaseFunction::QuadraticInOut,
-                Duration::from_millis(MINIMIZE_MILLIS),
-                lens,
-            )));
-        }
-        LevelCompletion::Incomplete { .. } => {
-            // commands.insert(
-            //     Animator::new(Tween::new(EaseFunction::QuadraticInOut, Duration::from_secs(DEFAULT_TEXT_FADE_SECONDS),
-            // BackgroundColorLens{
-            //     start: BACKGROUND_COLOR.with_a(0.5),
-            //     end: BACKGROUND_COLOR.with_a(0.0)
-            // }
-            // ))
-
-            // );
-
-            commands.remove::<Animator<BackgroundColor>>();
-        }
-    }
-}
-
-fn handle_animations(
-    commands: &mut EntityCommands,
-    component: &LevelUIComponent,
-    current_level: &CurrentLevel,
-    ui_state: &GameUIState,
-
-    previous: (&CurrentLevel, &GameUIState),
-) {
-    match component {
-        LevelUIComponent::Root => animate_root(commands, current_level, ui_state, previous),
-        LevelUIComponent::Message => animate_text(commands, current_level),
-        LevelUIComponent::MainPanel => animate_panel(commands, current_level, ui_state, previous),
-        LevelUIComponent::Title => animate_text(commands, current_level),
-        LevelUIComponent::LevelNumber => animate_text(commands, current_level),
-        _ => {}
-    }
-}
-
-fn insert_bundle(
-    commands: &mut EntityCommands,
-    first_time: bool,
-    current_level: &CurrentLevel,
-    component: &LevelUIComponent,
-    asset_server: &Res<AssetServer>,
-    ui_state: &Res<GameUIState>,
-) {
-    let args = UIArgs {
-        current_level,
-        asset_server,
-        ui_state,
-    };
-
-    match component {
-        LevelUIComponent::Root => {
-            commands.insert(get_root_bundle(args));
-        }
-        LevelUIComponent::MainPanel => {
-            commands.insert(get_panel_bundle(args));
-        }
-        LevelUIComponent::Message => {
-            commands.insert(get_message_bundle(args));
-        }
-        LevelUIComponent::Title => {
-            commands.insert(get_title_bundle(args));
-        }
-        LevelUIComponent::ButtonPanel => {
-            commands.insert(get_button_panel(args));
-        }
-        LevelUIComponent::Button(button_action) => make_button(
-            commands,
-            button_action,
-            first_time,
-            current_level,
-            asset_server,
-        ),
-        LevelUIComponent::AllText => {
-            commands.insert(get_all_text_bundle(args));
-        }
-        LevelUIComponent::LevelNumber => {
-            commands.insert(get_level_number_bundle(args));
-        }
-        LevelUIComponent::MinimizeButton => {
-            commands.despawn_descendants();
-
-            let button_action = match ui_state.as_ref() {
-                GameUIState::GameSplash => ButtonAction::MinimizeSplash,
-                _ => ButtonAction::RestoreSplash,
-            };
-
-            make_button(commands, &button_action, true, current_level, asset_server)
-        }
-    };
-}
-
-fn make_button(
-    commands: &mut EntityCommands,
-    button_action: &ButtonAction,
-    first_time: bool,
-    current_level: &CurrentLevel,
-
-    asset_server: &Res<AssetServer>,
-) {
-    if first_time {
-        let font = asset_server.load(ICON_FONT_PATH);
-
-        let text_bundle = TextBundle {
-            text: Text::from_section(
-                button_action.icon(),
-                TextStyle {
-                    font,
-                    font_size: ICON_FONT_SIZE,
-                    color: BUTTON_TEXT_COLOR,
-                },
-            ),
-            ..Default::default()
-        }
-        .with_no_wrap();
-
-        commands.insert(ButtonComponent {
-            button_type: ButtonType::Icon,
-            button_action: *button_action,
-            disabled: false,
-        });
-        commands.insert(icon_button_bundle(false));
-
-        commands.with_children(|parent| {
-            parent.spawn(text_bundle);
-        });
-    }
-
-    if current_level.completion.is_button_visible(button_action) {
-        commands.insert(Visibility::Inherited);
-    } else {
-        commands.insert(Visibility::Hidden);
-    }
-}
+);

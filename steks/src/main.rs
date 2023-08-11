@@ -85,7 +85,7 @@ pub mod prelude {
     pub use crate::spirit::*;
     pub use crate::walls::*;
     pub use crate::win::*;
-    pub use crate::ui::*;
+    pub (crate) use crate::ui::*;
 
     //#[cfg(target_arch = "wasm32")]
     pub use crate::logging::*;

@@ -1,13 +1,12 @@
-use std:: sync::Arc;
+use std::sync::Arc;
 
 use lazy_static::lazy_static;
 use state_hierarchy::prelude::*;
 use steks_common::constants;
 
-
 use crate::prelude::*;
 
-pub (crate) fn menu_button_node() -> ButtonNode<ButtonComponent> {
+pub(crate) fn menu_button_node() -> ButtonNode<ButtonComponent> {
     ButtonNode {
         text: ButtonAction::OpenMenu.icon(),
         text_node_style: ICON_BUTTON_TEXT_STYLE.clone(),
@@ -20,7 +19,7 @@ pub (crate) fn menu_button_node() -> ButtonNode<ButtonComponent> {
     }
 }
 
-pub (crate) fn icon_button_node(button_action: ButtonAction) -> ButtonNode<ButtonComponent> {
+pub(crate) fn icon_button_node(button_action: ButtonAction) -> ButtonNode<ButtonComponent> {
     ButtonNode {
         text: button_action.icon(),
         text_node_style: ICON_BUTTON_TEXT_STYLE.clone(),
@@ -33,11 +32,11 @@ pub (crate) fn icon_button_node(button_action: ButtonAction) -> ButtonNode<Butto
     }
 }
 
-pub (crate) fn text_button_node(button_action: ButtonAction) -> ButtonNode<ButtonComponent> {
+pub(crate) fn text_button_node(button_action: ButtonAction) -> ButtonNode<ButtonComponent> {
     text_button_node_with_text(button_action, button_action.text())
 }
 
-pub (crate) fn text_button_node_with_text(
+pub(crate) fn text_button_node_with_text(
     button_action: ButtonAction,
     text: String,
 ) -> ButtonNode<ButtonComponent> {
@@ -53,9 +52,8 @@ pub (crate) fn text_button_node_with_text(
     }
 }
 
-
 lazy_static! {
-    static ref ICON_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
+    pub(crate) static ref ICON_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
         style: Style {
             width: Val::Px(ICON_BUTTON_WIDTH),
             height: Val::Px(ICON_BUTTON_HEIGHT),
@@ -70,7 +68,7 @@ lazy_static! {
         background_color: Color::NONE,
         ..default()
     });
-    static ref OPEN_MENU_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
+    pub(crate) static ref OPEN_MENU_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
         style: Style {
             width: Val::Px(ICON_BUTTON_WIDTH),
             height: Val::Px(ICON_BUTTON_HEIGHT),
@@ -79,15 +77,15 @@ lazy_static! {
             align_items: AlignItems::Center,
             flex_grow: 0.0,
             flex_shrink: 0.0,
-            left: Val::Px(MENU_OFFSET),
-            top: Val::Px(MENU_OFFSET),
+            left: Val::Percent(0.0),
+            top: Val::Percent(0.0),// Val::Px(MENU_OFFSET),
 
             ..Default::default()
         },
         background_color: Color::NONE,
         ..default()
     });
-    static ref TEXT_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
+    pub(crate) static ref TEXT_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
         style: Style {
             width: Val::Px(TEXT_BUTTON_WIDTH),
             height: Val::Px(TEXT_BUTTON_HEIGHT),
@@ -109,14 +107,44 @@ lazy_static! {
         border_color: BUTTON_BORDER.into(),
         ..Default::default()
     });
-    static ref TEXT_BUTTON_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
+    pub(crate) static ref TEXT_BUTTON_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
         font_size: BUTTON_FONT_SIZE,
         color: BUTTON_TEXT_COLOR,
         font: constants::MENU_TEXT_FONT_PATH,
+        alignment: TextAlignment::Left,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
     });
-    static ref ICON_BUTTON_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
+    pub(crate) static ref ICON_BUTTON_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
         font_size: ICON_FONT_SIZE,
         color: BUTTON_TEXT_COLOR,
         font: constants::ICON_FONT_PATH,
+        alignment: TextAlignment::Left,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
+    });
+
+    //TODO alt colors
+    pub(crate) static ref TITLE_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
+        font_size: LEVEL_TITLE_FONT_SIZE,
+        color: LEVEL_TEXT_COLOR,
+        font: constants::LEVEL_TITLE_FONT_PATH,
+        alignment: TextAlignment::Center,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
+    });
+
+    pub(crate) static ref LEVEL_NUMBER_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
+        font_size: LEVEL_NUMBER_FONT_SIZE,
+        color: LEVEL_TEXT_COLOR,
+        font: constants::LEVEL_NUMBER_FONT_PATH,
+        alignment: TextAlignment::Center,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
+    });
+
+
+    pub(crate) static ref LEVEL_MESSAGE_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
+        font_size: LEVEL_TEXT_FONT_SIZE,
+        color: LEVEL_TEXT_COLOR,
+        font: constants::LEVEL_TEXT_FONT_PATH,
+        alignment: TextAlignment::Center,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
     });
 }

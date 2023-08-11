@@ -3,12 +3,10 @@ use strum::EnumIs;
 
 use crate::{designed_level, prelude::*};
 
-
-
 pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
-    fn build(&self, mut app: &mut App) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<MenuState>();
 
         app.add_plugins(TransitionPlugin::<StyleLeftLens>::default());
@@ -18,7 +16,7 @@ impl Plugin for MenuPlugin {
         app.add_plugins(TransitionPlugin::<TextColorLens<0>>::default());
         app.add_plugins(TransitionPlugin::<BorderColorLens>::default());
 
-        register_state_tree::<MenuRoot>(&mut app);
+        register_state_tree::<MenuRoot>(app);
     }
 }
 
@@ -100,9 +98,9 @@ impl HasContext for MenuRoot {
 }
 
 impl ChildrenAspect for MenuRoot {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         const TRANSITION_DURATION_SECS: f32 = 0.2;
@@ -121,7 +119,7 @@ impl ChildrenAspect for MenuRoot {
                 commands.add_child("open_icon", menu_button_node(), &context.2);
                 return;
             }
-            MenuState::SettingsPage => Carousel::new(0,7, get_carousel_child, transition_duration),
+            MenuState::SettingsPage => Carousel::new(0, 7, get_carousel_child, transition_duration),
             MenuState::ShowMainMenu => Carousel::new(1, 7, get_carousel_child, transition_duration),
             MenuState::ShowLevelsPage(n) => {
                 Carousel::new((n + 2) as u32, 7, get_carousel_child, transition_duration)
@@ -158,9 +156,9 @@ impl_static_components!(
 );
 
 impl ChildrenAspect for SettingsPage {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         info!("Setting Settings Children {:?}", context.1);
@@ -244,12 +242,12 @@ impl_static_components!(
 );
 
 impl ChildrenAspect for MainMenu {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
-        for (key, action) in ButtonAction::main_buttons().into_iter().enumerate() {
+        for (key, action) in ButtonAction::main_buttons().iter().enumerate() {
             let button = text_button_node(*action);
             // let button = button.with_transition_in::<BackgroundColorLens>(
             //     Color::WHITE.with_a(0.0),
@@ -288,9 +286,9 @@ impl_static_components!(
 );
 
 impl ChildrenAspect for LevelMenu {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         let start = self.0 * LEVELS_PER_PAGE;
@@ -347,9 +345,9 @@ impl_static_components!(
 );
 
 impl ChildrenAspect for LevelMenuArrows {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         if self.0 == 0 {

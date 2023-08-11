@@ -242,7 +242,9 @@ impl CurrentLevel {
         match &self.level {
             GameLevel::Designed { meta, .. } => match meta {
                 DesignedLevelMeta::Tutorial { .. } => None,
-                DesignedLevelMeta::Campaign { index } => Some(format_campaign_level_number(index, centred)),
+                DesignedLevelMeta::Campaign { index } => {
+                    Some(format_campaign_level_number(index, centred))
+                }
                 DesignedLevelMeta::Custom { .. } | DesignedLevelMeta::Credits => None,
             },
             GameLevel::Infinite { .. }
@@ -514,10 +516,12 @@ impl GameLevel {
         }
     }
 
-    pub fn skip_completion(&self)->bool{
+    pub fn skip_completion(&self) -> bool {
         match self {
-            GameLevel::Designed { meta: DesignedLevelMeta::Tutorial{..} } => true,
-            _=> false
+            GameLevel::Designed {
+                meta: DesignedLevelMeta::Tutorial { .. },
+            } => true,
+            _ => false,
         }
     }
 }

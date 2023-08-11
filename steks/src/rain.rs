@@ -61,7 +61,10 @@ fn despawn_raindrops(
 }
 
 fn max_window_contains(v: &Vec3) -> bool {
-    if v.x < MAX_WINDOW_WIDTH * -0.5 || v.x > MAX_WINDOW_WIDTH * 0.5 || v.y < MAX_WINDOW_HEIGHT * -0.5 {
+    if v.x < MAX_WINDOW_WIDTH * -0.5
+        || v.x > MAX_WINDOW_WIDTH * 0.5
+        || v.y < MAX_WINDOW_HEIGHT * -0.5
+    {
         false
     } else {
         v.y <= MAX_WINDOW_HEIGHT * 1.0

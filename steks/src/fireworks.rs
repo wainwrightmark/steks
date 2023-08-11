@@ -104,9 +104,12 @@ fn despawn_fireworks(
 }
 
 fn max_window_contains(v: &Vec3) -> bool {
-    if v.x < MAX_WINDOW_WIDTH * -0.5 || v.x > MAX_WINDOW_WIDTH * 0.5 || v.y < MAX_WINDOW_HEIGHT * -0.5
-    {true}
-     else {
+    if v.x < MAX_WINDOW_WIDTH * -0.5
+        || v.x > MAX_WINDOW_WIDTH * 0.5
+        || v.y < MAX_WINDOW_HEIGHT * -0.5
+    {
+        true
+    } else {
         v.y <= MAX_WINDOW_HEIGHT * 0.5
     }
 }

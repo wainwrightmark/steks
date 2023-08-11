@@ -38,13 +38,11 @@ pub fn get_tutorial_level(index: u8) -> Option<Arc<DesignedLevel>> {
 }
 
 pub fn format_campaign_level_number(level: &u8, centred: bool) -> String {
-    if centred{
+    if centred {
         level.saturating_add(1).to_string()
-    }
-    else{
+    } else {
         format!("{:2}", level.saturating_add(1))
     }
-
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]

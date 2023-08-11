@@ -103,8 +103,8 @@ lazy_static! {
 
             ..Default::default()
         },
-        background_color: TEXT_BUTTON_BACKGROUND.into(),
-        border_color: BUTTON_BORDER.into(),
+        background_color: TEXT_BUTTON_BACKGROUND,
+        border_color: BUTTON_BORDER,
         ..Default::default()
     });
     pub(crate) static ref TEXT_BUTTON_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {

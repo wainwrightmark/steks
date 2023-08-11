@@ -1,16 +1,14 @@
 use crate::prelude::*;
 use state_hierarchy::{
-    impl_hierarchy_root, impl_static_components,
-    prelude::*,
-    transition::speed::ScalarSpeed,
+    impl_hierarchy_root, impl_static_components, prelude::*, transition::speed::ScalarSpeed,
 };
 use strum::EnumIs;
 pub struct LevelUiPlugin;
 
 impl Plugin for LevelUiPlugin {
-    fn build(&self, mut app: &mut App) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<GameUIState>();
-        register_state_tree::<LevelUiRoot>(&mut app);
+        register_state_tree::<LevelUiRoot>(app);
     }
 }
 
@@ -85,12 +83,12 @@ impl_static_components!(
 );
 
 impl ChildrenAspect for MainPanelWrapper {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
-        commands.add_child(0, MainPanel, &context);
+        commands.add_child(0, MainPanel, context);
     }
 }
 
@@ -102,38 +100,31 @@ impl HasContext for MainPanel {
 }
 
 impl ComponentsAspect for MainPanel {
-    fn set_components<'r>(
+    fn set_components(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ComponentCommands,
         _event: SetComponentsEvent,
     ) {
-
-        let (background, border)= match (context.1.completion, context.0.is_game_splash()){
+        let (background, border) = match (context.1.completion, context.0.is_game_splash()) {
             (LevelCompletion::Complete { .. }, true) => (Color::WHITE, Color::BLACK),
-            _=> (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0)),
+            _ => (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0)),
         };
 
-        let color_speed = context.1.completion.is_complete().then_some(ScalarSpeed{amount_per_second:1.0});
+        let color_speed = context.1.completion.is_complete().then_some(ScalarSpeed {
+            amount_per_second: 1.0,
+        });
 
-        let background = commands.transition_value::<BackgroundColorLens>(
-            background,
-            background,
-            color_speed
-        );
+        let background =
+            commands.transition_value::<BackgroundColorLens>(background, background, color_speed);
 
-        let border = commands.transition_value::<BorderColorLens>(
-            border,
-            border,
-            color_speed
-        );
+        let border = commands.transition_value::<BorderColorLens>(border, border, color_speed);
 
-        let visibility = context
-            .1
-            .level
-            .skip_completion()
-            .then_some(Visibility::Hidden)
-            .unwrap_or(Visibility::Inherited);
+        let visibility = if context.1.level.skip_completion() {
+            Visibility::Hidden
+        } else {
+            Visibility::Inherited
+        };
 
         let z_index = ZIndex::Global(15);
 
@@ -167,9 +158,9 @@ impl ComponentsAspect for MainPanel {
 }
 
 impl ChildrenAspect for MainPanel {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         commands.add_child(0, TextPanel, context);
@@ -185,9 +176,9 @@ impl HasContext for TextPanel {
 }
 
 impl ChildrenAspect for TextPanel {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         if context.1.completion.is_incomplete() {
@@ -246,42 +237,38 @@ impl ChildrenAspect for TextPanel {
                     &context.2,
                 )
             }
-        } else {
-            if let Some(message) = context.1.get_text(&context.0) {
-                commands.add_child(
-                    "completion_message",
-                    TextNode {
-                        text: message,
-                        style: LEVEL_MESSAGE_TEXT_STYLE.clone(),
-                    },
-                    &context.2,
-                )
-            }
+        } else if let Some(message) = context.1.get_text(&context.0) {
+            commands.add_child(
+                "completion_message",
+                TextNode {
+                    text: message,
+                    style: LEVEL_MESSAGE_TEXT_STYLE.clone(),
+                },
+                &context.2,
+            )
         }
     }
 }
 
 impl ComponentsAspect for TextPanel {
-    fn set_components<'r>(
+    fn set_components(
         &self,
-        _context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        _context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ComponentCommands,
         event: SetComponentsEvent,
     ) {
         if event == SetComponentsEvent::Created {
-            commands.insert(
-                NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        align_items: AlignItems::Center,
-                        flex_direction: FlexDirection::Column,
-                        margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-                        justify_content: JustifyContent::Center,
-                        ..Default::default()
-                    },
+            commands.insert(NodeBundle {
+                style: Style {
+                    display: Display::Flex,
+                    align_items: AlignItems::Center,
+                    flex_direction: FlexDirection::Column,
+                    margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                    justify_content: JustifyContent::Center,
                     ..Default::default()
                 },
-            )
+                ..Default::default()
+            })
         }
 
         commands.insert(Transition {
@@ -304,9 +291,9 @@ impl HasContext for ButtonPanel {
 }
 
 impl ChildrenAspect for ButtonPanel {
-    fn set_children<'r>(
+    fn set_children(
         &self,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         if context.1.completion.is_complete() {

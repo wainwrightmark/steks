@@ -14,12 +14,11 @@ pub const UI_BORDER_WIDTH: Val = Val::Px(3.0);
 
 pub struct ButtonPlugin;
 
-impl Plugin for ButtonPlugin{
+impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(First, button_system);
     }
 }
-
 
 #[derive(Debug, Clone, Copy, Component, PartialEq)]
 pub struct ButtonComponent {
@@ -92,7 +91,7 @@ pub enum ButtonAction {
     Apple,
     Steam,
 
-    None
+    None,
 }
 
 impl ButtonAction {
@@ -127,7 +126,9 @@ impl ButtonAction {
             DailyChallenge => "\u{e803}".to_string(), // "Challenge",
             Share => "\u{f1e0}".to_string(),          // "Share",
             ChooseLevel => "\u{e812}".to_string(),    // "\u{e812};".to_string(),
-            GotoLevel { level } => crate::designed_level::format_campaign_level_number(level, false),
+            GotoLevel { level } => {
+                crate::designed_level::format_campaign_level_number(level, false)
+            }
             NextLevel => "\u{e808}".to_string(), //play
 
             MinimizeApp => "\u{e813}".to_string(),     //logout
@@ -145,7 +146,7 @@ impl ButtonAction {
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
-            None=> "".to_string()
+            None => "".to_string(),
         }
     }
 
@@ -192,7 +193,7 @@ impl ButtonAction {
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
-            None=> "".to_string()
+            None => "".to_string(),
         }
     }
 }
@@ -324,8 +325,6 @@ pub fn spawn_icon_button(
             button_type: ButtonType::Icon,
         });
 }
-
-
 
 fn button_system(
     mut interaction_query: Query<

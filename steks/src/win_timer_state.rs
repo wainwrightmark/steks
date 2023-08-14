@@ -2,10 +2,8 @@ use std::f32::consts::{FRAC_PI_2, TAU};
 
 use crate::prelude::*;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{
-    Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke,
-};
-use state_hierarchy::{impl_hierarchy_root, impl_static_components, prelude::*};
+use bevy_prototype_lyon::prelude::{Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke};
+use state_hierarchy::{impl_hierarchy_root, prelude::*};
 
 #[derive(Debug, Default)]
 pub struct WinCountdownPlugin;
@@ -14,7 +12,7 @@ impl Plugin for WinCountdownPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<WinCountdown>();
         app.add_systems(Update, update_dynamic_elements);
-        register_state_tree::<TimerStateRoot>(app);
+        app.register_state_hierarchy::<TimerStateRoot>();
     }
 }
 
@@ -33,7 +31,6 @@ const ARC_STROKE: f32 = 10.0;
 const ARC_COLOR: Color = Color::WHITE; // Color::hsl(148.,0.62,0.76);
 const MARKER_COLOR: Color = Color::WHITE; // Color::hsl(150.,0.22,0.53);
 pub const TIMER_COLOR: Color = Color::BLACK; // Color::hsl(241.,0.62,0.76);
-const OUTER_STROKE: f32 = 3.0;
 
 const POSITION_Y: f32 = 200.0;
 
@@ -88,8 +85,6 @@ impl ChildrenAspect for TimerStateRoot {
         commands: &mut impl ChildCommands,
     ) {
         if context.0.is_some() {
-            commands.add_child(0, TimerFullCircle, &());
-
             commands.add_child(1, CircleArc, &());
             commands.add_child(2, CircleMarker, &());
         }
@@ -98,40 +93,6 @@ impl ChildrenAspect for TimerStateRoot {
 
 impl HasContext for TimerStateRoot {
     type Context = WinCountdown;
-}
-
-#[derive(Debug, Clone, PartialEq)]
-struct TimerFullCircle;
-
-impl HasContext for TimerFullCircle {
-    type Context = NoContext;
-}
-
-impl_static_components!(
-    TimerFullCircle,
-    (
-        ShapeBundle {
-            path: GeometryBuilder::build_as(&bevy_prototype_lyon::shapes::Circle {
-                center: Vec2::ZERO,
-                radius: RADIUS,
-            }),
-            transform: Transform {
-                translation: Vec3::new(00.0, POSITION_Y, 0.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-        Stroke::new(TIMER_COLOR, OUTER_STROKE)
-    )
-);
-
-impl ChildrenAspect for TimerFullCircle {
-    fn set_children<'r>(
-        &self,
-        _context: &<Self::Context as state_hierarchy::prelude::NodeContext>::Wrapper<'r>,
-        _commands: &mut impl state_hierarchy::prelude::ChildCommands,
-    ) {
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Component)]
@@ -148,22 +109,8 @@ impl HasContext for CircleMarker {
     type Context = NoContext;
 }
 
-impl ChildrenAspect for CircleArc {
-    fn set_children<'r>(
-        &self,
-        _context: &<Self::Context as NodeContext>::Wrapper<'r>,
-        _commands: &mut impl ChildCommands,
-    ) {
-    }
-}
-impl ChildrenAspect for CircleMarker {
-    fn set_children<'r>(
-        &self,
-        _context: &<Self::Context as NodeContext>::Wrapper<'r>,
-        _commands: &mut impl ChildCommands,
-    ) {
-    }
-}
+impl NoChildrenAspect for CircleArc {}
+impl NoChildrenAspect for CircleMarker {}
 
 impl ComponentsAspect for CircleArc {
     fn set_components<'r>(

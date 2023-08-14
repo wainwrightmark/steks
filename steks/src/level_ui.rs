@@ -1,14 +1,12 @@
 use crate::prelude::*;
-use state_hierarchy::{
-    impl_hierarchy_root, impl_static_components, prelude::*, transition::speed::ScalarSpeed,
-};
+use state_hierarchy::{impl_hierarchy_root, prelude::*, transition::speed::ScalarSpeed};
 use strum::EnumIs;
 pub struct LevelUiPlugin;
 
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<GameUIState>();
-        register_state_tree::<LevelUiRoot>(app);
+        app.init_resource::<GameUIState>()
+            .register_state_hierarchy::<LevelUiRoot>();
     }
 }
 
@@ -63,24 +61,27 @@ impl HasContext for MainPanelWrapper {
     type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 }
 
-impl_static_components!(
-    MainPanelWrapper,
-    NodeBundle {
-        style: Style {
-            position_type: PositionType::Absolute,
-            left: Val::Percent(50.0),
-            top: Val::Percent(30.0),
-            right: Val::Percent(50.0),
-            bottom: Val::Percent(90.0),
-            justify_content: JustifyContent::Center,
-            flex_direction: FlexDirection::Column,
-            ..Default::default()
-        },
+impl StaticComponentsAspect for MainPanelWrapper {
+    type B = NodeBundle;
 
-        z_index: ZIndex::Global(15),
-        ..Default::default()
+    fn get_bundle() -> Self::B {
+        NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                left: Val::Percent(50.0),
+                top: Val::Percent(30.0),
+                right: Val::Percent(50.0),
+                bottom: Val::Percent(90.0),
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::Column,
+                ..Default::default()
+            },
+
+            z_index: ZIndex::Global(15),
+            ..Default::default()
+        }
     }
-);
+}
 
 impl ChildrenAspect for MainPanelWrapper {
     fn set_children(
@@ -313,21 +314,24 @@ impl ChildrenAspect for ButtonPanel {
     }
 }
 
-impl_static_components!(
-    ButtonPanel,
-    NodeBundle {
-        style: Style {
-            display: Display::Flex,
-            align_items: AlignItems::Center,
-            flex_direction: FlexDirection::Row,
-            // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-            margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-            justify_content: JustifyContent::Center,
-            width: Val::Auto,
-            height: Val::Auto,
+impl StaticComponentsAspect for ButtonPanel {
+    type B = NodeBundle;
 
+    fn get_bundle() -> Self::B {
+        NodeBundle {
+            style: Style {
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Row,
+                // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                justify_content: JustifyContent::Center,
+                width: Val::Auto,
+                height: Val::Auto,
+
+                ..Default::default()
+            },
             ..Default::default()
-        },
-        ..Default::default()
+        }
     }
-);
+}

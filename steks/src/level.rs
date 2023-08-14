@@ -234,7 +234,7 @@ impl CurrentLevel {
             GameLevel::Infinite { .. } => None,
             GameLevel::Challenge { .. } => Some("Daily Challenge".to_string()),
             GameLevel::Loaded { .. } => None,
-            GameLevel::Begging { .. } => Some("Please buy the game!".to_string()),
+            GameLevel::Begging { .. } => Some("Title: Please buy the game!".to_string()),
         }
     }
 
@@ -333,7 +333,7 @@ impl CurrentLevel {
                     GameLevel::Infinite { .. } => "",
                     GameLevel::Challenge { .. } => "Challenge Complete",
                     GameLevel::Loaded { .. } => "Level Complete",
-                    GameLevel::Begging => "Please buy the game",
+                    GameLevel::Begging => "Message: Please buy the game",
                 };
 
                 let mut text = message
@@ -432,7 +432,7 @@ impl LevelCompletion {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum GameLevel {
     Designed { meta: DesignedLevelMeta },
 
@@ -480,7 +480,15 @@ impl DesignedLevelMeta {
             DesignedLevelMeta::Campaign { index } => {
                 let index = index + 1;
                 if CAMPAIGN_LEVELS.get(index as usize).is_some() {
-                    Some(Self::Campaign { index })
+
+                    if IS_DEMO && index > MAX_DEMO_LEVEL{
+                        None
+                    }
+                    else{
+                        Some(Self::Campaign { index })
+                    }
+
+
                 } else {
                     None
                 }
@@ -719,11 +727,19 @@ impl ChangeLevelEvent {
                         return (GameLevel::Designed { meta }, 0);
                     }
 
-                    if meta.is_credits() {
+                    if IS_DEMO{
                         (GameLevel::Begging, 0)
-                    } else {
-                        (GameLevel::CREDITS, 0)
                     }
+                    else{
+                        if meta.is_credits() {
+                            (GameLevel::new_infinite(), 0)
+                        } else {
+                            (GameLevel::CREDITS, 0)
+                        }
+
+                    }
+
+
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),
                 GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {

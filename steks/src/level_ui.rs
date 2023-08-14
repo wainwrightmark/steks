@@ -164,14 +164,19 @@ impl ChildrenAspect for MainPanel {
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
-        commands.add_child(0, TextPanel, context);
-        commands.add_child(1, ButtonPanel, context);
+        if context.1.level.is_begging() {
+            commands.add_child(100, BeggingPanel, context);
+        } else {
+            commands.add_child(0, TextPanel, context);
+            commands.add_child(1, ButtonPanel, context);
 
-        #[cfg(feature="web")]
-        {
-            commands.add_child(2, StoreButtonPanel, context);
+            let show_store_buttons =
+                context.1.completion.is_complete() && context.0.is_game_splash();
+
+            if show_store_buttons {
+                commands.add_child(2, StoreButtonPanel, context);
+            }
         }
-
     }
 }
 
@@ -320,7 +325,6 @@ impl ChildrenAspect for ButtonPanel {
 
             commands.add_child(1, icon_button_node(ButtonAction::Share), &context.2);
             commands.add_child(2, icon_button_node(ButtonAction::NextLevel), &context.2);
-
         }
     }
 }
@@ -360,20 +364,16 @@ impl ChildrenAspect for StoreButtonPanel {
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
-        if context.1.completion.is_complete() {
-            if context.0.is_game_splash() {
-                commands.add_child(
-                    4,
-                    image_button_node(ButtonAction::GooglePlay, "images/google-play-badge.png"),
-                    &context.2,
-                );
-                commands.add_child(
-                    5,
-                    image_button_node(ButtonAction::Apple, "images/apple-store-badge.png"),
-                    &context.2,
-                );
-            }
-        }
+        commands.add_child(
+            4,
+            image_button_node(ButtonAction::GooglePlay, "images/google-play-badge.png"),
+            &context.2,
+        );
+        commands.add_child(
+            5,
+            image_button_node(ButtonAction::Apple, "images/apple-store-badge.png"),
+            &context.2,
+        );
     }
 }
 
@@ -386,6 +386,72 @@ impl StaticComponentsAspect for StoreButtonPanel {
                 display: Display::Flex,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Row,
+                // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                justify_content: JustifyContent::Center,
+                width: Val::Auto,
+                height: Val::Auto,
+
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct BeggingPanel;
+
+impl HasContext for BeggingPanel {
+    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+}
+
+impl ChildrenAspect for BeggingPanel {
+    fn set_children<'r>(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ChildCommands,
+    ) {
+        commands.add_child(
+            0,
+            TextNode {
+                text: "Begging Screen".to_string(),
+                style: TITLE_TEXT_STYLE.clone(),
+            },
+            &context.2,
+        );
+
+        commands.add_child(
+            1,
+            TextNode {
+                text: "Some more begging text\nmultiple lines\nfun!".to_string(),
+                style: LEVEL_MESSAGE_TEXT_STYLE.clone(),
+            },
+            &context.2,
+        );
+
+        commands.add_child(2, StoreButtonPanel, context);
+
+        commands.add_child(
+            3,
+            TextNode {
+                text: "Even more begging text\nmultiple lines\nfun!".to_string(),
+                style: LEVEL_MESSAGE_TEXT_STYLE.clone(),
+            },
+            &context.2,
+        );
+    }
+}
+
+impl StaticComponentsAspect for BeggingPanel {
+    type B = NodeBundle;
+
+    fn get_bundle() -> Self::B {
+        NodeBundle {
+            style: Style {
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
                 // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
                 margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
                 justify_content: JustifyContent::Center,

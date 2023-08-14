@@ -91,6 +91,7 @@ pub enum ButtonAction {
     Apple,
     Steam,
 
+    SyncAchievements,
     None,
 }
 
@@ -146,6 +147,7 @@ impl ButtonAction {
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
+            SyncAchievements => "Sync Achievements".to_string() ,
             None => "".to_string(),
         }
     }
@@ -192,6 +194,7 @@ impl ButtonAction {
             ToggleSettings => "Settings".to_string(),
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
+            SyncAchievements => "Sync Achievements".to_string() ,
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
             None => "".to_string(),
         }
@@ -340,6 +343,7 @@ fn button_system(
     mut settings: ResMut<GameSettings>,
 
     current_level: Res<CurrentLevel>,
+    achievements: Res<Achievements>,
 
     dragged: Query<(), With<BeingDragged>>,
 ) {
@@ -348,7 +352,7 @@ fn button_system(
     }
 
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
-        if button.disabled {
+        if button.disabled && button.button_action == ButtonAction::None {
             continue;
         }
         use ButtonAction::*;
@@ -403,6 +407,10 @@ fn button_system(
                 ToggleArrows => settings.toggle_arrows(),
                 ToggleTouchOutlines => settings.toggle_touch_outlines(),
                 SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
+
+                SyncAchievements => {
+                    achievements.resync()
+                }
             }
 
             match button.button_action {

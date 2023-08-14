@@ -211,11 +211,15 @@ impl ChildrenAspect for SettingsPage {
             &context.2,
         );
 
+        commands.add_child("achievements", text_button_node(ButtonAction::SyncAchievements), &context.2);
+
         commands.add_child(
             "back",
             text_button_node_with_text(ButtonAction::ToggleSettings, "Back".to_string()),
             &context.2,
         );
+
+
     }
 }
 

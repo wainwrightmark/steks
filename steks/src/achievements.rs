@@ -19,6 +19,12 @@ pub struct Achievements {
     pub completed: BTreeSet<Achievement>,
 }
 
+impl Achievements {
+    pub fn resync(&self){
+        //...
+    }
+}
+
 impl TrackableResource for Achievements {
     const KEY: &'static str = "Achievements";
 }
@@ -124,6 +130,7 @@ impl Achievement {
         }
     }
 }
+
 
 fn track_level_completion_achievements(
     current_level: Res<CurrentLevel>,

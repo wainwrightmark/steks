@@ -6,8 +6,8 @@ pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
 
 
-pub const IMAGE_BUTTON_WIDTH: f32 = 150.;
-pub const IMAGE_BUTTON_HEIGHT: f32 = 50.;
+pub const IMAGE_BUTTON_WIDTH: f32 = 2.584 * IMAGE_BUTTON_HEIGHT;
+pub const IMAGE_BUTTON_HEIGHT: f32 = 60.;
 
 pub const TEXT_BUTTON_WIDTH: f32 = 360.;
 pub const TEXT_BUTTON_HEIGHT: f32 = 60.;

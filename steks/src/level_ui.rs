@@ -121,7 +121,7 @@ impl ComponentsAspect for MainPanel {
 
         let border = commands.transition_value::<BorderColorLens>(border, border, color_speed);
 
-        let visibility = if context.1.level.skip_completion() {
+        let visibility = if context.1.level.skip_completion() && context.1.completion.is_complete() {
             Visibility::Hidden
         } else {
             Visibility::Inherited
@@ -195,7 +195,7 @@ impl ChildrenAspect for TextPanel {
     ) {
         if context.1.completion.is_incomplete() {
             let initial_color = context.1.text_color();
-            let destination_color = if context.1.text_fade() {
+            let destination_color = if  context.1.text_fade() {
                 initial_color.with_a(0.0)
             } else {
                 initial_color
@@ -235,6 +235,8 @@ impl ChildrenAspect for TextPanel {
             }
 
             if let Some(message) = context.1.get_text(&context.0) {
+
+                //info!("Message {initial_color:?} {destination_color:?}");
                 commands.add_child(
                     "message",
                     TextNode {
@@ -245,7 +247,8 @@ impl ChildrenAspect for TextPanel {
                         initial_color,
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
-                    ),
+                    )
+                    ,
                     &context.2,
                 )
             }
@@ -287,15 +290,15 @@ impl ComponentsAspect for TextPanel {
             ..Default::default()
         });
 
-        commands.insert(Transition {
-            step: TransitionStep::<TextColorLens<0>>::new_arc(
-                Color::NONE,
-                Some(ScalarSpeed {
-                    amount_per_second: 0.05,
-                }),
-                None,
-            ),
-        })
+        // commands.insert(Transition {
+        //     step: TransitionStep::<TextColorLens<0>>::new_arc(
+        //         Color::NONE,
+        //         Some(ScalarSpeed {
+        //             amount_per_second: 0.05,
+        //         }),
+        //         None,
+        //     ),
+        // })
     }
 }
 

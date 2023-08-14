@@ -10,6 +10,8 @@ PODS:
     - Capacitor
   - CapacitorLocalNotifications (5.0.5):
     - Capacitor
+  - CapacitorRateApp (4.0.3):
+    - Capacitor
   - CapacitorShare (5.0.5):
     - Capacitor
   - CapacitorSplashScreen (5.0.5):
@@ -18,6 +20,8 @@ PODS:
     - Capacitor
   - CapacitorToast (5.0.5):
     - Capacitor
+  - CordovaPlugins (5.0.5):
+    - CapacitorCordova
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -26,10 +30,12 @@ DEPENDENCIES:
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
   - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
+  - CapacitorRateApp (from `../../node_modules/capacitor-rate-app`)
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - "CapacitorToast (from `../../node_modules/@capacitor/toast`)"
+  - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -44,6 +50,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/device"
   CapacitorLocalNotifications:
     :path: "../../node_modules/@capacitor/local-notifications"
+  CapacitorRateApp:
+    :path: "../../node_modules/capacitor-rate-app"
   CapacitorShare:
     :path: "../../node_modules/@capacitor/share"
   CapacitorSplashScreen:
@@ -52,6 +60,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/status-bar"
   CapacitorToast:
     :path: "../../node_modules/@capacitor/toast"
+  CordovaPlugins:
+    :path: "../capacitor-cordova-ios-plugins"
 
 SPEC CHECKSUMS:
   Capacitor: b1248915663add1bd6567e2b67c1c1fa3abcf5e8
@@ -60,11 +70,13 @@ SPEC CHECKSUMS:
   CapacitorCordova: f8c06b897c74ee8f7701fe10e6443b40822bc83a
   CapacitorDevice: 4c78eeaa553c7a46bc07372c6eb03a5665459885
   CapacitorLocalNotifications: cb6a69d128c5ed2a7f22c897c393c0e380f680e7
+  CapacitorRateApp: 896df7ec6a237fea72d1955e0cb26394654b00db
   CapacitorShare: 7f90542d6708cfba03adfff7f900e8bc385e2c19
   CapacitorSplashScreen: e563abf6d590bfe0269515ccc9d8bc03c41f32e9
   CapacitorStatusBar: 540867ac3c63875b65bebd888f695de50a13a9a2
   CapacitorToast: 77841e9091bea87db10e55b48747d958d76b1fe0
+  CordovaPlugins: c905b3b4dfc87d2a11bdbdaf396289c4a22c39dd
 
-PODFILE CHECKSUM: 759d0b723b22a44a30ec310317ed7f1f0efc4b47
+PODFILE CHECKSUM: f25beb49db964ee8ab8eec30422673002966ca03
 
 COCOAPODS: 1.11.3

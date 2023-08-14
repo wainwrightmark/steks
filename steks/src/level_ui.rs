@@ -418,31 +418,38 @@ impl ChildrenAspect for BeggingPanel {
         commands.add_child(
             0,
             TextNode {
-                text: "Begging Screen".to_string(),
+                text: "Want More Steks?".to_string(),
                 style: TITLE_TEXT_STYLE.clone(),
             },
             &context.2,
         );
 
+       
+
         commands.add_child(
-            1,
+            3,
             TextNode {
-                text: "Some more begging text\nmultiple lines\nfun!".to_string(),
-                style: LEVEL_MESSAGE_TEXT_STYLE.clone(),
+                text: "Play the full game\n\n\
+                Build ice towers while\n\
+                 the snow swirls\n\
+                \n\
+                Build upside-down in\n\
+                inverted gravity\n\
+                \n\
+                Build crazy towers on\n\
+                slanted foundations\n\
+                \n\
+                And...\n\
+                Defeat Dr. Gravity!\n\
+                \n\
+                Get steks now\n\
+                ".to_string(),
+                style: BEGGING_MESSAGE_TEXT_STYLE.clone(),
             },
             &context.2,
         );
 
         commands.add_child(2, StoreButtonPanel, context);
-
-        commands.add_child(
-            3,
-            TextNode {
-                text: "Even more begging text\nmultiple lines\nfun!".to_string(),
-                style: LEVEL_MESSAGE_TEXT_STYLE.clone(),
-            },
-            &context.2,
-        );
     }
 }
 
@@ -456,7 +463,7 @@ impl StaticComponentsAspect for BeggingPanel {
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,
                 // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(200.), Val::Px(0.)),
                 justify_content: JustifyContent::Center,
                 width: Val::Auto,
                 height: Val::Auto,

@@ -206,4 +206,13 @@ lazy_static! {
         alignment: TextAlignment::Center,
         linebreak_behavior: bevy::text::BreakLineOn::NoWrap
     });
+
+
+    pub(crate) static ref BEGGING_MESSAGE_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
+        font_size: LEVEL_TEXT_FONT_SIZE,
+        color: LEVEL_TEXT_COLOR,
+        font: constants::LEVEL_TEXT_FONT_PATH,
+        alignment: TextAlignment::Center,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
+    });
 }

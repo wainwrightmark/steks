@@ -14,3 +14,131 @@
     - shape: J4
     - shape: Z4
 
+- title: "Platform Game"
+  text: ""
+  end_text: "Built a crazy tower?\nTag us on social media!"
+  shapes:
+    - shape: L4
+      x: -75.0
+      y: 0.0
+      r: 0.0
+      state: Fixed
+    - shape: O4
+      x: 25.0
+      y: -150.0
+      r: 0.0
+      state: Fixed
+    - shape: X5 #above the O
+      x: 55.0
+      y: 25.0
+      r: 0.0
+      state: Void
+    - shape: X5 #above the L
+      x: -75.0
+      y: 220.0
+      r: 0.0
+      state: Void
+    - shape: F5
+    - shape: N5
+    - shape: O4
+    - shape: T4
+    - shape: T5
+    - shape: J4
+    - shape: T5
+    - shape: J4
+    - shape: Z4
+
+
+- title: 
+  hide_shadows: true
+  show_rotate: true
+  shapes:
+    - shape: P5
+    - shape: F5
+    - shape: circle
+    - shape: T4
+    - shape: S4
+    - shape: Z4
+    - shape: F5
+    - shape: T5
+  stages:
+    - text: "gravity flip!"
+      gravity:
+        - 0.0
+        - 1000.0
+
+- title: ""
+  hide_shadows: true
+  show_rotate: true
+  text: ""
+  end_text: "One does not simply... build a tower"
+  shapes:
+    - shape: Z4
+      x: 90.0
+      y: -150.0
+      r: 0.15
+      state: Fixed
+    - shape: S4
+      x: -90.0
+      y: -150.0
+      r: 0.85
+      state: Fixed
+    - shape: L5
+      x: -105.0
+      y: -190.0
+    - shape: W5
+      x: -72.0
+      y: -190.0
+    - shape: S5
+      x: -25.0
+      y: -173.0
+    - shape: X5
+      x: 15.0
+      y: -177.0
+    - shape: T5
+      x: 60.0
+      y: -170.0
+    - shape: U5
+      x: 95.0
+      y: -185.0
+    - shape: J4
+      x: 0.0
+      y: 0.0
+    - shape: T4
+      x: 0.0
+      Y: 100.0
+    - shape: L4
+      x: -105
+      y: 50
+    - shape: F5
+      x: -103.0
+      y: 120.0
+    - shape: T4
+      x: 110.0
+      y: 115.0
+
+
+- fireworks:
+    intensity: 100
+    shapes:
+      - Triangle
+      - O4
+      - S4
+
+
+- title: 
+  hide_shadows: true
+  show_rotate: true
+  shapes:
+    - shape: P5
+    - shape: T5
+    - shape: T4
+    - shape: Y5
+    - shape: Z4
+    - shape: O4
+    - shape: T5
+- stages:
+  rainfall:
+       intensity: 2
+  shapes:
+    - shape: F5 

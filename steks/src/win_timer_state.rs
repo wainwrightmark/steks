@@ -81,6 +81,7 @@ impl_hierarchy_root!(TimerStateRoot);
 impl ChildrenAspect for TimerStateRoot {
     fn set_children<'r>(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ChildCommands,
     ) {
@@ -115,6 +116,7 @@ impl NoChildrenAspect for CircleMarker {}
 impl ComponentsAspect for CircleArc {
     fn set_components<'r>(
         &self,
+        _previous: Option<&Self>,
         _context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ComponentCommands,
         _event: SetComponentsEvent,
@@ -137,6 +139,7 @@ impl ComponentsAspect for CircleArc {
 impl ComponentsAspect for CircleMarker {
     fn set_components<'r>(
         &self,
+        _previous: Option<&Self>,
         _context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ComponentCommands,
         _event: SetComponentsEvent,

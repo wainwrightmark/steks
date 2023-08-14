@@ -27,6 +27,7 @@ impl HasContext for LevelUiRoot {
 impl ChildrenAspect for LevelUiRoot {
     fn set_children(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
@@ -86,6 +87,7 @@ impl StaticComponentsAspect for MainPanelWrapper {
 impl ChildrenAspect for MainPanelWrapper {
     fn set_children(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
@@ -103,6 +105,7 @@ impl HasContext for MainPanel {
 impl ComponentsAspect for MainPanel {
     fn set_components(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ComponentCommands,
         _event: SetComponentsEvent,
@@ -161,6 +164,7 @@ impl ComponentsAspect for MainPanel {
 impl ChildrenAspect for MainPanel {
     fn set_children(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
@@ -171,7 +175,7 @@ impl ChildrenAspect for MainPanel {
             commands.add_child(1, ButtonPanel, context);
 
             let show_store_buttons =
-                context.1.completion.is_complete() && context.0.is_game_splash();
+                context.1.completion.is_complete() && context.0.is_game_splash() && IS_DEMO;
 
             if show_store_buttons {
                 commands.add_child(2, StoreButtonPanel, context);
@@ -190,6 +194,7 @@ impl HasContext for TextPanel {
 impl ChildrenAspect for TextPanel {
     fn set_children(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
@@ -268,6 +273,7 @@ impl ChildrenAspect for TextPanel {
 impl ComponentsAspect for TextPanel {
     fn set_components(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ComponentCommands,
         _event: SetComponentsEvent,
@@ -312,6 +318,7 @@ impl HasContext for ButtonPanel {
 impl ChildrenAspect for ButtonPanel {
     fn set_children(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
@@ -364,6 +371,7 @@ impl HasContext for StoreButtonPanel {
 impl ChildrenAspect for StoreButtonPanel {
     fn set_children(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
@@ -412,6 +420,7 @@ impl HasContext for BeggingPanel {
 impl ChildrenAspect for BeggingPanel {
     fn set_children<'r>(
         &self,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ChildCommands,
     ) {

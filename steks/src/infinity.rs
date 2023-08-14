@@ -13,7 +13,7 @@ pub fn get_initial_shapes(seed: u64) -> Vec<ShapeIndex> {
     shapes
 }
 
-pub fn get_all_shapes<'a>(seed: u64, total_shapes: usize) -> Vec<ShapeCreationData> {
+pub fn get_all_shapes(seed: u64, total_shapes: usize) -> Vec<ShapeCreationData> {
     let mut collected = get_initial_shapes(seed);
     let mut results: Vec<ShapeCreationData> = collected
         .iter()

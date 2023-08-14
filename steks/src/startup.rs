@@ -1,7 +1,7 @@
 pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
-use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
+use state_hierarchy::prelude::StateTreePlugin;
 
 pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
@@ -45,14 +45,16 @@ pub fn setup_app(app: &mut App) {
         )
         .add_plugins(AchievementsPlugin)
         .add_plugins(WallsPlugin)
+        .add_plugins(MenuPlugin)
         .add_plugins(ButtonPlugin)
+        .add_plugins(SettingsPlugin)
         .add_plugins(bevy_prototype_lyon::prelude::ShapePlugin)
         .add_plugins(InputPlugin)
         .add_plugins(CameraPlugin)
         .add_plugins(LeaderboardPlugin)
         .add_plugins(SpiritPlugin)
         .add_plugins(LevelUiPlugin)
-        .add_plugins(LensPlugin)
+        //.add_plugins(LensPlugin)
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)
         .add_plugins(RainPlugin)
@@ -65,10 +67,10 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(DragPlugin)
         .add_plugins(WinPlugin)
         .add_plugins(LevelPlugin)
-        .add_plugins(bevy_tweening::TweeningPlugin)
         .add_plugins(SharePlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
+        .add_plugins(StateTreePlugin)
         //.add_plugins(RecordingPlugin)
         .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
@@ -88,14 +90,13 @@ pub fn setup_app(app: &mut App) {
         }
     }
 
-    if cfg!(debug_assertions) {
+    #[cfg(debug_assertions)]
+    {
+        use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
         app.add_plugins(ScreenDiagnosticsPlugin::default());
         app.add_plugins(ScreenFrameDiagnosticsPlugin);
 
         //builder.add_plugins(RapierDebugRenderPlugin::default());
-        //builder.add_plugins(ScreenDiagsPlugin);
-        // builder.add_plugins(bevy::diagnostic::LogDiagnosticsPlugin::default());
-        // builder.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
 
     app.add_systems(Startup, disable_back);

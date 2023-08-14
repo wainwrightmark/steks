@@ -284,7 +284,7 @@ fn closest_angle_representation(radians: f32, close_to: f32) -> f32 {
 
     options
         .into_iter()
-        .min_by(|&a, &b| (a - close_to).abs().total_cmp(&(b - &close_to).abs()))
+        .min_by(|&a, &b| (a - close_to).abs().total_cmp(&(b - close_to).abs()))
         .unwrap()
 }
 
@@ -442,7 +442,7 @@ pub fn drag_start(
     ui_state: Res<GameUIState>,
     menu_state: Res<MenuState>,
     current_level: Res<CurrentLevel>,
-    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<LevelUIComponent>>,
+    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<Button>>,
     windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     'events: for event in er_drag_start.iter() {

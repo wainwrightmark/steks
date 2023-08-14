@@ -29,7 +29,7 @@ fn maybe_add(achievements: &mut ResMut<Achievements>, achievement: Achievement) 
 
         info!("Achievement Unlocked: {achievement}");
 
-        #[cfg(all(target_arch = "wasm32"))]
+        #[cfg(target_arch = "wasm32")]
         {
             // #[cfg(any(feature = "android", feature = "ios"))]
             // {
@@ -48,7 +48,7 @@ fn maybe_add(achievements: &mut ResMut<Achievements>, achievement: Achievement) 
             //         .detach();
             // }
 
-            #[cfg(any(feature = "web"))]
+            #[cfg(feature = "web")]
             {
                 info!("Showing Toast Achievement Unlocked: {achievement}");
                 bevy::tasks::IoTaskPool::get()

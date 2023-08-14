@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 use bevy::prelude::App;
 
 pub mod achievements;
@@ -20,6 +22,7 @@ pub mod menu;
 pub mod padlock;
 pub mod prediction;
 pub mod rain;
+pub mod settings;
 pub mod shape_component;
 pub mod shape_creation_data;
 pub mod shape_maker;
@@ -29,8 +32,10 @@ pub mod share;
 pub mod spirit;
 pub mod startup;
 pub mod tracked_resource;
+pub mod ui;
 pub mod walls;
 pub mod win;
+pub mod win_timer_state;
 
 //#[cfg(target_arch = "wasm32")]
 pub mod logging;
@@ -67,6 +72,7 @@ pub mod prelude {
     pub use crate::padlock::*;
     pub use crate::prediction::*;
     pub use crate::rain::*;
+    pub use crate::settings::*;
     pub use crate::tracked_resource::*;
 
     pub use crate::designed_level::*;
@@ -78,8 +84,10 @@ pub mod prelude {
     pub use crate::shapes_vec::*;
     pub use crate::share::*;
     pub use crate::spirit::*;
+    pub(crate) use crate::ui::*;
     pub use crate::walls::*;
     pub use crate::win::*;
+    pub use crate::win_timer_state::*;
 
     //#[cfg(target_arch = "wasm32")]
     pub use crate::logging::*;

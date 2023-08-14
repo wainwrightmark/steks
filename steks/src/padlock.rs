@@ -2,7 +2,11 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_tweening::{lens::TransformPositionLens, EaseFunction, Tween};
+
+use state_hierarchy::{
+    prelude::{TransformTranslationLens, Transition, TransitionPlugin, TransitionStep},
+    transition::speed::calculate_speed,
+};
 use strum::EnumIs;
 
 use crate::prelude::*;
@@ -13,6 +17,7 @@ impl Plugin for PadlockPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, create_padlock);
         app.init_resource::<PadlockResource>();
+        app.add_plugins(TransitionPlugin::<TransformTranslationLens>::default());
         app.add_systems(Update, clear_padlock_on_level_change)
             .add_systems(Update, control_padlock);
     }
@@ -86,6 +91,11 @@ fn control_padlock(
                     };
 
                     transform.translation = transform_to.translation + OPEN_PADLOCK_OFFSET;
+                    let speed = calculate_speed(
+                        &Vec3::ZERO,
+                        &OPEN_PADLOCK_OFFSET,
+                        Duration::from_secs_f32(1.0),
+                    );
 
                     commands
                         .entity(e)
@@ -97,14 +107,22 @@ fn control_padlock(
                             options: FillOptions::DEFAULT,
                             color: Color::BLACK,
                         })
-                        .insert(bevy_tweening::Animator::new(Tween::new(
-                            EaseFunction::QuadraticInOut,
-                            Duration::from_secs(1),
-                            TransformPositionLens {
-                                start: transform.translation,
-                                end: transform_to.translation,
-                            },
-                        )));
+                        .insert(Transition::<TransformTranslationLens> {
+                            step: TransitionStep::new_arc(
+                                transform_to.translation,
+                                Some(speed),
+                                None,
+                            ),
+                        });
+
+                    // // .insert(bevy_tweening::Animator::new(Tween::new(
+                    // //     EaseFunction::QuadraticInOut,
+                    // //     Duration::from_secs(1),
+                    // //     TransformPositionLens {
+                    // //         start: transform.translation,
+                    // //         end: transform_to.translation,
+                    // //     },
+                    // // )));
                 }
             }
             PadlockStatus::Visible { translation, .. } => {

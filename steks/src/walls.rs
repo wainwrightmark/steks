@@ -116,7 +116,7 @@ impl WallPosition {
     }
 }
 
-const TOP_LEFT_SQUARE_SIZE: f32 = 70.0;
+const TOP_LEFT_SQUARE_SIZE: f32 = 60.0;
 
 fn move_walls_when_physics_changed(
     rapier: Res<RapierConfiguration>,

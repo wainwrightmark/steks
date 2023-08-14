@@ -6,7 +6,7 @@
    version="1.1"
    id="svg60"
    sodipodi:docname="Fully Offline.svg"
-   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -23,14 +23,14 @@
      inkscape:pagecheckerboard="true"
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="0.79492188"
-     inkscape:cx="525.83783"
-     inkscape:cy="1024.629"
-     inkscape:window-width="1902"
-     inkscape:window-height="1033"
-     inkscape:window-x="303"
-     inkscape:window-y="23"
-     inkscape:window-maximized="0"
+     inkscape:zoom="0.56209465"
+     inkscape:cx="377.16068"
+     inkscape:cy="1073.6626"
+     inkscape:window-width="3200"
+     inkscape:window-height="1711"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
      inkscape:current-layer="g7695" />
   <g
      transform="matrix(1,0,0,-1,512,512)"
@@ -101,15 +101,15 @@
         </g>
         <text
            xml:space="preserve"
-           style="font-size:24.4056px;text-align:center;text-anchor:middle;fill:#ffffff;stroke:#040404;stroke-width:0;stroke-linecap:round;stroke-linejoin:round"
-           x="38.062607"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24.4056px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#ffffff;stroke:#040404;stroke-width:0;stroke-linecap:round;stroke-linejoin:round"
+           x="38.163898"
            y="-258.23038"
            id="text7713"
            transform="scale(1,-1)"><tspan
              sodipodi:role="line"
              id="tspan7711"
-             style="font-size:24.4056px;stroke-width:0"
-             x="38.062611"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24.4056px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0"
+             x="38.163902"
              y="-258.23038">Fully Offline</tspan></text>
         <rect
            style="fill:#678de0;fill-opacity:1;stroke:#678de0;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"

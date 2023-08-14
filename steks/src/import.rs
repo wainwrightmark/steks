@@ -1,9 +1,6 @@
-use std::sync::Arc;
-
-use anyhow::anyhow;
 use bevy::prelude::*;
 
-use crate::{async_event_writer::*, designed_level::DesignedLevel, level::ChangeLevelEvent};
+use crate::{async_event_writer::*, level::ChangeLevelEvent};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Event)]
 pub struct ImportEvent;
@@ -23,42 +20,44 @@ fn handle_import_events(
 ) {
     #[cfg(target_arch = "wasm32")]
     {
+        use crate::designed_level::DesignedLevel;
+        use anyhow::anyhow;
+        use std::sync::Arc;
         for _ in _events.iter() {
             let _writer = _writer.clone();
             bevy::tasks::IoTaskPool::get()
-                .spawn(async move { handle_import_event_async(_writer).await })
+                .spawn(async move {
+                    async move {
+                        let cle = match async move {
+                            let data = capacitor_bindings::clipboard::Clipboard::read()
+                                .await
+                                .map_err(|x| anyhow!("{}", x.to_string()))?;
+                            let list: Vec<DesignedLevel> =
+                                serde_yaml::from_str(data.value.replace(' ', " ").as_str())?;
+                            let level = list
+                                .into_iter()
+                                .next()
+                                .ok_or(anyhow::anyhow!("No Level Found"))?;
+                            Ok::<ChangeLevelEvent, anyhow::Error>(ChangeLevelEvent::Custom {
+                                level: level.into(),
+                            })
+                        }
+                        .await
+                        {
+                            Ok(cle) => cle,
+                            Err(e) => {
+                                let mut level = DesignedLevel::default();
+                                level.initial_stage.text = Some(e.to_string());
+                                let level = Arc::new(level);
+
+                                ChangeLevelEvent::Custom { level }
+                            }
+                        };
+                        _writer.send_async(cle).await.unwrap()
+                    }
+                    .await
+                })
                 .detach();
         }
     }
-}
-
-async fn handle_import_event_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
-    let cle = match get_imported_level_async().await {
-        Ok(cle) => cle,
-        Err(e) => {
-            let mut level = DesignedLevel::default();
-            level.initial_stage.text = Some(e.to_string());
-            let level = Arc::new(level);
-
-            ChangeLevelEvent::Custom { level }
-        }
-    };
-
-    writer.send_async(cle).await.unwrap()
-}
-
-async fn get_imported_level_async() -> Result<ChangeLevelEvent, anyhow::Error> {
-    let data = capacitor_bindings::clipboard::Clipboard::read()
-        .await
-        .map_err(|x| anyhow!("{}", x.to_string()))?;
-    let list: Vec<DesignedLevel> = serde_yaml::from_str(data.value.replace(' ', " ").as_str())?;
-
-    let level = list
-        .into_iter()
-        .next()
-        .ok_or(anyhow::anyhow!("No Level Found"))?;
-
-    Ok(ChangeLevelEvent::Custom {
-        level: level.into(),
-    })
 }

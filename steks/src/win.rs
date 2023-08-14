@@ -1,16 +1,8 @@
 use bevy::ecs::event::Events;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::Stroke;
 use bevy_rapier2d::prelude::*;
 
 use crate::{prediction, prelude::*};
-
-#[derive(Component)]
-#[component(storage = "SparseSet")]
-pub struct WinTimer {
-    pub remaining: f32,
-    pub total_countdown: f32,
-}
 
 pub struct WinPlugin;
 
@@ -22,13 +14,13 @@ impl Plugin for WinPlugin {
             .add_event::<ShapeUpdateData>()
             .add_systems(Update, spawn_and_update_shapes)
             .add_systems(Update, check_for_tower.before(drag_end));
+        app.add_plugins(WinCountdownPlugin);
     }
 }
 
 pub fn check_for_win(
-    mut commands: Commands,
-    mut win_timer: Query<(Entity, &mut WinTimer, &mut Transform)>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), Without<WinTimer>>,
+    mut countdown: ResMut<WinCountdown>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
     mut level_ui: ResMut<GameUIState>,
@@ -36,11 +28,15 @@ pub fn check_for_win(
     score_store: Res<Leaderboard>,
     pbs: Res<PersonalBests>,
 ) {
-    if let Ok((timer_entity, mut timer, mut timer_transform)) = win_timer.get_single_mut() {
-        timer.remaining -= time.delta_seconds().min(SECONDS_PER_FRAME);
+    if let Some(Countdown {
+        started_elapsed,
+        total_secs,
+    }) = countdown.as_ref().0
+    {
+        let time_used = time.elapsed().saturating_sub(started_elapsed);
 
-        if timer.remaining <= 0.0 {
-            commands.entity(timer_entity).despawn();
+        if time_used.as_secs_f32() >= total_secs {
+            countdown.0 = None;
 
             let shapes = ShapesVec::from_query(shapes_query);
 
@@ -65,20 +61,15 @@ pub fn check_for_win(
                     current_level.completion = LevelCompletion::Complete { score_info }
                 }
             }
-        } else {
-            let new_scale = timer.remaining / timer.total_countdown;
-
-            timer_transform.scale = Vec3::new(new_scale, new_scale, 1.0);
         }
     }
 }
 
 pub fn check_for_tower(
-    mut commands: Commands,
     mut check_events: EventReader<CheckForWinEvent>,
-    win_timer: Query<&WinTimer>,
+    mut countdown: ResMut<WinCountdown>,
     draggable: Query<&ShapeComponent>,
-
+    time: Res<Time>,
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
     rapier_config: Res<RapierConfiguration>,
@@ -88,7 +79,7 @@ pub fn check_for_tower(
 ) {
     let Some(event) = check_events.iter().next() else{return;};
 
-    if !win_timer.is_empty() {
+    if countdown.0.is_some() {
         return; // no need to check, we're already winning
     }
 
@@ -127,27 +118,19 @@ pub fn check_for_tower(
 
     let Some(countdown_seconds) = countdown_seconds else {return;};
 
-    commands
-        .spawn(WinTimer {
-            remaining: countdown_seconds,
-            total_countdown: countdown_seconds,
-        })
-        .insert(Circle {}.get_shape_bundle(100f32))
-        .insert(Transform {
-            translation: Vec3::new(00.0, 200.0, 0.0),
-            ..Default::default()
-        })
-        .insert(Stroke::new(TIMER_COLOR, 3.0));
+    countdown.0 = Some(Countdown {
+        started_elapsed: time.elapsed(),
+        total_secs: countdown_seconds,
+    });
 }
 
 fn check_for_collisions(
-    mut commands: Commands,
-    win_timer: Query<(Entity, &WinTimer)>,
+    mut countdown: ResMut<WinCountdown>,
     mut collision_events: EventReader<CollisionEvent>,
     draggables: Query<&ShapeComponent>,
     walls: Query<(), With<WallSensor>>,
 ) {
-    if win_timer.is_empty() {
+    if countdown.0.is_none() {
         return; // no need to check
     }
 
@@ -173,7 +156,6 @@ fn check_for_collisions(
     }
 
     if let Some(_error_message) = fail {
-        // scale_time(rapier_config, 1.);
-        commands.entity(win_timer.single().0).despawn();
+        countdown.0 = None;
     }
 }

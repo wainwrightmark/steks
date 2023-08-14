@@ -6,7 +6,7 @@
    version="1.1"
    id="svg60"
    sodipodi:docname="No Ads.svg"
-   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -23,11 +23,11 @@
      inkscape:pagecheckerboard="true"
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="2.2483786"
-     inkscape:cx="915.32627"
-     inkscape:cy="1325.6219"
-     inkscape:window-width="1920"
-     inkscape:window-height="1001"
+     inkscape:zoom="0.79492188"
+     inkscape:cx="881.84766"
+     inkscape:cy="1196.973"
+     inkscape:window-width="3200"
+     inkscape:window-height="1711"
      inkscape:window-x="-9"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
@@ -146,38 +146,46 @@
              id="path5941" />
         </g>
       </g>
+      <path
+         fill="#ffffff"
+         stroke="#000000"
+         d="m -80.452585,-65.262392 3.81966,-11.755705 a 5,5 0 0 0 -3.210197,-6.300367 l -11.755705,-3.81966 a 5,5 0 0 1 -3.210198,-6.300368 l 3.819661,-11.755708 a 5,5 0 0 1 6.300367,-3.21019 l 11.755705,3.81966 a 5,5 0 0 0 6.300367,-3.2102 l 3.81966,-11.75571 a 5,5 0 0 0 -3.210197,-6.30037 l -33.021975,-10.72949 a 5,5 0 0 0 -6.300363,3.2102 l -17.63932,54.288249 a 5,5 0 0 0 3.21019,6.300367 l 33.021977,10.72949 a 5,5 0 0 0 6.300368,-3.210198 z"
+         id="path5947" />
       <g
-         transform="rotate(-72,-116.33705,15.392248)"
-         id="g5953">
+         transform="matrix(0.04,0,0,-0.04,-111.35644,-92.317463)"
+         id="g5951">
         <path
-           fill="#ffffff"
-           stroke="#000000"
-           d="m -28.54102,24.596748 h 12.36068 a 5,5 0 0 0 5,-5 V 7.2360687 a 5,5 0 0 1 5,-5 H 6.18034 a 5,5 0 0 1 5,5 V 19.596748 a 5,5 0 0 0 5,5 h 12.36068 a 5,5 0 0 0 5,-5 v -34.721359 a 5,5 0 0 0 -5,-4.999999 h -57.08204 a 5,5 0 0 0 -5,4.999999 v 34.721359 a 5,5 0 0 0 5,5 z"
-           id="path5947" />
-        <g
-           transform="matrix(0.01236068,0.03804226,0.03804226,-0.01236068,-12.600735,-6.4203952)"
-           id="g5951">
-          <path
-             fill="#000000"
-             d="m 256,18.15 c -81.1,0 -146.6,65.51 -146.6,146.45 v 72.3 H 159 v -69.1 c 0,-53.7 43.4,-97.24 97,-97.24 53.5,0 97,44.84 97,97.24 v 69.1 h 49.6 V 164.6 C 402.6,85.66 336.9,18.15 256,18.15 Z M 86.9,255.6 C 72.3,278.4 64,304.7 64,332.4 c 0,88.3 85,161.5 192,161.5 107,0 192,-73.2 192,-161.5 0,-27.7 -8.3,-54 -22.9,-76.8 z"
-             id="path5949" />
-        </g>
+           fill="#000000"
+           d="m 256,18.15 c -81.1,0 -146.6,65.51 -146.6,146.45 v 72.3 H 159 v -69.1 c 0,-53.7 43.4,-97.24 97,-97.24 53.5,0 97,44.84 97,97.24 v 69.1 h 49.6 V 164.6 C 402.6,85.66 336.9,18.15 256,18.15 Z M 86.9,255.6 C 72.3,278.4 64,304.7 64,332.4 c 0,88.3 85,161.5 192,161.5 107,0 192,-73.2 192,-161.5 0,-27.7 -8.3,-54 -22.9,-76.8 z"
+           id="path5949" />
       </g>
     </g>
     <text
        xml:space="preserve"
-       style="font-size:93.33333333px;text-align:center;text-anchor:middle;fill:#ffffff;stroke:#040404;stroke-width:0;stroke-linecap:round;stroke-linejoin:round"
-       x="39.031895"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:93.3333px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#ffffff;stroke:#040404;stroke-width:0;stroke-linecap:round;stroke-linejoin:round"
+       x="26.245457"
        y="-145.29341"
        id="text6476"
        transform="scale(1,-1)"><tspan
          sodipodi:role="line"
          id="tspan6474"
-         x="39.031895"
+         x="26.245453"
          y="-145.29341">No Ads</tspan><tspan
          sodipodi:role="line"
-         x="39.031895"
-         y="-25.293411"
-         id="tspan6478">No In-app Purchases</tspan></text>
+         x="26.245462"
+         y="-28.626789"
+         id="tspan6478">No In-App Purchases</tspan></text>
+    <g
+       id="g1"
+       transform="translate(-2.2885132,2.2885742)">
+      <rect
+         style="fill:#678de0;fill-opacity:1;stroke:#678de0;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         id="rect4697"
+         width="1080"
+         height="35.53809"
+         x="-509.71149"
+         y="1374.7505"
+         transform="scale(1,-1)" />
+    </g>
   </g>
 </svg>

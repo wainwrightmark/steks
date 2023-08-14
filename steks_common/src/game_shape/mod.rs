@@ -149,7 +149,7 @@ const STEKS_FREE_PENTOMINOS: [Polyomino<5>; 12] = [
     Polyomino::<5>::S_PENTOMINO,
 ];
 
-const STEKS_FREE_PENTOMINO_NAMES: [&'static str; 12] =
+const STEKS_FREE_PENTOMINO_NAMES: [&str; 12] =
     ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "S"];
 
 pub fn svg_style(fill: Option<Color>, stroke: Option<Color>) -> String {

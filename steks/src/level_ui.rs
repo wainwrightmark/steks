@@ -254,23 +254,27 @@ impl ChildrenAspect for TextPanel {
 impl ComponentsAspect for TextPanel {
     fn set_components(
         &self,
-        _context: &<Self::Context as NodeContext>::Wrapper<'_>,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ComponentCommands,
-        event: SetComponentsEvent,
+        _event: SetComponentsEvent,
     ) {
-        if event == SetComponentsEvent::Created {
-            commands.insert(NodeBundle {
-                style: Style {
-                    display: Display::Flex,
-                    align_items: AlignItems::Center,
-                    flex_direction: FlexDirection::Column,
-                    margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-                    justify_content: JustifyContent::Center,
-                    ..Default::default()
-                },
+        let top_margin = match (context.0.is_game_splash(), context.1.completion) {
+            (_, LevelCompletion::Incomplete { .. }) => Val::Px(0.0),
+            (true, LevelCompletion::Complete { .. }) => Val::Px(20.0),
+            (false, LevelCompletion::Complete { .. }) => Val::Px(0.0),
+        };
+
+        commands.insert(NodeBundle {
+            style: Style {
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                margin: UiRect::new(Val::Auto, Val::Auto, top_margin, Val::Px(0.)),
+                justify_content: JustifyContent::Center,
                 ..Default::default()
-            })
-        }
+            },
+            ..Default::default()
+        });
 
         commands.insert(Transition {
             step: TransitionStep::<TextColorLens<0>>::new_arc(

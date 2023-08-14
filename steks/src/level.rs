@@ -239,6 +239,12 @@ impl CurrentLevel {
     }
 
     pub fn get_level_number_text(&self, centred: bool) -> Option<String> {
+
+        let stage = match self.completion{
+            LevelCompletion::Incomplete { stage } => stage,
+            LevelCompletion::Complete { .. } => {return None ;},
+        };
+
         match &self.level {
             GameLevel::Designed { meta, .. } => match meta {
                 DesignedLevelMeta::Tutorial { .. } => None,
@@ -247,8 +253,16 @@ impl CurrentLevel {
                 }
                 DesignedLevelMeta::Custom { .. } | DesignedLevelMeta::Credits => None,
             },
-            GameLevel::Infinite { .. }
-            | GameLevel::Challenge { .. }
+            GameLevel::Infinite { .. } => {
+                if stage == 0 {
+                    None
+                } else {
+                    let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
+
+                    Some(format!("{shapes}"))
+                }
+            },
+            GameLevel::Challenge { .. }
             | GameLevel::Loaded { .. }
             | GameLevel::Begging => None,
         }
@@ -294,10 +308,10 @@ impl CurrentLevel {
                     if stage == 0 {
                         None
                     } else {
-                        let shapes = stage + INFINITE_MODE_STARTING_SHAPES;
+                        let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
                         let line = Self::INFINITE_COMMENTS.get(shapes).unwrap_or(&"");
 
-                        Some(format!("{shapes} shapes\n{line}"))
+                        Some(line.to_string())
                     }
                 }
                 GameLevel::Loaded { .. } => Some("Loaded Game".to_string()),

@@ -174,7 +174,7 @@ impl ChildrenAspect for SettingsPage {
 
         commands.add_child(
             "rotation",
-            text_button_node_with_text(ButtonAction::ToggleArrows, arrows_text.to_string()),
+            text_button_node_with_text(ButtonAction::ToggleArrows, arrows_text.to_string(), true),
             &context.2,
         );
 
@@ -188,7 +188,7 @@ impl ChildrenAspect for SettingsPage {
             "outlines",
             text_button_node_with_text(
                 ButtonAction::ToggleTouchOutlines,
-                outlines_text.to_string(),
+                outlines_text.to_string(), true
             ),
             &context.2,
         );
@@ -206,16 +206,16 @@ impl ChildrenAspect for SettingsPage {
             "sensitivity",
             text_button_node_with_text(
                 ButtonAction::SetRotationSensitivity(next_sensitivity),
-                sensitivity_text.to_string(),
+                sensitivity_text.to_string(), true
             ),
             &context.2,
         );
 
-        commands.add_child("achievements", text_button_node(ButtonAction::SyncAchievements), &context.2);
+        commands.add_child("achievements", text_button_node(ButtonAction::SyncAchievements, true), &context.2);
 
         commands.add_child(
             "back",
-            text_button_node_with_text(ButtonAction::ToggleSettings, "Back".to_string()),
+            text_button_node_with_text(ButtonAction::ToggleSettings, "Back".to_string(), true),
             &context.2,
         );
 
@@ -259,7 +259,7 @@ impl ChildrenAspect for MainMenu {
         commands: &mut impl ChildCommands,
     ) {
         for (key, action) in ButtonAction::main_buttons().iter().enumerate() {
-            let button = text_button_node(*action);
+            let button = text_button_node(*action, true);
             // let button = button.with_transition_in::<BackgroundColorLens>(
             //     Color::WHITE.with_a(0.0),
             //     Color::WHITE,
@@ -311,7 +311,7 @@ impl ChildrenAspect for LevelMenu {
         for (key, level) in (start..end).enumerate() {
             commands.add_child(
                 key as u32,
-                text_button_node(ButtonAction::GotoLevel { level }),
+                text_button_node(ButtonAction::GotoLevel { level }, false),
                 &context.2,
             )
         }

@@ -32,18 +32,25 @@ pub(crate) fn icon_button_node(button_action: ButtonAction) -> ButtonNode<Button
     }
 }
 
-pub(crate) fn text_button_node(button_action: ButtonAction) -> ButtonNode<ButtonComponent> {
-    text_button_node_with_text(button_action, button_action.text())
+pub(crate) fn text_button_node(button_action: ButtonAction, centred: bool) -> ButtonNode<ButtonComponent> {
+    text_button_node_with_text(button_action, button_action.text(), centred)
 }
 
 pub(crate) fn text_button_node_with_text(
     button_action: ButtonAction,
     text: String,
+    centred:bool
 ) -> ButtonNode<ButtonComponent> {
+
+    let button_node_style = if centred{
+        TEXT_BUTTON_STYLE_CENTRED.clone()
+    }else{
+        TEXT_BUTTON_STYLE_LEFT.clone()
+    };
     ButtonNode {
         text,
         text_node_style: TEXT_BUTTON_TEXT_STYLE.clone(),
-        button_node_style: TEXT_BUTTON_STYLE.clone(),
+        button_node_style,
         marker: ButtonComponent {
             disabled: false,
             button_action,
@@ -85,7 +92,30 @@ lazy_static! {
         background_color: Color::NONE,
         ..default()
     });
-    pub(crate) static ref TEXT_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
+    pub(crate) static ref TEXT_BUTTON_STYLE_LEFT: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
+        style: Style {
+            width: Val::Px(TEXT_BUTTON_WIDTH),
+            height: Val::Px(TEXT_BUTTON_HEIGHT),
+            margin: UiRect {
+                left: Val::Auto,
+                right: Val::Auto,
+                top: Val::Px(5.0),
+                bottom: Val::Px(5.0),
+            },
+            justify_content: JustifyContent::Start,
+            align_items: AlignItems::Center,
+            flex_grow: 0.0,
+            flex_shrink: 0.0,
+            border: UiRect::all(UI_BORDER_WIDTH),
+
+            ..Default::default()
+        },
+        background_color: TEXT_BUTTON_BACKGROUND,
+        border_color: BUTTON_BORDER,
+        ..Default::default()
+    });
+
+    pub(crate) static ref TEXT_BUTTON_STYLE_CENTRED: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
         style: Style {
             width: Val::Px(TEXT_BUTTON_WIDTH),
             height: Val::Px(TEXT_BUTTON_HEIGHT),

@@ -25,9 +25,9 @@ pub struct Countdown {
     pub total_secs: f32,
 }
 
-const RADIUS: f32 = 100.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
+const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
 
-const ARC_STROKE: f32 = 10.0;
+const ARC_STROKE: f32 = 5.0;
 const ARC_COLOR: Color = Color::WHITE; // Color::hsl(148.,0.62,0.76);
 const MARKER_COLOR: Color = Color::WHITE; // Color::hsl(150.,0.22,0.53);
 pub const TIMER_COLOR: Color = Color::BLACK; // Color::hsl(241.,0.62,0.76);

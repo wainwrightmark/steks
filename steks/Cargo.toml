@@ -77,10 +77,10 @@ features = [
 #   "bevy_gltf",          # GLTF 3D assets format support
   "bevy_text",          # Text/font rendering
   "bevy_ui",            # UI toolkit
-  "webgl2"
+  "webgl2",
 
   # File formats:
-  # "png",
+    "png"
 #   "hdr",
 #   "vorbis",
 

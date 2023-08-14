@@ -166,6 +166,12 @@ impl ChildrenAspect for MainPanel {
     ) {
         commands.add_child(0, TextPanel, context);
         commands.add_child(1, ButtonPanel, context);
+
+        #[cfg(feature="web")]
+        {
+            commands.add_child(2, StoreButtonPanel, context);
+        }
+
     }
 }
 
@@ -314,11 +320,64 @@ impl ChildrenAspect for ButtonPanel {
 
             commands.add_child(1, icon_button_node(ButtonAction::Share), &context.2);
             commands.add_child(2, icon_button_node(ButtonAction::NextLevel), &context.2);
+
         }
     }
 }
 
 impl StaticComponentsAspect for ButtonPanel {
+    type B = NodeBundle;
+
+    fn get_bundle() -> Self::B {
+        NodeBundle {
+            style: Style {
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Row,
+                // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                justify_content: JustifyContent::Center,
+                width: Val::Auto,
+                height: Val::Auto,
+
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct StoreButtonPanel;
+
+impl HasContext for StoreButtonPanel {
+    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+}
+
+impl ChildrenAspect for StoreButtonPanel {
+    fn set_children(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
+        commands: &mut impl ChildCommands,
+    ) {
+        if context.1.completion.is_complete() {
+            if context.0.is_game_splash() {
+                commands.add_child(
+                    4,
+                    image_button_node(ButtonAction::GooglePlay, "images/google-play-badge.png"),
+                    &context.2,
+                );
+                commands.add_child(
+                    5,
+                    image_button_node(ButtonAction::Apple, "images/apple-store-badge.png"),
+                    &context.2,
+                );
+            }
+        }
+    }
+}
+
+impl StaticComponentsAspect for StoreButtonPanel {
     type B = NodeBundle;
 
     fn get_bundle() -> Self::B {

@@ -6,8 +6,8 @@ use steks_common::constants;
 
 use crate::prelude::*;
 
-pub(crate) fn menu_button_node() -> ButtonNode<ButtonComponent> {
-    ButtonNode {
+pub(crate) fn menu_button_node() -> TextButtonNode<ButtonComponent> {
+    TextButtonNode {
         text: ButtonAction::OpenMenu.icon(),
         text_node_style: ICON_BUTTON_TEXT_STYLE.clone(),
         button_node_style: OPEN_MENU_BUTTON_STYLE.clone(),
@@ -19,8 +19,8 @@ pub(crate) fn menu_button_node() -> ButtonNode<ButtonComponent> {
     }
 }
 
-pub(crate) fn icon_button_node(button_action: ButtonAction) -> ButtonNode<ButtonComponent> {
-    ButtonNode {
+pub(crate) fn icon_button_node(button_action: ButtonAction) -> TextButtonNode<ButtonComponent> {
+    TextButtonNode {
         text: button_action.icon(),
         text_node_style: ICON_BUTTON_TEXT_STYLE.clone(),
         button_node_style: ICON_BUTTON_STYLE.clone(),
@@ -32,7 +32,20 @@ pub(crate) fn icon_button_node(button_action: ButtonAction) -> ButtonNode<Button
     }
 }
 
-pub(crate) fn text_button_node(button_action: ButtonAction, centred: bool) -> ButtonNode<ButtonComponent> {
+
+pub(crate) fn image_button_node(button_action: ButtonAction, image_handle: &'static str) -> ImageButtonNode<ButtonComponent> {
+    ImageButtonNode {
+        image_handle,
+        button_node_style: IMAGE_BUTTON_STYLE.clone(),
+        marker: ButtonComponent {
+            disabled: false,
+            button_action,
+            button_type: ButtonType::Image,
+        },
+    }
+}
+
+pub(crate) fn text_button_node(button_action: ButtonAction, centred: bool) -> TextButtonNode<ButtonComponent> {
     text_button_node_with_text(button_action, button_action.text(), centred)
 }
 
@@ -40,14 +53,14 @@ pub(crate) fn text_button_node_with_text(
     button_action: ButtonAction,
     text: String,
     centred:bool
-) -> ButtonNode<ButtonComponent> {
+) -> TextButtonNode<ButtonComponent> {
 
     let button_node_style = if centred{
         TEXT_BUTTON_STYLE_CENTRED.clone()
     }else{
         TEXT_BUTTON_STYLE_LEFT.clone()
     };
-    ButtonNode {
+    TextButtonNode {
         text,
         text_node_style: TEXT_BUTTON_TEXT_STYLE.clone(),
         button_node_style,
@@ -73,6 +86,22 @@ lazy_static! {
             ..Default::default()
         },
         background_color: Color::NONE,
+        ..default()
+    });
+
+    pub(crate) static ref IMAGE_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
+        style: Style {
+            width: Val::Px(IMAGE_BUTTON_WIDTH),
+            height: Val::Px(IMAGE_BUTTON_HEIGHT),
+            margin: UiRect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_grow: 0.0,
+            flex_shrink: 0.0,
+
+            ..Default::default()
+        },
+        background_color: Color::WHITE,
         ..default()
     });
     pub(crate) static ref OPEN_MENU_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {

@@ -5,6 +5,10 @@ use strum::Display;
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
 
+
+pub const IMAGE_BUTTON_WIDTH: f32 = 150.;
+pub const IMAGE_BUTTON_HEIGHT: f32 = 50.;
+
 pub const TEXT_BUTTON_WIDTH: f32 = 360.;
 pub const TEXT_BUTTON_HEIGHT: f32 = 60.;
 
@@ -31,6 +35,7 @@ pub struct ButtonComponent {
 pub enum ButtonType {
     Icon,
     Text,
+    Image
 }
 
 impl ButtonType {
@@ -55,6 +60,7 @@ impl ButtonType {
             (Text, Pressed) => TEXT_PRESSED_BUTTON,
             (Text, Hovered) => TEXT_HOVERED_BUTTON,
             (Text, None) => TEXT_BUTTON_BACKGROUND,
+            (Image, _) => Color::WHITE
         }
         .into()
     }

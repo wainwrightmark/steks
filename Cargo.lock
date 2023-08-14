@@ -2128,6 +2128,7 @@ dependencies = [
  "color_quant",
  "num-rational",
  "num-traits",
+ "png",
 ]
 
 [[package]]
@@ -3779,7 +3780,7 @@ dependencies = [
 [[package]]
 name = "state_hierarchy"
 version = "0.1.0"
-source = "git+https://github.com/wainwrightmark/state_hierarchy#b863f084c14df3ecc9c30d1a85ba4bfaccbf55b5"
+source = "git+https://github.com/wainwrightmark/state_hierarchy#459dd053a93c837a1c2a5c7adc3ab92ab2e0bac9"
 dependencies = [
  "bevy",
 ]

@@ -1,5 +1,5 @@
 {
-  "appId": "com.steks.app",
+  "appId": "com.steksgame.app",
   "appName": "steks",
   "webDir": "steks/dist",
   "server": {

@@ -2,9 +2,9 @@
 <resources>
     <string name="app_name">steks</string>
     <string name="title_activity_main">steks</string>
-    <string name="package_name">com.steks.app</string>
-    <string name="custom_url_scheme">com.steks.app</string>
+    <string name="package_name">com.steksgame.app</string>
+    <string name="custom_url_scheme">com.steksgame.app</string>
 
-    <string translatable="false"  name="game_services_project_id">com.steks.app</string>
+    <string translatable="false"  name="game_services_project_id">com.steksgame.app</string>
 
 </resources>

@@ -1,4 +1,4 @@
-package com.steks.app;
+package com.steksgame.app;
 
 import android.os.Bundle;
 

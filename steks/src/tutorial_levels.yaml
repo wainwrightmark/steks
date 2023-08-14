@@ -1,5 +1,6 @@
-- text: "Welcome to steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with your finger\n\nPlace it above the triangle"
+- text: "Welcome to Steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with your finger\n\nPlace it above the triangle"
   text_forever: true
+  show_rotate: true
   shapes:
     - shape: Triangle
       x: 0.0
@@ -11,6 +12,7 @@
       y: -300
 - text: "Towers cannot touch the ground\n\nYour tower will need a foundation\n\n\nGrab the square and lift it up\n\nHold it in place a moment to lock"
   text_forever: true
+  show_rotate: true
   shapes:
     - shape: O4
   stages:
@@ -19,8 +21,9 @@
       shapes:
         - shape: X5
 
-- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again and finish your tower"
+- text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other hand\n\nLock it again and finish your tower\n\nTowers cannot touch the ground"
   text_forever: true
+  show_rotate: true
   shapes:
     - shape: Triangle
       x: 0.0

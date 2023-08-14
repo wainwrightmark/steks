@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
-use bevy::{log, prelude::*, reflect::TypeUuid, tasks::IoTaskPool};
+use bevy::{log, prelude::*, tasks::IoTaskPool};
+use chrono::NaiveDate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +16,7 @@ impl Plugin for LeaderboardPlugin {
         app.add_plugins(AsyncEventPlugin::<LeaderboardDataEvent>::default())
             .add_plugins(TrackedResourcePlugin::<PersonalBests>::default())
             .add_plugins(TrackedResourcePlugin::<CampaignCompletion>::default())
+            .add_plugins(TrackedResourcePlugin::<Streak>::default())
             .init_resource::<Leaderboard>()
             .add_systems(Startup, load_leaderboard_data)
             .add_systems(PostStartup, check_for_cheat_on_game_load)
@@ -29,16 +31,32 @@ pub struct Leaderboard {
     pub map: Option<LevelRecordMap>,
 }
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize, TypeUuid)]
-#[uuid = "fe541444-2224-11ee-be56-0242ac120002"]
+#[derive(Debug, Resource, Default, Serialize, Deserialize)]
 pub struct PersonalBests {
     pub map: LevelRecordMap,
 }
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize, TypeUuid)]
-#[uuid = "65016d08-2253-11ee-be56-0242ac120002"]
+impl TrackableResource for PersonalBests {
+    const KEY: &'static str = "PersonalBests";
+}
+
+#[derive(Debug, Resource, Default, Serialize, Deserialize)]
 pub struct CampaignCompletion {
     pub highest_level_completed: u8,
+}
+
+impl TrackableResource for CampaignCompletion {
+    const KEY: &'static str = "CampaignCompletion";
+}
+
+#[derive(Debug, Resource, Default, Serialize, Deserialize)]
+pub struct Streak {
+    pub count: u16,
+    pub most_recent: NaiveDate,
+}
+
+impl TrackableResource for Streak {
+    const KEY: &'static str = "Streak";
 }
 
 #[derive(Debug, Event)]
@@ -179,6 +197,15 @@ fn update_campaign_completion(
     } + 1;
 
     if campaign_completion.highest_level_completed < index {
+        if index == 7 || index == 25 || index == 40 {
+            #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
+            {
+                bevy::tasks::IoTaskPool::get()
+                    .spawn(async move { capacitor_bindings::rate::Rate::request_review().await })
+                    .detach();
+            }
+        }
+
         campaign_completion.highest_level_completed = index;
     }
 }
@@ -199,6 +226,8 @@ fn update_leaderboard_on_completion(
     };
 
     let hash = ShapesVec::from_query(shapes_query).hash();
+
+    //info!("Level complete {hash}");
 
     let pb_changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
         .map

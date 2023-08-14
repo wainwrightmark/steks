@@ -16,3 +16,8 @@ package.json
 android/capacitor.settings.gradle
 android/app/capacitor.build.gradle
 android/.idea/deploymentTargetDropDown.xml
+netlify/functions/image/*.png
+netlify/functions/image/*.svg
+App store assets/*.png
+steks/icon/logo.png
+steks/src/Untitled-1.yml

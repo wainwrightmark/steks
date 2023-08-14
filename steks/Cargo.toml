@@ -6,33 +6,32 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 rand = "0.8.5"
-itertools = "0.10"
+itertools = "0.11"
 bevy_prototype_lyon = {version="0.9"}
 bevy_rapier2d = {version = "0.22"}
 
-strum = { version = "0.24.1", features = ["derive"] }
-bevy_tweening = { git = "https://github.com/wainwrightmark/bevy_tweening", default-features = false, features = ["bevy_text", "bevy_ui"] }
+strum = { version = "0.25", features = ["derive"] }
 chrono = {version="0.4", features = ["serde", "wasmbind"]}
-bevy_pkv = {git="https://github.com/wainwrightmark/bevy_pkv"}
+bevy_pkv = "0.8"
 
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
 base64 = "0.21"
-geometrid = "0.2.0"
+geometrid = {version = "0.3", features= ["glam"]}
 serde_with = "3"
 reqwest = { version = "0.11",default-features = false, features = ["json"] }
-capacitor_bindings = {  features = ["web", "rate_plugin"], git = "https://github.com/wainwrightmark/capacitor_bindings" }
+capacitor_bindings = {  features = ["web", "rate_plugin", "game_plugin"], git = "https://github.com/wainwrightmark/capacitor_bindings" }
 bevy_embedded_assets = "0.8.0"
 lazy_static = "1.4.0"
 serde_yaml = "0.9.21"
 async-channel = "1.8.0"
 steks_common = {path= "../steks_common"}
-
+bevy_screen_diagnostics = "0.3.0"
+state_hierarchy= {git= 'https://github.com/wainwrightmark/state_hierarchy'}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }
 wasm-bindgen = "0.2"
-
 web-sys = {version = "0.3", features = ['Url', 'Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
 console_error_panic_hook = "0.1"
 
@@ -42,11 +41,8 @@ winit = { version = "0.28", features=["x11"]}
 [dev-dependencies]
 insta = "1"
 test-case = "3"
-bevy_rapier2d = { version = "0.21"}
 
-[profile.release]
-opt-level = 'z'
-lto = 'thin'
+
 # debug=true
 
 # # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
@@ -81,10 +77,10 @@ features = [
 #   "bevy_gltf",          # GLTF 3D assets format support
   "bevy_text",          # Text/font rendering
   "bevy_ui",            # UI toolkit
-  "webgl2"
+  "webgl2",
 
   # File formats:
-  # "png",
+    "png"
 #   "hdr",
 #   "vorbis",
 

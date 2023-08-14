@@ -12,33 +12,27 @@ fn get_vertices<const S: usize>(
     shape_size: f32,
 ) -> impl Iterator<Item = Vec2> {
     let u = shape_size / (1.0 * f32::sqrt(S as f32));
-    let Point {
-        x: x_offset,
-        y: y_offset,
-    } = shape.get_center(1.0);
+    let offset = shape.get_center(u);
 
-    shape.draw_outline().map(move |qr| {
-        Vec2::new(
-            ((qr.x as f32) - x_offset) * u,
-            ((qr.y as f32) - y_offset) * u,
-        )
-    })
+    shape
+        .draw_outline()
+        .map(move |qr| qr.get_center(u) - offset)
+        .map(|v| Vec2 { x: v.x, y: -v.y })
 }
 impl<const S: usize> GameShapeBody for Polyomino<S> {
     fn to_collider_shape(&self, shape_size: f32) -> Collider {
         let u = shape_size / (1.0 * f32::sqrt(S as f32));
-        let Point {
-            x: x_offset,
-            y: y_offset,
-        } = self.get_center(1.0);
+        let offset = self.get_center(u);
         let shape_radius = shape_size * SHAPE_RADIUS_RATIO;
 
         let shapes: Vec<_> = self
             .deconstruct_into_rectangles()
             .map(|rectangle| {
-                let x_mid = rectangle.north_west.x as f32 + ((rectangle.width as f32) * 0.5);
-                let y_mid = rectangle.north_west.y as f32 + ((rectangle.height as f32) * 0.5);
-                let vect = Vec2::new((x_mid - x_offset) * u, (y_mid - y_offset) * u);
+                let vect = rectangle.get_center(u) - offset;
+                let vect = Vec2 {
+                    x: vect.x,
+                    y: -vect.y,
+                };
 
                 let x_len = rectangle.width as f32;
                 let y_len = rectangle.height as f32;
@@ -100,14 +94,8 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
             points.as_slice(),
             size * SHAPE_RADIUS_RATIO,
         );
-        let stroke_width = if stroke.is_some() {
-            "stroke-width=\"1\""
-        } else {
-            "stroke-width=\"0\""
-        };
-        let fill = color_to_svg_fill(fill);
-        let stroke = color_to_svg_stroke(stroke);
+        let style = svg_style(fill, stroke);
 
-        format!(r#"<path {fill} {stroke} {stroke_width} d="{path}"  />"#)
+        format!(r#"<path {style} d="{path}"  />"#)
     }
 }

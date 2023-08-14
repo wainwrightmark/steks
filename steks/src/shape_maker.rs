@@ -1,55 +1,7 @@
-use std::collections::VecDeque;
-
+use crate::prelude::*;
 use bevy::prelude::*;
-
 use bevy_rapier2d::prelude::*;
-use chrono::Datelike;
-use itertools::Itertools;
-
-use crate::{prelude::*, shape_creation_data, startup::get_today_date};
-
-use rand::{rngs::ThreadRng, Rng};
-
-pub fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<ShapeCreationData>) {
-    let mut shapes: Vec<ShapeCreationData> = match level {
-        GameLevel::Designed { meta, .. } => match meta.get_level().get_stage(&0) {
-            Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
-            None => vec![],
-        },
-        GameLevel::Infinite { bytes } => {
-            if let Some(bytes) = bytes {
-                decode_shapes(bytes)
-                    .into_iter()
-                    .map(ShapeCreationData::from)
-                    .collect_vec()
-            } else {
-                let mut rng: ThreadRng = ThreadRng::default();
-                let mut shapes: Vec<ShapeCreationData> = vec![];
-                for _ in 0..INFINITE_MODE_STARTING_SHAPES {
-                    shapes
-                        .push(ShapeCreationData::random_no_circle(&mut rng).with_random_velocity());
-                }
-                shapes
-            }
-        }
-        GameLevel::Challenge => {
-            let today = get_today_date();
-            let seed =
-                ((today.year().unsigned_abs() * 2000) + (today.month() * 100) + today.day()) as u64;
-            (0..GameLevel::CHALLENGE_SHAPES)
-                .map(|i| {
-                    ShapeCreationData::from_seed_no_circle(seed + i as u64).with_random_velocity()
-                })
-                .collect_vec()
-        }
-    };
-
-    shapes.sort_by_key(|x| x.location.is_some());
-
-    for creation_data in shapes {
-        event_writer.send(creation_data)
-    }
-}
+use std::collections::VecDeque;
 
 pub fn spawn_and_update_shapes(
     mut commands: Commands,
@@ -72,52 +24,62 @@ pub fn spawn_and_update_shapes(
     creation_queue.extend(creations.iter());
     update_queue.extend(updates.iter());
 
-    //info!("Spawn and update shapes {} {}", creation_queue.len(), update_queue.len());
-    let changed = if let Some(creation) = creation_queue.pop() {
-        let mut rng = rand::thread_rng();
+    let mut changed = false;
 
-        place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng);
-        true
-    } else if let Some(update) = update_queue.pop_front() {
-        if let Some((existing_entity, _, shape_component, shape_index, transform)) =
-            existing_query.iter().find(|x| x.1.id == update.id)
-        {
-            let prev: &'static GameShape = (*shape_index).into();
-            update.update_shape(
-                &mut commands,
-                existing_entity,
-                prev,
-                shape_component,
-                transform,
-            );
-            true
-        } else {
-            error!("Could not find shape with id {}", update.id);
-            false
+    'creation: while !creation_queue.is_empty() || !update_queue.is_empty() {
+        if changed {
+            if let Some(next) = creation_queue.first() {
+                if next.location.is_none() {
+                    break 'creation; //we need to wait before creating this shape
+                }
+            }
         }
-    } else {
-        false
-    };
+
+        if let Some(creation) = creation_queue.pop() {
+            let mut rng = rand::thread_rng();
+
+            place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng);
+            changed = true;
+        } else if let Some(update) = update_queue.pop_front() {
+            if let Some((existing_entity, _, shape_component, shape_index, transform)) =
+                existing_query.iter().find(|x| x.1.id == update.id)
+            {
+                let prev: &'static GameShape = (*shape_index).into();
+                update.update_shape(
+                    &mut commands,
+                    existing_entity,
+                    prev,
+                    shape_component,
+                    transform,
+                );
+                changed = true;
+            } else {
+                error!("Could not find shape with id {}", update.id);
+            }
+        };
+    }
+
+    //info!("Spawn and update shapes {} {}", creation_queue.len(), update_queue.len());
 
     if changed {
         *recently_finished = true;
     } else {
         if *recently_finished {
             //send this event one frame after spawning shapes
-            check_win.send(CheckForWinEvent::ON_LAST_SPAWN);
+            check_win.send(CheckForWinEvent::OnLastSpawn);
         }
         *recently_finished = false;
     }
 }
 
-pub fn place_and_create_shape<RNG: Rng>(
+pub fn place_and_create_shape<RNG: rand::Rng>(
     commands: &mut Commands,
     mut shape_with_data: ShapeCreationData,
     rapier_context: &Res<RapierContext>,
     rng: &mut RNG,
 ) {
     let location: Location = if let Some(l) = shape_with_data.location {
-        bevy::log::info!(
+        bevy::log::debug!(
             "Placed shape {} at {}",
             shape_with_data.shape.name,
             l.position
@@ -156,7 +118,7 @@ pub fn place_and_create_shape<RNG: Rng>(
                 )
                 .is_none()
             {
-                bevy::log::info!(
+                bevy::log::debug!(
                     "Placed shape {} after {tries} tries at {position}",
                     shape_with_data.shape.name
                 );
@@ -231,6 +193,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
         .insert(shape_with_data.velocity_component())
         .insert(shape_component.dominance())
         .insert(ExternalForce::default())
+        .insert(Sleeping::disabled())
         .insert(shape_component.collider_mass_properties())
         .insert(CollisionGroups {
             memberships: shape_component.collision_group(),
@@ -240,7 +203,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
         .insert(transform);
 
     ec.with_children(|cb| {
-        shape_creation_data::spawn_children(
+        crate::shape_creation_data::spawn_children(
             cb,
             shape_with_data.shape,
             shape_with_data.state,
@@ -251,7 +214,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
     if let Some(id) = shape_with_data.id {
         ec.insert(ShapeWithId { id });
     }
-    shape_creation_data::add_components(&shape_with_data.state, &mut ec);
+    crate::shape_creation_data::add_components(&shape_with_data.state, &mut ec);
 }
 
 #[derive(Component)]

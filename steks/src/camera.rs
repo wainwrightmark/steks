@@ -1,8 +1,5 @@
+use crate::{shape_component::GameSettings, shape_maker::Shadow};
 use bevy::prelude::*;
-
-use crate::shape_maker::Shadow;
-
-// use crate::ZOOM_ENTITY_LAYER;
 
 pub struct CameraPlugin;
 
@@ -15,17 +12,13 @@ impl Plugin for CameraPlugin {
     }
 }
 
-//const ZOOM_SCALE: f32 = 0.33;
 pub const ZOOM_LEVEL: f32 = 3.;
-const FAR: f32 = 1000.0;
 
 pub fn camera_setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::new_with_far(FAR));
-}
-
-#[derive(Component)]
-pub struct ZoomCamera {
-    pub scale: f32,
+    commands.spawn((Camera2dBundle {
+        camera: Camera { ..default() },
+        ..default()
+    },));
 }
 
 #[derive(Component)]
@@ -35,8 +28,9 @@ pub struct TouchDragged;
 fn show_shadows(
     added: Query<(), Added<TouchDragged>>,
     mut shadows: Query<(&mut Visibility, With<Shadow>)>,
+    settings: Res<GameSettings>,
 ) {
-    if !added.is_empty() {
+    if !added.is_empty() && settings.show_touch_outlines {
         for mut shadow in shadows.iter_mut() {
             *shadow.0 = Visibility::Inherited;
         }

@@ -6,13 +6,13 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta charset="utf-8" />
-    <title>steks</title>
+    <title>Steks</title>
 
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="steks" />
+    <meta property="og:title" content="Steks" />
     <meta property="og:url" content="www.steks.net" />
-    <meta property="og:site_name" content="steks" />
-    <meta property="og:description" content="Find your balance" />
+    <meta property="og:site_name" content="Steks" />
+    <meta property="og:description" content="The Ultimate Tower Building Puzzle Game" />
     <meta property="og:image" content="https://steks.net/icon/og_image.png" />
 
     <link data-trunk rel="copy-dir" href="icon" />
@@ -70,6 +70,16 @@
       <div></div>
       <div></div>
     </div>
+
+    <link
+      rel="rust"
+      data-trunk
+      href="Cargo.toml"
+      data-bin="steks"
+      data-cargo-features="web"
+      data-wasm-opt="1"
+    />
+
     <canvas id="game"> </canvas>
   </body>
 </html>

@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 
-use crate::{color::choose_color, location::Location, shape_index::ShapeIndex};
+use crate::{
+    color::choose_color, location::Location, prelude::color_to_rgb_and_opacity,
+    shape_index::ShapeIndex,
+};
 
 use bevy::prelude::{Color, Rect};
 use bevy_prototype_lyon::prelude::*;
@@ -52,7 +55,13 @@ impl PartialEq for GameShape {
 
 impl GameShape {
     pub fn default_fill_color(&self) -> Color {
-        choose_color(self.index.0)
+        let index = match self.index.0 {
+            2 => 4,
+            4 => 2,
+            i => i,
+        };
+
+        choose_color(index, false)
     }
 
     pub fn fill(&self) -> Fill {
@@ -103,10 +112,10 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
             r
         }));
 
-    let pentominos = Polyomino::FREE_PENTOMINOS
+    let pentominos = STEKS_FREE_PENTOMINOS
         .iter()
         .map(|x| x as &'static dyn GameShapeBody)
-        .zip(Polyomino::FREE_PENTOMINO_NAMES.map(|tn| {
+        .zip(STEKS_FREE_PENTOMINO_NAMES.map(|tn| {
             let r: &'static str = Box::leak((tn.to_string() + "5").into_boxed_str());
             r
         }));
@@ -124,3 +133,57 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
 });
 
 const TRIANGLE: Triangle<4> = Triangle(&[(-1, -1), (-1, 2), (2, -1)]);
+
+const STEKS_FREE_PENTOMINOS: [Polyomino<5>; 12] = [
+    Polyomino::<5>::F_PENTOMINO,
+    Polyomino::<5>::I_PENTOMINO,
+    Polyomino::<5>::L_PENTOMINO,
+    Polyomino::<5>::N_PENTOMINO,
+    Polyomino::<5>::P_PENTOMINO,
+    Polyomino::<5>::T_PENTOMINO,
+    Polyomino::<5>::U_PENTOMINO,
+    Polyomino::<5>::V_PENTOMINO,
+    Polyomino::<5>::W_PENTOMINO,
+    Polyomino::<5>::X_PENTOMINO,
+    Polyomino::<5>::Y_PENTOMINO,
+    Polyomino::<5>::S_PENTOMINO,
+];
+
+const STEKS_FREE_PENTOMINO_NAMES: [&str; 12] =
+    ["F", "I", "L", "N", "P", "T", "U", "V", "W", "X", "Y", "S"];
+
+pub fn svg_style(fill: Option<Color>, stroke: Option<Color>) -> String {
+    let mut result = "".to_string();
+
+    if let Some(fill) = fill {
+        let (fill, opacity) = color_to_rgb_and_opacity(fill);
+        result.push_str(r#"fill=""#);
+        result.push_str(fill.as_str());
+        result.push('"');
+        result.push(' ');
+
+        if let Some(opacity) = opacity {
+            result.push_str(r#"fill-opacity=""#);
+            result.push_str(opacity.to_string().as_str());
+            result.push('"');
+            result.push(' ');
+        }
+    }
+
+    if let Some(stroke) = stroke {
+        let (stroke, opacity) = color_to_rgb_and_opacity(stroke);
+        result.push_str(r#"stroke=""#);
+        result.push_str(stroke.as_str());
+        result.push('"');
+        result.push(' ');
+
+        if let Some(opacity) = opacity {
+            result.push_str(r#"stroke-opacity=""#);
+            result.push_str(opacity.to_string().as_str());
+            result.push('"');
+            result.push(' ');
+        }
+    }
+
+    result
+}

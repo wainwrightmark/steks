@@ -1,3 +1,8 @@
+#![allow(clippy::too_many_arguments)]
+
+use bevy::prelude::App;
+
+pub mod achievements;
 pub mod app_redirect;
 pub mod async_event_writer;
 pub mod button;
@@ -15,7 +20,9 @@ pub mod level;
 pub mod level_ui;
 pub mod menu;
 pub mod padlock;
+pub mod prediction;
 pub mod rain;
+pub mod settings;
 pub mod shape_component;
 pub mod shape_creation_data;
 pub mod shape_maker;
@@ -25,17 +32,18 @@ pub mod share;
 pub mod spirit;
 pub mod startup;
 pub mod tracked_resource;
+pub mod ui;
 pub mod walls;
 pub mod win;
+pub mod win_timer_state;
+pub mod demo;
 
-#[cfg(target_arch = "wasm32")]
+//#[cfg(target_arch = "wasm32")]
 pub mod logging;
 #[cfg(target_arch = "wasm32")]
 pub mod notifications;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
-
-pub mod purchases;
 
 pub mod prelude {
 
@@ -46,6 +54,7 @@ pub mod prelude {
     pub use std::time::Duration;
     pub use steks_common::prelude::*;
 
+    pub use crate::achievements::*;
     pub use crate::app_redirect::*;
     pub use crate::async_event_writer::*;
     pub use crate::button::*;
@@ -62,10 +71,14 @@ pub mod prelude {
     pub use crate::level_ui::*;
     pub use crate::menu::*;
     pub use crate::padlock::*;
+    pub use crate::prediction::*;
     pub use crate::rain::*;
+    pub use crate::settings::*;
     pub use crate::tracked_resource::*;
+    pub use crate::demo::*;
 
     pub use crate::designed_level::*;
+    pub use crate::prediction::*;
     pub use crate::shape_component::*;
     pub use crate::shape_creation_data::*;
     pub use crate::shape_maker::*;
@@ -73,19 +86,23 @@ pub mod prelude {
     pub use crate::shapes_vec::*;
     pub use crate::share::*;
     pub use crate::spirit::*;
+    pub(crate) use crate::ui::*;
     pub use crate::walls::*;
     pub use crate::win::*;
+    pub use crate::win_timer_state::*;
 
-    #[cfg(target_arch = "wasm32")]
+    //#[cfg(target_arch = "wasm32")]
     pub use crate::logging::*;
     #[cfg(target_arch = "wasm32")]
     pub use crate::notifications::*;
     #[cfg(target_arch = "wasm32")]
     pub use crate::wasm::*;
-
-    pub use crate::purchases::*;
 }
 
 pub fn main() {
-    crate::startup::main()
+    let mut app = App::new();
+
+    startup::setup_app(&mut app);
+
+    app.run();
 }

@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use bevy::{ecs::system::EntityCommands, render::color};
 use bevy_prototype_lyon::prelude::*;
-use rand::{rngs::StdRng, seq::IteratorRandom, Rng};
 
 #[derive(Debug, Clone, Copy, PartialEq, Event)]
 pub struct ShapeCreationData {
@@ -11,6 +10,7 @@ pub struct ShapeCreationData {
     pub velocity: Option<Velocity>,
     pub modifiers: ShapeModifiers,
     pub id: Option<u32>,
+    pub color: Option<Color>,
 }
 
 pub fn add_components(state: &ShapeState, ec: &mut EntityCommands) {
@@ -83,6 +83,13 @@ pub fn spawn_children(
 
 impl ShapeCreationData {
     pub fn fill(&self) -> Fill {
+        if let Some(color) = self.color {
+            return Fill {
+                color,
+                options: FillOptions::DEFAULT,
+            };
+        }
+
         self.state.fill().unwrap_or_else(|| self.shape.fill())
     }
 
@@ -116,6 +123,7 @@ impl From<EncodableShape> for ShapeCreationData {
             velocity: None,
             modifiers,
             id: None,
+            color: None,
         }
     }
 }
@@ -129,6 +137,7 @@ impl ShapeCreationData {
             velocity: Some(Default::default()),
             modifiers: ShapeModifiers::Normal,
             id: None,
+            color: None,
         })
     }
 
@@ -151,22 +160,18 @@ impl ShapeCreationData {
         self.velocity = None;
         self
     }
+}
 
-    pub fn from_seed_no_circle(seed: u64) -> Self {
-        let mut shape_rng: StdRng = rand::SeedableRng::seed_from_u64(seed);
-        Self::random_no_circle(&mut shape_rng)
-    }
-
-    pub fn random_no_circle<R: Rng>(shape_rng: &mut R) -> Self {
-        let shape = ALL_SHAPES.iter().skip(1).choose(shape_rng).unwrap();
-
+impl From<ShapeIndex> for ShapeCreationData {
+    fn from(value: ShapeIndex) -> Self {
         Self {
-            shape,
+            shape: value.into(),
             location: None,
             state: ShapeState::Normal,
             velocity: Some(Default::default()),
             modifiers: ShapeModifiers::Normal,
             id: None,
+            color: None,
         }
     }
 }

@@ -28,7 +28,7 @@ struct FireworksCountdown {
     timer: Timer,
 
     intensity: u32,
-    max_delay_seconds: Option<f32>,
+    repeat_interval: Option<Duration>,
     shapes: Arc<Vec<LevelShapeForm>>,
 }
 
@@ -40,7 +40,7 @@ impl Default for FireworksCountdown {
             timer,
             shapes: Arc::new(vec![]),
             intensity: DEFAULT_INTENSITY,
-            max_delay_seconds: None,
+            repeat_interval: None,
         }
     }
 }
@@ -54,20 +54,23 @@ const DEFAULT_INTENSITY: u32 = 5;
 
 fn manage_fireworks(
     current_level: Res<CurrentLevel>,
+    ui_state: Res<GameUIState>,
     mut previous: Local<CurrentLevel>,
     mut countdown: ResMut<FireworksCountdown>,
 ) {
-    if !current_level.is_changed() {
+    if !current_level.is_changed() && !ui_state.is_changed() {
         return;
     }
     let swap = previous.clone();
     *previous = current_level.clone();
     let previous = swap;
 
+    if !ui_state.is_game_splash() {
+        countdown.timer.pause();
+        return;
+    }
+
     match current_level.completion {
-        crate::level::LevelCompletion::Complete { splash: false, .. } => {
-            countdown.timer.pause();
-        }
         crate::level::LevelCompletion::Incomplete { .. } => {
             if let Some(new_countdown) =
                 get_new_fireworks(&current_level, None, previous.completion.is_complete())
@@ -77,10 +80,7 @@ fn manage_fireworks(
                 countdown.timer.pause();
             }
         }
-        crate::level::LevelCompletion::Complete {
-            splash: true,
-            score_info,
-        } => {
+        crate::level::LevelCompletion::Complete { score_info } => {
             if let Some(new_countdown) = get_new_fireworks(
                 &current_level,
                 Some(&score_info),
@@ -104,12 +104,11 @@ fn despawn_fireworks(
 }
 
 fn max_window_contains(v: &Vec3) -> bool {
-    if v.x < MAX_WINDOW_WIDTH * -0.5 {
-        false
-    } else if v.x > MAX_WINDOW_WIDTH * 0.5 {
-        false
-    } else if v.y < MAX_WINDOW_HEIGHT * -0.5 {
-        false
+    if v.x < MAX_WINDOW_WIDTH * -0.5
+        || v.x > MAX_WINDOW_WIDTH * 0.5
+        || v.y < MAX_WINDOW_HEIGHT * -0.5
+    {
+        true
     } else {
         v.y <= MAX_WINDOW_HEIGHT * 0.5
     }
@@ -130,8 +129,8 @@ fn spawn_fireworks(
     if countdown.timer.just_finished() {
         let mut rng: ThreadRng = rand::thread_rng();
 
-        if let Some(duration) = countdown.max_delay_seconds {
-            countdown.timer = Timer::from_seconds(duration, TimerMode::Once);
+        if let Some(duration) = countdown.repeat_interval {
+            countdown.timer = Timer::new(duration, TimerMode::Once);
         } else {
             countdown.timer.pause();
         }
@@ -155,56 +154,84 @@ fn get_new_fireworks(
     previous_was_complete: bool,
 ) -> Option<FireworksCountdown> {
     let settings = match &current_level.level {
-        GameLevel::Designed { meta, .. } => match current_level.completion {
-            LevelCompletion::Incomplete { stage } => {
-                meta.get_level().get_fireworks_settings(&stage)
+        GameLevel::Designed { meta, .. } => {
+            if meta.is_tutorial() {
+                return None;
             }
-            LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
+
+            match current_level.completion {
+                LevelCompletion::Incomplete { stage } => {
+                    meta.get_level().get_fireworks_settings(&stage)
+                }
+                LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
+            }
+        }
+        GameLevel::Infinite { .. } => match current_level.completion {
+            LevelCompletion::Incomplete { stage } => {
+                let shapes = stage + INFINITE_MODE_STARTING_SHAPES;
+                if shapes % 5 == 0 {
+                    FireworksSettings {
+                        intensity: Some(shapes as u32),
+                        interval: None,
+                        shapes: Default::default(),
+                    }
+                } else {
+                    FireworksSettings::default()
+                }
+            }
+            _ => FireworksSettings::default(),
         },
-        GameLevel::Infinite { .. } | GameLevel::Challenge => FireworksSettings::default(),
+
+        GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
+            FireworksSettings::default()
+        }
     };
 
+    // New World Record
     if match info {
         None => false,
         Some(x) => x.is_wr,
     } {
         return Some(FireworksCountdown {
             timer: Timer::from_seconds(0.0, TimerMode::Once),
-            max_delay_seconds: Some(1.0),
+            repeat_interval: Some(Duration::from_secs(1)),
             intensity: 20,
             shapes: settings.shapes,
         });
     }
 
     if !previous_was_complete {
+        // First Win
         if match info {
             None => false,
             Some(x) => x.is_first_win,
         } {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(4.0, TimerMode::Once),
-                max_delay_seconds: Some(4.0),
+                repeat_interval: Some(Duration::from_secs(4)),
                 intensity: 10,
                 shapes: settings.shapes,
             });
         }
 
+        // New pb
         if match info {
             None => false,
             Some(x) => x.is_pb,
         } {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(0.0, TimerMode::Once),
-                max_delay_seconds: Some(4.0),
+                repeat_interval: Some(Duration::from_secs(4)),
                 intensity: 20,
                 shapes: settings.shapes,
             });
         }
 
+        // Level has fireworks
         if let Some(intensity) = settings.intensity {
             return Some(FireworksCountdown {
                 timer: Timer::from_seconds(0.0, TimerMode::Once),
-                max_delay_seconds: None,
+                repeat_interval: settings.interval.map(|i| Duration::from_millis(i as u64)),
                 intensity,
                 shapes: settings.shapes,
             });

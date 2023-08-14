@@ -1,0 +1,251 @@
+#29
+- title: "Bifröst"
+  end_text: "Welcome to Asgard"
+  rainfall:
+      intensity: 2
+  shapes:
+    - shape: I4
+      x: -99.0
+      y: -150.0
+      r: 0.3
+      state: Fixed
+    - shape: I4
+      x: 99.0
+      y: -150.0
+      r: 0.7
+      state: Fixed
+    - shape: L5   
+    - shape: L4
+    - shape: S5
+    - shape: J4
+    - shape: T5
+    - shape: J4
+    - shape: T4
+    - shape: F5
+    - shape: T4
+    - shape: I5
+
+#4 
+
+- title: Uneven Foundations 1
+  text: white shapes cannot be unlocked
+  end_text: "You're a very stable genius"
+  shapes:
+    - shape: U5
+      x: 0.0
+      y: -150.0
+      r: 0.22
+      state: Fixed
+    - shape: I5
+    - shape: T5
+    - shape: O4
+    - shape: N5
+
+#
+- title: "The Bridge of Khazad-dum"
+  text: you hear a rumbling overhead...
+  end_text: "Welcome to Asgard"
+  shapes:
+    - shape: U5
+      x: -95.0
+      y: -100.0
+      r: 0.8
+      state: Fixed
+    - shape: O4
+      x: 100.0
+      y: -180.0
+      r: 0.2
+      state: Fixed
+    - shape: F5   
+    - shape: N5
+    - shape: Y5
+    - shape: L5
+    - shape: Z4
+    - shape: L5
+    - shape: T4
+    - shape: F5
+  stages:
+    - text: "The ceiling collapses"
+      shapes: 
+        - shape: S4
+          x: -25.0
+          y: 250.0
+          vel_y: -420.0
+        - shape: Z4
+          x: 25.0
+          y: 250.0
+          vel_y: -450.0
+ 
+
+- title: "Uneven Foundations Ball"
+  text: ""
+  end_text: "something"
+  shapes:
+    - shape: Circle
+      x: 0.0
+      y: -175.0
+      r: 0.15
+      state: Fixed 
+    - shape: F5
+    - shape: N5
+    - shape: O4
+    - shape: T4
+    - shape: T5
+    - shape: J4
+   
+
+
+#weird tower level 
+- title: "curious tower"
+  text: ""
+  end_text: "something"
+  shapes:
+    - shape: L4
+      x: -75.0
+      y: 0.0
+      r: 0.0
+      state: Fixed 
+    - shape: O4
+      x: 25.0
+      y: -140.0
+      r: 0.0
+      state: Fixed
+    - shape: X5 #above the O
+      x: 55.0
+      y: 25.0
+      r: 0.0
+      state: Void 
+    - shape: X5 #above the L
+      x: -75.0
+      y: 220.0
+      r: 0.0
+      state: Void 
+    - shape: F5
+    - shape: N5
+    - shape: O4
+    - shape: T4
+    - shape: T5
+    - shape: J4
+    - shape: T5
+    - shape: J4
+    - shape: Z4
+
+- title: "Leaning tower of Steks-a"
+  text: ""
+  end_text: "something"
+  shapes:
+    - shape: I4
+      x: 90.0
+      y: 85.0
+      r: 0.25
+      state: Fixed 
+    - shape: o4
+      x: -50.0
+      y: -170.0
+      r: 0.97
+      state: Fixed
+    - shape: L5 #above the Z
+      x: 110.0
+      y: 120.0
+      r: 0.25
+      state: void
+    - shape: F5
+    - shape: N5
+    - shape: I4
+    - shape: J4
+    - shape: Y5
+    - shape: Z4
+    - shape: T4 
+    - shape: T5
+    - shape: F5
+
+
+#20
+- title: "Antarctica"
+  text: 
+  gravity:
+        - 0.0
+        - 1000.0
+  shapes:
+    - shape: I5
+      modifiers: Ice
+    - shape: T4
+      modifiers: Ice
+    - shape: S4
+      modifiers: Ice
+    - shape: U5
+      modifiers: Ice
+    - shape: F5
+      modifiers: Ice
+    - shape: S4
+      modifiers: Ice
+    - shape: L5
+      modifiers: Ice
+  end_text: ""
+
+#16
+- title: "Avoid The Void 2"
+  text: "build around or under it"
+  end_text: "Void avoided"
+  shapes:
+    - shape: I5
+      x: 0.0
+      y: -150.0
+      r: 0.0
+      state: Fixed
+    - shape: Circle
+      x: 0.00
+      y: -90.0
+      r: 0.125
+      state: Void
+    - shape: I4
+    - shape: I4
+    - shape: N5
+    - shape: T5
+    - shape: T4
+    - shape: J4
+
+
+
+
+
+#don't think this is good 
+- title: "A level"
+  text: ""
+  end_text: "something"
+  shapes:
+    - shape: N5
+      id: 1
+    - shape: O4
+      id: 2
+    - shape: I4
+      id: 3
+    - shape: T5
+      id: 4
+    - shape: L4
+      id: 5
+    - shape: Z4
+      id: 6
+    - shape: Triangle
+      id: 7
+    - shape: W5
+      id: 8 
+  stages:
+    - text: "Oh F this!"
+      updates:
+        - shape: Y5
+          id: 1
+        - shape: Y5
+          id: 2
+        - shape: Y5
+          id: 3
+        - shape: Y5
+          id: 4
+        - shape: Y5
+          id: 5
+        - shape: Y5
+          id: 6
+        - shape: Y5
+          id: 7
+        - shape: Y5
+          id: 8          

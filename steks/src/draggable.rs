@@ -1,5 +1,11 @@
+use bevy::window::PrimaryWindow;
+use bevy_prototype_lyon::prelude::Path;
+use steks_common::constants;
+use strum::EnumIs;
+
 use crate::input;
 use crate::prelude::*;
+use std::f32::consts::TAU;
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
@@ -38,9 +44,12 @@ impl Plugin for DragPlugin {
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
             )
+            .add_systems(Update, detach_stuck_shapes_on_pickup)
             .add_systems(Update, apply_forces.after(handle_rotate_events))
-            .add_systems(Update, handle_drag_changes.after(apply_forces)) // .in_base_set(CoreSet::PostUpdate))
+            .add_systems(Update, handle_drag_changes.after(apply_forces))
+            .add_systems(Update, draw_rotate_arrows)
             .add_event::<RotateEvent>()
+            .add_event::<ShapePickedUpEvent>()
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()
             .add_event::<DragEndingEvent>()
@@ -111,7 +120,7 @@ pub fn drag_end(
                 } else {
                     ShapeComponent::Free
                 };
-                ew_end_drag.send(CheckForWinEvent::ON_DROP);
+                ew_end_drag.send(CheckForWinEvent::OnDrop);
             }
         }
 
@@ -196,9 +205,6 @@ pub fn assign_padlock(
 fn apply_forces(
     mut dragged_entities: Query<(&Transform, &mut ExternalForce, &Velocity, &BeingDragged)>,
 ) {
-    // const ROTATION_DAMPING: f32 = 1.0;
-    // const ROTATION_STIFFNESS: f32 = 1.0;
-
     for (transform, mut external_force, velocity, dragged) in dragged_entities.iter_mut() {
         let distance = dragged.desired_position - transform.translation.truncate();
 
@@ -225,6 +231,7 @@ pub fn drag_move(
     mut dragged_entities: Query<(&ShapeComponent, &mut BeingDragged)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ev_rotate: EventWriter<RotateEvent>,
+    settings: Res<GameSettings>,
 ) {
     for event in er_drag_move.iter() {
         if let Some((draggable, mut bd)) = dragged_entities
@@ -249,19 +256,173 @@ pub fn drag_move(
         } else if let DragSource::Touch { touch_id } = event.drag_source {
             if let Some(mut rotate) = touch_rotate.0 {
                 if rotate.touch_id == touch_id {
-                    let previous_angle = rotate.centre.angle_between(rotate.previous);
-                    let new_angle = rotate.centre.angle_between(event.new_position);
+                    let new_angle = angle_to(event.new_position - rotate.centre);
 
-                    let angle = new_angle - previous_angle;
+                    let previous_angle = angle_to(rotate.current - rotate.centre);
+                    let new_angle = closest_angle_representation(new_angle, previous_angle);
+                    let angle =
+                        (new_angle - previous_angle) * settings.rotation_sensitivity.coefficient();
 
-                    //info!("Touch Rotate: angle: {angle} center {}, previous {} new position {} prev_angle {} new_angle {}", rotate.centre, rotate.previous, event.new_position, previous_angle, new_angle);
-
+                    //let angle = closest_angle_representation(angle, previous_angle);
                     ev_rotate.send(RotateEvent {
                         angle,
                         snap_resolution: None,
                     });
-                    rotate.previous = event.new_position;
+                    rotate.current = event.new_position;
                     *touch_rotate = TouchRotateResource(Some(rotate));
+                }
+            }
+        }
+    }
+}
+
+#[derive(Component)]
+struct RotateArrow;
+
+fn closest_angle_representation(radians: f32, close_to: f32) -> f32 {
+    let options = [radians, radians + TAU, radians - TAU];
+
+    options
+        .into_iter()
+        .min_by(|&a, &b| (a - close_to).abs().total_cmp(&(b - close_to).abs()))
+        .unwrap()
+}
+
+fn angle_to(v: Vec2) -> f32 {
+    v.y.atan2(v.x)
+}
+
+fn point_at_angle(dist: f32, radians: f32) -> Vec2 {
+    let x = dist * (radians).cos();
+    let y = dist * (radians).sin();
+    Vec2 { x, y }
+}
+
+fn draw_rotate_arrows(
+    mut commands: Commands,
+    touch_rotate: Res<TouchRotateResource>,
+    mut query: Query<(Entity, &mut Path), With<RotateArrow>>,
+    mut previous_angle: Local<Option<f32>>,
+    current_level: Res<CurrentLevel>,
+    settings: Res<GameSettings>, //mut gizmos: Gizmos,
+) {
+    if touch_rotate.is_changed() {
+        if !settings.show_arrows && !current_level.show_rotate_arrow() {
+            for e in query.iter() {
+                commands.entity(e.0).despawn_recursive();
+            }
+
+            *previous_angle = None;
+            return;
+        }
+
+        match touch_rotate.0 {
+            Some(touch) => {
+                let mut path = bevy_prototype_lyon::path::PathBuilder::new();
+                let dist = touch.centre.distance(touch.start);
+
+                let current_angle = angle_to(touch.current - touch.centre);
+                let start_angle = angle_to(touch.start - touch.centre);
+
+                let sweep_angle = current_angle - start_angle;
+
+                let sweep_angle =
+                    closest_angle_representation(sweep_angle, previous_angle.unwrap_or_default())
+                        * settings.rotation_sensitivity.coefficient();
+
+                let path_end = touch.centre + point_at_angle(dist, start_angle + sweep_angle);
+                *previous_angle = Some(sweep_angle);
+
+                //const MIN_SWEEP_RADIANS: f32 = 0.0 * TAU;
+                const ARROW_WIDTH: f32 = 6.0;
+                const ARROW_LENGTH: f32 = 100.0;
+                let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (dist * TAU);
+                if sweep_angle.abs() > arrow_angle.abs() {
+                    path.move_to(touch.start);
+                    path.arc(
+                        touch.centre,
+                        Vec2 { x: dist, y: dist },
+                        sweep_angle - arrow_angle,
+                        0.0,
+                    );
+                    let arrow_point = path.current_position();
+
+                    path.line_to(arrow_point.lerp(touch.centre, ARROW_WIDTH / dist));
+
+                    // let path_end = touch
+                    //     .centre
+                    //     .lerp(touch.current, dist / (touch.current.distance(touch.centre)));
+                    path.line_to(path_end);
+
+                    //path.move_to(arc_end);
+                    path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
+
+                    path.line_to(arrow_point);
+                }
+
+                if let Some(mut p) = query.iter_mut().next() {
+                    *p.1 = path.build();
+                } else {
+                    commands
+                        .spawn((
+                            bevy_prototype_lyon::prelude::ShapeBundle {
+                                path: path.build(),
+                                ..default()
+                            },
+                            bevy_prototype_lyon::prelude::Stroke::new(Color::BLACK, 10.0),
+                        ))
+                        .insert(Transform::from_translation(Vec3::Z * 50.0))
+                        .insert(RotateArrow);
+                }
+            }
+            None => {
+                for e in query.iter() {
+                    commands.entity(e.0).despawn_recursive();
+                }
+
+                *previous_angle = None;
+            }
+        }
+    }
+}
+
+#[derive(Debug, Event)]
+pub struct ShapePickedUpEvent {
+    pub entity: Entity,
+}
+
+pub fn detach_stuck_shapes_on_pickup(
+    mut picked_up_events: EventReader<ShapePickedUpEvent>,
+    rapier_context: Res<RapierContext>,
+    draggables: Query<(&Collider, &Transform), (Without<FixedShape>, Without<VoidShape>)>,
+    mut commands: Commands,
+) {
+    for event in picked_up_events.iter() {
+        if let Ok((collider, transform)) = draggables.get(event.entity) {
+            if let Some(intersecting) = rapier_context.intersection_with_shape(
+                transform.translation.truncate(),
+                transform.rotation.z,
+                collider,
+                QueryFilter::new()
+                    .exclude_collider(event.entity)
+                    .groups(CollisionGroups {
+                        memberships: constants::SHAPE_COLLISION_GROUP,
+                        filters: constants::SHAPE_COLLISION_GROUP,
+                    }),
+            ) {
+                if let Ok((_, transform)) = draggables.get(intersecting) {
+                    if let Some(contact) = rapier_context.contact_pair(event.entity, intersecting) {
+                        if let Some(deepest) = contact.find_deepest_contact() {
+                            //info!("Found intersection, depth {}", deepest.1.dist());
+                            if deepest.1.dist() <= -0.1 {
+                                let new_transform = transform.with_translation(
+                                    transform.translation
+                                        + (deepest.0.local_n2() * SHAPE_SIZE).extend(0.0),
+                                );
+                                commands.entity(intersecting).insert(new_transform);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -273,12 +434,42 @@ pub fn drag_start(
     rapier_context: Res<RapierContext>,
     mut draggables: Query<
         (&mut ShapeComponent, &Transform),
-        (Without<ZoomCamera>, Without<FixedShape>, Without<VoidShape>),
+        (Without<FixedShape>, Without<VoidShape>),
     >,
     mut touch_rotate: ResMut<TouchRotateResource>,
+    mut picked_up_events: EventWriter<ShapePickedUpEvent>,
+
+    ui_state: Res<GameUIState>,
+    menu_state: Res<MenuState>,
+    current_level: Res<CurrentLevel>,
+    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<Button>>,
+    windows: Query<&Window, With<PrimaryWindow>>,
 ) {
-    for event in er_drag_start.iter() {
-        //info!("Drag Started {:?}", event);
+    'events: for event in er_drag_start.iter() {
+        if menu_state.is_show_main_menu() || menu_state.is_show_levels_page() {
+            continue 'events;
+        }
+        if ui_state.is_game_splash() && current_level.completion.is_complete() {
+            if let Ok(window) = windows.get_single() {
+                let event_ui_position = Vec2 {
+                    x: event.position.x + (window.width() * 0.5),
+                    y: (window.height() * 0.5) - event.position.y,
+                };
+                for (node, global_transform, _) in node_query.iter().filter(|x| x.2.is_visible()) {
+                    let node_position = global_transform.translation().truncate();
+
+                    let half_size = 0.5 * node.size();
+                    let min = node_position - half_size;
+                    let max = node_position + half_size;
+                    let captured = (min.x..max.x).contains(&event_ui_position.x)
+                        && (min.y..max.y).contains(&event_ui_position.y);
+
+                    if captured {
+                        continue 'events;
+                    }
+                }
+            }
+        }
 
         if draggables.iter().all(|x| !x.0.is_dragged()) {
             rapier_context.intersections_with_point(event.position, default(), |entity| {
@@ -294,6 +485,8 @@ pub fn drag_start(
                         drag_source: event.drag_source,
                     });
 
+                    picked_up_events.send(ShapePickedUpEvent { entity });
+
                     return false; //Stop looking for intersections
                 }
                 true //keep looking for intersections
@@ -301,7 +494,8 @@ pub fn drag_start(
         } else if let DragSource::Touch { touch_id } = event.drag_source {
             if let Some((_, transform)) = draggables.iter().find(|x| x.0.touch_id().is_some()) {
                 *touch_rotate = TouchRotateResource(Some(TouchRotate {
-                    previous: event.position,
+                    start: event.position,
+                    current: event.position,
                     centre: transform.translation.truncate(),
                     touch_id,
                 }));
@@ -400,7 +594,8 @@ pub struct TouchRotateResource(Option<TouchRotate>);
 
 #[derive(Copy, Clone)]
 pub struct TouchRotate {
-    pub previous: Vec2,
+    pub start: Vec2,
+    pub current: Vec2,
     pub centre: Vec2,
     pub touch_id: u64,
 }
@@ -428,25 +623,27 @@ pub struct DragEndingEvent {
 }
 
 /// Event to indicate that we should check for a win
-#[derive(Debug, Event)]
-pub struct CheckForWinEvent {
-    pub no_future_collision_countdown_seconds: f64,
-    pub future_collision_countdown_seconds: Option<f64>,
-    pub future_lookahead_seconds: f64,
+#[derive(Debug, Event, Copy, Clone, EnumIs, PartialEq, Eq)]
+pub enum CheckForWinEvent {
+    OnDrop,
+    OnLastSpawn,
 }
 
 impl CheckForWinEvent {
-    pub const ON_DROP: CheckForWinEvent = CheckForWinEvent {
-        no_future_collision_countdown_seconds: 1.0,
-        future_collision_countdown_seconds: Some(5.0),
-        future_lookahead_seconds: 10.0,
-    };
+    pub fn get_countdown_seconds(&self, prediction: PredictionResult) -> Option<f32> {
+        match (self, prediction) {
+            (_, PredictionResult::EarlyWall) => None,
+            (_, PredictionResult::ManyNonWall) => Some(LONG_WIN_SECONDS),
+            (_, PredictionResult::Wall) => Some(LONG_WIN_SECONDS),
 
-    pub const ON_LAST_SPAWN: CheckForWinEvent = CheckForWinEvent {
-        no_future_collision_countdown_seconds: 5.0,
-        future_collision_countdown_seconds: None,
-        future_lookahead_seconds: 20.0,
-    };
+            (CheckForWinEvent::OnDrop, PredictionResult::MinimalCollision) => {
+                Some(SHORT_WIN_SECONDS)
+            }
+            (CheckForWinEvent::OnLastSpawn, PredictionResult::MinimalCollision) => {
+                Some(LONG_WIN_SECONDS)
+            }
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]

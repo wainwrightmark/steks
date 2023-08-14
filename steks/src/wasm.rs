@@ -121,7 +121,7 @@ async fn share_game_async(game: String) {
         ShareOptions::builder()
             .title("steks")
             .text("Try Steks")
-            .url(url)
+            .url(url.clone())
             .build(),
     )
     .await;
@@ -134,9 +134,9 @@ async fn share_game_async(game: String) {
                     .await;
             }
 
-            bevy::log::info!("Share succeeded")
+            bevy::log::info!("Share succeeded: {url}")
         }
-        Err(_) => info!("Share failed"),
+        Err(_) => info!("Share failed: {url}"),
     }
 }
 

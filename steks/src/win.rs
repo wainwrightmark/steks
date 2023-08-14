@@ -1,17 +1,8 @@
 use bevy::ecs::event::Events;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::Stroke;
 use bevy_rapier2d::prelude::*;
-use bevy_rapier2d::rapier::crossbeam::atomic::AtomicCell;
-use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 
-use crate::prelude::*;
-
-#[derive(Component)]
-pub struct WinTimer {
-    pub win_time: f64,
-    pub total_countdown: f64,
-}
+use crate::{prediction, prelude::*};
 
 pub struct WinPlugin;
 
@@ -23,26 +14,29 @@ impl Plugin for WinPlugin {
             .add_event::<ShapeUpdateData>()
             .add_systems(Update, spawn_and_update_shapes)
             .add_systems(Update, check_for_tower.before(drag_end));
+        app.add_plugins(WinCountdownPlugin);
     }
 }
 
 pub fn check_for_win(
-    mut commands: Commands,
-    mut win_timer: Query<(Entity, &WinTimer, &mut Transform)>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), Without<WinTimer>>,
+    mut countdown: ResMut<WinCountdown>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
+    mut level_ui: ResMut<GameUIState>,
 
     score_store: Res<Leaderboard>,
     pbs: Res<PersonalBests>,
 ) {
-    if let Ok((timer_entity, timer, mut timer_transform)) = win_timer.get_single_mut() {
-        let remaining = timer.win_time - time.elapsed_seconds_f64();
+    if let Some(Countdown {
+        started_elapsed,
+        total_secs,
+    }) = countdown.as_ref().0
+    {
+        let time_used = time.elapsed().saturating_sub(started_elapsed);
 
-        if remaining <= 0f64 {
-            //scale_time(rapier_config, 1.);
-
-            commands.entity(timer_entity).despawn();
+        if time_used.as_secs_f32() >= total_secs {
+            countdown.0 = None;
 
             let shapes = ShapesVec::from_query(shapes_query);
 
@@ -53,42 +47,39 @@ pub fn check_for_win(
                         current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
                     } else {
                         let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
-                        current_level.completion = LevelCompletion::Complete {
-                            score_info,
-                            splash: true,
-                        }
+                        current_level.completion = LevelCompletion::Complete { score_info };
+                        level_ui.set_if_neq(GameUIState::GameSplash);
                     }
                 }
 
-                LevelCompletion::Complete { splash, .. } => {
+                LevelCompletion::Complete { .. } => {
                     let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
-                    let splash = splash | score_info.is_pb | score_info.is_wr;
-                    current_level.completion = LevelCompletion::Complete { score_info, splash }
+                    if score_info.is_pb | score_info.is_wr {
+                        level_ui.set_if_neq(GameUIState::GameSplash);
+                    }
+
+                    current_level.completion = LevelCompletion::Complete { score_info }
                 }
             }
-        } else {
-            let new_scale = (remaining / timer.total_countdown) as f32;
-
-            timer_transform.scale = Vec3::new(new_scale, new_scale, 1.0);
         }
     }
 }
 
 pub fn check_for_tower(
-    mut commands: Commands,
     mut check_events: EventReader<CheckForWinEvent>,
-    win_timer: Query<&WinTimer>,
-    time: Res<Time>,
+    mut countdown: ResMut<WinCountdown>,
     draggable: Query<&ShapeComponent>,
-
+    time: Res<Time>,
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
+    rapier_config: Res<RapierConfiguration>,
     wall_sensors: Query<Entity, With<WallSensor>>,
     walls: Query<Entity, With<WallPosition>>,
+    level: Res<CurrentLevel>,
 ) {
     let Some(event) = check_events.iter().next() else{return;};
 
-    if !win_timer.is_empty() {
+    if countdown.0.is_some() {
         return; // no need to check, we're already winning
     }
 
@@ -117,144 +108,29 @@ pub fn check_for_tower(
 
     collision_events.clear();
 
-    let will_collide_with_wall = check_future_collisions(
-        &rapier_context,
-        event.future_lookahead_seconds as f32,
-        (event.future_lookahead_seconds * 60.).floor() as usize,
-        GRAVITY,
-    );
-
-    let countdown_seconds = if will_collide_with_wall {
-        let Some(countdown) =  event.future_collision_countdown_seconds else{ return;};
-        countdown
+    let prediction_result: PredictionResult = if level.raindrop_settings().is_some() {
+        PredictionResult::ManyNonWall
     } else {
-        event.no_future_collision_countdown_seconds
+        prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity)
     };
 
-    commands
-        .spawn(WinTimer {
-            win_time: time.elapsed_seconds_f64() + countdown_seconds,
-            total_countdown: countdown_seconds,
-        })
-        .insert(Circle {}.get_shape_bundle(100f32))
-        .insert(Transform {
-            translation: Vec3::new(00.0, 200.0, 0.0),
-            ..Default::default()
-        })
-        .insert(Stroke::color(TIMER_COLOR));
-}
+    let countdown_seconds = event.get_countdown_seconds(prediction_result);
 
-fn check_future_collisions(
-    context: &RapierContext,
-    dt: f32,
-    substeps: usize,
-    gravity: Vect,
-) -> bool {
-    let mut pipeline = PhysicsPipeline::default();
+    let Some(countdown_seconds) = countdown_seconds else {return;};
 
-    let mut islands = context.islands.clone();
-    let mut broad_phase = context.broad_phase.clone();
-    let mut narrow_phase = context.narrow_phase.clone();
-    let mut bodies = context.bodies.clone();
-    let mut colliders = context.colliders.clone();
-    let mut impulse_joints = context.impulse_joints.clone();
-    let mut multibody_joints = context.multibody_joints.clone();
-    let mut ccd_solver = context.ccd_solver.clone();
-
-    let bodies_to_remove: Vec<_> = colliders
-        .iter()
-        .filter(|x| {
-            x.1.collision_groups().memberships.bits() == RAIN_COLLISION_GROUP.bits()
-                || x.1.collision_groups().memberships.bits() == FIREWORK_COLLISION_GROUP.bits()
-        })
-        .flat_map(|x| x.1.parent())
-        .collect();
-
-    for rbh in bodies_to_remove {
-        bodies.remove(
-            rbh,
-            &mut islands,
-            &mut colliders,
-            &mut impulse_joints,
-            &mut multibody_joints,
-            true,
-        );
-    }
-
-    debug!("Looking for future collisions with {} bodies", bodies.len());
-
-    let mut substep_integration_parameters = context.integration_parameters;
-    substep_integration_parameters.dt = dt / (substeps as Real);
-    let event_handler = SensorCollisionHandler::default();
-    for _i in 0..substeps {
-        pipeline.step(
-            &(gravity / context.physics_scale()).into(),
-            &context.integration_parameters,
-            &mut islands,
-            &mut broad_phase,
-            &mut narrow_phase,
-            &mut bodies,
-            &mut colliders,
-            &mut impulse_joints,
-            &mut multibody_joints,
-            &mut ccd_solver,
-            None,
-            &(),
-            &event_handler,
-        );
-
-        if event_handler.collisions_found.load() {
-            debug!("Collision found after {_i} substeps");
-            return true;
-        }
-    }
-
-    debug!("Not Collision found after {substeps} substeps");
-    false
-}
-
-#[derive(Default, Debug)]
-struct SensorCollisionHandler {
-    pub collisions_found: AtomicCell<bool>,
-}
-
-impl EventHandler for SensorCollisionHandler {
-    fn handle_collision_event(
-        &self,
-        _bodies: &bevy_rapier2d::rapier::prelude::RigidBodySet,
-        colliders: &bevy_rapier2d::rapier::prelude::ColliderSet,
-        event: bevy_rapier2d::rapier::prelude::CollisionEvent,
-        _contact_pair: Option<&bevy_rapier2d::rapier::prelude::ContactPair>,
-    ) {
-        for c in [event.collider1(), event.collider2()] {
-            if let Some(collider) = colliders.get(c) {
-                if collider.is_sensor() {
-                    self.collisions_found.store(true);
-                }
-            }
-        }
-    }
-
-    fn handle_contact_force_event(
-        &self,
-        _dt: bevy_rapier2d::rapier::prelude::Real,
-        _bodies: &bevy_rapier2d::rapier::prelude::RigidBodySet,
-        _colliders: &bevy_rapier2d::rapier::prelude::ColliderSet,
-        _contact_pair: &bevy_rapier2d::rapier::prelude::ContactPair,
-        _total_force_magnitude: bevy_rapier2d::rapier::prelude::Real,
-    ) {
-        //Do nothing
-    }
+    countdown.0 = Some(Countdown {
+        started_elapsed: time.elapsed(),
+        total_secs: countdown_seconds,
+    });
 }
 
 fn check_for_collisions(
-    mut commands: Commands,
-    win_timer: Query<(Entity, &WinTimer)>,
+    mut countdown: ResMut<WinCountdown>,
     mut collision_events: EventReader<CollisionEvent>,
     draggables: Query<&ShapeComponent>,
     walls: Query<(), With<WallSensor>>,
 ) {
-    if win_timer.is_empty() {
+    if countdown.0.is_none() {
         return; // no need to check
     }
 
@@ -280,7 +156,6 @@ fn check_for_collisions(
     }
 
     if let Some(_error_message) = fail {
-        // scale_time(rapier_config, 1.);
-        commands.entity(win_timer.single().0).despawn();
+        countdown.0 = None;
     }
 }

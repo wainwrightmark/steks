@@ -2,14 +2,14 @@ pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
 
-pub fn main() {
+pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
 
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
-            title: "steks".to_string(),
+            title: "Steks".to_string(),
             canvas: Some("#game".to_string()),
             resolution: bevy::window::WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
             resize_constraints: WindowResizeConstraints {
@@ -30,10 +30,8 @@ pub fn main() {
         level: bevy::log::Level::INFO,
         ..Default::default()
     };
-    let mut builder = App::new();
 
-    builder
-        .insert_resource(Msaa::Sample4)
+    app.insert_resource(Msaa::Sample4)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_plugins(
             DefaultPlugins
@@ -44,15 +42,18 @@ pub fn main() {
                     bevy_embedded_assets::EmbeddedAssetPlugin,
                 ),
         )
+        .add_plugins(AchievementsPlugin)
         .add_plugins(WallsPlugin)
+        .add_plugins(MenuPlugin)
         .add_plugins(ButtonPlugin)
+        .add_plugins(SettingsPlugin)
         .add_plugins(bevy_prototype_lyon::prelude::ShapePlugin)
         .add_plugins(InputPlugin)
         .add_plugins(CameraPlugin)
         .add_plugins(LeaderboardPlugin)
         .add_plugins(SpiritPlugin)
         .add_plugins(LevelUiPlugin)
-        .add_plugins(LensPlugin)
+        //.add_plugins(LensPlugin)
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)
         .add_plugins(RainPlugin)
@@ -65,7 +66,6 @@ pub fn main() {
         .add_plugins(DragPlugin)
         .add_plugins(WinPlugin)
         .add_plugins(LevelPlugin)
-        .add_plugins(bevy_tweening::TweeningPlugin)
         .add_plugins(SharePlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
@@ -81,33 +81,37 @@ pub fn main() {
 
     #[cfg(target_arch = "wasm32")]
     {
-        builder.add_plugins(WASMPlugin);
-        builder.add_plugins(PurchasesPlugin);
+        app.add_plugins(WASMPlugin);
+
         if !cfg!(debug_assertions) {
-            builder.add_plugins(NotificationPlugin);
+            app.add_plugins(NotificationPlugin);
         }
     }
 
-    if cfg!(debug_assertions) {
+    #[cfg(debug_assertions)]
+    {
+        use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
+        app.add_plugins(ScreenDiagnosticsPlugin::default());
+        app.add_plugins(ScreenFrameDiagnosticsPlugin);
+
         //builder.add_plugins(RapierDebugRenderPlugin::default());
-        //builder.add_plugins(ScreenDiagsPlugin);
-        // builder.add_plugins(bevy::diagnostic::LogDiagnosticsPlugin::default());
-        // builder.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
     }
 
-    builder.add_systems(Startup, disable_back);
-    builder.add_systems(Startup, hide_splash);
-    builder.add_systems(Startup, set_status_bar.after(hide_splash));
+    app.add_systems(Startup, disable_back);
+    app.add_systems(Startup, hide_splash);
+    app.add_systems(Startup, set_status_bar.after(hide_splash));
 
     if !cfg!(debug_assertions) {
-        builder.add_systems(PostStartup, log_start);
+        app.add_systems(PostStartup, log_start);
     }
-
-    builder.run();
 }
 
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
     rapier_config.gravity = GRAVITY;
+    rapier_config.timestep_mode = TimestepMode::Fixed {
+        dt: SECONDS_PER_FRAME,
+        substeps: 1,
+    }
 }
 
 pub fn get_today_date() -> chrono::NaiveDate {
@@ -210,4 +214,18 @@ async fn log_start_async<'a>(_user_exists: bool) {
         let application_start = crate::wasm::application_start().await;
         application_start.try_log_async1(device_id).await;
     }
+}
+
+#[cfg(test)]
+pub mod test {
+    //use bevy::prelude::*;
+
+    //use super::setup_app;
+
+    // #[test]
+    // pub fn check_systems() {
+    //     let mut app = App::new();
+
+    //     setup_app(&mut app);
+    // }
 }

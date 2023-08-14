@@ -1,8 +1,6 @@
-# steks
+# Steks
 
-### Find your Balance
+### The Ultimate Tower Building Puzzle Game
 
-Drag the shapes with the mouse. Use the mousewheel or `Q` and `E` keys to rotate
-
-
-You can play it here: https://wainwrightmark.github.io/steks/
+Coming soon to the IOS and Android app stores.
+You can play it here: https://steks.net

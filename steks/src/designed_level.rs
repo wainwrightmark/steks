@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::{f32::consts, sync::Arc};
-use steks_common::prelude::GameShape;
-use strum::FromRepr;
 
 use crate::prelude::*;
 lazy_static::lazy_static! {
@@ -22,6 +20,15 @@ lazy_static::lazy_static! {
     };
 }
 
+lazy_static::lazy_static! {
+    pub static ref CREDITS_LEVELS: Vec<Arc<DesignedLevel>> ={
+        let s = include_str!("credits.yaml");
+        let list: Vec<Arc<DesignedLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+
+        list
+    };
+}
+
 pub fn get_campaign_level(index: u8) -> Option<Arc<DesignedLevel>> {
     CAMPAIGN_LEVELS.get(index as usize).cloned()
 }
@@ -30,8 +37,12 @@ pub fn get_tutorial_level(index: u8) -> Option<Arc<DesignedLevel>> {
     TUTORIAL_LEVELS.get(index as usize).cloned()
 }
 
-pub fn format_campaign_level_number(level: &u8) -> String {
-    format!("{:2}", level.saturating_add(1))
+pub fn format_campaign_level_number(level: &u8, centred: bool) -> String {
+    if centred {
+        level.saturating_add(1).to_string()
+    } else {
+        format!("{:2}", level.saturating_add(1))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -56,6 +67,17 @@ pub struct DesignedLevel {
     #[serde(default)]
     #[serde(alias = "End_fireworks")]
     pub end_fireworks: FireworksSettings,
+    // #[serde(default)]
+    // #[serde(alias = "Show_rotate")]
+    // #[serde(alias = "Show_arrow")]
+    // #[serde(alias = "Show_arrows")]
+    // #[serde(alias = "show_arrow")]
+    // #[serde(alias = "show_arrows")]
+    // pub show_rotate: bool,
+
+    // #[serde(default)]
+    // #[serde(alias = "Hide_shadows")]
+    // pub hide_shadows: bool,
 }
 
 impl DesignedLevel {
@@ -100,10 +122,6 @@ pub struct LevelStage {
     #[serde(default)]
     #[serde(alias = "Text_forever")]
     pub text_forever: bool,
-
-    // #[serde(default)]
-    // #[serde(alias = "Text_seconds")]
-    // pub text_seconds: Option<u32>,
     #[serde(default)]
     #[serde(alias = "Shapes")]
     pub shapes: Arc<Vec<ShapeCreation>>,
@@ -125,6 +143,11 @@ pub struct FireworksSettings {
     #[serde(default)]
     #[serde(alias = "Intensity")]
     pub intensity: Option<u32>,
+
+    /// Interval between fireworks in millis
+    #[serde(default)]
+    #[serde(alias = "Interval")]
+    pub interval: Option<u32>,
 
     #[serde(default)]
     #[serde(alias = "Shapes")]
@@ -165,6 +188,10 @@ pub struct ShapeCreation {
     #[serde(default)]
     #[serde(alias = "Id")]
     pub id: Option<u32>,
+
+    #[serde(default)]
+    #[serde(alias = "Color")]
+    pub color: Option<(u8, u8, u8)>,
 }
 
 impl From<EncodableShape> for ShapeCreation {
@@ -179,6 +206,7 @@ impl From<EncodableShape> for ShapeCreation {
             state: value.state,
             modifiers: value.modifiers,
             id: None,
+            color: None,
         }
     }
 }
@@ -219,6 +247,10 @@ pub struct ShapeUpdate {
     #[serde(default)]
     #[serde(alias = "Modifiers")]
     pub modifiers: ShapeModifiers,
+
+    #[serde(default)]
+    #[serde(alias = "Color")]
+    pub color: Option<(u8, u8, u8)>,
 }
 
 impl From<ShapeUpdate> for ShapeUpdateData {
@@ -259,6 +291,7 @@ impl From<ShapeUpdate> for ShapeUpdateData {
             velocity,
             modifiers: val.modifiers,
             id: val.id,
+            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
         }
     }
 }
@@ -306,74 +339,8 @@ impl From<ShapeCreation> for ShapeCreationData {
             velocity,
             modifiers: val.modifiers,
             id: val.id,
+            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
         }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default, FromRepr)]
-#[repr(u8)]
-pub enum LevelShapeForm {
-    #[default]
-    #[serde(alias = "Circle", alias = "circle", alias = "CIRCLE")]
-    Circle = 0,
-    #[serde(alias = "Triangle", alias = "triangle", alias = "TRIANGLE")]
-    Triangle = 1,
-
-    I4,
-    #[serde(
-        alias = "Square",
-        alias = "square",
-        alias = "SQUARE",
-        alias = "o",
-        alias = "O",
-        alias = "o4"
-    )]
-    O4,
-    #[serde(alias = "t4")]
-    T4,
-    #[serde(alias = "j4")]
-    J4,
-    #[serde(alias = "l4")]
-    L4,
-    #[serde(alias = "s4")]
-    S4,
-    #[serde(alias = "z4")]
-    Z4,
-    #[serde(alias = "f5")]
-    F5,
-    #[serde(alias = "i5")]
-    I5,
-    #[serde(alias = "l5")]
-    L5,
-    #[serde(alias = "n5")]
-    N5,
-    #[serde(alias = "p5")]
-    P5,
-    #[serde(alias = "t5")]
-    T5,
-    #[serde(alias = "u5")]
-    U5,
-    #[serde(alias = "v5")]
-    V5,
-    #[serde(alias = "w5")]
-    W5,
-    #[serde(alias = "x5")]
-    X5,
-    #[serde(alias = "y5")]
-    Y5,
-    #[serde(alias = "z5")]
-    Z5,
-}
-
-impl From<LevelShapeForm> for &'static GameShape {
-    fn from(val: LevelShapeForm) -> Self {
-        let index = val as usize;
-        &ALL_SHAPES[index]
-    }
-}
-impl From<&'static GameShape> for LevelShapeForm {
-    fn from(value: &'static GameShape) -> Self {
-        Self::from_repr(value.index.0 as u8).unwrap()
     }
 }
 
@@ -381,6 +348,16 @@ impl From<&'static GameShape> for LevelShapeForm {
 mod tests {
     use super::DesignedLevel;
     use crate::designed_level::*;
+
+    // #[test]
+    // pub fn ser_color(){
+    //     let sud = ShapeCreation{
+    //         color: Some((128,128,128)),
+    //         ..Default::default()
+    //     };
+
+    //     assert_eq!(serde_yaml::to_string(&sud).unwrap(), "red")
+    // }
 
     #[test]
     pub fn test_campaign_levels_deserialize() {
@@ -395,17 +372,24 @@ mod tests {
     }
 
     #[test]
+    pub fn test_credits_levels_deserialize() {
+        let list = &crate::designed_level::CREDITS_LEVELS;
+        assert_eq!(list.len(), 1)
+    }
+
+    #[test]
     pub fn test_set_levels_string_lengths() {
         let levels = crate::designed_level::CAMPAIGN_LEVELS
             .iter()
-            .chain(crate::designed_level::TUTORIAL_LEVELS.iter());
+            .chain(crate::designed_level::TUTORIAL_LEVELS.iter())
+            .chain(crate::designed_level::CREDITS_LEVELS.iter());
         let mut errors: Vec<String> = vec![];
         for (index, level) in levels.enumerate() {
             check_level(level, index, &mut errors);
         }
 
         if !errors.is_empty() {
-            panic!("levels.yaml contains errors:\n{}", errors.join("\n"))
+            panic!("levels contains errors:\n{}", errors.join("\n"))
         }
     }
 

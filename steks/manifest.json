@@ -1,5 +1,5 @@
 {
-    "name": "Steks: find your balance",
+    "name": "Steks: The Ultimate Tower Building Puzzle Game",
     "short_name": "Steks",
     "icons": [
       {
@@ -26,7 +26,7 @@
     "theme_color": "#86adea",
     "shortcuts": [
     ],
-    "description": "The game where you build a tower out of shapes",
+    "description": "The Ultimate Tower Building Puzzle Game",
     "screenshots": [
     ]
   }

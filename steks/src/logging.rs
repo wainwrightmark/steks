@@ -1,8 +1,5 @@
 use bevy::{log, prelude::*, tasks::IoTaskPool};
-use capacitor_bindings::{
-    app::AppInfo,
-    device::{Device, DeviceId, DeviceInfo, OperatingSystem, Platform},
-};
+use capacitor_bindings::{app::AppInfo, device::*};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum::EnumDiscriminants;
@@ -270,10 +267,12 @@ impl LoggableEvent {
         Self::try_log_async(data, device_id).await
     }
 
+    #[cfg(target_arch = "wasm32")]
     pub fn try_log1(self) {
         Self::try_log(self)
     }
 
+    #[cfg(target_arch = "wasm32")]
     fn try_log(data: impl Into<Self> + 'static) {
         IoTaskPool::get()
             .spawn(async move { Self::try_get_device_id_and_log_async(data).await })

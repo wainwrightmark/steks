@@ -1,30 +1,32 @@
+use state_hierarchy::{impl_hierarchy_root, prelude::*};
+use strum::EnumIs;
+
 use crate::{designed_level, prelude::*};
 
-pub struct ButtonPlugin;
+pub struct MenuPlugin;
 
-impl Plugin for ButtonPlugin {
+impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<MenuState>()
-            //.add_systems(Startup, setup.after(setup_level_ui))
-            .add_systems(First, button_system)
-            .add_systems(Update, handle_menu_state_changes);
+        app.init_resource::<MenuState>();
+
+        app.add_plugins(TransitionPlugin::<StyleLeftLens>::default());
+        //app.add_plugins(TransitionPlugin::<TransformScaleLens>::default());
+        app.add_plugins(TransitionPlugin::<StyleTopLens>::default());
+        app.add_plugins(TransitionPlugin::<BackgroundColorLens>::default());
+        app.add_plugins(TransitionPlugin::<TextColorLens<0>>::default());
+        app.add_plugins(TransitionPlugin::<BorderColorLens>::default());
+
+        app.register_state_hierarchy::<MenuRoot>();
     }
 }
 
-#[derive(Component, PartialEq, Eq, Clone, Copy)]
-#[component(storage = "SparseSet")]
-pub enum MenuComponent {
-    MenuHamburger,
-    MainMenu,
-    LevelsPage(u8),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
 pub enum MenuState {
     #[default]
     Closed,
-    MenuOpen,
-    LevelsPage(u8),
+    ShowMainMenu,
+    ShowLevelsPage(u8),
+    SettingsPage,
 }
 
 const LEVELS_PER_PAGE: u8 = 8;
@@ -36,191 +38,110 @@ pub fn max_page_exclusive() -> u8 {
 
 impl MenuState {
     pub fn open_menu(&mut self) {
-        *self = MenuState::MenuOpen
+        *self = MenuState::ShowMainMenu
     }
 
     pub fn close_menu(&mut self) {
         *self = MenuState::Closed
     }
 
-    pub fn toggle_levels(&mut self) {
+    pub fn toggle_settings(&mut self) {
+        use MenuState::*;
         match self {
-            MenuState::Closed => *self = MenuState::LevelsPage(0),
-            MenuState::MenuOpen => *self = MenuState::LevelsPage(0),
-            MenuState::LevelsPage(..) => *self = MenuState::Closed,
+            SettingsPage => *self = ShowMainMenu,
+            _ => *self = SettingsPage,
+        }
+    }
+
+    pub fn toggle_levels(&mut self, current_level: &CurrentLevel) {
+        use MenuState::*;
+
+        let page = match current_level.level {
+            GameLevel::Designed {
+                meta: DesignedLevelMeta::Campaign { index },
+            } => index / LEVELS_PER_PAGE,
+            _ => 0,
+        };
+
+        match self {
+            Closed | ShowMainMenu | SettingsPage => *self = ShowLevelsPage(page),
+            ShowLevelsPage(..) => *self = Closed,
         }
     }
 
     pub fn next_levels_page(&mut self) {
-        match self {
-            MenuState::LevelsPage(levels) => {
-                let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
+        if let MenuState::ShowLevelsPage(levels) = self {
+            let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
 
-                *self = MenuState::LevelsPage(new_page)
-            }
-            _ => (),
+            *self = MenuState::ShowLevelsPage(new_page)
         }
     }
 
     pub fn previous_levels_page(&mut self) {
-        match self {
-            MenuState::LevelsPage(levels) => {
-                if let Some(new_page) = levels.checked_sub(1) {
-                    *self = MenuState::LevelsPage(new_page);
-                } else {
-                    *self = MenuState::MenuOpen;
-                }
+        if let MenuState::ShowLevelsPage(levels) = self {
+            if let Some(new_page) = levels.checked_sub(1) {
+                *self = MenuState::ShowLevelsPage(new_page);
+            } else {
+                *self = MenuState::ShowMainMenu;
             }
-            _ => (),
         }
     }
+}
 
-    pub fn close(&mut self) {
-        *self = MenuState::Closed;
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct MenuRoot;
 
-    pub fn spawn_nodes(
+impl_hierarchy_root!(MenuRoot);
+
+impl HasContext for MenuRoot {
+    type Context = NC3<MenuState, GameSettings, AssetServer>;
+}
+
+impl ChildrenAspect for MenuRoot {
+    fn set_children(
         &self,
-        commands: &mut Commands,
-        asset_server: &AssetServer,
-        completion: &CampaignCompletion,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
+        commands: &mut impl ChildCommands,
     ) {
-        match self {
+        const TRANSITION_DURATION_SECS: f32 = 0.2;
+        let transition_duration: Duration = Duration::from_secs_f32(TRANSITION_DURATION_SECS);
+
+        fn get_carousel_child(page: u32) -> Option<Either3<SettingsPage, MainMenu, LevelMenu>> {
+            Some(match page {
+                0 => Either3::Case0(SettingsPage),
+                1 => Either3::Case1(MainMenu),
+                n => Either3::Case2(LevelMenu((n - 2) as u8)),
+            })
+        }
+
+        let carousel = match context.0.as_ref() {
             MenuState::Closed => {
-                let font = asset_server.load("fonts/fontello.ttf");
+                commands.add_child("open_icon", menu_button_node(), &context.2);
+                return;
+            }
+            MenuState::SettingsPage => Carousel::new(0, 7, get_carousel_child, transition_duration),
+            MenuState::ShowMainMenu => Carousel::new(1, 7, get_carousel_child, transition_duration),
+            MenuState::ShowLevelsPage(n) => {
+                Carousel::new((n + 2) as u32, 7, get_carousel_child, transition_duration)
+            }
+        };
 
-                commands
-                    .spawn(NodeBundle {
-                        style: Style {
-                            position_type: PositionType::Absolute,
-                            left: Val::Px(10.),
-                            top: Val::Px(10.),
-                            ..Default::default()
-                        },
-                        z_index: ZIndex::Global(10),
-                        ..Default::default()
-                    })
-                    .insert(MenuComponent::MenuHamburger)
-                    .with_children(|parent| {
-                        spawn_icon_button(parent, ButtonAction::OpenMenu, font, false)
-                        //todo gravity
-                    });
-            }
-            MenuState::MenuOpen => {
-                spawn_menu(commands, asset_server);
-            }
-            MenuState::LevelsPage(page) => {
-                spawn_level_menu(commands, asset_server, *page, completion)
-            }
-        }
+        commands.add_child("carousel", carousel, context);
     }
 }
 
-fn handle_menu_state_changes(
-    mut commands: Commands,
-    menu_state: Res<MenuState>,
-    components: Query<Entity, &MenuComponent>,
-    asset_server: Res<AssetServer>,
-    completion: Res<CampaignCompletion>,
-) {
-    if menu_state.is_changed() {
-        for entity in components.iter() {
-            commands.entity(entity).despawn_recursive();
-        }
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct SettingsPage;
 
-        menu_state.spawn_nodes(&mut commands, asset_server.as_ref(), &completion);
-    }
+impl HasContext for SettingsPage {
+    type Context = NC3<MenuState, GameSettings, AssetServer>;
 }
 
-fn button_system(
-    mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &ButtonComponent),
-        (Changed<Interaction>, With<Button>),
-    >,
-    mut change_level_events: EventWriter<ChangeLevelEvent>,
-    mut share_events: EventWriter<ShareEvent>,
-    mut import_events: EventWriter<ImportEvent>,
-    mut purchase_events: EventWriter<TryPurchaseEvent>,
+impl StaticComponentsAspect for SettingsPage {
+    type B = NodeBundle;
 
-    mut menu_state: ResMut<MenuState>,
-    mut current_level: ResMut<CurrentLevel>,
-) {
-    for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
-        if button.disabled {
-            continue;
-        }
-        use ButtonAction::*;
-        //info!("{interaction:?} {button:?} {menu_state:?}");
-        *bg_color = button
-            .button_type
-            .background_color(interaction, button.disabled);
-
-        if interaction == &Interaction::Pressed {
-            match button.button_action {
-                OpenMenu => menu_state.as_mut().open_menu(),
-                CloseMenu => menu_state.as_mut().close_menu(),
-                GoFullscreen => {
-                    #[cfg(target_arch = "wasm32")]
-                    {
-                        crate::wasm::request_fullscreen();
-                    }
-                }
-                ClipboardImport => import_events.send(ImportEvent),
-                Tutorial => change_level_events
-                    .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
-                Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
-                DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
-                ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
-                Share => share_events.send(ShareEvent),
-                GotoLevel { level } => {
-                    change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
-                        index: level,
-                        stage: 0,
-                    })
-                }
-                Levels => menu_state.as_mut().toggle_levels(),
-                NextLevel => change_level_events.send(ChangeLevelEvent::Next),
-                MinimizeCompletion => match current_level.completion {
-                    LevelCompletion::Incomplete { stage: _ } => {}
-                    LevelCompletion::Complete { splash, score_info } => {
-                        current_level.completion = LevelCompletion::Complete {
-                            score_info,
-                            splash: !splash,
-                        }
-                    }
-                },
-                MinimizeApp => {
-                    bevy::tasks::IoTaskPool::get()
-                        .spawn(async move { minimize_app_async().await })
-                        .detach();
-                }
-                Purchase => {
-                    purchase_events.send(TryPurchaseEvent);
-                }
-                NextLevelsPage => menu_state.as_mut().next_levels_page(),
-
-                PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
-            }
-
-            match button.button_action {
-                OpenMenu | CloseMenu | Levels | NextLevelsPage | PreviousLevelsPage => {}
-                _ => menu_state.close_menu(),
-            }
-        }
-    }
-}
-
-async fn minimize_app_async() {
-    #[cfg(all(feature = "android", target_arch = "wasm32"))]
-    {
-        crate::logging::do_or_report_error_async(|| capacitor_bindings::app::App::minimize_app())
-            .await;
-    }
-}
-
-fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
-    commands
-        .spawn(NodeBundle {
+    fn get_bundle() -> Self::B {
+        NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 left: Val::Percent(50.0),  // Val::Px(MENU_OFFSET),
@@ -233,24 +154,87 @@ fn spawn_menu(commands: &mut Commands, asset_server: &AssetServer) {
             },
             z_index: ZIndex::Global(10),
             ..Default::default()
-        })
-        .insert(MenuComponent::MainMenu)
-        .with_children(|parent| {
-            let font = asset_server.load("fonts/FiraMono-Medium.ttf");
-            for button in ButtonAction::main_buttons() {
-                spawn_text_button(parent, *button, font.clone(), false);
-            }
-        });
+        }
+    }
 }
 
-fn spawn_level_menu(
-    commands: &mut Commands,
-    asset_server: &AssetServer,
-    page: u8,
-    completion: &CampaignCompletion,
-) {
-    commands
-        .spawn(NodeBundle {
+impl ChildrenAspect for SettingsPage {
+    fn set_children(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
+        commands: &mut impl ChildCommands,
+    ) {
+        info!("Setting Settings Children {:?}", context.1);
+
+        let arrows_text = if context.1.show_arrows {
+            "Rotation Arrows  "
+        } else {
+            "Rotation Arrows  "
+        };
+
+        commands.add_child(
+            "rotation",
+            text_button_node_with_text(ButtonAction::ToggleArrows, arrows_text.to_string(), true),
+            &context.2,
+        );
+
+        let outlines_text = if context.1.show_touch_outlines {
+            "Touch Outlines   "
+        } else {
+            "Touch Outlines   "
+        };
+
+        commands.add_child(
+            "outlines",
+            text_button_node_with_text(
+                ButtonAction::ToggleTouchOutlines,
+                outlines_text.to_string(), true
+            ),
+            &context.2,
+        );
+
+        let sensitivity_text = match context.1.rotation_sensitivity {
+            RotationSensitivity::Low => "Sensitivity    Low",
+            RotationSensitivity::Medium => "Sensitivity Medium",
+            RotationSensitivity::High => "Sensitivity   High",
+            RotationSensitivity::Extreme => "Sensitivity Extreme",
+        };
+
+        let next_sensitivity = context.1.rotation_sensitivity.next();
+
+        commands.add_child(
+            "sensitivity",
+            text_button_node_with_text(
+                ButtonAction::SetRotationSensitivity(next_sensitivity),
+                sensitivity_text.to_string(), true
+            ),
+            &context.2,
+        );
+
+        commands.add_child("achievements", text_button_node(ButtonAction::SyncAchievements, true), &context.2);
+
+        commands.add_child(
+            "back",
+            text_button_node_with_text(ButtonAction::ToggleSettings, "Back".to_string(), true),
+            &context.2,
+        );
+
+
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct MainMenu;
+
+impl HasContext for MainMenu {
+    type Context = NC3<MenuState, GameSettings, AssetServer>;
+}
+
+impl StaticComponentsAspect for MainMenu{
+    type B = NodeBundle;
+
+    fn get_bundle() -> Self::B {
+        NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 left: Val::Percent(50.0),
@@ -263,61 +247,144 @@ fn spawn_level_menu(
             },
             z_index: ZIndex::Global(10),
             ..Default::default()
-        })
-        .insert(MenuComponent::LevelsPage(page))
-        .with_children(|parent| {
-            let text_font = asset_server.load("fonts/FiraMono-Medium.ttf");
-            let icon_font = asset_server.load("fonts/fontello.ttf");
+        }
+    }
+}
 
-            let start = page * LEVELS_PER_PAGE;
-            let end = (start + LEVELS_PER_PAGE).min(CAMPAIGN_LEVELS.len() as u8);
 
-            parent
-                .spawn(NodeBundle {
-                    style: Style {
-                        position_type: PositionType::Relative,
-                        left: Val::Percent(0.0),
-                        display: Display::Flex,
-                        flex_direction: FlexDirection::Row,
+impl ChildrenAspect for MainMenu {
+    fn set_children(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
+        commands: &mut impl ChildCommands,
+    ) {
+        for (key, action) in ButtonAction::main_buttons().iter().enumerate() {
+            let button = text_button_node(*action, true);
+            // let button = button.with_transition_in::<BackgroundColorLens>(
+            //     Color::WHITE.with_a(0.0),
+            //     Color::WHITE,
+            //     Duration::from_secs_f32(1.0),
+            // );
 
-                        width: Val::Px(TEXT_BUTTON_WIDTH),
-                        height: Val::Px(TEXT_BUTTON_HEIGHT),
-                        margin: UiRect {
-                            left: Val::Auto,
-                            right: Val::Auto,
-                            top: Val::Px(5.0),
-                            bottom: Val::Px(5.0),
-                        },
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        flex_grow: 0.0,
-                        flex_shrink: 0.0,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .with_children(|panel| {
-                    spawn_icon_button(
-                        panel,
-                        ButtonAction::PreviousLevelsPage,
-                        icon_font.clone(),
-                        false,
-                    );
-                    spawn_icon_button(
-                        panel,
-                        ButtonAction::NextLevelsPage,
-                        icon_font.clone(),
-                        start + LEVELS_PER_PAGE < end,
-                    );
-                });
+            commands.add_child(key as u32, button, &context.2)
+        }
+    }
+}
 
-            for level in start..end {
-                spawn_text_button(
-                    parent,
-                    ButtonAction::GotoLevel { level },
-                    text_font.clone(),
-                    level > completion.highest_level_completed,
-                )
-            }
-        });
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct LevelMenu(u8);
+
+impl HasContext for LevelMenu {
+    type Context = NC3<MenuState, GameSettings, AssetServer>;
+}
+
+impl StaticComponentsAspect for LevelMenu{
+    type B = NodeBundle;
+
+    fn get_bundle() -> Self::B {
+        NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                left: Val::Percent(50.0),  // Val::Px(MENU_OFFSET),
+                right: Val::Percent(50.0), // Val::Px(MENU_OFFSET),
+                top: Val::Px(MENU_OFFSET),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+
+                ..Default::default()
+            },
+            z_index: ZIndex::Global(10),
+            ..Default::default()
+        }
+    }
+}
+
+impl ChildrenAspect for LevelMenu {
+    fn set_children(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
+        commands: &mut impl ChildCommands,
+    ) {
+        let start = self.0 * LEVELS_PER_PAGE;
+        let end = start + LEVELS_PER_PAGE;
+
+        for (key, level) in (start..end).enumerate() {
+            commands.add_child(
+                key as u32,
+                text_button_node(ButtonAction::GotoLevel { level }, false),
+                &context.2,
+            )
+        }
+
+        commands.add_child("buttons", LevelMenuArrows(self.0), &context.2);
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct LevelMenuArrows(u8);
+
+impl HasContext for LevelMenuArrows {
+    type Context = AssetServer;
+}
+
+impl StaticComponentsAspect for LevelMenuArrows{
+    type B = NodeBundle;
+
+    fn get_bundle() -> Self::B {
+        NodeBundle {
+            style: Style {
+                position_type: PositionType::Relative,
+                left: Val::Percent(0.0),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+
+                width: Val::Px(TEXT_BUTTON_WIDTH),
+                height: Val::Px(TEXT_BUTTON_HEIGHT),
+                margin: UiRect {
+                    left: Val::Auto,
+                    right: Val::Auto,
+                    top: Val::Px(5.0),
+                    bottom: Val::Px(5.0),
+                },
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                border: UiRect::all(UI_BORDER_WIDTH),
+
+                ..Default::default()
+            },
+            background_color: BackgroundColor(TEXT_BUTTON_BACKGROUND),
+            border_color: BorderColor(BUTTON_BORDER),
+            ..Default::default()
+        }
+    }
+}
+
+impl ChildrenAspect for LevelMenuArrows {
+    fn set_children(
+        &self,
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
+        commands: &mut impl ChildCommands,
+    ) {
+        if self.0 == 0 {
+            commands.add_child("left", icon_button_node(ButtonAction::OpenMenu), context)
+        } else {
+            commands.add_child(
+                "left",
+                icon_button_node(ButtonAction::PreviousLevelsPage),
+                context,
+            )
+        }
+
+        if self.0 < 4 {
+            commands.add_child(
+                "right",
+                icon_button_node(ButtonAction::NextLevelsPage),
+                context,
+            )
+        } else {
+            commands.add_child("right", icon_button_node(ButtonAction::None), context)
+        }
+    }
 }

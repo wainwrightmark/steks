@@ -7,6 +7,7 @@ use itertools::Itertools;
 
 use crate::prelude::*;
 
+#[derive(Debug, Deref)]
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
 impl ShapesVec {
@@ -51,7 +52,7 @@ impl ShapesVec {
         }
 
         //info!("Calculated height min {min:.2} max {max:.2} height {height:.2}");
-        (max - min).max(0.0)
+        (max - min).max(0.0) * HEIGHT_MULTIPLIER
     }
 
     pub fn from_query<F: ReadOnlyWorldQuery>(

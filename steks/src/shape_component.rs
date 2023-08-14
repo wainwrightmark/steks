@@ -1,6 +1,8 @@
+use strum::EnumIs;
+
 pub use crate::prelude::*;
 
-#[derive(Component, Debug, Clone, PartialEq)]
+#[derive(Component, Debug, Clone, PartialEq, EnumIs)]
 pub enum ShapeComponent {
     Free,
     Locked,
@@ -33,29 +35,9 @@ impl From<ShapeState> for ShapeComponent {
 }
 
 impl ShapeComponent {
-    pub fn is_dragged(&self) -> bool {
-        matches!(self, ShapeComponent::Dragged { .. })
-    }
-
     pub fn touch_id(&self) -> Option<u64> {
         let ShapeComponent::Dragged(dragged) = self else {return  None;};
         dragged.drag_source.touch_id()
-    }
-
-    pub fn is_free(&self) -> bool {
-        matches!(self, ShapeComponent::Free)
-    }
-
-    pub fn is_locked(&self) -> bool {
-        matches!(self, ShapeComponent::Locked)
-    }
-
-    pub fn is_fixed(&self) -> bool {
-        matches!(self, ShapeComponent::Fixed)
-    }
-
-    pub fn is_void(&self) -> bool {
-        matches!(self, ShapeComponent::Void)
     }
 
     pub fn has_drag_source(&self, drag_source: DragSource) -> bool {

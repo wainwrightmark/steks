@@ -1,14 +1,5 @@
-[
-    {
-      "relation": [
-        "delegate_permission/common.handle_all_urls"
-      ],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.steks.app",
-        "sha256_cert_fingerprints": [
-          "E7:26:AE:68:E9:4E:2C:20:B0:10:68:17:D2:56:26:3F:6B:4D:C0:00:A1:D3:53:32:4D:D9:5C:17:51:55:8E:82"
-        ]
-      }
-    }
-  ]
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "com.steksgame.app",
+               "sha256_cert_fingerprints": ["F8:0B:49:9D:91:E9:15:39:96:8A:A1:58:BF:78:70:2F:71:06:57:AE:EF:CA:60:F3:48:16:D6:32:A8:80:1C:23"] }
+}]

@@ -143,10 +143,10 @@ impl HasContext for SettingsPage {
 impl ComponentsAspect for SettingsPage {
     fn set_components<'r>(
         &self,
-        previous: Option<&Self>,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ComponentCommands,
-        event: SetComponentsEvent,
+        _event: SetComponentsEvent,
     ) {
         commands.insert(NodeBundle {
             style: Style {
@@ -247,10 +247,10 @@ impl HasContext for MainMenu {
 impl ComponentsAspect for MainMenu {
     fn set_components<'r>(
         &self,
-        previous: Option<&Self>,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ComponentCommands,
-        event: SetComponentsEvent,
+        _event: SetComponentsEvent,
     ) {
         commands.insert(NodeBundle {
             style: Style {
@@ -299,10 +299,10 @@ impl HasContext for LevelMenu {
 impl ComponentsAspect for LevelMenu {
     fn set_components<'r>(
         &self,
-        previous: Option<&Self>,
+        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ComponentCommands,
-        event: SetComponentsEvent,
+        _event: SetComponentsEvent,
     ) {
         commands.insert(NodeBundle {
             style: Style {

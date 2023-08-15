@@ -2,7 +2,7 @@ use bevy::window::{PrimaryWindow, WindowResized};
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};
 
-use crate::{prelude::*, insets};
+use crate::prelude::*;
 
 pub struct WallsPlugin;
 

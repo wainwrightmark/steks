@@ -37,22 +37,22 @@ fn maybe_add(achievements: &mut ResMut<Achievements>, achievement: Achievement) 
 
         #[cfg(target_arch = "wasm32")]
         {
-            // #[cfg(any(feature = "android", feature = "ios"))]
-            // {
-            //     use capacitor_bindings::game_connect::UnlockAchievementOptions;
-            //     bevy::tasks::IoTaskPool::get()
-            //         .spawn(async move {
-            //             crate::logging::do_or_report_error_async(move || {
-            //                 capacitor_bindings::game_connect::GameConnect::unlock_achievement(
-            //                     UnlockAchievementOptions {
-            //                         achievement_id: achievement.android_id().to_string(),
-            //                     },
-            //                 )
-            //             })
-            //             .await;
-            //         })
-            //         .detach();
-            // }
+            #[cfg(any(feature = "android", feature = "ios"))]
+            {
+                use capacitor_bindings::game_connect::UnlockAchievementOptions;
+                bevy::tasks::IoTaskPool::get()
+                    .spawn(async move {
+                        crate::logging::do_or_report_error_async(move || {
+                            capacitor_bindings::game_connect::GameConnect::unlock_achievement(
+                                UnlockAchievementOptions {
+                                    achievement_id: achievement.android_id().to_string(),
+                                },
+                            )
+                        })
+                        .await;
+                    })
+                    .detach();
+            }
 
             #[cfg(feature = "web")]
             {

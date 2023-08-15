@@ -94,7 +94,7 @@ pub struct MenuRoot;
 impl_hierarchy_root!(MenuRoot);
 
 impl HasContext for MenuRoot {
-    type Context = NC3<MenuState, GameSettings, AssetServer>;
+    type Context = NC4<MenuState, GameSettings, AssetServer, Insets>;
 }
 
 impl ChildrenAspect for MenuRoot {
@@ -121,11 +121,11 @@ impl ChildrenAspect for MenuRoot {
                 commands.add_child("open_icon", menu_button_node(), &context.2);
                 return;
             }
-            MenuState::ShowMainMenu => Carousel::new(0,  get_carousel_child, transition_duration),
-            MenuState::SettingsPage => Carousel::new(1,  get_carousel_child, transition_duration),
+            MenuState::ShowMainMenu => Carousel::new(0, get_carousel_child, transition_duration),
+            MenuState::SettingsPage => Carousel::new(1, get_carousel_child, transition_duration),
 
             MenuState::ShowLevelsPage(n) => {
-                Carousel::new((n + 2) as u32,  get_carousel_child, transition_duration)
+                Carousel::new((n + 2) as u32, get_carousel_child, transition_duration)
             }
         };
 
@@ -137,19 +137,23 @@ impl ChildrenAspect for MenuRoot {
 pub struct SettingsPage;
 
 impl HasContext for SettingsPage {
-    type Context = NC3<MenuState, GameSettings, AssetServer>;
+    type Context = NC4<MenuState, GameSettings, AssetServer, Insets>;
 }
 
-impl StaticComponentsAspect for SettingsPage {
-    type B = NodeBundle;
-
-    fn get_bundle() -> Self::B {
-        NodeBundle {
+impl ComponentsAspect for SettingsPage {
+    fn set_components<'r>(
+        &self,
+        previous: Option<&Self>,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ComponentCommands,
+        event: SetComponentsEvent,
+    ) {
+        commands.insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                left: Val::Percent(50.0),  // Val::Px(MENU_OFFSET),
-                right: Val::Percent(50.0), // Val::Px(MENU_OFFSET),
-                top: Val::Px(MENU_OFFSET),
+                left: Val::Percent(50.0),
+                right: Val::Percent(50.0),
+                top: context.3.menu_top(),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
 
@@ -157,9 +161,11 @@ impl StaticComponentsAspect for SettingsPage {
             },
             z_index: ZIndex::Global(10),
             ..Default::default()
-        }
+        })
     }
 }
+
+
 
 impl ChildrenAspect for SettingsPage {
     fn set_children(
@@ -192,7 +198,8 @@ impl ChildrenAspect for SettingsPage {
             "outlines",
             text_button_node_with_text(
                 ButtonAction::ToggleTouchOutlines,
-                outlines_text.to_string(), true
+                outlines_text.to_string(),
+                true,
             ),
             &context.2,
         );
@@ -210,20 +217,23 @@ impl ChildrenAspect for SettingsPage {
             "sensitivity",
             text_button_node_with_text(
                 ButtonAction::SetRotationSensitivity(next_sensitivity),
-                sensitivity_text.to_string(), true
+                sensitivity_text.to_string(),
+                true,
             ),
             &context.2,
         );
 
-        commands.add_child("achievements", text_button_node(ButtonAction::SyncAchievements, true), &context.2);
+        commands.add_child(
+            "achievements",
+            text_button_node(ButtonAction::SyncAchievements, true),
+            &context.2,
+        );
 
         commands.add_child(
             "back",
             text_button_node_with_text(ButtonAction::ToggleSettings, "Back".to_string(), true),
             &context.2,
         );
-
-
     }
 }
 
@@ -231,19 +241,23 @@ impl ChildrenAspect for SettingsPage {
 pub struct MainMenu;
 
 impl HasContext for MainMenu {
-    type Context = NC3<MenuState, GameSettings, AssetServer>;
+    type Context = NC4<MenuState, GameSettings, AssetServer, Insets>;
 }
 
-impl StaticComponentsAspect for MainMenu{
-    type B = NodeBundle;
-
-    fn get_bundle() -> Self::B {
-        NodeBundle {
+impl ComponentsAspect for MainMenu {
+    fn set_components<'r>(
+        &self,
+        previous: Option<&Self>,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ComponentCommands,
+        event: SetComponentsEvent,
+    ) {
+        commands.insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 left: Val::Percent(50.0),
                 right: Val::Percent(50.0),
-                top: Val::Px(MENU_OFFSET),
+                top: context.3.menu_top(),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
 
@@ -251,10 +265,9 @@ impl StaticComponentsAspect for MainMenu{
             },
             z_index: ZIndex::Global(10),
             ..Default::default()
-        }
+        })
     }
 }
-
 
 impl ChildrenAspect for MainMenu {
     fn set_children(
@@ -280,19 +293,23 @@ impl ChildrenAspect for MainMenu {
 pub struct LevelMenu(u8);
 
 impl HasContext for LevelMenu {
-    type Context = NC3<MenuState, GameSettings, AssetServer>;
+    type Context = NC4<MenuState, GameSettings, AssetServer, Insets>;
 }
 
-impl StaticComponentsAspect for LevelMenu{
-    type B = NodeBundle;
-
-    fn get_bundle() -> Self::B {
-        NodeBundle {
+impl ComponentsAspect for LevelMenu {
+    fn set_components<'r>(
+        &self,
+        previous: Option<&Self>,
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+        commands: &mut impl ComponentCommands,
+        event: SetComponentsEvent,
+    ) {
+        commands.insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                left: Val::Percent(50.0),  // Val::Px(MENU_OFFSET),
-                right: Val::Percent(50.0), // Val::Px(MENU_OFFSET),
-                top: Val::Px(MENU_OFFSET),
+                left: Val::Percent(50.0),
+                right: Val::Percent(50.0),
+                top: context.3.menu_top(),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
 
@@ -300,9 +317,10 @@ impl StaticComponentsAspect for LevelMenu{
             },
             z_index: ZIndex::Global(10),
             ..Default::default()
-        }
+        })
     }
 }
+
 
 impl ChildrenAspect for LevelMenu {
     fn set_children(
@@ -333,7 +351,7 @@ impl HasContext for LevelMenuArrows {
     type Context = AssetServer;
 }
 
-impl StaticComponentsAspect for LevelMenuArrows{
+impl StaticComponentsAspect for LevelMenuArrows {
     type B = NodeBundle;
 
     fn get_bundle() -> Self::B {

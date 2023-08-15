@@ -2,7 +2,7 @@ use bevy::window::{PrimaryWindow, WindowResized};
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};
 
-use crate::prelude::*;
+use crate::{prelude::*, insets};
 
 pub struct WallsPlugin;
 
@@ -39,12 +39,12 @@ const TOP_LEFT_Z: f32 = 1.0;
 const TOP_BOTTOM_OFFSET: f32 = 10.0;
 
 impl WallPosition {
-    pub fn get_position(&self, height: f32, width: f32, gravity: Vec2) -> Vec3 {
+    pub fn get_position(&self, height: f32, width: f32, gravity: Vec2, insets : &Insets) -> Vec3 {
         use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;
 
         let top_offset = if gravity.y > 0.0 {
-            TOP_BOTTOM_OFFSET * -1.0
+            (TOP_BOTTOM_OFFSET).max(insets.top)  * -1.0
         } else {
             0.0
         };
@@ -120,17 +120,18 @@ const TOP_LEFT_SQUARE_SIZE: f32 = 60.0;
 
 fn move_walls_when_physics_changed(
     rapier: Res<RapierConfiguration>,
+    insets: Res<Insets>,
     window: Query<&Window, With<PrimaryWindow>>,
     mut walls_query: Query<(&WallPosition, &mut Transform), Without<ShapeComponent>>,
 ) {
-    if !rapier.is_changed() {
+    if !rapier.is_changed() && ! insets.is_changed() {
         return;
     }
 
     let Some(window) = window.iter().next() else{return;};
 
     for (wall, mut transform) in walls_query.iter_mut() {
-        let p: Vec3 = wall.get_position(window.height(), window.width(), rapier.gravity);
+        let p: Vec3 = wall.get_position(window.height(), window.width(), rapier.gravity, &insets);
         transform.translation = p;
     }
 }
@@ -140,10 +141,11 @@ fn move_walls_when_window_resized(
     mut walls_query: Query<(&WallPosition, &mut Transform), Without<ShapeComponent>>,
     mut draggables_query: Query<&mut Transform, With<ShapeComponent>>,
     rapier: Res<RapierConfiguration>,
+    insets: Res<Insets>,
 ) {
     for ev in window_resized_events.iter() {
         for (wall, mut transform) in walls_query.iter_mut() {
-            let p: Vec3 = wall.get_position(ev.height, ev.width, rapier.gravity);
+            let p: Vec3 = wall.get_position(ev.height, ev.width, rapier.gravity, &insets);
             transform.translation = p;
         }
 
@@ -163,14 +165,14 @@ fn move_walls_when_window_resized(
     }
 }
 
-fn spawn_walls(mut commands: Commands, rapier: Res<RapierConfiguration>) {
+fn spawn_walls(mut commands: Commands, rapier: Res<RapierConfiguration>, insets: Res<Insets>) {
     for wall in WallPosition::iter() {
-        spawn_wall(&mut commands, wall, rapier.gravity);
+        spawn_wall(&mut commands, wall, rapier.gravity, &insets);
     }
 }
 
-fn spawn_wall(commands: &mut Commands, wall: WallPosition, gravity: Vec2) {
-    let point = wall.get_position(WINDOW_HEIGHT, WINDOW_WIDTH, gravity);
+fn spawn_wall(commands: &mut Commands, wall: WallPosition, gravity: Vec2, insets: &Insets) {
+    let point = wall.get_position(WINDOW_HEIGHT, WINDOW_WIDTH, gravity, insets);
     let extents = wall.get_extents();
 
     let shape = Rectangle {

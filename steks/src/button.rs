@@ -12,7 +12,7 @@ pub const IMAGE_BUTTON_HEIGHT: f32 = 60.;
 pub const TEXT_BUTTON_WIDTH: f32 = 360.;
 pub const TEXT_BUTTON_HEIGHT: f32 = 60.;
 
-pub const MENU_OFFSET: f32 = 10.;
+//pub const MENU_OFFSET: f32 = 10.;
 
 pub const UI_BORDER_WIDTH: Val = Val::Px(3.0);
 

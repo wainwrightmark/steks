@@ -12,7 +12,10 @@
     <meta property="og:title" content="Steks" />
     <meta property="og:url" content="www.steks.net" />
     <meta property="og:site_name" content="Steks" />
-    <meta property="og:description" content="The Ultimate Tower Building Puzzle Game" />
+    <meta
+      property="og:description"
+      content="The Ultimate Tower Building Puzzle Game"
+    />
     <meta property="og:image" content="https://steks.net/icon/og_image.png" />
 
     <link data-trunk rel="copy-dir" href="icon" />
@@ -55,3 +58,35 @@
     <canvas id="game"> </canvas>
   </body>
 </html>
+
+<script>
+  const style = document.documentElement.style;
+
+  window.AndroidNotch.getInsetTop(
+    (px) => {
+      style.setProperty("--sat", px + "px");
+    },
+    (err) => console.error("Failed to get insets top:", err)
+  );
+
+  window.AndroidNotch.getInsetRight(
+    (px) => {
+      style.setProperty("--sar", px + "px");
+    },
+    (err) => console.error("Failed to get insets right:", err)
+  );
+
+  window.AndroidNotch.getInsetBottom(
+    (px) => {
+      style.setProperty("--sab", px + "px");
+    },
+    (err) => console.error("Failed to get insets bottom:", err)
+  );
+
+  window.AndroidNotch.getInsetLeft(
+    (px) => {
+      style.setProperty("--sal", px + "px");
+    },
+    (err) => console.error("Failed to get insets left:", err)
+  );
+</script>

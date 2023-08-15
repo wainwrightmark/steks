@@ -32,7 +32,7 @@ state_hierarchy= {git= 'https://github.com/wainwrightmark/state_hierarchy', feat
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }
 wasm-bindgen = "0.2"
-web-sys = {version = "0.3", features = ['Url', 'Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams']}
+web-sys = {version = "0.3", features = ['Url', 'Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams', 'CssStyleDeclaration']}
 console_error_panic_hook = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]

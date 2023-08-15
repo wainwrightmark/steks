@@ -37,6 +37,7 @@ pub mod walls;
 pub mod win;
 pub mod win_timer_state;
 pub mod demo;
+pub mod insets;
 
 //#[cfg(target_arch = "wasm32")]
 pub mod logging;
@@ -76,6 +77,7 @@ pub mod prelude {
     pub use crate::settings::*;
     pub use crate::tracked_resource::*;
     pub use crate::demo::*;
+    pub use crate::insets::*;
 
     pub use crate::designed_level::*;
     pub use crate::prediction::*;

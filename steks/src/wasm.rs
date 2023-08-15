@@ -13,6 +13,8 @@ pub fn request_fullscreen() {
     let window = web_sys::window().expect("Could not get window");
     let document = window.document().expect("Could not get window document");
 
+
+
     let fs = document
         .fullscreen_element()
         .map(|x| !x.is_null())
@@ -185,11 +187,8 @@ fn resizer(
     }
 }
 
-// fn has_touch() -> bool {
-//     let window = web_sys::window().unwrap();
-//     let navigator = window.navigator();
-//     navigator.max_touch_points() > 0
-// }
+
+
 
 pub fn get_game_from_location() -> Option<ChangeLevelEvent> {
     let window = web_sys::window()?;
@@ -206,6 +205,31 @@ fn remove_spinner() {
         let _ = document.body().unwrap().remove_child(&spinner);
     }
 }
+
+fn update_insets(mut insets: ResMut<Insets>){
+    if let Some(new_insets) = get_insets(){
+        info!("{:?}", new_insets.clone());
+        *insets= new_insets;
+
+
+    }
+}
+
+fn get_insets()-> Option<Insets>{
+    let window = web_sys::window()?;
+    let document = window.document()?.document_element()?;
+    let style = window.get_computed_style(&document).ok()??;
+
+    let mut insets = Insets::default();
+
+    insets.top = style.get_property_value("--sat").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
+    insets.left = style.get_property_value("--sal").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
+    insets.right = style.get_property_value("--sar").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
+    insets.bottom = style.get_property_value("--sab").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
+
+    Some(insets)
+}
+
 pub struct WASMPlugin;
 
 impl Plugin for WASMPlugin {
@@ -217,5 +241,7 @@ impl Plugin for WASMPlugin {
 
         app.add_systems(Update, resizer);
         app.add_systems(PostStartup, remove_spinner);
+
+        app.add_systems(PostStartup, update_insets);
     }
 }

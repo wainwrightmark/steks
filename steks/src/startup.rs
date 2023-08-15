@@ -69,6 +69,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(SharePlugin)
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
+        .insert_resource(Insets::default())
         //.add_plugins(RecordingPlugin)
         .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
@@ -144,7 +145,7 @@ fn hide_splash() {
     {
         bevy::tasks::IoTaskPool::get()
             .spawn(
-                async move { capacitor_bindings::splash_screen::SplashScreen::hide(5000.0).await },
+                async move { capacitor_bindings::splash_screen::SplashScreen::hide(2000.0).await },
             )
             .detach();
     }

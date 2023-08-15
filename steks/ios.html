@@ -12,7 +12,10 @@
     <meta property="og:title" content="Steks" />
     <meta property="og:url" content="www.steks.net" />
     <meta property="og:site_name" content="Steks" />
-    <meta property="og:description" content="The Ultimate Tower Building Puzzle Game" />
+    <meta
+      property="og:description"
+      content="The Ultimate Tower Building Puzzle Game"
+    />
     <meta property="og:image" content="https://steks.net/icon/og_image.png" />
 
     <link data-trunk rel="copy-dir" href="icon" />
@@ -30,6 +33,15 @@
 
     <link rel="manifest" href="/manifest.json" />
     <link data-trunk rel="inline" href="styles.css" />
+
+    <style>
+      :root {
+        --sat: env(safe-area-inset-top);
+        --sar: env(safe-area-inset-right);
+        --sab: env(safe-area-inset-bottom);
+        --sal: env(safe-area-inset-left);
+      }
+    </style>
   </head>
 
   <body>
@@ -44,15 +56,14 @@
       <div></div>
     </div>
 
-      <link
-        rel="rust"
-        data-trunk
-        href="Cargo.toml"
-        data-bin="steks"
-        data-cargo-features="ios"
-      />
+    <link
+      rel="rust"
+      data-trunk
+      href="Cargo.toml"
+      data-bin="steks"
+      data-cargo-features="ios"
+    />
 
-    <canvas id="game" > </canvas>
-
+    <canvas id="game"> </canvas>
   </body>
 </html>

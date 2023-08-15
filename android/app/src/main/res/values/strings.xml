@@ -5,6 +5,6 @@
     <string name="package_name">com.steksgame.app</string>
     <string name="custom_url_scheme">com.steksgame.app</string>
 
-    <string translatable="false"  name="game_services_project_id">com.steksgame.app</string>
+    <string translatable="false"  name="game_services_project_id">978222230324</string>
 
 </resources>

@@ -20,8 +20,10 @@ pub struct Achievements {
 }
 
 impl Achievements {
-    pub fn resync(&self){
-        //...
+    pub fn resync(&self) {
+        for achievement in self.completed.iter() {
+            unlock_achievement(*achievement);
+        }
     }
 }
 
@@ -29,44 +31,47 @@ impl TrackableResource for Achievements {
     const KEY: &'static str = "Achievements";
 }
 
+fn unlock_achievement(achievement: Achievement) {
+    info!("Achievement Unlocked: {achievement}");
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        #[cfg(any(feature = "android", feature = "ios"))]
+        {
+            use capacitor_bindings::game_connect::UnlockAchievementOptions;
+            bevy::tasks::IoTaskPool::get()
+                .spawn(async move {
+                    crate::logging::do_or_report_error_async(move || {
+                        capacitor_bindings::game_connect::GameConnect::unlock_achievement(
+                            UnlockAchievementOptions {
+                                achievement_id: achievement.android_id().to_string(),
+                            },
+                        )
+                    })
+                    .await;
+                })
+                .detach();
+        }
+
+        #[cfg(feature = "web")]
+        {
+            info!("Showing Toast Achievement Unlocked: {achievement}");
+            bevy::tasks::IoTaskPool::get()
+                .spawn(async move {
+                    let _ = capacitor_bindings::toast::Toast::show(format!(
+                        "Achievement Unlocked: {achievement}"
+                    ))
+                    .await;
+                })
+                .detach();
+        }
+    }
+}
+
 fn maybe_add(achievements: &mut ResMut<Achievements>, achievement: Achievement) {
     if !achievements.completed.contains(&achievement) {
         achievements.completed.insert(achievement);
-
-        info!("Achievement Unlocked: {achievement}");
-
-        #[cfg(target_arch = "wasm32")]
-        {
-            #[cfg(any(feature = "android", feature = "ios"))]
-            {
-                use capacitor_bindings::game_connect::UnlockAchievementOptions;
-                bevy::tasks::IoTaskPool::get()
-                    .spawn(async move {
-                        crate::logging::do_or_report_error_async(move || {
-                            capacitor_bindings::game_connect::GameConnect::unlock_achievement(
-                                UnlockAchievementOptions {
-                                    achievement_id: achievement.android_id().to_string(),
-                                },
-                            )
-                        })
-                        .await;
-                    })
-                    .detach();
-            }
-
-            #[cfg(feature = "web")]
-            {
-                info!("Showing Toast Achievement Unlocked: {achievement}");
-                bevy::tasks::IoTaskPool::get()
-                    .spawn(async move {
-                        let _ = capacitor_bindings::toast::Toast::show(format!(
-                            "Achievement Unlocked: {achievement}"
-                        ))
-                        .await;
-                    })
-                    .detach();
-            }
-        }
+        unlock_achievement(achievement);
     }
 }
 
@@ -114,7 +119,7 @@ impl Achievement {
         use Achievement::*;
         //spell-checker: disable
         match self {
-            BeatTutorial => "CgkIiuLDupcPEAIQAQ",
+            BeatTutorial => "CgkItNbalLwcEAIQAQ",
             _ => "123", //TODO
         }
         //spell-checker: enable
@@ -130,7 +135,6 @@ impl Achievement {
         }
     }
 }
-
 
 fn track_level_completion_achievements(
     current_level: Res<CurrentLevel>,

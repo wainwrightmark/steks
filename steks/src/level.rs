@@ -221,6 +221,14 @@ impl CurrentLevel {
         }
     }
 
+    pub fn leaderboard_id(&self) -> Option<String> {
+        if let GameLevel::Designed { meta, .. } = &self.level {
+            meta.get_level().leaderboard_id.clone()
+        } else {
+            None
+        }
+    }
+
     // pub fn hide_shadows(&self) -> bool {
     //     match &self.level {
     //         GameLevel::Designed { meta } => meta.get_level().hide_shadows,
@@ -239,10 +247,11 @@ impl CurrentLevel {
     }
 
     pub fn get_level_number_text(&self, centred: bool) -> Option<String> {
-
-        let stage = match self.completion{
+        let stage = match self.completion {
             LevelCompletion::Incomplete { stage } => stage,
-            LevelCompletion::Complete { .. } => {return None ;},
+            LevelCompletion::Complete { .. } => {
+                return None;
+            }
         };
 
         match &self.level {
@@ -261,10 +270,8 @@ impl CurrentLevel {
 
                     Some(format!("{shapes}"))
                 }
-            },
-            GameLevel::Challenge { .. }
-            | GameLevel::Loaded { .. }
-            | GameLevel::Begging => None,
+            }
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => None,
         }
     }
 
@@ -480,15 +487,11 @@ impl DesignedLevelMeta {
             DesignedLevelMeta::Campaign { index } => {
                 let index = index + 1;
                 if CAMPAIGN_LEVELS.get(index as usize).is_some() {
-
-                    if IS_DEMO && index > MAX_DEMO_LEVEL{
+                    if IS_DEMO && index > MAX_DEMO_LEVEL {
                         None
-                    }
-                    else{
+                    } else {
                         Some(Self::Campaign { index })
                     }
-
-
                 } else {
                     None
                 }
@@ -531,7 +534,7 @@ impl GameLevel {
     pub fn has_stage(&self, stage: &usize) -> bool {
         match self {
             GameLevel::Designed { meta, .. } => meta.get_level().total_stages() > *stage,
-            GameLevel::Infinite { .. } => true, //todo maybe up to five stages, then show screen
+            GameLevel::Infinite { .. } => true,
             GameLevel::Challenge { .. } => false,
             GameLevel::Loaded { .. } => false,
             GameLevel::Begging => false,
@@ -672,10 +675,7 @@ fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConf
 }
 
 fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
-    if level.is_changed()
-        && level.completion.is_complete()
-        && level.level.skip_completion()
-    {
+    if level.is_changed() && level.completion.is_complete() && level.level.skip_completion() {
         events.send(ChangeLevelEvent::Next);
     }
 }
@@ -721,19 +721,15 @@ impl ChangeLevelEvent {
                         return (GameLevel::Designed { meta }, 0);
                     }
 
-                    if IS_DEMO{
+                    if IS_DEMO {
                         (GameLevel::Begging, 0)
-                    }
-                    else{
+                    } else {
                         if meta.is_credits() {
                             (GameLevel::new_infinite(), 0)
                         } else {
                             (GameLevel::CREDITS, 0)
                         }
-
                     }
-
-
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),
                 GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
@@ -800,6 +796,7 @@ impl ChangeLevelEvent {
                     initial_stage,
                     stages: vec![],
                     end_text: None,
+                    leaderboard_id: None,
                     end_fireworks: FireworksSettings::default(),
                 };
 

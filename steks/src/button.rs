@@ -1,4 +1,4 @@
-use crate::{designed_level, prelude::*};
+use crate::{designed_level, prelude::*, leaderboard};
 use steks_common::color;
 use strum::Display;
 
@@ -85,6 +85,8 @@ pub enum ButtonAction {
     MinimizeApp,
     ToggleSettings,
 
+    ShowLeaderboard,
+
     ToggleArrows,
     ToggleTouchOutlines,
     SetRotationSensitivity(RotationSensitivity),
@@ -102,24 +104,7 @@ pub enum ButtonAction {
 }
 
 impl ButtonAction {
-    pub fn main_buttons() -> &'static [Self] {
-        use ButtonAction::*;
-        &[
-            Resume,
-            ChooseLevel,
-            DailyChallenge,
-            Infinite,
-            Tutorial,
-            Share,
-            ToggleSettings,
-            ClipboardImport, //TODO remove
-            #[cfg(all(feature = "web", target_arch = "wasm32"))]
-            GoFullscreen,
-            #[cfg(all(feature = "android", target_arch = "wasm32"))]
-            MinimizeApp,
-            Credits,
-        ]
-    }
+
 
     pub fn icon(&self) -> String {
         use ButtonAction::*;
@@ -149,11 +134,13 @@ impl ButtonAction {
             GooglePlay => "\u{f1a0}".to_string(),
             Apple => "\u{f179}".to_string(),
             Steam => "\u{f1b6}".to_string(),
+            ShowLeaderboard => "\u{e803}".to_string(),
             ToggleSettings => "Settings".to_string(),
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
-            SyncAchievements => "Sync Achievements".to_string() ,
+            SyncAchievements => "Sync Achievements".to_string(),
+
             None => "".to_string(),
         }
     }
@@ -194,6 +181,7 @@ impl ButtonAction {
             PreviousLevelsPage => "Previous Levels".to_string(),
             Credits => "Credits".to_string(),
 
+            ShowLeaderboard => "Show Leaderboard".to_string(),
             GooglePlay => "Google Play".to_string(),
             Apple => "Apple".to_string(),
             Steam => "Steam".to_string(),
@@ -413,6 +401,10 @@ fn button_system(
                 ToggleArrows => settings.toggle_arrows(),
                 ToggleTouchOutlines => settings.toggle_touch_outlines(),
                 SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
+
+                ShowLeaderboard =>{
+                    leaderboard::try_show_leaderboard(&current_level);
+                }
 
                 SyncAchievements => {
                     achievements.resync()

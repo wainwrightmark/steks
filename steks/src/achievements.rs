@@ -112,9 +112,7 @@ pub enum Achievement {
     Addict,
     IAmInevitable,
     ItsATrap,
-    LookTheresBleppo, // Height Thresholds TODO
-
-                      //BeatDailyChallenge TODO
+    LookTheresBleppo,
 }
 
 impl Achievement {

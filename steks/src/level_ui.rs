@@ -124,7 +124,8 @@ impl ComponentsAspect for MainPanel {
 
         let border = commands.transition_value::<BorderColorLens>(border, border, color_speed);
 
-        let visibility = if context.1.level.skip_completion() && context.1.completion.is_complete() {
+        let visibility = if context.1.level.skip_completion() && context.1.completion.is_complete()
+        {
             Visibility::Hidden
         } else {
             Visibility::Inherited
@@ -200,7 +201,7 @@ impl ChildrenAspect for TextPanel {
     ) {
         if context.1.completion.is_incomplete() {
             let initial_color = context.1.text_color();
-            let destination_color = if  context.1.text_fade() {
+            let destination_color = if context.1.text_fade() {
                 initial_color.with_a(0.0)
             } else {
                 initial_color
@@ -240,7 +241,6 @@ impl ChildrenAspect for TextPanel {
             }
 
             if let Some(message) = context.1.get_text(&context.0) {
-
                 //info!("Message {initial_color:?} {destination_color:?}");
                 commands.add_child(
                     "message",
@@ -252,8 +252,7 @@ impl ChildrenAspect for TextPanel {
                         initial_color,
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
-                    )
-                    ,
+                    ),
                     &context.2,
                 )
             }
@@ -334,7 +333,19 @@ impl ChildrenAspect for ButtonPanel {
             }
 
             commands.add_child(1, icon_button_node(ButtonAction::Share), &context.2);
-            commands.add_child(2, icon_button_node(ButtonAction::NextLevel), &context.2);
+
+            #[cfg(any(feature = "android", feature = "ios"))]
+            {
+                if context.1.leaderboard_id().is_some() {
+                    commands.add_child(
+                        2,
+                        icon_button_node(ButtonAction::ShowLeaderboard),
+                        &context.2,
+                    );
+                }
+            }
+
+            commands.add_child(3, icon_button_node(ButtonAction::NextLevel), &context.2);
         }
     }
 }
@@ -433,8 +444,6 @@ impl ChildrenAspect for BeggingPanel {
             &context.2,
         );
 
-       
-
         commands.add_child(
             3,
             TextNode {
@@ -452,7 +461,8 @@ impl ChildrenAspect for BeggingPanel {
                 Defeat Dr. Gravity!\n\
                 \n\
                 Get steks now\n\
-                ".to_string(),
+                "
+                .to_string(),
                 style: BEGGING_MESSAGE_TEXT_STYLE.clone(),
             },
             &context.2,

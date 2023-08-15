@@ -181,7 +181,6 @@ lazy_static! {
         linebreak_behavior: bevy::text::BreakLineOn::NoWrap
     });
 
-    //TODO alt colors
     pub(crate) static ref TITLE_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
         font_size: LEVEL_TITLE_FONT_SIZE,
         color: LEVEL_TEXT_COLOR,

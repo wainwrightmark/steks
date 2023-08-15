@@ -269,6 +269,8 @@ impl ComponentsAspect for MainMenu {
     }
 }
 
+
+
 impl ChildrenAspect for MainMenu {
     fn set_children(
         &self,
@@ -276,7 +278,26 @@ impl ChildrenAspect for MainMenu {
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
-        for (key, action) in ButtonAction::main_buttons().iter().enumerate() {
+        use ButtonAction::*;
+        let buttons = [
+            Resume,
+            ChooseLevel,
+            DailyChallenge,
+            Infinite,
+            Tutorial,
+            Share,
+            ToggleSettings,
+            #[cfg(all(feature = "web"))]
+            ClipboardImport, //TODO remove
+            #[cfg(all(feature = "web", target_arch = "wasm32"))]
+            GoFullscreen,
+
+            Credits,
+            #[cfg(all(feature = "android", target_arch = "wasm32"))]
+            MinimizeApp,
+        ];
+
+        for (key, action) in buttons.iter().enumerate() {
             let button = text_button_node(*action, true);
             // let button = button.with_transition_in::<BackgroundColorLens>(
             //     Color::WHITE.with_a(0.0),

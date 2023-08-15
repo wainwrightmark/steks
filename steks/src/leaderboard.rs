@@ -220,9 +220,10 @@ fn update_leaderboard_on_completion(
         return;
     }
 
-    let height = match current_level.completion {
-        LevelCompletion::Incomplete { .. } => return,
-        LevelCompletion::Complete { score_info, .. } => score_info.height,
+    let height = if let LevelCompletion::Complete { score_info, .. } = current_level.completion {
+        score_info.height
+    } else {
+        return;
     };
 
     let hash = ShapesVec::from_query(shapes_query).hash();
@@ -248,6 +249,31 @@ fn update_leaderboard_on_completion(
     };
     if pb_changed {
         pbs.set_changed();
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        #[cfg(any(feature = "android", feature = "ios"))]
+        {
+            if pb_changed {
+                if let Some(leaderboard_id) = current_level.leaderboard_id() {
+                    let options = capacitor_bindings::game_connect::SubmitScoreOptions {
+                        total_score_amount: height.floor(), //This amount needs to be an integer grrr
+                        leaderboard_id,
+                    };
+
+                    info!("Submitting score {:?}", options.clone());
+
+                    bevy::tasks::IoTaskPool::get()
+                        .spawn(async move {
+                            crate::logging::do_or_report_error_async(move || {
+                                capacitor_bindings::game_connect::GameConnect::submit_score(options.clone())
+                            })
+                            .await;
+                        })
+                        .detach();
+                }
+            }
+        }
     }
 
     match &mut leaderboard.map {
@@ -291,6 +317,29 @@ fn update_leaderboard_on_completion(
             {
                 crate::logging::try_log_error_message("Score Store is not loaded".to_string());
             }
+        }
+    }
+}
+
+pub fn try_show_leaderboard(level: &CurrentLevel) {
+    let Some(leaderboard_id) = level.leaderboard_id() else {return;};
+
+    info!("Showing leaderboard {:?}", leaderboard_id.clone());
+    #[cfg(target_arch = "wasm32")]
+    {
+        #[cfg(any(feature = "android", feature = "ios"))]
+        {
+            let options =
+                capacitor_bindings::game_connect::ShowLeaderboardOptions { leaderboard_id };
+
+            bevy::tasks::IoTaskPool::get()
+                .spawn(async move {
+                    crate::logging::do_or_report_error_async(move || {
+                        capacitor_bindings::game_connect::GameConnect::show_leaderboard(options.clone())
+                    })
+                    .await;
+                })
+                .detach();
         }
     }
 }

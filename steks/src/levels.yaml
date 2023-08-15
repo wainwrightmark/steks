@@ -5,6 +5,8 @@
 - title: "Steks Marks The Spot"
   text: "towers may not touch\nthe ground or the sides"
   end_text: "Not bad for a beginner"
+  #spellchecker:disable-next-line
+  leaderboard_id: 'CgkItNbalLwcEAIQGA'
   shapes:
     - shape: U5
     - shape: U5

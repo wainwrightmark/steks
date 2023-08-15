@@ -67,6 +67,10 @@ pub struct DesignedLevel {
     #[serde(default)]
     #[serde(alias = "End_fireworks")]
     pub end_fireworks: FireworksSettings,
+
+    #[serde(alias = "Leaderboard_id")]
+    #[serde(default)]
+    pub leaderboard_id: Option<String>
     // #[serde(default)]
     // #[serde(alias = "Show_rotate")]
     // #[serde(alias = "Show_arrow")]

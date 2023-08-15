@@ -22,57 +22,57 @@ pub struct Achievements {
 impl Achievements {
     pub fn resync(&self) {
         for achievement in self.completed.iter() {
-            unlock_achievement(*achievement);
+            Self::unlock_achievement(*achievement);
+        }
+    }
+
+    pub fn maybe_add(self: &mut Self, achievement: Achievement) {
+        if !self.completed.contains(&achievement) {
+            self.completed.insert(achievement);
+            Self::unlock_achievement(achievement);
+        }
+    }
+
+    fn unlock_achievement(achievement: Achievement) {
+        info!("Achievement Unlocked: {achievement}");
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            #[cfg(any(feature = "android", feature = "ios"))]
+            {
+                use capacitor_bindings::game_connect::UnlockAchievementOptions;
+                bevy::tasks::IoTaskPool::get()
+                    .spawn(async move {
+                        crate::logging::do_or_report_error_async(move || {
+                            capacitor_bindings::game_connect::GameConnect::unlock_achievement(
+                                UnlockAchievementOptions {
+                                    achievement_id: achievement.android_id().to_string(),
+                                },
+                            )
+                        })
+                        .await;
+                    })
+                    .detach();
+            }
+
+            #[cfg(feature = "web")]
+            {
+                info!("Showing Toast Achievement Unlocked: {achievement}");
+                bevy::tasks::IoTaskPool::get()
+                    .spawn(async move {
+                        let _ = capacitor_bindings::toast::Toast::show(format!(
+                            "Achievement Unlocked: {achievement}"
+                        ))
+                        .await;
+                    })
+                    .detach();
+            }
         }
     }
 }
 
 impl TrackableResource for Achievements {
     const KEY: &'static str = "Achievements";
-}
-
-fn unlock_achievement(achievement: Achievement) {
-    info!("Achievement Unlocked: {achievement}");
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        #[cfg(any(feature = "android", feature = "ios"))]
-        {
-            use capacitor_bindings::game_connect::UnlockAchievementOptions;
-            bevy::tasks::IoTaskPool::get()
-                .spawn(async move {
-                    crate::logging::do_or_report_error_async(move || {
-                        capacitor_bindings::game_connect::GameConnect::unlock_achievement(
-                            UnlockAchievementOptions {
-                                achievement_id: achievement.android_id().to_string(),
-                            },
-                        )
-                    })
-                    .await;
-                })
-                .detach();
-        }
-
-        #[cfg(feature = "web")]
-        {
-            info!("Showing Toast Achievement Unlocked: {achievement}");
-            bevy::tasks::IoTaskPool::get()
-                .spawn(async move {
-                    let _ = capacitor_bindings::toast::Toast::show(format!(
-                        "Achievement Unlocked: {achievement}"
-                    ))
-                    .await;
-                })
-                .detach();
-        }
-    }
-}
-
-fn maybe_add(achievements: &mut ResMut<Achievements>, achievement: Achievement) {
-    if !achievements.completed.contains(&achievement) {
-        achievements.completed.insert(achievement);
-        unlock_achievement(achievement);
-    }
 }
 
 #[derive(
@@ -90,28 +90,31 @@ fn maybe_add(achievements: &mut ResMut<Achievements>, achievement: Achievement) 
     Copy,
 )]
 pub enum Achievement {
-    BeatTutorial,
+    BusinessSecretsOfThePharaohs,
+    LiveFromNewYork,
+    IOughtToBeJealous,
+    KingKong,
+    ThatWasOneInAMillion,
+    QualifyAsAnArchitect,
+    InfinityMinus5,
+    AlephOmega,
+    EverythingEverywhereAllAtOnce,
+    Imhotep,
+    Vitruvius,
+    QinShiHuang,
+    UstadAhmadLahori,
+    ChristopherWren,
+    DenysLasdun,
+    ZahaHadid,
+    Enthusiast,
+    OnTheBrain,
+    Obsessed,
+    Addict,
+    IAmInevitable,
+    ItsATrap,
+    LookTheresBleppo, // Height Thresholds TODO
 
-    Infinite5,
-    Infinite10,
-    Infinite20,
-
-    CatchingNewlySpawned,
-
-    FinishLevel5,
-    FinishLevel10,
-    FinishLevel15,
-    FinishLevel20,
-    FinishLevel25,
-    FinishLevel30,
-    FinishLevel32,
-
-    GreatPyramid,
-    ThirtyRock,
-    EiffelTower,
-    EmpireStateBuilding, // Height Thresholds TODO
-
-                         //BeatDailyChallenge TODO
+                      //BeatDailyChallenge TODO
 }
 
 impl Achievement {
@@ -119,18 +122,39 @@ impl Achievement {
         use Achievement::*;
         //spell-checker: disable
         match self {
-            BeatTutorial => "CgkItNbalLwcEAIQAQ",
-            _ => "123", //TODO
+            BusinessSecretsOfThePharaohs => "CgkItNbalLwcEAIQAg",
+            LiveFromNewYork => "CgkItNbalLwcEAIQAw",
+            IOughtToBeJealous => "CgkItNbalLwcEAIQBA",
+            KingKong => "CgkItNbalLwcEAIQBQ",
+            ThatWasOneInAMillion => "CgkItNbalLwcEAIQBg",
+            QualifyAsAnArchitect => "CgkItNbalLwcEAIQAQ",
+            InfinityMinus5 => "CgkItNbalLwcEAIQBw",
+            AlephOmega => "CgkItNbalLwcEAIQCA",
+            EverythingEverywhereAllAtOnce => "CgkItNbalLwcEAIQCQ",
+            Imhotep => "CgkItNbalLwcEAIQCg",
+            Vitruvius => "CgkItNbalLwcEAIQCw",
+            QinShiHuang => "CgkItNbalLwcEAIQDg",
+            UstadAhmadLahori => "CgkItNbalLwcEAIQDA",
+            ChristopherWren => "CgkItNbalLwcEAIQDQ",
+            DenysLasdun => "CgkItNbalLwcEAIQDw",
+            ZahaHadid => "CgkItNbalLwcEAIQEA",
+            Enthusiast => "CgkItNbalLwcEAIQEQ",
+            OnTheBrain => "CgkItNbalLwcEAIQEg",
+            Obsessed => "CgkItNbalLwcEAIQEw",
+            Addict => "CgkItNbalLwcEAIQFA",
+            IAmInevitable => "CgkItNbalLwcEAIQFQ",
+            ItsATrap => "CgkItNbalLwcEAIQFg",
+            LookTheresBleppo => "CgkItNbalLwcEAIQFw",
         }
         //spell-checker: enable
     }
 
     pub fn met_by_shapes(&self, len: usize, height: f32) -> bool {
         match self {
-            Achievement::GreatPyramid => len <= 3 && height >= 139.0,
-            Achievement::ThirtyRock => len <= 6 && height >= 260.0,
-            Achievement::EiffelTower => len <= 8 && height >= 330.0,
-            Achievement::EmpireStateBuilding => len <= 10 && height >= 373.0,
+            Achievement::BusinessSecretsOfThePharaohs => len <= 3 && height >= 139.0,
+            Achievement::LiveFromNewYork => len <= 6 && height >= 260.0,
+            Achievement::IOughtToBeJealous => len <= 8 && height >= 330.0,
+            Achievement::KingKong => len <= 10 && height >= 373.0,
             _ => false,
         }
     }
@@ -153,9 +177,14 @@ fn track_level_completion_achievements(
             "Checking achievements {} shapes, height {height}",
             shapes.len()
         );
-        for achievement in [GreatPyramid, ThirtyRock, EiffelTower, EmpireStateBuilding] {
+        for achievement in [
+            BusinessSecretsOfThePharaohs,
+            LiveFromNewYork,
+            IOughtToBeJealous,
+            KingKong,
+        ] {
             if achievement.met_by_shapes(shapes.len(), height) {
-                maybe_add(&mut achievements, achievement);
+                achievements.maybe_add(achievement);
             }
         }
 
@@ -164,45 +193,59 @@ fn track_level_completion_achievements(
                 match current_level.level {
                     Infinite { .. } => {
                         if let Some(achievement) = match stage + 2 {
-                            5 => Some(Infinite5),
+                            5 => Some(InfinityMinus5),
+                            10 => Some(AlephOmega),
+                            20 => Some(EverythingEverywhereAllAtOnce),
                             _ => None,
                         } {
-                            maybe_add(&mut achievements, achievement)
+                            achievements.maybe_add(achievement);
                         }
                     }
                     _ => {}
                 }
             }
-            crate::shape_component::LevelCompletion::Complete { .. } => {
-                match current_level.level {
-                    Designed {
-                        meta: Tutorial { index },
-                    } => {
-                        if index == 2 {
-                            //info!("Beat tutorial");
-                            maybe_add(&mut achievements, Achievement::BeatTutorial);
-                        }
+            crate::shape_component::LevelCompletion::Complete { .. } => match current_level.level {
+                Designed {
+                    meta: Tutorial { index },
+                } => {
+                    if index == 2 {
+                        achievements.maybe_add(QualifyAsAnArchitect);
                     }
-                    Designed {
-                        meta: Campaign { index },
-                    } => {
-                        if let Some(achievement) = match index + 1 {
-                            5 => Some(FinishLevel5),
-                            10 => Some(FinishLevel10),
-                            15 => Some(FinishLevel15),
-                            20 => Some(FinishLevel20),
-                            25 => Some(FinishLevel25),
-                            30 => Some(FinishLevel30),
-                            32 => Some(FinishLevel32),
-                            _ => None,
-                        } {
-                            maybe_add(&mut achievements, achievement)
-                        }
+                }
+                Designed {
+                    meta: Campaign { index },
+                } => {
+                    if let Some(achievement) = match index + 1 {
+                        5 => Some(Imhotep),
+                        10 => Some(Vitruvius),
+                        15 => Some(QinShiHuang),
+                        20 => Some(UstadAhmadLahori),
+                        25 => Some(ChristopherWren),
+                        30 => Some(DenysLasdun),
+                        35 => Some(ZahaHadid),
+                        40 => Some(IAmInevitable),
+                        _ => None,
+                    } {
+                        achievements.maybe_add(achievement);
                     }
+                }
+                Challenge { streak, .. } => {
+                    if let Some(achievement) = match streak {
+                        1 => Some(Enthusiast),
+                        3 => Some(OnTheBrain),
+                        7 => Some(Obsessed),
+                        30 => Some(Addict),
+                        _ => None,
+                    } {
+                        achievements.maybe_add(achievement);
+                    }
+                }
+                Designed { meta: Credits } => {
+                    achievements.maybe_add(LookTheresBleppo);
+                }
 
-                    _ => {}
-                }
-            }
+                _ => {}
+            },
         }
     }
 }

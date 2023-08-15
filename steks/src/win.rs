@@ -27,16 +27,22 @@ pub fn check_for_win(
 
     score_store: Res<Leaderboard>,
     pbs: Res<PersonalBests>,
+    mut achievements: ResMut<Achievements>
 ) {
     if let Some(Countdown {
         started_elapsed,
         total_secs,
+        event
     }) = countdown.as_ref().0
     {
         let time_used = time.elapsed().saturating_sub(started_elapsed);
 
         if time_used.as_secs_f32() >= total_secs {
             countdown.0 = None;
+
+            if event == CheckForWinEvent::OnLastSpawn{
+                Achievements::unlock_if_locked(&mut achievements, Achievement::ThatWasOneInAMillion);
+            }
 
             let shapes = ShapesVec::from_query(shapes_query);
 
@@ -53,6 +59,9 @@ pub fn check_for_win(
                 }
 
                 LevelCompletion::Complete { .. } => {
+
+
+
                     let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
                     if score_info.is_pb | score_info.is_wr {
                         level_ui.set_if_neq(GameUIState::GameSplash);
@@ -121,6 +130,7 @@ pub fn check_for_tower(
     countdown.0 = Some(Countdown {
         started_elapsed: time.elapsed(),
         total_secs: countdown_seconds,
+        event: event.clone()
     });
 }
 

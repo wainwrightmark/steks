@@ -26,9 +26,9 @@ impl Achievements {
         }
     }
 
-    pub fn maybe_add(self: &mut Self, achievement: Achievement) {
-        if !self.completed.contains(&achievement) {
-            self.completed.insert(achievement);
+    pub fn unlock_if_locked(achievements: &mut ResMut<Self>, achievement: Achievement) {
+        if !achievements.completed.contains(&achievement) {
+            achievements.completed.insert(achievement);
             Self::unlock_achievement(achievement);
         }
     }
@@ -184,7 +184,7 @@ fn track_level_completion_achievements(
             KingKong,
         ] {
             if achievement.met_by_shapes(shapes.len(), height) {
-                achievements.maybe_add(achievement);
+                Achievements::unlock_if_locked(&mut achievements, achievement);
             }
         }
 
@@ -198,7 +198,7 @@ fn track_level_completion_achievements(
                             20 => Some(EverythingEverywhereAllAtOnce),
                             _ => None,
                         } {
-                            achievements.maybe_add(achievement);
+                            Achievements::unlock_if_locked(&mut achievements, achievement);
                         }
                     }
                     _ => {}
@@ -209,7 +209,7 @@ fn track_level_completion_achievements(
                     meta: Tutorial { index },
                 } => {
                     if index == 2 {
-                        achievements.maybe_add(QualifyAsAnArchitect);
+                        Achievements::unlock_if_locked(&mut achievements, QualifyAsAnArchitect);
                     }
                 }
                 Designed {
@@ -226,7 +226,7 @@ fn track_level_completion_achievements(
                         40 => Some(IAmInevitable),
                         _ => None,
                     } {
-                        achievements.maybe_add(achievement);
+                        Achievements::unlock_if_locked(&mut achievements, achievement);
                     }
                 }
                 Challenge { streak, .. } => {
@@ -237,11 +237,11 @@ fn track_level_completion_achievements(
                         30 => Some(Addict),
                         _ => None,
                     } {
-                        achievements.maybe_add(achievement);
+                        Achievements::unlock_if_locked(&mut achievements, achievement);
                     }
                 }
                 Designed { meta: Credits } => {
-                    achievements.maybe_add(LookTheresBleppo);
+                    Achievements::unlock_if_locked(&mut achievements, LookTheresBleppo);
                 }
 
                 _ => {}

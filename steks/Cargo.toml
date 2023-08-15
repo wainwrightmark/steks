@@ -27,7 +27,7 @@ serde_yaml = "0.9.21"
 async-channel = "1.8.0"
 steks_common = {path= "../steks_common"}
 bevy_screen_diagnostics = "0.3.0"
-state_hierarchy= {git= 'https://github.com/wainwrightmark/state_hierarchy'}
+state_hierarchy= {git= 'https://github.com/wainwrightmark/state_hierarchy', features = ["more_bevy"]}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }

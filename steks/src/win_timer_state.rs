@@ -110,8 +110,8 @@ impl HasContext for CircleMarker {
     type Context = NoContext;
 }
 
-impl NoChildrenAspect for CircleArc {}
-impl NoChildrenAspect for CircleMarker {}
+impl HasNoChildren for CircleArc {}
+impl HasNoChildren for CircleMarker {}
 
 impl ComponentsAspect for CircleArc {
     fn set_components<'r>(

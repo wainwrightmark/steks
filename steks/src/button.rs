@@ -358,7 +358,7 @@ fn button_system(
     }
 
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
-        if button.disabled && button.button_action == ButtonAction::None {
+        if button.disabled || button.button_action == ButtonAction::None {
             continue;
         }
         use ButtonAction::*;

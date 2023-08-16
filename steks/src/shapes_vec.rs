@@ -56,21 +56,33 @@ impl From<&DesignedLevel> for ShapesVec {
 }
 
 impl ShapesVec {
-    pub fn hash(&self) -> i64 {
-        let mut code: i64 = 0;
-        for EncodableShape {
-            shape,
-            location: _,
+    pub fn hash(&self) -> u64 {
+
+        fn state_hash(ss: &ShapeState)-> u64{
+            match ss{
+                ShapeState::Normal => 0,
+                ShapeState::Locked => 0,
+                ShapeState::Fixed => 1,
+                ShapeState::Void => 2,
+            }
+        }
+
+        let mut code: u64 = 0;
+        for (
+            index,
             state,
-            modifiers,
-        } in self
+            modifiers)
+         in self
             .0
-            .iter()
-            .sorted_by_cached_key(|x| (x.shape.index, x.state, x.modifiers))
+            .iter().map(|x| (x.shape.index.0 as u64, state_hash(&x.state), x.modifiers as u64))
+            .sorted()
         {
-            code = code.wrapping_mul(29).wrapping_add(*state as i64);
-            code = code.wrapping_mul(31).wrapping_add(*modifiers as i64);
-            code = code.wrapping_mul(37).wrapping_add(shape.index.0 as i64);
+            code = code.wrapping_mul(29).wrapping_add(index);
+            code = code.wrapping_mul(31).wrapping_add(state);
+            code = code.wrapping_mul(37).wrapping_add(modifiers);
+            println!("{state:?} {modifiers:?} {index} {code}");
+            info!("{state:?} {modifiers:?} {index} {code}");
+
         }
 
         code

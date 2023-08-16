@@ -67,7 +67,7 @@ pub(crate) async fn my_handler(
         }
         Command::TrySet => {
             let hash = get_parameter(&e, "hash").ok_or_else(|| "Could not get hash")?;
-            let hash: i64 = hash.parse()?;
+            let hash: u64 = hash.parse()?;
             let height = get_parameter(&e, "height").ok_or_else(|| "Could not get height")?;
             let height: f32 = height.parse()?;
 
@@ -85,7 +85,7 @@ pub(crate) async fn my_handler(
     }
 }
 
-async fn try_set(height: f32, hash: i64) -> Result<(), Error> {
+async fn try_set(height: f32, hash: u64) -> Result<(), Error> {
     let mut connection = connect_to_database();
 
     query(
@@ -114,7 +114,7 @@ fn connect_to_database() -> PSConnection {
 
 #[derive(Debug, Clone, Copy, Database, PartialEq)]
 pub struct Row {
-    shapes_hash: i64,
+    shapes_hash: u64,
     max_height: f32,
 }
 

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
 
-pub type LevelRecordMap = BTreeMap<i64, f32>;
+pub type LevelRecordMap = BTreeMap<u64, f32>;
 
 pub struct LeaderboardPlugin;
 
@@ -85,9 +85,9 @@ fn is_cheat_in_path() -> Option<()> {
 
 impl Leaderboard {
     pub fn set_from_string(&mut self, s: &str) {
-        let mut map: BTreeMap<i64, f32> = Default::default();
+        let mut map: BTreeMap<u64, f32> = Default::default();
         for (hash, height) in s.split_ascii_whitespace().tuples() {
-            let hash: i64 = match hash.parse() {
+            let hash: u64 = match hash.parse() {
                 Ok(hash) => hash,
                 Err(_err) => {
                     #[cfg(target_arch = "wasm32")]
@@ -163,7 +163,7 @@ async fn get_leaderboard_data() -> LeaderboardDataEvent {
     }
 }
 
-async fn update_leaderboard(hash: i64, height: f32) -> Result<(), reqwest::Error> {
+async fn update_leaderboard(hash: u64, height: f32) -> Result<(), reqwest::Error> {
     if cfg!(debug_assertions) {
         return Ok(());
     }
@@ -299,7 +299,7 @@ fn update_leaderboard_on_completion(
                 IoTaskPool::get()
                     .spawn(async move {
                         match update_leaderboard(hash, height).await {
-                            Ok(_) => log::info!("Updated leaderboard"),
+                            Ok(_) => log::info!("Updated leaderboard {hash} {height}"),
                             Err(_err) => {
                                 #[cfg(target_arch = "wasm32")]
                                 {

@@ -9,7 +9,7 @@ pub fn setup_app(app: &mut App) {
 
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
-            title: "Steks".to_string(),
+            title: "steks".to_string(),
             canvas: Some("#game".to_string()),
             resolution: bevy::window::WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
             resize_constraints: WindowResizeConstraints {
@@ -71,7 +71,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(PadlockPlugin)
         .insert_resource(Insets::default())
         //.add_plugins(RecordingPlugin)
-        .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
+        .insert_resource(bevy_pkv::PkvStore::new("bleppo", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,

@@ -353,15 +353,25 @@ mod tests {
         let list = &crate::designed_level::CAMPAIGN_LEVELS;
 
         for (index, level) in list.iter().enumerate() {
-
+            let index = index + 1;
+            let title = level
+                .title
+                .as_ref()
+                .cloned()
+                .unwrap_or("No Title".to_string());
             let sv: ShapesVec = level.as_ref().into();
             let hash = sv.hash();
             let max_height = sv.max_tower_height();
 
+            let normal_shapes =
+                sv.0.iter()
+                    .filter(|x| x.state.is_normal() || x.state.is_locked())
+                    .count();
+            let fixed_shapes = sv.0.iter().filter(|x| x.state.is_fixed()).count();
+            let void_shapes = sv.0.iter().filter(|x| x.state.is_void()).count();
+
             println!(
-                "{number}\t\t{title}\t\t{hash}\t\t{max_height}",
-                number = index + 1,
-                title = level.title.as_ref().cloned().unwrap_or_default()
+                "{index}\t\t{title}\t\t{hash}\t\t{max_height}\t\t{normal_shapes}\t\t{fixed_shapes}\t\t{void_shapes}",
             );
         }
     }

@@ -10,7 +10,46 @@ pub struct AchievementsPlugin;
 impl Plugin for AchievementsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(TrackedResourcePlugin::<Achievements>::default())
+            .add_systems(Startup, sign_in_user)
             .add_systems(Update, track_level_completion_achievements);
+    }
+}
+
+fn sign_in_user() {
+    #[cfg(target_arch = "wasm32")]
+    {
+        #[cfg(any(feature = "android", feature = "ios"))]
+        {
+            info!("Signing in user to game services");
+            use capacitor_bindings::game_connect::*;
+            bevy::tasks::IoTaskPool::get()
+                .spawn(async move {
+                    crate::logging::do_or_report_error_async(move || {
+                        GameConnect::sign_in()
+                    })
+                    .await;
+                })
+                .detach();
+        }
+    }
+}
+
+pub fn show_achievements(){
+    #[cfg(target_arch = "wasm32")]
+    {
+        #[cfg(any(feature = "android", feature = "ios"))]
+        {
+            info!("Showing achievements");
+            use capacitor_bindings::game_connect::*;
+            bevy::tasks::IoTaskPool::get()
+                .spawn(async move {
+                    crate::logging::do_or_report_error_async(move || {
+                        GameConnect::show_achievements()
+                    })
+                    .await;
+                })
+                .detach();
+        }
     }
 }
 
@@ -40,15 +79,13 @@ impl Achievements {
         {
             #[cfg(any(feature = "android", feature = "ios"))]
             {
-                use capacitor_bindings::game_connect::UnlockAchievementOptions;
+                use capacitor_bindings::game_connect::*;
                 bevy::tasks::IoTaskPool::get()
                     .spawn(async move {
                         crate::logging::do_or_report_error_async(move || {
-                            capacitor_bindings::game_connect::GameConnect::unlock_achievement(
-                                UnlockAchievementOptions {
-                                    achievement_id: achievement.android_id().to_string(),
-                                },
-                            )
+                            GameConnect::unlock_achievement(UnlockAchievementOptions {
+                                achievement_id: achievement.android_id().to_string(),
+                            })
                         })
                         .await;
                     })
@@ -168,41 +205,40 @@ fn track_level_completion_achievements(
     use DesignedLevelMeta::*;
 
     if current_level.is_changed() {
-        let shapes = ShapesVec::from_query(shapes_query);
-        let height = shapes.calculate_tower_height();
-
-        info!(
-            "Checking achievements {} shapes, height {height}",
-            shapes.len()
-        );
-        for achievement in [
-            BusinessSecretsOfThePharaohs,
-            LiveFromNewYork,
-            IOughtToBeJealous,
-            KingKong,
-        ] {
-            if achievement.met_by_shapes(shapes.len(), height) {
-                Achievements::unlock_if_locked(&mut achievements, achievement);
-            }
-        }
-
-        match current_level.completion {
-            crate::shape_component::LevelCompletion::Incomplete { stage } => {
-                match current_level.level {
-                    Infinite { .. } => {
-                        if let Some(achievement) = match stage + 2 {
-                            5 => Some(InfinityMinus5),
-                            10 => Some(AlephOmega),
-                            20 => Some(EverythingEverywhereAllAtOnce),
-                            _ => None,
-                        } {
-                            Achievements::unlock_if_locked(&mut achievements, achievement);
-                        }
+        if let LevelCompletion::Incomplete { stage } = current_level.completion {
+            match current_level.level {
+                Infinite { .. } => {
+                    if let Some(achievement) = match stage + 2 {
+                        5 => Some(InfinityMinus5),
+                        10 => Some(AlephOmega),
+                        20 => Some(EverythingEverywhereAllAtOnce),
+                        _ => None,
+                    } {
+                        Achievements::unlock_if_locked(&mut achievements, achievement);
                     }
-                    _ => {}
+                }
+                _ => {}
+            }
+        } else {
+            let shapes = ShapesVec::from_query(shapes_query);
+            let height = shapes.calculate_tower_height();
+
+            info!(
+                "Checking achievements {} shapes, height {height}",
+                shapes.len()
+            );
+            for achievement in [
+                BusinessSecretsOfThePharaohs,
+                LiveFromNewYork,
+                IOughtToBeJealous,
+                KingKong,
+            ] {
+                if achievement.met_by_shapes(shapes.len(), height) {
+                    Achievements::unlock_if_locked(&mut achievements, achievement);
                 }
             }
-            crate::shape_component::LevelCompletion::Complete { .. } => match current_level.level {
+
+            match current_level.level {
                 Designed {
                     meta: Tutorial { index },
                 } => {
@@ -243,7 +279,7 @@ fn track_level_completion_achievements(
                 }
 
                 _ => {}
-            },
+            }
         }
     }
 }

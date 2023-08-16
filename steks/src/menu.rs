@@ -165,8 +165,6 @@ impl ComponentsAspect for SettingsPage {
     }
 }
 
-
-
 impl ChildrenAspect for SettingsPage {
     fn set_children(
         &self,
@@ -223,11 +221,20 @@ impl ChildrenAspect for SettingsPage {
             &context.2,
         );
 
-        commands.add_child(
-            "achievements",
-            text_button_node(ButtonAction::SyncAchievements, true),
-            &context.2,
-        );
+        #[cfg(any(feature = "android", feature = "ios"))]
+        {
+            commands.add_child(
+                "sync_achievements",
+                text_button_node(ButtonAction::SyncAchievements, true),
+                &context.2,
+            );
+
+            commands.add_child(
+                "show_achievements",
+                text_button_node(ButtonAction::ShowAchievements, true),
+                &context.2,
+            );
+        }
 
         commands.add_child(
             "back",
@@ -269,8 +276,6 @@ impl ComponentsAspect for MainMenu {
     }
 }
 
-
-
 impl ChildrenAspect for MainMenu {
     fn set_children(
         &self,
@@ -291,7 +296,6 @@ impl ChildrenAspect for MainMenu {
             ClipboardImport, //TODO remove
             #[cfg(all(feature = "web", target_arch = "wasm32"))]
             GoFullscreen,
-
             Credits,
             #[cfg(all(feature = "android", target_arch = "wasm32"))]
             MinimizeApp,
@@ -299,11 +303,6 @@ impl ChildrenAspect for MainMenu {
 
         for (key, action) in buttons.iter().enumerate() {
             let button = text_button_node(*action, true);
-            // let button = button.with_transition_in::<BackgroundColorLens>(
-            //     Color::WHITE.with_a(0.0),
-            //     Color::WHITE,
-            //     Duration::from_secs_f32(1.0),
-            // );
 
             commands.add_child(key as u32, button, &context.2)
         }
@@ -341,7 +340,6 @@ impl ComponentsAspect for LevelMenu {
         })
     }
 }
-
 
 impl ChildrenAspect for LevelMenu {
     fn set_children(

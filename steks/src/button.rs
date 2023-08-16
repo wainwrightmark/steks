@@ -100,6 +100,7 @@ pub enum ButtonAction {
     Steam,
 
     SyncAchievements,
+    ShowAchievements,
     None,
 }
 
@@ -140,6 +141,7 @@ impl ButtonAction {
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
             SyncAchievements => "Sync Achievements".to_string(),
+            ShowAchievements => "Show Achievements".to_string(),
 
             None => "".to_string(),
         }
@@ -189,6 +191,7 @@ impl ButtonAction {
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SyncAchievements => "Sync Achievements".to_string() ,
+            ShowAchievements => "Show Achievements".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
             None => "".to_string(),
         }
@@ -408,6 +411,9 @@ fn button_system(
 
                 SyncAchievements => {
                     achievements.resync()
+                },
+                ShowAchievements =>{
+                    show_achievements()
                 }
             }
 

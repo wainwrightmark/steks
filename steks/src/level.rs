@@ -628,6 +628,11 @@ pub enum ChangeLevelEvent {
 
 impl ChangeLevelEvent {
     pub fn try_from_path(path: String) -> Option<Self> {
+
+        if path.is_empty() || path.eq_ignore_ascii_case("/"){
+            return None;
+        }
+
         use base64::Engine;
         if path.to_ascii_lowercase().starts_with("/game") {
             //info!("Path starts with game");

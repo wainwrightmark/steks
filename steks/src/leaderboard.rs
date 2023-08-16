@@ -256,7 +256,8 @@ fn update_leaderboard_on_completion(
         {
             if pb_changed {
                 if let Some(leaderboard_id) = current_level.leaderboard_id() {
-                    let options = capacitor_bindings::game_connect::SubmitScoreOptions {
+                    use capacitor_bindings::game_connect::*;
+                    let options = SubmitScoreOptions {
                         total_score_amount: height.floor(), //This amount needs to be an integer grrr
                         leaderboard_id,
                     };
@@ -266,7 +267,7 @@ fn update_leaderboard_on_completion(
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move {
                             crate::logging::do_or_report_error_async(move || {
-                                capacitor_bindings::game_connect::GameConnect::submit_score(options.clone())
+                                GameConnect::submit_score(options.clone())
                             })
                             .await;
                         })
@@ -329,13 +330,14 @@ pub fn try_show_leaderboard(level: &CurrentLevel) {
     {
         #[cfg(any(feature = "android", feature = "ios"))]
         {
+            use capacitor_bindings::game_connect::*;
             let options =
-                capacitor_bindings::game_connect::ShowLeaderboardOptions { leaderboard_id };
+                ShowLeaderboardOptions { leaderboard_id };
 
             bevy::tasks::IoTaskPool::get()
                 .spawn(async move {
                     crate::logging::do_or_report_error_async(move || {
-                        capacitor_bindings::game_connect::GameConnect::show_leaderboard(options.clone())
+                        GameConnect::show_leaderboard(options.clone())
                     })
                     .await;
                 })

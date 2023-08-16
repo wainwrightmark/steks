@@ -57,6 +57,7 @@ pub struct DesignedLevel {
     #[serde(alias = "Initial_stage")]
     #[serde(flatten)]
     pub initial_stage: LevelStage,
+    /// Stages after the initial stage
     #[serde(alias = "Stages")]
     #[serde(default)]
     pub stages: Vec<LevelStage>,
@@ -70,18 +71,7 @@ pub struct DesignedLevel {
 
     #[serde(alias = "Leaderboard_id")]
     #[serde(default)]
-    pub leaderboard_id: Option<String>
-    // #[serde(default)]
-    // #[serde(alias = "Show_rotate")]
-    // #[serde(alias = "Show_arrow")]
-    // #[serde(alias = "Show_arrows")]
-    // #[serde(alias = "show_arrow")]
-    // #[serde(alias = "show_arrows")]
-    // pub show_rotate: bool,
-
-    // #[serde(default)]
-    // #[serde(alias = "Hide_shadows")]
-    // pub hide_shadows: bool,
+    pub leaderboard_id: Option<String>,
 }
 
 impl DesignedLevel {
@@ -113,6 +103,10 @@ impl DesignedLevel {
 
     pub fn total_stages(&self) -> usize {
         self.stages.len() + 1
+    }
+
+    pub fn all_stages(&self) -> impl Iterator<Item = LevelStage> + '_ {
+        std::iter::once(self.initial_stage.clone()).chain(self.stages.iter().cloned())
     }
 }
 
@@ -350,18 +344,27 @@ impl From<ShapeCreation> for ShapeCreationData {
 
 #[cfg(test)]
 mod tests {
+
     use super::DesignedLevel;
     use crate::designed_level::*;
 
-    // #[test]
-    // pub fn ser_color(){
-    //     let sud = ShapeCreation{
-    //         color: Some((128,128,128)),
-    //         ..Default::default()
-    //     };
+    #[test]
+    pub fn test_level_hashes() {
+        let list = &crate::designed_level::CAMPAIGN_LEVELS;
 
-    //     assert_eq!(serde_yaml::to_string(&sud).unwrap(), "red")
-    // }
+        for (index, level) in list.iter().enumerate() {
+
+            let sv: ShapesVec = level.as_ref().into();
+            let hash = sv.hash();
+            let max_height = sv.max_tower_height();
+
+            println!(
+                "{number}\t\t{title}\t\t{hash}\t\t{max_height}",
+                number = index + 1,
+                title = level.title.as_ref().cloned().unwrap_or_default()
+            );
+        }
+    }
 
     #[test]
     pub fn test_campaign_levels_deserialize() {

@@ -10,6 +10,51 @@ use crate::prelude::*;
 #[derive(Debug, Deref)]
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
+impl From<&DesignedLevel> for ShapesVec {
+    fn from(level: &DesignedLevel) -> Self {
+        let mut shapes: Vec<EncodableShape> = vec![];
+        let mut id_shapes: std::collections::BTreeMap<u32, EncodableShape> = Default::default();
+
+        for stage in level.all_stages() {
+            for shape_creation in stage.shapes.iter() {
+                let shape: &GameShape = shape_creation.shape.into();
+
+                let es = EncodableShape {
+                    shape,
+                    location: Default::default(), // does not matter
+                    state: shape_creation.state,
+                    modifiers: shape_creation.modifiers,
+                };
+
+                match shape_creation.id {
+                    Some(id) => {
+                        id_shapes.insert(id, es);
+                    }
+                    None => shapes.push(es),
+                }
+            }
+
+            for shape_update in stage.updates.iter() {
+                let shape = id_shapes
+                    .get_mut(&shape_update.id)
+                    .expect(format!("Could not get shape with id {}", shape_update.id).as_str());
+
+                shape.modifiers = shape_update.modifiers;
+                if let Some(state) = shape_update.state {
+                    shape.state = state;
+                }
+                if let Some(form) = shape_update.shape {
+                    shape.shape = form.into();
+                }
+            }
+        }
+
+        shapes.extend(id_shapes.values());
+
+        ShapesVec(shapes)
+    }
+}
+
 impl ShapesVec {
     pub fn hash(&self) -> i64 {
         let mut code: i64 = 0;
@@ -29,6 +74,16 @@ impl ShapesVec {
         }
 
         code
+    }
+
+    /// Maximum possible tower height
+    pub fn max_tower_height(&self) -> f32 {
+        self.0
+            .iter()
+            .filter(|x| !x.state.is_void())
+            .map(|x| x.shape.body.bounding_box(SHAPE_SIZE, &Location::default()))
+            .map(|bb| (bb.max - bb.min).length() * HEIGHT_MULTIPLIER)
+            .sum()
     }
 
     pub fn calculate_tower_height(&self) -> f32 {

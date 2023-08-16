@@ -1,11 +1,11 @@
 PODS:
-  - Capacitor (5.0.5):
+  - Capacitor (5.2.3):
     - CapacitorCordova
   - CapacitorApp (5.0.5):
     - Capacitor
   - CapacitorClipboard (5.0.5):
     - Capacitor
-  - CapacitorCordova (5.0.5)
+  - CapacitorCordova (5.2.3)
   - CapacitorDevice (5.0.5):
     - Capacitor
   - CapacitorLocalNotifications (5.0.5):
@@ -20,7 +20,7 @@ PODS:
     - Capacitor
   - CapacitorToast (5.0.5):
     - Capacitor
-  - CordovaPlugins (5.0.5):
+  - CordovaPlugins (5.2.3):
     - CapacitorCordova
   - OpenforgeCapacitorGameConnect (1.0.1):
     - Capacitor
@@ -38,7 +38,7 @@ DEPENDENCIES:
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - "CapacitorToast (from `../../node_modules/@capacitor/toast`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
-  - OpenforgeCapacitorGameConnect (from `../../../capacitor-game-connect`)
+  - OpenforgeCapacitorGameConnect (from `../../../../random/capacitor-game-connect`)
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -66,13 +66,13 @@ EXTERNAL SOURCES:
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
   OpenforgeCapacitorGameConnect:
-    :path: "../../../capacitor-game-connect"
+    :path: "../../../../random/capacitor-game-connect"
 
 SPEC CHECKSUMS:
-  Capacitor: b1248915663add1bd6567e2b67c1c1fa3abcf5e8
+  Capacitor: 6f44cbc33839b8a4202b8eac97041fe584083417
   CapacitorApp: 9d91a5a400e4ad8cafe66a02cc9d8073c864d7bb
   CapacitorClipboard: 17f9418206e9de5673fac29c815f11c8d618e81c
-  CapacitorCordova: f8c06b897c74ee8f7701fe10e6443b40822bc83a
+  CapacitorCordova: 35def3ebfdef491f0a7b652816eb873ff4b20bbf
   CapacitorDevice: 4c78eeaa553c7a46bc07372c6eb03a5665459885
   CapacitorLocalNotifications: cb6a69d128c5ed2a7f22c897c393c0e380f680e7
   CapacitorRateApp: 896df7ec6a237fea72d1955e0cb26394654b00db
@@ -80,9 +80,9 @@ SPEC CHECKSUMS:
   CapacitorSplashScreen: e563abf6d590bfe0269515ccc9d8bc03c41f32e9
   CapacitorStatusBar: 540867ac3c63875b65bebd888f695de50a13a9a2
   CapacitorToast: 77841e9091bea87db10e55b48747d958d76b1fe0
-  CordovaPlugins: c905b3b4dfc87d2a11bdbdaf396289c4a22c39dd
+  CordovaPlugins: 3fc4a63e9ddeb694a31d5066f262ddbffa996240
   OpenforgeCapacitorGameConnect: f8d9d5af80cef82a8c09fa89065537d3c800df89
 
-PODFILE CHECKSUM: 882dbfd24f0c9c76939a2a0dfa280e04cbae7984
+PODFILE CHECKSUM: 47604ab6a68a00c33f9a2ded7032057ee5fad408
 
 COCOAPODS: 1.11.3

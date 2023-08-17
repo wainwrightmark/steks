@@ -105,8 +105,14 @@ impl DesignedLevel {
         self.stages.len() + 1
     }
 
-    pub fn all_stages(&self) -> impl Iterator<Item = LevelStage> + '_ {
-        std::iter::once(self.initial_stage.clone()).chain(self.stages.iter().cloned())
+    pub fn all_stages(&self) -> impl Iterator<Item = &LevelStage> + '_ {
+        std::iter::once(&self.initial_stage).chain(self.stages.iter())
+    }
+
+    pub fn get_medal(&self, height: f32) -> MedalType {
+        let num_shapes = self.all_stages().map(|z| z.shapes.len()).sum();//TODO handle void shapes
+
+        MedalType::guess(height, num_shapes)//TODO specific values for each medal
     }
 }
 

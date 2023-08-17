@@ -176,10 +176,25 @@ impl ChildrenAspect for MainPanel {
             commands.add_child(1, ButtonPanel, context);
 
             let show_store_buttons =
-                context.1.completion.is_complete() && context.0.is_game_splash() && IS_DEMO;
+                IS_DEMO && context.1.completion.is_complete() && context.0.is_game_splash();
 
             if show_store_buttons {
                 commands.add_child(2, StoreButtonPanel, context);
+            }
+
+            if context.0.is_game_splash() {
+                if let LevelCompletion::Complete { score_info } = context.1.completion {
+                    if let Some(path) = score_info.medal.path() {
+                        commands.add_child(
+                            3,
+                            ImageNode {
+                                path,
+                                image_node_style: MEDALS_IMAGE_STYLE.clone(),
+                            },
+                            &context.2,
+                        );
+                    }
+                }
             }
         }
     }
@@ -294,16 +309,6 @@ impl ComponentsAspect for TextPanel {
             },
             ..Default::default()
         });
-
-        // commands.insert(Transition {
-        //     step: TransitionStep::<TextColorLens<0>>::new_arc(
-        //         Color::NONE,
-        //         Some(ScalarSpeed {
-        //             amount_per_second: 0.05,
-        //         }),
-        //         None,
-        //     ),
-        // })
     }
 }
 

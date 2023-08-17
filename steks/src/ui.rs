@@ -32,8 +32,10 @@ pub(crate) fn icon_button_node(button_action: ButtonAction) -> TextButtonNode<Bu
     }
 }
 
-
-pub(crate) fn image_button_node(button_action: ButtonAction, image_handle: &'static str) -> ImageButtonNode<ButtonComponent> {
+pub(crate) fn image_button_node(
+    button_action: ButtonAction,
+    image_handle: &'static str,
+) -> ImageButtonNode<ButtonComponent> {
     ImageButtonNode {
         image_handle,
         button_node_style: IMAGE_BUTTON_STYLE.clone(),
@@ -45,27 +47,31 @@ pub(crate) fn image_button_node(button_action: ButtonAction, image_handle: &'sta
     }
 }
 
-pub(crate) fn text_button_node(button_action: ButtonAction, centred: bool) -> TextButtonNode<ButtonComponent> {
-    text_button_node_with_text(button_action, button_action.text(), centred)
+pub(crate) fn text_button_node(
+    button_action: ButtonAction,
+    centred: bool,
+    disabled: bool
+) -> TextButtonNode<ButtonComponent> {
+    text_button_node_with_text(button_action, button_action.text(), centred, disabled)
 }
 
 pub(crate) fn text_button_node_with_text(
     button_action: ButtonAction,
     text: String,
-    centred:bool
+    centred: bool,
+    disabled: bool
 ) -> TextButtonNode<ButtonComponent> {
-
-    let button_node_style = if centred{
+    let button_node_style = if centred {
         TEXT_BUTTON_STYLE_CENTRED.clone()
-    }else{
+    } else {
         TEXT_BUTTON_STYLE_LEFT.clone()
     };
     TextButtonNode {
         text,
-        text_node_style: TEXT_BUTTON_TEXT_STYLE.clone(),
+        text_node_style: disabled.then(||TEXT_BUTTON_TEXT_STYLE_DISABLED.clone()).unwrap_or_else(|| TEXT_BUTTON_TEXT_STYLE.clone()) ,
         button_node_style,
         marker: ButtonComponent {
-            disabled: false,
+            disabled,
             button_action,
             button_type: ButtonType::Text,
         },
@@ -73,6 +79,22 @@ pub(crate) fn text_button_node_with_text(
 }
 
 lazy_static! {
+
+    pub(crate) static ref MEDALS_IMAGE_STYLE: Arc<ImageNodeStyle> = Arc::new(ImageNodeStyle { background_color: Color::WHITE, style:
+        Style {
+            width: Val::Px(MEDAL_IMAGE_WIDTH),
+            height: Val::Px(MEDAL_IMAGE_HEIGHT),
+            margin: UiRect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_grow: 0.0,
+            flex_shrink: 0.0,
+            ..Default::default()
+        }
+
+     }
+    );
+
     pub(crate) static ref ICON_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
         style: Style {
             width: Val::Px(ICON_BUTTON_WIDTH),
@@ -169,6 +191,14 @@ lazy_static! {
     pub(crate) static ref TEXT_BUTTON_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
         font_size: BUTTON_FONT_SIZE,
         color: BUTTON_TEXT_COLOR,
+        font: constants::MENU_TEXT_FONT_PATH,
+        alignment: TextAlignment::Left,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
+    });
+
+    pub(crate) static ref TEXT_BUTTON_TEXT_STYLE_DISABLED: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
+        font_size: BUTTON_FONT_SIZE,
+        color: DISABLED_BUTTON_BACKGROUND,
         font: constants::MENU_TEXT_FONT_PATH,
         alignment: TextAlignment::Left,
         linebreak_behavior: bevy::text::BreakLineOn::NoWrap

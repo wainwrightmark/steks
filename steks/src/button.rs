@@ -6,6 +6,10 @@ pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
 
 
+pub const MEDAL_IMAGE_HEIGHT: f32 = 64.;
+pub const MEDAL_IMAGE_WIDTH: f32 = 2. * MEDAL_IMAGE_HEIGHT;
+
+
 pub const IMAGE_BUTTON_WIDTH: f32 = 2.584 * IMAGE_BUTTON_HEIGHT;
 pub const IMAGE_BUTTON_HEIGHT: f32 = 60.;
 

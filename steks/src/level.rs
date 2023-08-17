@@ -34,7 +34,7 @@ fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<Shape
             //let today = get_today_date();
             let seed =
                 ((date.year().unsigned_abs() * 2000) + (date.month() * 100) + date.day()) as u64;
-            (0..GameLevel::CHALLENGE_SHAPES)
+            (0..CHALLENGE_SHAPES)
                 .map(|i| {
                     ShapeCreationData::from(ShapeIndex::from_seed_no_circle(seed + i as u64))
                         .with_random_velocity()
@@ -386,12 +386,15 @@ pub struct ScoreInfo {
     pub is_pb: bool,
     pub is_first_win: bool,
 
+    pub medal: MedalType,
+
     pub wr: Option<f32>,
     pub pb: f32,
 }
 
 impl ScoreInfo {
     pub fn generate(
+        level: &GameLevel,
         shapes: &ShapesVec,
         leaderboard: &Res<Leaderboard>,
         pbs: &Res<PersonalBests>,
@@ -406,10 +409,14 @@ impl ScoreInfo {
 
         let old_height = pbs.map.get(&hash);
 
-        let pb = *old_height.unwrap_or(&0.0);
+        let pb = old_height.map(|x| x.height).unwrap_or(0.0);
 
         let is_wr = wr.map(|x| x < height).unwrap_or_default();
         let is_pb = pb < height;
+
+        let best = pb.max(height);
+
+        let medal = level.get_medal(best);
 
         ScoreInfo {
             height,
@@ -418,6 +425,7 @@ impl ScoreInfo {
             is_first_win: old_height.is_none(),
             wr,
             pb,
+            medal
         }
     }
 }
@@ -462,6 +470,16 @@ impl GameLevel {
     pub const CREDITS: Self = GameLevel::Designed {
         meta: DesignedLevelMeta::Credits,
     };
+
+    pub fn get_medal(&self, height: f32) -> MedalType {
+        match self {
+            GameLevel::Designed { meta } => meta.get_level().get_medal(height),
+            GameLevel::Infinite { .. } => MedalType::Incomplete,
+            GameLevel::Challenge { .. } => MedalType::guess(height, CHALLENGE_SHAPES),
+            GameLevel::Loaded { .. } => MedalType::Incomplete,
+            GameLevel::Begging => MedalType::Incomplete,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
@@ -595,11 +613,6 @@ impl Default for GameLevel {
     }
 }
 
-impl GameLevel {
-    pub const CHALLENGE_SHAPES: usize = 10;
-    pub const INFINITE_SHAPES: usize = 4;
-}
-
 #[derive(Debug, Clone, Event)]
 pub enum ChangeLevelEvent {
     Next,
@@ -628,8 +641,7 @@ pub enum ChangeLevelEvent {
 
 impl ChangeLevelEvent {
     pub fn try_from_path(path: String) -> Option<Self> {
-
-        if path.is_empty() || path.eq_ignore_ascii_case("/"){
+        if path.is_empty() || path.eq_ignore_ascii_case("/") {
             return None;
         }
 

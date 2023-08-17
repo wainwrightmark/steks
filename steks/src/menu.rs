@@ -1,7 +1,7 @@
+use crate::{designed_level, prelude::*};
 use state_hierarchy::{impl_hierarchy_root, prelude::*};
 use strum::EnumIs;
-
-use crate::{designed_level, prelude::*};
+type MenuContext = NC2<NC4<MenuState, GameSettings, CampaignCompletion, Insets>, AssetServer>;
 
 pub struct MenuPlugin;
 
@@ -94,7 +94,7 @@ pub struct MenuRoot;
 impl_hierarchy_root!(MenuRoot);
 
 impl HasContext for MenuRoot {
-    type Context = NC4<MenuState, GameSettings, AssetServer, Insets>;
+    type Context = MenuContext;
 }
 
 impl ChildrenAspect for MenuRoot {
@@ -116,9 +116,9 @@ impl ChildrenAspect for MenuRoot {
             })
         }
 
-        let carousel = match context.0.as_ref() {
+        let carousel = match context.0.0.as_ref() {
             MenuState::Closed => {
-                commands.add_child("open_icon", menu_button_node(), &context.2);
+                commands.add_child("open_icon", menu_button_node(), &context.1);
                 return;
             }
             MenuState::ShowMainMenu => Carousel::new(0, get_carousel_child, transition_duration),
@@ -137,7 +137,7 @@ impl ChildrenAspect for MenuRoot {
 pub struct SettingsPage;
 
 impl HasContext for SettingsPage {
-    type Context = NC4<MenuState, GameSettings, AssetServer, Insets>;
+    type Context = MenuContext;
 }
 
 impl ComponentsAspect for SettingsPage {
@@ -153,7 +153,7 @@ impl ComponentsAspect for SettingsPage {
                 position_type: PositionType::Absolute,
                 left: Val::Percent(50.0),
                 right: Val::Percent(50.0),
-                top: context.3.menu_top(),
+                top: context.0.3.menu_top(),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
 
@@ -172,9 +172,9 @@ impl ChildrenAspect for SettingsPage {
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
-        info!("Setting Settings Children {:?}", context.1);
+        // info!("Setting Settings Children {:?}", context.0.1);
 
-        let arrows_text = if context.1.show_arrows {
+        let arrows_text = if context.0.1.show_arrows {
             "Rotation Arrows  "
         } else {
             "Rotation Arrows  "
@@ -182,11 +182,16 @@ impl ChildrenAspect for SettingsPage {
 
         commands.add_child(
             "rotation",
-            text_button_node_with_text(ButtonAction::ToggleArrows, arrows_text.to_string(), true),
-            &context.2,
+            text_button_node_with_text(
+                ButtonAction::ToggleArrows,
+                arrows_text.to_string(),
+                true,
+                false,
+            ),
+            &context.1,
         );
 
-        let outlines_text = if context.1.show_touch_outlines {
+        let outlines_text = if context.0.1.show_touch_outlines {
             "Touch Outlines   "
         } else {
             "Touch Outlines   "
@@ -198,18 +203,19 @@ impl ChildrenAspect for SettingsPage {
                 ButtonAction::ToggleTouchOutlines,
                 outlines_text.to_string(),
                 true,
+                false,
             ),
-            &context.2,
+            &context.1,
         );
 
-        let sensitivity_text = match context.1.rotation_sensitivity {
+        let sensitivity_text = match context.0.1.rotation_sensitivity {
             RotationSensitivity::Low => "Sensitivity    Low",
             RotationSensitivity::Medium => "Sensitivity Medium",
             RotationSensitivity::High => "Sensitivity   High",
             RotationSensitivity::Extreme => "Sensitivity Extreme",
         };
 
-        let next_sensitivity = context.1.rotation_sensitivity.next();
+        let next_sensitivity = context.0.1.rotation_sensitivity.next();
 
         commands.add_child(
             "sensitivity",
@@ -217,29 +223,35 @@ impl ChildrenAspect for SettingsPage {
                 ButtonAction::SetRotationSensitivity(next_sensitivity),
                 sensitivity_text.to_string(),
                 true,
+                false,
             ),
-            &context.2,
+            &context.1,
         );
 
         #[cfg(any(feature = "android", feature = "ios"))]
         {
             commands.add_child(
                 "sync_achievements",
-                text_button_node(ButtonAction::SyncAchievements, true),
-                &context.2,
+                text_button_node(ButtonAction::SyncAchievements, true, false),
+                &context.1,
             );
 
             commands.add_child(
                 "show_achievements",
-                text_button_node(ButtonAction::ShowAchievements, true),
-                &context.2,
+                text_button_node(ButtonAction::ShowAchievements, true, false),
+                &context.1,
             );
         }
 
         commands.add_child(
             "back",
-            text_button_node_with_text(ButtonAction::ToggleSettings, "Back".to_string(), true),
-            &context.2,
+            text_button_node_with_text(
+                ButtonAction::ToggleSettings,
+                "Back".to_string(),
+                true,
+                false,
+            ),
+            &context.1,
         );
     }
 }
@@ -248,7 +260,7 @@ impl ChildrenAspect for SettingsPage {
 pub struct MainMenu;
 
 impl HasContext for MainMenu {
-    type Context = NC4<MenuState, GameSettings, AssetServer, Insets>;
+    type Context = MenuContext;
 }
 
 impl ComponentsAspect for MainMenu {
@@ -264,7 +276,7 @@ impl ComponentsAspect for MainMenu {
                 position_type: PositionType::Absolute,
                 left: Val::Percent(50.0),
                 right: Val::Percent(50.0),
-                top: context.3.menu_top(),
+                top: context.0.3.menu_top(),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
 
@@ -302,9 +314,9 @@ impl ChildrenAspect for MainMenu {
         ];
 
         for (key, action) in buttons.iter().enumerate() {
-            let button = text_button_node(*action, true);
+            let button = text_button_node(*action, true, false);
 
-            commands.add_child(key as u32, button, &context.2)
+            commands.add_child(key as u32, button, &context.1)
         }
     }
 }
@@ -313,7 +325,7 @@ impl ChildrenAspect for MainMenu {
 pub struct LevelMenu(u8);
 
 impl HasContext for LevelMenu {
-    type Context = NC4<MenuState, GameSettings, AssetServer, Insets>;
+    type Context = MenuContext;
 }
 
 impl ComponentsAspect for LevelMenu {
@@ -329,7 +341,7 @@ impl ComponentsAspect for LevelMenu {
                 position_type: PositionType::Absolute,
                 left: Val::Percent(50.0),
                 right: Val::Percent(50.0),
-                top: context.3.menu_top(),
+                top: context.0.3.menu_top(),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
 
@@ -352,14 +364,20 @@ impl ChildrenAspect for LevelMenu {
         let end = start + LEVELS_PER_PAGE;
 
         for (key, level) in (start..end).enumerate() {
+
+            let enabled = match level.checked_sub(1){
+                Some(index) => context.0.2.medals.get(index as usize).is_some_and(|m| !m.is_incomplete()), //check if previous level is complete
+                None => true, //first level always unlocked
+            };
             commands.add_child(
                 key as u32,
-                text_button_node(ButtonAction::GotoLevel { level }, false),
-                &context.2,
+                text_button_node(ButtonAction::GotoLevel { level }, false, !enabled),
+                &context.1,
+
             )
         }
 
-        commands.add_child("buttons", LevelMenuArrows(self.0), &context.2);
+        commands.add_child("buttons", LevelMenuArrows(self.0), &context.1);
     }
 }
 

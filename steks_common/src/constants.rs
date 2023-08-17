@@ -20,8 +20,6 @@ pub const SECONDS_PER_FRAME: f32 = 1. / 60.;
 pub const LONG_WIN_SECONDS: f32 = 5.0;
 pub const SHORT_WIN_SECONDS: f32 = 1.5;
 
-
-
 pub const SHAPE_COLLISION_GROUP: Group = Group::GROUP_1;
 pub const WALL_COLLISION_GROUP: Group = Group::GROUP_2;
 pub const RAIN_COLLISION_GROUP: Group = Group::GROUP_3;
@@ -47,6 +45,9 @@ pub const DRAGGED_DENSITY: f32 = 0.10;
 pub const DEFAULT_RESTITUTION: f32 = 0.3;
 
 pub const INFINITE_MODE_STARTING_SHAPES: usize = 3;
+
+pub const CHALLENGE_SHAPES: usize = 10;
+//pub const INFINITE_SHAPES: usize = 4;
 
 // About 400 is a good amount of wind
 pub const GRAVITY: Vec2 = Vec2::new(0.0, -1000.0);

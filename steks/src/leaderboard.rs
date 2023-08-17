@@ -4,10 +4,67 @@ use bevy::{log, prelude::*, tasks::IoTaskPool};
 use chrono::NaiveDate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
+use strum::EnumIs;
 
 use crate::prelude::*;
 
-pub type LevelRecordMap = BTreeMap<u64, f32>;
+pub type PBMap = BTreeMap<u64, LevelRecord>;
+pub type LeaderMap = BTreeMap<u64, f32>;
+
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+
+pub struct LevelRecord {
+    pub medal: MedalType,
+    pub height: f32,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Default,
+    Serialize_repr,
+    Deserialize_repr,
+    EnumIs,
+    PartialOrd,
+    Ord,
+)]
+#[repr(u8)]
+pub enum MedalType {
+    #[default]
+    Incomplete,
+    Bronze,
+    Silver,
+    Gold,
+}
+
+impl MedalType {
+    pub fn guess(height: f32, num_shapes: usize) -> Self {
+        //TODO use a better system
+
+        if height <= 0.0 {
+            MedalType::Incomplete
+        } else if height < (num_shapes as f32) * 35. {
+            MedalType::Bronze
+        } else if height < (num_shapes as f32) * 40. {
+            MedalType::Silver
+        } else {
+            MedalType::Gold
+        }
+    }
+
+    pub fn path(&self) -> Option<&'static str> {
+        match self {
+            MedalType::Incomplete => None,
+            MedalType::Bronze => Some("images/MedalsBronze.png"),
+            MedalType::Silver => Some("images/MedalsSilver.png"),
+            MedalType::Gold => Some("images/MedalsGold.png"),
+        }
+    }
+}
 
 pub struct LeaderboardPlugin;
 
@@ -28,12 +85,12 @@ impl Plugin for LeaderboardPlugin {
 
 #[derive(Debug, Resource, Default)]
 pub struct Leaderboard {
-    pub map: Option<LevelRecordMap>,
+    pub map: Option<LeaderMap>,
 }
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize)]
 pub struct PersonalBests {
-    pub map: LevelRecordMap,
+    pub map: PBMap,
 }
 
 impl TrackableResource for PersonalBests {
@@ -42,11 +99,30 @@ impl TrackableResource for PersonalBests {
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize)]
 pub struct CampaignCompletion {
-    pub highest_level_completed: u8,
+    pub medals: Vec<MedalType>,
 }
 
 impl TrackableResource for CampaignCompletion {
     const KEY: &'static str = "CampaignCompletion";
+}
+
+impl CampaignCompletion {
+    // pub fn first_locked_level(&self) -> usize {
+    //     match self.medals.iter().find_position(|x| x.is_incomplete()) {
+    //         Some((index, _)) => index + 1,
+    //         None => CAMPAIGN_LEVELS.len() + 1,
+    //     }
+    // }
+
+    pub fn fill_with_incomplete(completion: &mut ResMut<CampaignCompletion>) {
+        let Some(take) = CAMPAIGN_LEVELS.len().checked_sub(completion.medals.len()) else {return;};
+
+        if take > 0 {
+            completion
+                .medals
+                .extend(std::iter::repeat(MedalType::Incomplete).take(take));
+        }
+    }
 }
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize)]
@@ -65,7 +141,12 @@ pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
 fn check_for_cheat_on_game_load(mut completion: ResMut<CampaignCompletion>) {
     if is_cheat_in_path().is_some() {
         info!("Found cheat in path");
-        completion.highest_level_completed = 99;
+
+        CampaignCompletion::fill_with_incomplete(&mut completion);
+
+        for m in completion.medals.iter_mut().filter(|x| x.is_incomplete()) {
+            *m = MedalType::Bronze;
+        }
     }
 }
 
@@ -185,6 +266,8 @@ fn update_campaign_completion(
         return;
     }
 
+    let LevelCompletion::Complete { score_info }  = current_level.completion else {return;};
+
     if !current_level.completion.is_complete() {
         return;
     }
@@ -194,10 +277,14 @@ fn update_campaign_completion(
             meta: DesignedLevelMeta::Campaign { index },
         } => index,
         _ => return,
-    } + 1;
+    };
 
-    if campaign_completion.highest_level_completed < index {
-        if index == 7 || index == 25 || index == 40 {
+    CampaignCompletion::fill_with_incomplete(&mut campaign_completion);
+
+    let medal_type = campaign_completion.medals[index as usize];
+
+    if medal_type < score_info.medal {
+        if matches!(index + 1, 7 | 25 | 40) && medal_type == MedalType::Incomplete {
             #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
             {
                 bevy::tasks::IoTaskPool::get()
@@ -206,7 +293,7 @@ fn update_campaign_completion(
             }
         }
 
-        campaign_completion.highest_level_completed = index;
+        campaign_completion.medals[index as usize] = score_info.medal;
     }
 }
 
@@ -228,19 +315,22 @@ fn update_leaderboard_on_completion(
 
     let hash = ShapesVec::from_query(shapes_query).hash();
 
-    //info!("Level complete {hash}");
+    let record = LevelRecord {
+        height,
+        medal: MedalType::Incomplete,
+    };
 
     let pb_changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
         .map
         .entry(hash)
     {
         std::collections::btree_map::Entry::Vacant(v) => {
-            v.insert(height);
+            v.insert(record);
             true
         }
         std::collections::btree_map::Entry::Occupied(mut o) => {
-            if o.get() + 0.01 < height {
-                o.insert(height);
+            if o.get().height + 0.01 < height {
+                o.insert(record);
                 true
             } else {
                 false
@@ -331,8 +421,7 @@ pub fn try_show_leaderboard(level: &CurrentLevel) {
         #[cfg(any(feature = "android", feature = "ios"))]
         {
             use capacitor_bindings::game_connect::*;
-            let options =
-                ShowLeaderboardOptions { leaderboard_id };
+            let options = ShowLeaderboardOptions { leaderboard_id };
 
             bevy::tasks::IoTaskPool::get()
                 .spawn(async move {

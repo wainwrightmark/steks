@@ -56,12 +56,21 @@ impl MedalType {
         }
     }
 
-    pub fn path(&self) -> Option<&'static str> {
+    pub fn three_medals_asset_path(&self) -> &'static str {
         match self {
-            MedalType::Incomplete => None,
-            MedalType::Bronze => Some("images/MedalsBronze.png"),
-            MedalType::Silver => Some("images/MedalsSilver.png"),
-            MedalType::Gold => Some("images/MedalsGold.png"),
+            MedalType::Incomplete => "images/medals/ThreeMedalsBlack.png",
+            MedalType::Bronze => "images/medals/ThreeMedalsBronze.png",
+            MedalType::Silver => "images/medals/ThreeMedalsSilver.png",
+            MedalType::Gold => "images/medals/ThreeMedalsGold.png",
+        }
+    }
+
+    pub fn one_medals_asset_path(&self) -> &'static str {
+        match self {
+            MedalType::Incomplete => "images/medals/OneMedalBlack.png",
+            MedalType::Bronze => "images/medals/OneMedalBronze.png",
+            MedalType::Silver => "images/medals/OneMedalSilver.png",
+            MedalType::Gold => "images/medals/OneMedalGold.png",
         }
     }
 }

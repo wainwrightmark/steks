@@ -369,9 +369,16 @@ impl ChildrenAspect for LevelMenu {
                 Some(index) => context.0.2.medals.get(index as usize).is_some_and(|m| !m.is_incomplete()), //check if previous level is complete
                 None => true, //first level always unlocked
             };
+
+            let medal = context.0.2.medals.get(level as usize).cloned().unwrap_or_default();
+
             commands.add_child(
                 key as u32,
-                text_button_node(ButtonAction::GotoLevel { level }, false, !enabled),
+                text_button_node_with_text_and_image(ButtonAction::GotoLevel { level },  ButtonAction::GotoLevel { level }.text(), false, !enabled,
+                medal.one_medals_asset_path(),
+                LEVEL_MEDALS_IMAGE_STYLE.clone()
+
+            ),
                 &context.1,
 
             )
@@ -404,14 +411,14 @@ impl StaticComponentsAspect for LevelMenuArrows {
                 margin: UiRect {
                     left: Val::Auto,
                     right: Val::Auto,
-                    top: Val::Px(5.0),
-                    bottom: Val::Px(5.0),
+                    top: Val::Px(MENU_TOP_BOTTOM_MARGIN),
+                    bottom: Val::Px(MENU_TOP_BOTTOM_MARGIN),
                 },
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 flex_grow: 0.0,
                 flex_shrink: 0.0,
-                border: UiRect::all(UI_BORDER_WIDTH),
+                border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
 
                 ..Default::default()
             },

@@ -436,17 +436,6 @@ impl Default for LevelCompletion {
     }
 }
 
-impl LevelCompletion {
-    pub fn is_button_visible(&self, button: &ButtonAction) -> bool {
-        use ButtonAction::*;
-        use LevelCompletion::*;
-        match self {
-            Incomplete { .. } => false,
-            Complete { .. } => matches!(button, NextLevel | Share | RestoreSplash | MinimizeSplash),
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum GameLevel {
     Designed { meta: DesignedLevelMeta },

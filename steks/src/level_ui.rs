@@ -147,7 +147,7 @@ impl ComponentsAspect for MainPanel {
                 flex_direction,
                 margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
                 justify_content: JustifyContent::Center,
-                border: UiRect::all(UI_BORDER_WIDTH),
+                border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
                 ..Default::default()
             },
 
@@ -170,31 +170,35 @@ impl ChildrenAspect for MainPanel {
         commands: &mut impl ChildCommands,
     ) {
         if context.1.level.is_begging() {
-            commands.add_child(100, BeggingPanel, context);
+            commands.add_child("begging", BeggingPanel, context);
         } else {
-            commands.add_child(0, TextPanel, context);
-            commands.add_child(1, ButtonPanel, context);
+            commands.add_child("text", TextPanel, context);
+
 
             let show_store_buttons =
                 IS_DEMO && context.1.completion.is_complete() && context.0.is_game_splash();
 
-            if show_store_buttons {
-                commands.add_child(2, StoreButtonPanel, context);
-            }
+
 
             if context.0.is_game_splash() {
                 if let LevelCompletion::Complete { score_info } = context.1.completion {
-                    if let Some(path) = score_info.medal.path() {
+                    if !score_info.medal.is_incomplete() {
                         commands.add_child(
-                            3,
+                            "medals",
                             ImageNode {
-                                path,
-                                image_node_style: MEDALS_IMAGE_STYLE.clone(),
+                                path: score_info.medal.three_medals_asset_path(),
+                                image_node_style: THREE_MEDALS_IMAGE_STYLE.clone(),
                             },
                             &context.2,
                         );
                     }
                 }
+            }
+
+            commands.add_child("buttons", ButtonPanel, context);
+
+            if show_store_buttons {
+                commands.add_child("store", StoreButtonPanel, context);
             }
         }
     }
@@ -329,28 +333,28 @@ impl ChildrenAspect for ButtonPanel {
         if context.1.completion.is_complete() {
             if context.0.is_game_splash() {
                 commands.add_child(
-                    0,
+                    "splash",
                     icon_button_node(ButtonAction::MinimizeSplash),
                     &context.2,
                 );
             } else {
-                commands.add_child(0, icon_button_node(ButtonAction::RestoreSplash), &context.2);
+                commands.add_child("splash", icon_button_node(ButtonAction::RestoreSplash), &context.2);
             }
 
-            commands.add_child(1, icon_button_node(ButtonAction::Share), &context.2);
+            commands.add_child("share", icon_button_node(ButtonAction::Share), &context.2);
 
             #[cfg(any(feature = "android", feature = "ios"))]
             {
                 if context.1.leaderboard_id().is_some() {
                     commands.add_child(
-                        2,
+                        "leaderboard",
                         icon_button_node(ButtonAction::ShowLeaderboard),
                         &context.2,
                     );
                 }
             }
 
-            commands.add_child(3, icon_button_node(ButtonAction::NextLevel), &context.2);
+            commands.add_child("next", icon_button_node(ButtonAction::NextLevel), &context.2);
         }
     }
 }
@@ -393,12 +397,12 @@ impl ChildrenAspect for StoreButtonPanel {
     ) {
         commands.add_child(
             4,
-            image_button_node(ButtonAction::GooglePlay, "images/google-play-badge.png"),
+            image_button_node(ButtonAction::GooglePlay, "images/google-play-badge.png", BADGE_BUTTON_STYLE.clone(), BADGE_IMAGE_STYLE.clone()),
             &context.2,
         );
         commands.add_child(
             5,
-            image_button_node(ButtonAction::Apple, "images/apple-store-badge.png"),
+            image_button_node(ButtonAction::Apple, "images/apple-store-badge.png", BADGE_BUTTON_STYLE.clone(),BADGE_IMAGE_STYLE.clone()),
             &context.2,
         );
     }

@@ -79,7 +79,7 @@ pub const MENU_TEXT_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const ICON_FONT_PATH: &str = "fonts/merged-font.ttf";
 
 pub const ICON_FONT_SIZE: f32 = 30.0;
-pub const BUTTON_FONT_SIZE: f32 = 22.0;
+pub const BUTTON_FONT_SIZE: f32 = 20.0;
 
 pub const LEVEL_TITLE_FONT_SIZE: f32 = 30.0;
 pub const LEVEL_TEXT_FONT_SIZE: f32 = 20.0;

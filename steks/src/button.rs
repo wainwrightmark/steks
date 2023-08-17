@@ -6,19 +6,25 @@ pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
 
 
-pub const MEDAL_IMAGE_HEIGHT: f32 = 64.;
-pub const MEDAL_IMAGE_WIDTH: f32 = 2. * MEDAL_IMAGE_HEIGHT;
+pub const THREE_MEDALS_IMAGE_HEIGHT: f32 = 64.;
+pub const THREE_MEDALS_IMAGE_WIDTH: f32 = 2. * THREE_MEDALS_IMAGE_HEIGHT;
 
 
-pub const IMAGE_BUTTON_WIDTH: f32 = 2.584 * IMAGE_BUTTON_HEIGHT;
-pub const IMAGE_BUTTON_HEIGHT: f32 = 60.;
+pub const ONE_MEDALS_IMAGE_HEIGHT: f32 = 1.5 * ONE_MEDALS_IMAGE_WIDTH;
+pub const ONE_MEDALS_IMAGE_WIDTH: f32 = 32.;
+
+
+pub const BADGE_BUTTON_WIDTH: f32 = 2.584 * BADGE_BUTTON_HEIGHT;
+pub const BADGE_BUTTON_HEIGHT: f32 = 60.;
 
 pub const TEXT_BUTTON_WIDTH: f32 = 360.;
-pub const TEXT_BUTTON_HEIGHT: f32 = 60.;
+pub const TEXT_BUTTON_HEIGHT: f32 = 50.;
+
+pub const MENU_TOP_BOTTOM_MARGIN: f32 = 4.0;
 
 //pub const MENU_OFFSET: f32 = 10.;
 
-pub const UI_BORDER_WIDTH: Val = Val::Px(3.0);
+pub const UI_BORDER_WIDTH: f32 = 3.0;
 
 pub struct ButtonPlugin;
 
@@ -269,14 +275,14 @@ pub fn spawn_text_button_with_text(
             margin: UiRect {
                 left: Val::Auto,
                 right: Val::Auto,
-                top: Val::Px(5.0),
-                bottom: Val::Px(5.0),
+                top: Val::Px(MENU_TOP_BOTTOM_MARGIN),
+                bottom: Val::Px(MENU_TOP_BOTTOM_MARGIN),
             },
             justify_content,
             align_items: AlignItems::Center,
             flex_grow: 0.0,
             flex_shrink: 0.0,
-            border: UiRect::all(UI_BORDER_WIDTH),
+            border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
 
             ..Default::default()
         },
@@ -388,9 +394,11 @@ fn button_system(
                 ChooseLevel => menu_state.as_mut().toggle_levels(current_level.as_ref()),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeSplash => {
+                    info!("Minimizing Splash");
                     *game_ui_state = GameUIState::GameMinimized;
                 }
                 RestoreSplash => {
+                    info!("Restoring Splash");
                     *game_ui_state = GameUIState::GameSplash;
                 }
                 MinimizeApp => {

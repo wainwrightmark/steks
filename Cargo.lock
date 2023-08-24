@@ -240,15 +240,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-mutex"
-version = "1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "479db852db25d9dbf6204e6cb6253698f175c15726470f78af0d918e99d6156e"
-dependencies = [
- "event-listener",
-]
-
-[[package]]
 name = "async-stream"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1761,7 +1752,7 @@ checksum = "4063f159509d87fbcfb972ba32deaa6d67aef4907e30f29db70657cd09954492"
 dependencies = [
  "const_panic",
  "glam",
- "itertools 0.11.0",
+ "itertools",
  "strum",
  "tinyvec",
 ]
@@ -2187,15 +2178,6 @@ checksum = "28b29a3cd74f0f4598934efe3aeba42bae0eb4680554128851ebbecb02af14e6"
 
 [[package]]
 name = "itertools"
-version = "0.10.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
@@ -2298,7 +2280,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "aws_lambda_events",
- "itertools 0.10.5",
+ "itertools",
  "lambda_runtime",
  "planetscale-driver",
  "reqwest",
@@ -2987,17 +2969,17 @@ checksum = "26072860ba924cbfa98ea39c8c19b4dd6a4a25423dbdf219c1eca91aa0cf6964"
 
 [[package]]
 name = "planetscale-driver"
-version = "0.4.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5a1bfae2de79dba9c9d9a6023e41c8d0d111177f1a6eb3e277de7b6669af1ea"
+checksum = "16010d299a1e551ab357c9ff3844d3371f1a374528d096765f20f3d3380627d2"
 dependencies = [
  "anyhow",
- "async-mutex",
  "base64",
  "planetscale-driver-macros",
  "reqwest",
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -3810,7 +3792,7 @@ dependencies = [
  "console_error_panic_hook",
  "geometrid",
  "insta",
- "itertools 0.11.0",
+ "itertools",
  "js-sys",
  "lazy_static",
  "maveric",

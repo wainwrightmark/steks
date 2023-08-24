@@ -253,14 +253,14 @@ async fn get_leaderboard_data() -> LeaderboardDataEvent {
     }
 }
 
-async fn update_leaderboard(hash: u64, height: f32) -> Result<(), reqwest::Error> {
+async fn update_leaderboard(hash: u64, height: f32, blob: String) -> Result<(), reqwest::Error> {
     if cfg!(debug_assertions) {
         return Ok(());
     }
 
     let client = reqwest::Client::new();
     let res = client
-            .post(format!("https://steks.net/.netlify/functions/leaderboard?command=set&hash={hash}&height={height:.2}"))
+            .post(format!("https://steks.net/.netlify/functions/leaderboard?command=set&hash={hash}&height={height:.2}&blob={blob}"))
             .send()
             .await?;
 
@@ -322,7 +322,9 @@ fn update_leaderboard_on_completion(
         return;
     };
 
-    let hash = ShapesVec::from_query(shapes_query).hash();
+    let sv = ShapesVec::from_query(shapes_query);
+
+    let hash = sv.hash();
 
     let record = LevelRecord {
         height,
@@ -397,7 +399,7 @@ fn update_leaderboard_on_completion(
                 log::info!("Updating leaderboard {hash} {height}");
                 IoTaskPool::get()
                     .spawn(async move {
-                        match update_leaderboard(hash, height).await {
+                        match update_leaderboard(hash, height, sv.make_base64_data()).await {
                             Ok(_) => log::info!("Updated leaderboard {hash} {height}"),
                             Err(_err) => {
                                 #[cfg(target_arch = "wasm32")]

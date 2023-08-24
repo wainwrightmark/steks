@@ -70,8 +70,9 @@ pub(crate) async fn my_handler(
             let hash: u64 = hash.parse()?;
             let height = get_parameter(&e, "height").ok_or_else(|| "Could not get height")?;
             let height: f32 = height.parse()?;
+            let blob = get_parameter(&e, "blob").ok_or_else(|| "Could not get blob")?;
 
-            try_set(height, hash).await?;
+            try_set(height, hash, blob).await?;
             let resp = ApiGatewayProxyResponse {
                 status_code: 200,
                 headers,
@@ -85,18 +86,20 @@ pub(crate) async fn my_handler(
     }
 }
 
-async fn try_set(height: f32, hash: u64) -> Result<(), Error> {
+async fn try_set(height: f32, hash: u64, blob: &str) -> Result<(), Error> {
     let mut connection = connect_to_database();
 
     query(
         "
-
-            Insert into tower_height (shapes_hash, max_height) Values($0, $1)
+            Insert into tower_height (shapes_hash, max_height, blob) Values($0, $1, $2)
             ON DUPLICATE KEY UPDATE
-            max_height = IF (max_height > $1, max_height, $1);",
+            max_height = IF (max_height > $1, max_height, $1);
+            blob = IF (max_height > $1, blob, $2);
+            ",
     )
     .bind(hash)
     .bind(height)
+    .bind(blob)
     .execute(&mut connection)
     .await?;
 

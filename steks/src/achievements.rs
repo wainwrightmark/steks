@@ -203,18 +203,15 @@ fn track_level_completion_achievements(
 
     if current_level.is_changed() {
         if let LevelCompletion::Incomplete { stage } = current_level.completion {
-            match current_level.level {
-                Infinite { .. } => {
-                    if let Some(achievement) = match stage + 2 {
-                        5 => Some(InfinityMinus5),
-                        10 => Some(AlephOmega),
-                        20 => Some(EverythingEverywhereAllAtOnce),
-                        _ => None,
-                    } {
-                        Achievements::unlock_if_locked(&mut achievements, achievement);
-                    }
+            if let Infinite { .. } = current_level.level {
+                if let Some(achievement) = match stage + 2 {
+                    5 => Some(InfinityMinus5),
+                    10 => Some(AlephOmega),
+                    20 => Some(EverythingEverywhereAllAtOnce),
+                    _ => None,
+                } {
+                    Achievements::unlock_if_locked(&mut achievements, achievement);
                 }
-                _ => {}
             }
         } else {
             // level complete

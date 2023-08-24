@@ -549,12 +549,9 @@ impl GameLevel {
     }
 
     pub fn skip_completion(&self) -> bool {
-        match self {
-            GameLevel::Designed {
+        matches!(self, GameLevel::Designed {
                 meta: DesignedLevelMeta::Tutorial { .. },
-            } => true,
-            _ => false,
-        }
+            })
     }
 }
 

@@ -104,10 +104,10 @@ async fn try_set(height: f32, hash: u64, blob: &str) -> Result<(), Error> {
 
     query(
         "
-            Insert into tower_height (shapes_hash, max_height, blob) Values($0, $1, $2)
+            Insert into tower_height (shapes_hash, max_height, image_blob) Values($0, $1, $2)
             ON DUPLICATE KEY UPDATE
             max_height = IF (max_height > $1, max_height, $1),
-            blob = IF (max_height > $1, blob, $2);
+            image_blob = IF (max_height > $1, image_blob, $2);
             ",
     )
     .bind(hash)

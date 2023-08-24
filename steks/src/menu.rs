@@ -170,7 +170,7 @@ impl MavericNode for MenuPage {
                     Tutorial,
                     Share,
                     ToggleSettings,
-                    #[cfg(all(feature = "web"))]
+                    #[cfg(feature = "web")]
                     ClipboardImport, //TODO remove
                     #[cfg(all(feature = "web", target_arch = "wasm32"))]
                     GoFullscreen,

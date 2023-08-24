@@ -32,13 +32,12 @@ fn get_parameter<'a>(
 pub(crate) async fn logging_handler(
     e: LambdaEvent<ApiGatewayProxyRequest>,
 ) -> Result<ApiGatewayProxyResponse, Error> {
-
-    match my_handler(e).await{
+    match my_handler(e).await {
         Ok(r) => Ok(r),
         Err(e) => {
             println!("Error: {e}");
             Err(e)
-        },
+        }
     }
 }
 
@@ -63,7 +62,7 @@ pub(crate) async fn my_handler(
         Command::Get => {
             let mut connection = connect_to_database();
 
-            let rows: Vec<Row> = query("select shapes_hash, max_height FROM tower_height;")
+            let rows: Vec<MiniRow> = query("select shapes_hash, max_height FROM tower_height;")
                 .fetch_all(&mut connection)
                 .await?;
 
@@ -74,6 +73,26 @@ pub(crate) async fn my_handler(
                 headers,
                 multi_value_headers: HeaderMap::new(),
                 body: Some(Body::Text(data)),
+                is_base64_encoded: false,
+            };
+            return Ok(resp);
+        }
+        Command::GetRow => {
+            let hash = get_parameter(&e, "hash").ok_or_else(|| "Could not get hash")?;
+            let hash: u64 = hash.parse()?;
+
+            let connection = connect_to_database();
+
+            let row: FullRow = query("select shapes_hash, max_height, image_blob FROM tower_height where shapes_hash = $0;")
+                .bind(hash)
+                .fetch_one(&connection)
+                .await?;
+
+            let resp = ApiGatewayProxyResponse {
+                status_code: 200,
+                headers,
+                multi_value_headers: HeaderMap::new(),
+                body: Some(Body::Text(row.to_string())),
                 is_base64_encoded: false,
             };
             return Ok(resp);
@@ -104,10 +123,10 @@ async fn try_set(height: f32, hash: u64, blob: &str) -> Result<(), Error> {
 
     query(
         "
-            Insert into tower_height (shapes_hash, max_height, image_blob) Values($0, $1, $2)
+            Insert into tower_height (shapes_hash, max_height, image_blob) Values($0, $1, \"$2\")
             ON DUPLICATE KEY UPDATE
             max_height = IF (max_height > $1, max_height, $1),
-            image_blob = IF (max_height > $1, image_blob, $2);
+            image_blob = IF (max_height > $1, image_blob, \"$2\");
             ",
     )
     .bind(hash)
@@ -129,21 +148,35 @@ fn connect_to_database() -> PSConnection {
 }
 
 #[derive(Debug, Clone, Copy, Database, PartialEq)]
-pub struct Row {
+pub struct MiniRow {
     shapes_hash: u64,
     max_height: f32,
+}
+
+impl Display for MiniRow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{} {}", self.shapes_hash, self.max_height))
+    }
+}
+
+#[derive(Debug, Clone, Database, PartialEq)]
+pub struct FullRow {
+    shapes_hash: u64,
+    max_height: f32,
+    image_blob: String,
+}
+
+impl Display for FullRow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{} {} {}", self.shapes_hash, self.max_height, self.image_blob))
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Command {
     Get,
+    GetRow,
     TrySet,
-}
-
-impl Display for Row {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{} {}", self.shapes_hash, self.max_height))
-    }
 }
 
 impl FromStr for Command {
@@ -152,6 +185,8 @@ impl FromStr for Command {
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         if value.eq_ignore_ascii_case("get") {
             Ok(Self::Get)
+        } else if value.eq_ignore_ascii_case("getrow") {
+            Ok(Self::GetRow)
         } else if value.eq_ignore_ascii_case("set") {
             Ok(Self::TrySet)
         } else {

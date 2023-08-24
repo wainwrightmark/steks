@@ -3,7 +3,7 @@ use std::f32::consts::{FRAC_PI_2, TAU};
 use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke};
-use state_hierarchy::{impl_hierarchy_root, prelude::*};
+use maveric::prelude::*;
 
 #[derive(Debug, Default)]
 pub struct WinCountdownPlugin;
@@ -12,7 +12,7 @@ impl Plugin for WinCountdownPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<WinCountdown>();
         app.add_systems(Update, update_dynamic_elements);
-        app.register_state_hierarchy::<TimerStateRoot>();
+        app.register_maveric::<TimerStateRoot>();
     }
 }
 
@@ -23,7 +23,7 @@ pub struct WinCountdown(pub Option<Countdown>);
 pub struct Countdown {
     pub started_elapsed: Duration,
     pub total_secs: f32,
-    pub event: CheckForWinEvent
+    pub event: CheckForWinEvent,
 }
 
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
@@ -38,8 +38,8 @@ const POSITION_Y: f32 = 200.0;
 fn update_dynamic_elements(
     countdown: Res<WinCountdown>,
     time: Res<Time>,
-    mut marker_circle: Query<&mut Transform, With<CircleMarker>>,
-    mut circle_arc: Query<&mut Path, With<CircleArc>>,
+    mut marker_circle: Query<&mut Transform, With<CircleMarkerComponent>>,
+    mut circle_arc: Query<&mut Path, With<CircleArcComponent>>,
 ) {
     let Some(countdown) = &countdown.0 else{return;};
     let time_used = time.elapsed().saturating_sub(countdown.started_elapsed);
@@ -77,12 +77,12 @@ fn update_dynamic_elements(
 #[derive(Debug, Clone, PartialEq, Default)]
 struct TimerStateRoot;
 
-impl_hierarchy_root!(TimerStateRoot);
+impl_maveric_root!(TimerStateRoot);
 
-impl ChildrenAspect for TimerStateRoot {
+impl RootChildren for TimerStateRoot {
+    type Context = WinCountdown;
+
     fn set_children<'r>(
-        &self,
-        _previous: Option<&Self>,
         context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ChildCommands,
     ) {
@@ -93,36 +93,24 @@ impl ChildrenAspect for TimerStateRoot {
     }
 }
 
-impl HasContext for TimerStateRoot {
-    type Context = WinCountdown;
-}
+#[derive(Debug, Clone, PartialEq, Component)]
+#[component(storage = "SparseSet")]
+pub struct CircleArcComponent;
 
 #[derive(Debug, Clone, PartialEq, Component)]
 #[component(storage = "SparseSet")]
+pub struct CircleMarkerComponent;
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct CircleArc;
-#[derive(Debug, Clone, PartialEq, Component)]
-#[component(storage = "SparseSet")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CircleMarker;
 
-impl HasContext for CircleArc {
+impl MavericNode for CircleArc {
     type Context = NoContext;
-}
-impl HasContext for CircleMarker {
-    type Context = NoContext;
-}
 
-impl HasNoChildren for CircleArc {}
-impl HasNoChildren for CircleMarker {}
-
-impl ComponentsAspect for CircleArc {
-    fn set_components<'r>(
-        &self,
-        _previous: Option<&Self>,
-        _context: &<Self::Context as NodeContext>::Wrapper<'r>,
-        commands: &mut impl ComponentCommands,
-        _event: SetComponentsEvent,
-    ) {
-        commands.insert((
+    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+        commands.ignore_args().ignore_context().insert((
             ShapeBundle {
                 transform: Transform {
                     translation: Vec3::new(00.0, POSITION_Y, 1.0),
@@ -131,22 +119,18 @@ impl ComponentsAspect for CircleArc {
                 ..Default::default()
             },
             Stroke::new(ARC_COLOR, ARC_STROKE),
+            CircleArcComponent,
         ));
-
-        commands.insert(self.clone());
     }
+
+    fn set_children<R: MavericRoot>(_commands: NodeCommands<Self, Self::Context, R, true>) {}
 }
 
-impl ComponentsAspect for CircleMarker {
-    fn set_components<'r>(
-        &self,
-        _previous: Option<&Self>,
-        _context: &<Self::Context as NodeContext>::Wrapper<'r>,
-        commands: &mut impl ComponentCommands,
-        _event: SetComponentsEvent,
-    ) {
-        commands.insert(self.clone());
-        commands.insert((
+impl MavericNode for CircleMarker {
+    type Context = NoContext;
+
+    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+        commands.ignore_args().ignore_context().insert((
             ShapeBundle {
                 path: GeometryBuilder::build_as(&bevy_prototype_lyon::shapes::Circle {
                     center: Vec2::ZERO,
@@ -160,6 +144,9 @@ impl ComponentsAspect for CircleMarker {
             },
             Fill::color(MARKER_COLOR),
             Stroke::new(ARC_COLOR, ARC_STROKE),
+            CircleMarkerComponent,
         ))
     }
+
+    fn set_children<R: MavericRoot>(_commands: NodeCommands<Self, Self::Context, R, true>) {}
 }

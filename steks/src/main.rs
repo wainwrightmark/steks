@@ -8,12 +8,14 @@ pub mod async_event_writer;
 pub mod button;
 pub mod camera;
 pub mod collision;
+pub mod demo;
 pub mod designed_level;
 pub mod draggable;
 pub mod fireworks;
 pub mod import;
 pub mod infinity;
 pub mod input;
+pub mod insets;
 pub mod leaderboard;
 pub mod lens;
 pub mod level;
@@ -36,8 +38,6 @@ pub mod ui;
 pub mod walls;
 pub mod win;
 pub mod win_timer_state;
-pub mod demo;
-pub mod insets;
 
 //#[cfg(target_arch = "wasm32")]
 pub mod logging;
@@ -61,11 +61,13 @@ pub mod prelude {
     pub use crate::button::*;
     pub use crate::camera::*;
     pub use crate::collision::*;
+    pub use crate::demo::*;
     pub use crate::draggable::*;
     pub use crate::fireworks::*;
     pub use crate::import::*;
     pub use crate::infinity::*;
     pub use crate::input::*;
+    pub use crate::insets::*;
     pub use crate::leaderboard::*;
     pub use crate::lens::*;
     pub use crate::level::*;
@@ -76,8 +78,6 @@ pub mod prelude {
     pub use crate::rain::*;
     pub use crate::settings::*;
     pub use crate::tracked_resource::*;
-    pub use crate::demo::*;
-    pub use crate::insets::*;
 
     pub use crate::designed_level::*;
     pub use crate::prediction::*;

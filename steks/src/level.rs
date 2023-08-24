@@ -425,7 +425,7 @@ impl ScoreInfo {
             is_first_win: old_height.is_none(),
             wr,
             pb,
-            medal
+            medal,
         }
     }
 }

@@ -1,18 +1,15 @@
-use crate::{designed_level, prelude::*, leaderboard};
+use crate::{designed_level, leaderboard, prelude::*};
 use steks_common::color;
 use strum::Display;
 
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
 
-
 pub const THREE_MEDALS_IMAGE_HEIGHT: f32 = 64.;
 pub const THREE_MEDALS_IMAGE_WIDTH: f32 = 2. * THREE_MEDALS_IMAGE_HEIGHT;
 
-
 pub const ONE_MEDALS_IMAGE_HEIGHT: f32 = 1.5 * ONE_MEDALS_IMAGE_WIDTH;
 pub const ONE_MEDALS_IMAGE_WIDTH: f32 = 32.;
-
 
 pub const BADGE_BUTTON_WIDTH: f32 = 2.584 * BADGE_BUTTON_HEIGHT;
 pub const BADGE_BUTTON_HEIGHT: f32 = 60.;
@@ -45,7 +42,7 @@ pub struct ButtonComponent {
 pub enum ButtonType {
     Icon,
     Text,
-    Image
+    Image,
 }
 
 impl ButtonType {
@@ -70,7 +67,7 @@ impl ButtonType {
             (Text, Pressed) => TEXT_PRESSED_BUTTON,
             (Text, Hovered) => TEXT_HOVERED_BUTTON,
             (Text, None) => TEXT_BUTTON_BACKGROUND,
-            (Image, _) => Color::WHITE
+            (Image, _) => Color::WHITE,
         }
         .into()
     }
@@ -115,8 +112,6 @@ pub enum ButtonAction {
 }
 
 impl ButtonAction {
-
-
     pub fn icon(&self) -> String {
         use ButtonAction::*;
         match self {
@@ -200,7 +195,7 @@ impl ButtonAction {
             ToggleSettings => "Settings".to_string(),
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
-            SyncAchievements => "Sync Achievements".to_string() ,
+            SyncAchievements => "Sync Achievements".to_string(),
             ShowAchievements => "Show Achievements".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
             None => "".to_string(),
@@ -417,16 +412,12 @@ fn button_system(
                 ToggleTouchOutlines => settings.toggle_touch_outlines(),
                 SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
 
-                ShowLeaderboard =>{
+                ShowLeaderboard => {
                     leaderboard::try_show_leaderboard(&current_level);
                 }
 
-                SyncAchievements => {
-                    achievements.resync()
-                },
-                ShowAchievements =>{
-                    show_achievements()
-                }
+                SyncAchievements => achievements.resync(),
+                ShowAchievements => show_achievements(),
             }
 
             match button.button_action {

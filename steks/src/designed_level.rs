@@ -110,9 +110,9 @@ impl DesignedLevel {
     }
 
     pub fn get_medal(&self, height: f32) -> MedalType {
-        let num_shapes = self.all_stages().map(|z| z.shapes.len()).sum();//TODO handle void shapes
+        let num_shapes = self.all_stages().map(|z| z.shapes.len()).sum(); //TODO handle void shapes
 
-        MedalType::guess(height, num_shapes)//TODO specific values for each medal
+        MedalType::guess(height, num_shapes) //TODO specific values for each medal
     }
 }
 

@@ -39,12 +39,12 @@ const TOP_LEFT_Z: f32 = 1.0;
 const TOP_BOTTOM_OFFSET: f32 = 10.0;
 
 impl WallPosition {
-    pub fn get_position(&self, height: f32, width: f32, gravity: Vec2, insets : &Insets) -> Vec3 {
+    pub fn get_position(&self, height: f32, width: f32, gravity: Vec2, insets: &Insets) -> Vec3 {
         use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;
 
         let top_offset = if gravity.y > 0.0 {
-            (TOP_BOTTOM_OFFSET).max(insets.top)  * -1.0
+            (TOP_BOTTOM_OFFSET).max(insets.top) * -1.0
         } else {
             0.0
         };
@@ -124,7 +124,7 @@ fn move_walls_when_physics_changed(
     window: Query<&Window, With<PrimaryWindow>>,
     mut walls_query: Query<(&WallPosition, &mut Transform), Without<ShapeComponent>>,
 ) {
-    if !rapier.is_changed() && ! insets.is_changed() {
+    if !rapier.is_changed() && !insets.is_changed() {
         return;
     }
 

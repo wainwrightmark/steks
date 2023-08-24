@@ -24,17 +24,14 @@ fn sign_in_user() {
             use capacitor_bindings::game_connect::*;
             bevy::tasks::IoTaskPool::get()
                 .spawn(async move {
-                    crate::logging::do_or_report_error_async(move || {
-                        GameConnect::sign_in()
-                    })
-                    .await;
+                    crate::logging::do_or_report_error_async(move || GameConnect::sign_in()).await;
                 })
                 .detach();
         }
     }
 }
 
-pub fn show_achievements(){
+pub fn show_achievements() {
     #[cfg(target_arch = "wasm32")]
     {
         #[cfg(any(feature = "android", feature = "ios"))]
@@ -219,7 +216,8 @@ fn track_level_completion_achievements(
                 }
                 _ => {}
             }
-        } else { // level complete
+        } else {
+            // level complete
             let shapes = ShapesVec::from_query(shapes_query);
             let height = shapes.calculate_tower_height();
 

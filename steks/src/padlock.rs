@@ -3,8 +3,8 @@ use std::time::Duration;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use state_hierarchy::{
-    prelude::{TransformTranslationLens, Transition, TransitionPlugin, TransitionStep},
+use maveric::{
+    prelude::{CanRegisterTransition, TransformTranslationLens, Transition, TransitionStep},
     transition::speed::calculate_speed,
 };
 use strum::EnumIs;
@@ -17,7 +17,7 @@ impl Plugin for PadlockPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, create_padlock);
         app.init_resource::<PadlockResource>();
-        app.add_plugins(TransitionPlugin::<TransformTranslationLens>::default());
+        app.register_transition::<TransformTranslationLens>();
         app.add_systems(Update, clear_padlock_on_level_change)
             .add_systems(Update, control_padlock);
     }

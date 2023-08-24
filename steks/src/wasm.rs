@@ -13,8 +13,6 @@ pub fn request_fullscreen() {
     let window = web_sys::window().expect("Could not get window");
     let document = window.document().expect("Could not get window document");
 
-
-
     let fs = document
         .fullscreen_element()
         .map(|x| !x.is_null())
@@ -187,9 +185,6 @@ fn resizer(
     }
 }
 
-
-
-
 pub fn get_game_from_location() -> Option<ChangeLevelEvent> {
     let window = web_sys::window()?;
     let location = window.location();
@@ -206,26 +201,40 @@ fn remove_spinner() {
     }
 }
 
-fn update_insets(mut insets: ResMut<Insets>){
-    if let Some(new_insets) = get_insets(){
+fn update_insets(mut insets: ResMut<Insets>) {
+    if let Some(new_insets) = get_insets() {
         info!("{:?}", new_insets.clone());
-        *insets= new_insets;
-
-
+        *insets = new_insets;
     }
 }
 
-fn get_insets()-> Option<Insets>{
+fn get_insets() -> Option<Insets> {
     let window = web_sys::window()?;
     let document = window.document()?.document_element()?;
     let style = window.get_computed_style(&document).ok()??;
 
     let mut insets = Insets::default();
 
-    insets.top = style.get_property_value("--sat").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
-    insets.left = style.get_property_value("--sal").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
-    insets.right = style.get_property_value("--sar").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
-    insets.bottom = style.get_property_value("--sab").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
+    insets.top = style
+        .get_property_value("--sat")
+        .ok()
+        .and_then(|x| x.parse::<f32>().ok())
+        .unwrap_or_default();
+    insets.left = style
+        .get_property_value("--sal")
+        .ok()
+        .and_then(|x| x.parse::<f32>().ok())
+        .unwrap_or_default();
+    insets.right = style
+        .get_property_value("--sar")
+        .ok()
+        .and_then(|x| x.parse::<f32>().ok())
+        .unwrap_or_default();
+    insets.bottom = style
+        .get_property_value("--sab")
+        .ok()
+        .and_then(|x| x.parse::<f32>().ok())
+        .unwrap_or_default();
 
     Some(insets)
 }

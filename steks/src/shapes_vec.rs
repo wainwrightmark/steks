@@ -57,9 +57,8 @@ impl From<&DesignedLevel> for ShapesVec {
 
 impl ShapesVec {
     pub fn hash(&self) -> u64 {
-
-        fn state_hash(ss: &ShapeState)-> u64{
-            match ss{
+        fn state_hash(ss: &ShapeState) -> u64 {
+            match ss {
                 ShapeState::Normal => 0,
                 ShapeState::Locked => 0,
                 ShapeState::Fixed => 1,
@@ -68,13 +67,16 @@ impl ShapesVec {
         }
 
         let mut code: u64 = 0;
-        for (
-            index,
-            state,
-            modifiers)
-         in self
+        for (index, state, modifiers) in self
             .0
-            .iter().map(|x| (x.shape.index.0 as u64, state_hash(&x.state), x.modifiers as u64))
+            .iter()
+            .map(|x| {
+                (
+                    x.shape.index.0 as u64,
+                    state_hash(&x.state),
+                    x.modifiers as u64,
+                )
+            })
             .sorted()
         {
             code = code.wrapping_mul(29).wrapping_add(index);
@@ -82,7 +84,6 @@ impl ShapesVec {
             code = code.wrapping_mul(37).wrapping_add(modifiers);
             // println!("{state:?} {modifiers:?} {index} {code}");
             // info!("{state:?} {modifiers:?} {index} {code}");
-
         }
 
         code

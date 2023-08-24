@@ -1,5 +1,5 @@
 use crate::{designed_level, prelude::*};
-use state_hierarchy::{impl_hierarchy_root, prelude::*};
+use maveric::{impl_maveric_root, prelude::*};
 use strum::EnumIs;
 type MenuContext = NC2<NC4<MenuState, GameSettings, CampaignCompletion, Insets>, AssetServer>;
 
@@ -9,14 +9,13 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<MenuState>();
 
-        app.add_plugins(TransitionPlugin::<StyleLeftLens>::default());
-        //app.add_plugins(TransitionPlugin::<TransformScaleLens>::default());
-        app.add_plugins(TransitionPlugin::<StyleTopLens>::default());
-        app.add_plugins(TransitionPlugin::<BackgroundColorLens>::default());
-        app.add_plugins(TransitionPlugin::<TextColorLens<0>>::default());
-        app.add_plugins(TransitionPlugin::<BorderColorLens>::default());
+        app.register_transition::<StyleLeftLens>();
+        app.register_transition::<StyleTopLens>();
+        app.register_transition::<BackgroundColorLens>();
+        app.register_transition::<TextColorLens<0>>();
+        app.register_transition::<BorderColorLens>();
 
-        app.register_state_hierarchy::<MenuRoot>();
+        app.register_maveric::<MenuRoot>();
     }
 }
 
@@ -91,32 +90,28 @@ impl MenuState {
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct MenuRoot;
 
-impl_hierarchy_root!(MenuRoot);
+impl_maveric_root!(MenuRoot);
 
-impl HasContext for MenuRoot {
+impl RootChildren for MenuRoot {
     type Context = MenuContext;
-}
 
-impl ChildrenAspect for MenuRoot {
-    fn set_children(
-        &self,
-        _previous: Option<&Self>,
-        context: &<Self::Context as NodeContext>::Wrapper<'_>,
+    fn set_children<'r>(
+        context: &<Self::Context as NodeContext>::Wrapper<'r>,
         commands: &mut impl ChildCommands,
     ) {
         const TRANSITION_DURATION_SECS: f32 = 0.2;
         let transition_duration: Duration = Duration::from_secs_f32(TRANSITION_DURATION_SECS);
 
-        fn get_carousel_child(page: u32) -> Option<Either3<SettingsPage, MainMenu, LevelMenu>> {
+        fn get_carousel_child(page: u32) -> Option<MenuPage> {
             Some(match page {
-                0 => Either3::Case1(MainMenu),
-                1 => Either3::Case0(SettingsPage),
+                0 => MenuPage::Main,
+                1 => MenuPage::Settings,
 
-                n => Either3::Case2(LevelMenu((n - 2) as u8)),
+                n => MenuPage::Level((n - 2) as u8),
             })
         }
 
-        let carousel = match context.0.0.as_ref() {
+        let carousel = match context.0 .0.as_ref() {
             MenuState::Closed => {
                 commands.add_child("open_icon", menu_button_node(), &context.1);
                 return;
@@ -133,273 +128,194 @@ impl ChildrenAspect for MenuRoot {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct SettingsPage;
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MenuPage {
+    Main,
+    Settings,
+    Level(u8),
+}
 
-impl HasContext for SettingsPage {
+impl MavericNode for MenuPage {
     type Context = MenuContext;
-}
 
-impl ComponentsAspect for SettingsPage {
-    fn set_components<'r>(
-        &self,
-        _previous: Option<&Self>,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
-        commands: &mut impl ComponentCommands,
-        _event: SetComponentsEvent,
-    ) {
-        commands.insert(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Percent(50.0),
-                right: Val::Percent(50.0),
-                top: context.0.3.menu_top(),
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
+    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+        commands
+            .ignore_args()
+            .map_context::<Insets>(|x: &<MenuContext as NodeContext>::Wrapper<'_>| &x.0 .3)
+            .insert_with_context(|context: &Res<Insets>| NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    left: Val::Percent(50.0),
+                    right: Val::Percent(50.0),
+                    top: context.menu_top(),
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Column,
 
+                    ..Default::default()
+                },
+                z_index: ZIndex::Global(10),
                 ..Default::default()
-            },
-            z_index: ZIndex::Global(10),
-            ..Default::default()
-        })
+            });
     }
-}
 
-impl ChildrenAspect for SettingsPage {
-    fn set_children(
-        &self,
-        _previous: Option<&Self>,
-        context: &<Self::Context as NodeContext>::Wrapper<'_>,
-        commands: &mut impl ChildCommands,
-    ) {
-        // info!("Setting Settings Children {:?}", context.0.1);
+    fn set_children<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, true>) {
+        commands.unordered_children_with_args_and_context(|args, context, commands| match args {
+            MenuPage::Main => {
+                use ButtonAction::*;
+                let buttons = [
+                    Resume,
+                    ChooseLevel,
+                    DailyChallenge,
+                    Infinite,
+                    Tutorial,
+                    Share,
+                    ToggleSettings,
+                    #[cfg(all(feature = "web"))]
+                    ClipboardImport, //TODO remove
+                    #[cfg(all(feature = "web", target_arch = "wasm32"))]
+                    GoFullscreen,
+                    Credits,
+                    #[cfg(all(feature = "android", target_arch = "wasm32"))]
+                    MinimizeApp,
+                ];
 
-        let arrows_text = if context.0.1.show_arrows {
-            "Rotation Arrows  "
-        } else {
-            "Rotation Arrows  "
-        };
+                for (key, action) in buttons.iter().enumerate() {
+                    let button = text_button_node(*action, true, false);
 
-        commands.add_child(
-            "rotation",
-            text_button_node_with_text(
-                ButtonAction::ToggleArrows,
-                arrows_text.to_string(),
-                true,
-                false,
-            ),
-            &context.1,
-        );
+                    commands.add_child(key as u32, button, &context.1)
+                }
+            }
+            MenuPage::Settings => {
+                let arrows_text = if context.0 .1.show_arrows {
+                    "Rotation Arrows  "
+                } else {
+                    "Rotation Arrows  "
+                };
 
-        let outlines_text = if context.0.1.show_touch_outlines {
-            "Touch Outlines   "
-        } else {
-            "Touch Outlines   "
-        };
+                commands.add_child(
+                    "rotation",
+                    text_button_node_with_text(
+                        ButtonAction::ToggleArrows,
+                        arrows_text.to_string(),
+                        true,
+                        false,
+                    ),
+                    &context.1,
+                );
 
-        commands.add_child(
-            "outlines",
-            text_button_node_with_text(
-                ButtonAction::ToggleTouchOutlines,
-                outlines_text.to_string(),
-                true,
-                false,
-            ),
-            &context.1,
-        );
+                let outlines_text = if context.0 .1.show_touch_outlines {
+                    "Touch Outlines   "
+                } else {
+                    "Touch Outlines   "
+                };
 
-        let sensitivity_text = match context.0.1.rotation_sensitivity {
-            RotationSensitivity::Low => "Sensitivity    Low",
-            RotationSensitivity::Medium => "Sensitivity Medium",
-            RotationSensitivity::High => "Sensitivity   High",
-            RotationSensitivity::Extreme => "Sensitivity Extreme",
-        };
+                commands.add_child(
+                    "outlines",
+                    text_button_node_with_text(
+                        ButtonAction::ToggleTouchOutlines,
+                        outlines_text.to_string(),
+                        true,
+                        false,
+                    ),
+                    &context.1,
+                );
 
-        let next_sensitivity = context.0.1.rotation_sensitivity.next();
+                let sensitivity_text = match context.0 .1.rotation_sensitivity {
+                    RotationSensitivity::Low => "Sensitivity    Low",
+                    RotationSensitivity::Medium => "Sensitivity Medium",
+                    RotationSensitivity::High => "Sensitivity   High",
+                    RotationSensitivity::Extreme => "Sensitivity Extreme",
+                };
 
-        commands.add_child(
-            "sensitivity",
-            text_button_node_with_text(
-                ButtonAction::SetRotationSensitivity(next_sensitivity),
-                sensitivity_text.to_string(),
-                true,
-                false,
-            ),
-            &context.1,
-        );
+                let next_sensitivity = context.0 .1.rotation_sensitivity.next();
 
-        #[cfg(any(feature = "android", feature = "ios"))]
-        {
-            commands.add_child(
-                "sync_achievements",
-                text_button_node(ButtonAction::SyncAchievements, true, false),
-                &context.1,
-            );
+                commands.add_child(
+                    "sensitivity",
+                    text_button_node_with_text(
+                        ButtonAction::SetRotationSensitivity(next_sensitivity),
+                        sensitivity_text.to_string(),
+                        true,
+                        false,
+                    ),
+                    &context.1,
+                );
 
-            commands.add_child(
-                "show_achievements",
-                text_button_node(ButtonAction::ShowAchievements, true, false),
-                &context.1,
-            );
-        }
+                #[cfg(any(feature = "android", feature = "ios"))]
+                {
+                    commands.add_child(
+                        "sync_achievements",
+                        text_button_node(ButtonAction::SyncAchievements, true, false),
+                        &context.1,
+                    );
 
-        commands.add_child(
-            "back",
-            text_button_node_with_text(
-                ButtonAction::ToggleSettings,
-                "Back".to_string(),
-                true,
-                false,
-            ),
-            &context.1,
-        );
-    }
-}
+                    commands.add_child(
+                        "show_achievements",
+                        text_button_node(ButtonAction::ShowAchievements, true, false),
+                        &context.1,
+                    );
+                }
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct MainMenu;
+                commands.add_child(
+                    "back",
+                    text_button_node_with_text(
+                        ButtonAction::ToggleSettings,
+                        "Back".to_string(),
+                        true,
+                        false,
+                    ),
+                    &context.1,
+                );
+            }
+            MenuPage::Level(page) => {
+                let start = page * LEVELS_PER_PAGE;
+                let end = start + LEVELS_PER_PAGE;
 
-impl HasContext for MainMenu {
-    type Context = MenuContext;
-}
+                for (key, level) in (start..end).enumerate() {
+                    let enabled = match level.checked_sub(1) {
+                        Some(index) => context
+                            .0
+                             .2
+                            .medals
+                            .get(index as usize)
+                            .is_some_and(|m| !m.is_incomplete()), //check if previous level is complete
+                        None => true, //first level always unlocked
+                    };
 
-impl ComponentsAspect for MainMenu {
-    fn set_components<'r>(
-        &self,
-        _previous: Option<&Self>,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
-        commands: &mut impl ComponentCommands,
-        _event: SetComponentsEvent,
-    ) {
-        commands.insert(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Percent(50.0),
-                right: Val::Percent(50.0),
-                top: context.0.3.menu_top(),
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
+                    let medal = context
+                        .0
+                         .2
+                        .medals
+                        .get(level as usize)
+                        .cloned()
+                        .unwrap_or_default();
 
-                ..Default::default()
-            },
-            z_index: ZIndex::Global(10),
-            ..Default::default()
-        })
-    }
-}
+                    commands.add_child(
+                        key as u32,
+                        text_button_node_with_text_and_image(
+                            ButtonAction::GotoLevel { level },
+                            false,
+                            !enabled,
+                            medal.one_medals_asset_path(),
+                            LevelMedalsImageStyle,
+                        ),
+                        &context.1,
+                    )
+                }
 
-impl ChildrenAspect for MainMenu {
-    fn set_children(
-        &self,
-        _previous: Option<&Self>,
-        context: &<Self::Context as NodeContext>::Wrapper<'_>,
-        commands: &mut impl ChildCommands,
-    ) {
-        use ButtonAction::*;
-        let buttons = [
-            Resume,
-            ChooseLevel,
-            DailyChallenge,
-            Infinite,
-            Tutorial,
-            Share,
-            ToggleSettings,
-            #[cfg(all(feature = "web"))]
-            ClipboardImport, //TODO remove
-            #[cfg(all(feature = "web", target_arch = "wasm32"))]
-            GoFullscreen,
-            Credits,
-            #[cfg(all(feature = "android", target_arch = "wasm32"))]
-            MinimizeApp,
-        ];
-
-        for (key, action) in buttons.iter().enumerate() {
-            let button = text_button_node(*action, true, false);
-
-            commands.add_child(key as u32, button, &context.1)
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct LevelMenu(u8);
-
-impl HasContext for LevelMenu {
-    type Context = MenuContext;
-}
-
-impl ComponentsAspect for LevelMenu {
-    fn set_components<'r>(
-        &self,
-        _previous: Option<&Self>,
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
-        commands: &mut impl ComponentCommands,
-        _event: SetComponentsEvent,
-    ) {
-        commands.insert(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Percent(50.0),
-                right: Val::Percent(50.0),
-                top: context.0.3.menu_top(),
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
-
-                ..Default::default()
-            },
-            z_index: ZIndex::Global(10),
-            ..Default::default()
-        })
-    }
-}
-
-impl ChildrenAspect for LevelMenu {
-    fn set_children(
-        &self,
-        _previous: Option<&Self>,
-        context: &<Self::Context as NodeContext>::Wrapper<'_>,
-        commands: &mut impl ChildCommands,
-    ) {
-        let start = self.0 * LEVELS_PER_PAGE;
-        let end = start + LEVELS_PER_PAGE;
-
-        for (key, level) in (start..end).enumerate() {
-
-            let enabled = match level.checked_sub(1){
-                Some(index) => context.0.2.medals.get(index as usize).is_some_and(|m| !m.is_incomplete()), //check if previous level is complete
-                None => true, //first level always unlocked
-            };
-
-            let medal = context.0.2.medals.get(level as usize).cloned().unwrap_or_default();
-
-            commands.add_child(
-                key as u32,
-                text_button_node_with_text_and_image(ButtonAction::GotoLevel { level },  ButtonAction::GotoLevel { level }.text(), false, !enabled,
-                medal.one_medals_asset_path(),
-                LEVEL_MEDALS_IMAGE_STYLE.clone()
-
-            ),
-                &context.1,
-
-            )
-        }
-
-        commands.add_child("buttons", LevelMenuArrows(self.0), &context.1);
+                commands.add_child("buttons", LevelMenuArrows(*page), &context.1);
+            }
+        });
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct LevelMenuArrows(u8);
 
-impl HasContext for LevelMenuArrows {
+impl MavericNode for LevelMenuArrows {
     type Context = AssetServer;
-}
 
-impl StaticComponentsAspect for LevelMenuArrows {
-    type B = NodeBundle;
-
-    fn get_bundle() -> Self::B {
-        NodeBundle {
+    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+        commands.ignore_args().ignore_context().insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Relative,
                 left: Val::Percent(0.0),
@@ -425,35 +341,30 @@ impl StaticComponentsAspect for LevelMenuArrows {
             background_color: BackgroundColor(TEXT_BUTTON_BACKGROUND),
             border_color: BorderColor(BUTTON_BORDER),
             ..Default::default()
-        }
+        });
     }
-}
 
-impl ChildrenAspect for LevelMenuArrows {
-    fn set_children(
-        &self,
-        _previous: Option<&Self>,
-        context: &<Self::Context as NodeContext>::Wrapper<'_>,
-        commands: &mut impl ChildCommands,
-    ) {
-        if self.0 == 0 {
-            commands.add_child("left", icon_button_node(ButtonAction::OpenMenu), context)
-        } else {
-            commands.add_child(
-                "left",
-                icon_button_node(ButtonAction::PreviousLevelsPage),
-                context,
-            )
-        }
+    fn set_children<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, true>) {
+        commands.unordered_children_with_args_and_context(|args, context, commands| {
+            if args.0 == 0 {
+                commands.add_child("left", icon_button_node(ButtonAction::OpenMenu), context)
+            } else {
+                commands.add_child(
+                    "left",
+                    icon_button_node(ButtonAction::PreviousLevelsPage),
+                    context,
+                )
+            }
 
-        if self.0 < 4 {
-            commands.add_child(
-                "right",
-                icon_button_node(ButtonAction::NextLevelsPage),
-                context,
-            )
-        } else {
-            commands.add_child("right", icon_button_node(ButtonAction::None), context)
-        }
+            if args.0 < 4 {
+                commands.add_child(
+                    "right",
+                    icon_button_node(ButtonAction::NextLevelsPage),
+                    context,
+                )
+            } else {
+                commands.add_child("right", icon_button_node(ButtonAction::None), context)
+            }
+        });
     }
 }

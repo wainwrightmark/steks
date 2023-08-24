@@ -8,16 +8,16 @@ rust-version = "1.68.0"
 
 [dependencies]
 aws_lambda_events = {version= "0.10", default-features=false, features=["apigw"]}
-coolor = "0.5.1"
+coolor = "0.6"
 http = {version= "*", default-features=false}
 lambda_runtime = {version= "*", default-features=false}
 steks_common = {path="../../../steks_common"}
 
-once_cell = "1.17.1"
+once_cell = "1"
 resvg = { version = "0.35", default-features = false }
 tokio = {version= "*", default-features=false}
 base64 = "0.21"
 
 [dev-dependencies]
-insta = "1.29.0"
+insta = "1.31"
 test-case = "3.1.0"

@@ -132,7 +132,7 @@ pub fn check_for_tower(
     countdown.0 = Some(Countdown {
         started_elapsed: time.elapsed(),
         total_secs: countdown_seconds,
-        event: event.clone(),
+        event: *event,
     });
 }
 

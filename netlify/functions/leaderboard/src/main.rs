@@ -12,7 +12,7 @@ use planetscale_driver::{query, Database};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let func = service_fn(my_handler);
+    let func = service_fn(logging_handler);
     lambda_runtime::run(func).await?;
     Ok(())
 }
@@ -27,6 +27,19 @@ fn get_parameter<'a>(
         .filter(|x| x.0.eq_ignore_ascii_case(name))
         .map(|x| x.1)
         .next()
+}
+
+pub(crate) async fn logging_handler(
+    e: LambdaEvent<ApiGatewayProxyRequest>,
+) -> Result<ApiGatewayProxyResponse, Error> {
+
+    match my_handler(e).await{
+        Ok(r) => Ok(r),
+        Err(e) => {
+            println!("Error: {e}");
+            Err(e)
+        },
+    }
 }
 
 pub(crate) async fn my_handler(
@@ -93,7 +106,7 @@ async fn try_set(height: f32, hash: u64, blob: &str) -> Result<(), Error> {
         "
             Insert into tower_height (shapes_hash, max_height, blob) Values($0, $1, $2)
             ON DUPLICATE KEY UPDATE
-            max_height = IF (max_height > $1, max_height, $1);
+            max_height = IF (max_height > $1, max_height, $1),
             blob = IF (max_height > $1, blob, $2);
             ",
     )

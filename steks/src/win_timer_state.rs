@@ -82,8 +82,8 @@ impl_maveric_root!(TimerStateRoot);
 impl RootChildren for TimerStateRoot {
     type Context = WinCountdown;
 
-    fn set_children<'r>(
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+    fn set_children(
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         if context.0.is_some() {

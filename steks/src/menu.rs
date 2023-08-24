@@ -95,8 +95,8 @@ impl_maveric_root!(MenuRoot);
 impl RootChildren for MenuRoot {
     type Context = MenuContext;
 
-    fn set_children<'r>(
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+    fn set_children(
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         const TRANSITION_DURATION_SECS: f32 = 0.2;

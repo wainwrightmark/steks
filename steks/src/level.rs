@@ -729,12 +729,10 @@ impl ChangeLevelEvent {
 
                     if IS_DEMO {
                         (GameLevel::Begging, 0)
+                    } else if meta.is_credits() {
+                        (GameLevel::new_infinite(), 0)
                     } else {
-                        if meta.is_credits() {
-                            (GameLevel::new_infinite(), 0)
-                        } else {
-                            (GameLevel::CREDITS, 0)
-                        }
+                        (GameLevel::CREDITS, 0)
                     }
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),

@@ -23,8 +23,8 @@ pub struct LevelUiRoot;
 impl RootChildren for LevelUiRoot {
     type Context = NC2<MenuState, NC3<GameUIState, CurrentLevel, AssetServer>>;
 
-    fn set_children<'r>(
-        context: &<Self::Context as NodeContext>::Wrapper<'r>,
+    fn set_children(
+        context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
         if context.0.is_closed() {
@@ -428,7 +428,7 @@ impl MavericNode for StoreButtonPanel {
                         BadgeButtonStyle,
                         BadgeImageStyle,
                     ),
-                    &context,
+                    context,
                 );
                 commands.add_child(
                     5,
@@ -438,7 +438,7 @@ impl MavericNode for StoreButtonPanel {
                         BadgeButtonStyle,
                         BadgeImageStyle,
                     ),
-                    &context,
+                    context,
                 );
             });
     }

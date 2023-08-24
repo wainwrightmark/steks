@@ -37,7 +37,7 @@ impl From<&DesignedLevel> for ShapesVec {
             for shape_update in stage.updates.iter() {
                 let shape = id_shapes
                     .get_mut(&shape_update.id)
-                    .expect(format!("Could not get shape with id {}", shape_update.id).as_str());
+                    .unwrap_or_else(|| panic!("Could not get shape with id {}", shape_update.id));
 
                 shape.modifiers = shape_update.modifiers;
                 if let Some(state) = shape_update.state {

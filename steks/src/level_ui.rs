@@ -1,6 +1,8 @@
 use crate::prelude::*;
+use bevy::render::texture::CompressedImageFormats;
 use itertools::Itertools;
 use maveric::{impl_maveric_root, prelude::*, transition::speed::ScalarSpeed};
+use steks_common::images::prelude::{Dimensions, OverlayChooser};
 use strum::EnumIs;
 pub struct LevelUiPlugin;
 
@@ -682,7 +684,13 @@ fn set_up_preview_image(asset_server: Res<AssetServer>) {
     std::mem::forget(handle);
 }
 
-fn update_preview_images(mut images: ResMut<Assets<Image>>, ui_state: Res<GameUIState>) {
+fn update_preview_images(
+    mut images: ResMut<Assets<Image>>,
+    ui_state: Res<GameUIState>,
+    pbs: Res<PersonalBests>,
+
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
+) {
     if !ui_state.is_changed() {
         return;
     }
@@ -697,22 +705,49 @@ fn update_preview_images(mut images: ResMut<Assets<Image>>, ui_state: Res<GameUI
         return;
     };
 
+    let sv = ShapesVec::from_query(shapes_query);
+    let hash = sv.hash();
+
+    let mut clear = false;
+
     match preview {
         PreviewImage::PB => {
-            for pixel in im.data.chunks_exact_mut(4) {
-                pixel[0] = 255;
-                pixel[1] = 0;
-                pixel[2] = 0;
-                pixel[3] = 255;
+            if let Some(level_record) = pbs.map.get(&hash) {
+                let image_bytes = steks_common::images::drawing::draw_image(
+                    level_record.image_blob.as_slice(),
+                    &OverlayChooser::no_overlay(),
+                    Dimensions {
+                        width: PREVIEW_IMAGE_SIZE_U32,
+                        height: PREVIEW_IMAGE_SIZE_U32,
+                    },
+                );
+
+                *im = Image::from_buffer(
+                    &image_bytes,
+                    bevy::render::texture::ImageType::Extension("png"),
+                    CompressedImageFormats::empty(),
+                    true,
+                )
+                .unwrap();
+
+                //info!("old bytes: {} new bytes: {}",im.data.len(), image_bytes.len());
+
+                //im.data = image_bytes;
+            } else {
+                clear = true;
             }
         }
         PreviewImage::Record => {
-            for pixel in im.data.chunks_exact_mut(4) {
-                pixel[0] = 0;
-                pixel[1] = 255;
-                pixel[2] = 0;
-                pixel[3] = 255;
-            }
+            clear = true;
+        }
+    }
+
+    if clear {
+        for pixel in im.data.chunks_exact_mut(4) {
+            pixel[0] = 200;
+            pixel[1] = 200;
+            pixel[2] = 200;
+            pixel[3] = 255;
         }
     }
 }
@@ -720,7 +755,8 @@ fn update_preview_images(mut images: ResMut<Assets<Image>>, ui_state: Res<GameUI
 #[derive(Debug, Clone, PartialEq)]
 struct PreviewImageStyle;
 
-const PREVIEW_IMAGE_SIZE: f32 = 384.;
+const PREVIEW_IMAGE_SIZE_U32: u32 = 256;
+const PREVIEW_IMAGE_SIZE_F32: f32 = PREVIEW_IMAGE_SIZE_U32 as f32;
 const PREVIEW_IMAGE_ASSET_PATH: &str = "images/preview.png";
 
 impl IntoBundle for PreviewImageStyle {
@@ -728,8 +764,8 @@ impl IntoBundle for PreviewImageStyle {
 
     fn into_bundle(self) -> Self::B {
         Style {
-            width: Val::Px(PREVIEW_IMAGE_SIZE),
-            height: Val::Px(PREVIEW_IMAGE_SIZE),
+            width: Val::Px(PREVIEW_IMAGE_SIZE_F32),
+            height: Val::Px(PREVIEW_IMAGE_SIZE_F32),
             margin: UiRect::all(Val::Auto),
 
             ..Default::default()

@@ -495,9 +495,9 @@ impl MavericNode for ButtonPanel {
                 &context,
             );
 
-            #[cfg(any(feature = "android", feature = "ios"))]
-            {
-                if args.level.leaderboard_id().is_some() {
+            if args.level.leaderboard_id().is_some() {
+                #[cfg(any(feature = "android", feature = "ios"))]
+                {
                     commands.add_child(
                         "leaderboard",
                         icon_button_node(

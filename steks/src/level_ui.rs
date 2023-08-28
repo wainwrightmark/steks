@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use itertools::Itertools;
 use maveric::{impl_maveric_root, prelude::*, transition::speed::ScalarSpeed};
 use strum::EnumIs;
 pub struct LevelUiPlugin;
@@ -28,34 +29,50 @@ impl RootChildren for LevelUiRoot {
         commands: &mut impl ChildCommands,
     ) {
         if context.0.is_closed() {
-            let (top, _) = match context.1 .1.completion {
-                LevelCompletion::Complete { score_info: _ } => {
-                    if context.1 .0.is_game_minimized() {
-                        (Val::Percent(00.), Val::Percent(90.))
+            match context.1 .1.completion {
+                LevelCompletion::Incomplete { .. } => commands.add_child(
+                    "text",
+                    LevelTextPanel(context.1 .1.clone()).with_transition_in::<StyleTopLens>(
+                        Val::Percent(00.0),
+                        Val::Percent(30.0),
+                        Duration::from_secs_f32(0.5),
+                    ),
+                    &context.1 .2,
+                ),
+                LevelCompletion::Complete { score_info } => {
+                    let top = if context.1 .0.is_game_minimized() {
+                        Val::Percent(00.)
                     } else {
-                        (Val::Percent(30.), Val::Percent(70.))
-                    }
+                        Val::Percent(30.)
+                    };
+
+                    commands.add_child(
+                        "panel",
+                        MainPanelWrapper {
+                            score_info,
+                            ui_state: context.1 .0.clone(),
+                            level: context.1 .1.level.clone(),
+                        }
+                        .with_transition_to::<StyleTopLens>(top, ScalarSpeed::new(20.0)),
+                        &context.1 .2,
+                    )
                 }
-
-                _ => (Val::Percent(30.), Val::Percent(70.)),
             };
-
-            commands.add_child(
-                0,
-                MainPanelWrapper.with_transition_to::<StyleTopLens>(top, ScalarSpeed::new(20.0)),
-                &context.1,
-            );
         }
     }
 }
 
 impl_maveric_root!(LevelUiRoot);
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct MainPanelWrapper;
+#[derive(Debug, Clone, PartialEq)]
+pub struct MainPanelWrapper {
+    ui_state: GameUIState,
+    level: GameLevel,
+    score_info: ScoreInfo,
+}
 
 impl MavericNode for MainPanelWrapper {
-    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+    type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
@@ -76,260 +93,288 @@ impl MavericNode for MainPanelWrapper {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands
-            .ignore_args()
-            .unordered_children_with_context(|context, commands| {
-                commands.add_child(0, MainPanel, context);
-            });
+        commands.unordered_children_with_args_and_context(|args, context, commands| {
+            commands.add_child(
+                0,
+                MainPanel {
+                    ui_state: args.ui_state,
+                    level: args.level.clone(),
+                    score_info: args.score_info,
+                },
+                context,
+            );
+        });
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct MainPanel;
+#[derive(Debug, Clone, PartialEq)]
+pub struct MainPanel {
+    ui_state: GameUIState,
+    level: GameLevel,
+    score_info: ScoreInfo,
+}
 
 impl MavericNode for MainPanel {
-    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+    type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().advanced(
-            |args, commands| {
+        commands.advanced(|args, commands| {
+            if !args.is_hot() {
+                return;
+            }
 
-                if !args.is_hot(){
-                    return;
-                }
-                let context = args.context;
-
-                let (background, border) = match (context.1.completion, context.0.is_game_splash())
-                {
-                    (LevelCompletion::Complete { .. }, true) => (Color::WHITE, Color::BLACK),
-                    _ => (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0)),
-                };
-
-                let color_speed = context.1.completion.is_complete().then_some(ScalarSpeed {
-                    amount_per_second: 1.0,
-                });
-
-                let background = commands.transition_value::<BackgroundColorLens>(
-                    background,
-                    background,
-                    color_speed,
-                );
-
-                let border =
-                    commands.transition_value::<BorderColorLens>(border, border, color_speed);
-
-                let visibility =
-                    if context.1.level.skip_completion() && context.1.completion.is_complete() {
-                        Visibility::Hidden
-                    } else {
-                        Visibility::Inherited
-                    };
-
-                let z_index = ZIndex::Global(15);
-
-                let flex_direction: FlexDirection =
-                    if context.1.completion.is_complete() && context.0.is_game_splash() {
-                        FlexDirection::Column
-                    } else {
-                        FlexDirection::RowReverse
-                    };
-
-                let bundle = NodeBundle {
-                    style: Style {
-                        display: Display::Flex,
-                        align_items: AlignItems::Center,
-                        flex_direction,
-                        margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-                        justify_content: JustifyContent::Center,
-                        border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
-                        ..Default::default()
-                    },
-
-                    background_color: BackgroundColor(background),
-                    border_color: BorderColor(border),
-                    visibility,
-                    z_index,
-                    ..Default::default()
-                };
-
-                commands.insert(bundle);
-            },
-        );
-    }
-
-    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands
-            .ignore_args()
-            .unordered_children_with_context(|context, commands| {
-                if context.1.level.is_begging() {
-                    commands.add_child("begging", BeggingPanel, context);
-                } else {
-                    commands.add_child("text", TextPanel, context);
-
-                    let show_store_buttons =
-                        IS_DEMO && context.1.completion.is_complete() && context.0.is_game_splash();
-
-                    if context.0.is_game_splash() {
-                        if let LevelCompletion::Complete { score_info } = context.1.completion {
-                            if !score_info.medal.is_incomplete() {
-                                commands.add_child(
-                                    "medals",
-                                    ImageNode {
-                                        path: score_info.medal.three_medals_asset_path(),
-                                        background_color: Color::WHITE,
-                                        style: ThreeMedalsImageStyle,
-                                    },
-                                    &context.2,
-                                );
-                            }
-                        }
-                    }
-
-                    commands.add_child("buttons", ButtonPanel, context);
-
-                    if show_store_buttons {
-                        commands.add_child("store", StoreButtonPanel, context);
-                    }
-                }
-            });
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct TextPanel;
-
-impl MavericNode for TextPanel {
-    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
-
-    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().insert_with_context(|context| {
-            let top_margin = match (context.0.is_game_splash(), context.1.completion) {
-                (_, LevelCompletion::Incomplete { .. }) => Val::Px(0.0),
-                (true, LevelCompletion::Complete { .. }) => Val::Px(20.0),
-                (false, LevelCompletion::Complete { .. }) => Val::Px(0.0),
+            let (background, border) = if args.node.ui_state.is_game_splash(){
+                (Color::WHITE, Color::BLACK)
+            } else{
+                (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0))
             };
 
-            NodeBundle {
+
+
+            let color_speed = Some(ScalarSpeed {
+                amount_per_second: 1.0,
+            });
+
+            let background = commands.transition_value::<BackgroundColorLens>(
+                background,
+                background,
+                color_speed,
+            );
+
+            let border = commands.transition_value::<BorderColorLens>(border, border, color_speed);
+
+            let visibility = if args.node.level.skip_completion() {
+                Visibility::Hidden
+            } else {
+                Visibility::Inherited
+            };
+
+            let z_index = ZIndex::Global(15);
+
+            let flex_direction: FlexDirection = if true || args.node.ui_state.is_game_splash() {
+                FlexDirection::Column
+            } else {
+                FlexDirection::RowReverse
+            };
+
+            let bundle = NodeBundle {
                 style: Style {
                     display: Display::Flex,
                     align_items: AlignItems::Center,
-                    flex_direction: FlexDirection::Column,
-                    margin: UiRect::new(Val::Auto, Val::Auto, top_margin, Val::Px(0.)),
+                    flex_direction,
+                    margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
                     justify_content: JustifyContent::Center,
+                    border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
                     ..Default::default()
                 },
+
+                background_color: BackgroundColor(background),
+                border_color: BorderColor(border),
+                visibility,
+                z_index,
                 ..Default::default()
-            }
+            };
+
+            commands.insert(bundle);
         });
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands
-            .ignore_args()
-            .unordered_children_with_context(|context, commands| {
-                if context.1.completion.is_incomplete() {
-                    let initial_color = context.1.text_color();
-                    let destination_color = if context.1.text_fade() {
-                        initial_color.with_a(0.0)
-                    } else {
-                        initial_color
+        commands.ordered_children_with_args_and_context(|args, context, commands| {
+            if args.level.is_begging() {
+                commands.add_child("begging", BeggingPanel, context);
+            } else {
+
+                let height = args.score_info.height;
+                if !args.ui_state.is_game_splash(){
+
+                    commands.add_child("height", level_text_node(format!("{height:.2}m",)) , context)
+                }
+                else{
+                    let message = match &args.level {
+                        GameLevel::Designed { meta, .. } => meta
+                            .get_level()
+                            .end_text
+                            .as_deref()
+                            .unwrap_or("Level Complete"),
+                        GameLevel::Infinite { .. } => "",
+                        GameLevel::Challenge { .. } => "Challenge Complete",
+                        GameLevel::Loaded { .. } => "Level Complete",
+                        GameLevel::Begging => "Message: Please buy the game",
                     };
 
-                    const FADE_SECS: f32 = 20.;
-                    if let Some(level_number_text) = context.1.get_level_number_text(true) {
-                        commands.add_child(
-                            "level_number",
-                            TextNode {
-                                text: level_number_text,
-                                font_size: LEVEL_NUMBER_FONT_SIZE,
-                                color: LEVEL_TEXT_COLOR,
-                                font: LEVEL_NUMBER_FONT_PATH,
-                                alignment: TextAlignment::Center,
-                                linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-                            }
-                            .with_transition_in::<TextColorLens<0>>(
-                                initial_color,
-                                destination_color,
-                                Duration::from_secs_f32(FADE_SECS),
-                            ),
-                            &context.2,
-                        );
+                    let message =
+
+                    std::iter::Iterator::chain([""].into_iter(),
+
+                     std::iter::Iterator::chain(message.lines(), ["", ""].into_iter() )).take(4)
+                    .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS)).join("\n");
+
+                        commands.add_child("blank1", level_text_node("\n\n"), context);
+
+                    commands.add_child("message", level_text_node(message), context);
+
+                    commands.add_child("height", level_text_node(format!("Height    {height:6.2}m",)) , context);
+
+                    let pb = if args.score_info.is_pb {
+                        "New Personal Best".to_string()
+                    } else {
+                        let pb = args.score_info.pb;
+                        format!("Your Best {pb:6.2}m")
+                    };
+
+                    commands.add_child("pb", level_text_node(pb) , context);
+
+                    if args.score_info.is_wr {
+                        commands.add_child("new_world_record", level_text_node("New World Record") , context);
+
+                    } else if let Some(record) = args.score_info.wr {
+                        commands.add_child("world_record", level_text_node(format!("Record    {record:6.2}m",)) , context);
+
                     }
 
-                    if let Some(title_text) = context.1.get_title() {
-                        commands.add_child(
-                            "title",
-                            TextNode {
-                                text: title_text,
-                                font_size: LEVEL_TITLE_FONT_SIZE,
-                                color: LEVEL_TEXT_COLOR,
-                                font: LEVEL_TITLE_FONT_PATH,
-                                alignment: TextAlignment::Center,
-                                linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-                            }
-                            .with_transition_in::<TextColorLens<0>>(
-                                initial_color,
-                                destination_color,
-                                Duration::from_secs_f32(FADE_SECS),
-                            ),
-                            &context.2,
-                        );
-                    }
+                    if let GameLevel::Challenge { streak, .. } = args.level {
+                        commands.add_child("streak", level_text_node(format!("Streak    {streak:.2}",)) , context);
 
-                    if let Some(message) = context.1.get_text(&context.0) {
-                        //info!("Message {initial_color:?} {destination_color:?}");
-                        commands.add_child(
-                            "message",
-                            TextNode {
-                                text: message,
-                                font_size: LEVEL_TEXT_FONT_SIZE,
-                                color: LEVEL_TEXT_COLOR,
-                                font: LEVEL_TEXT_FONT_PATH,
-                                alignment: TextAlignment::Center,
-                                linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-                            }
-                            .with_transition_in::<TextColorLens<0>>(
-                                initial_color,
-                                destination_color,
-                                Duration::from_secs_f32(FADE_SECS),
-                            ),
-                            &context.2,
-                        )
                     }
-                } else if let Some(message) = context.1.get_text(&context.0) {
-                    commands.add_child(
-                        "completion_message",
-                        TextNode {
-                            text: message,
-                            font_size: LEVEL_TEXT_FONT_SIZE,
-                            color: LEVEL_TEXT_COLOR,
-                            font: LEVEL_TEXT_FONT_PATH,
-                            alignment: TextAlignment::Center,
-                            linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-                        },
-                        &context.2,
-                    )
                 }
-            })
+
+                if args.ui_state.is_game_splash() {
+                    if !args.score_info.medal.is_incomplete() {
+                        commands.add_child(
+                            "medals",
+                            ImageNode {
+                                path: args.score_info.medal.three_medals_asset_path(),
+                                background_color: Color::WHITE,
+                                style: ThreeMedalsImageStyle,
+                            },
+                            &context,
+                        );
+                    }
+                }
+
+                commands.add_child("buttons", ButtonPanel{ui_state: args.ui_state, level: args.level.clone()}, context);
+
+                let show_store_buttons =
+                    IS_DEMO &&  args.ui_state.is_game_splash();
+
+                if show_store_buttons {
+                    commands.add_child("store", StoreButtonPanel, context);
+                }
+            }
+        });
     }
 }
 
-// impl ChildrenAspect for TextPanel {
-//     fn set_children(
-//         &self,
-//         _previous: Option<&Self>,
-//         context: &<Self::Context as NodeContext>::Wrapper<'_>,
-//         commands: &mut impl ChildCommands,
-//     ) {
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct LevelTextPanel(CurrentLevel);
 
-//     }
-// }
+impl MavericNode for LevelTextPanel {
+    type Context = AssetServer;
+
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
+        commands.ignore_args().ignore_context().insert(NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.0), Val::Px(0.)),
+                justify_content: JustifyContent::Center,
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands.unordered_children_with_args_and_context(|args, context, commands| {
+            let initial_color = args.0.text_color();
+            let destination_color = if args.0.text_fade() {
+                initial_color.with_a(0.0)
+            } else {
+                initial_color
+            };
+
+            const FADE_SECS: f32 = 20.;
+            if let Some(level_number_text) = args.0.get_level_number_text(true) {
+                commands.add_child(
+                    "level_number",
+                    TextNode {
+                        text: level_number_text,
+                        font_size: LEVEL_NUMBER_FONT_SIZE,
+                        color: LEVEL_TEXT_COLOR,
+                        font: LEVEL_NUMBER_FONT_PATH,
+                        alignment: TextAlignment::Center,
+                        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+                    }
+                    .with_transition_in::<TextColorLens<0>>(
+                        initial_color,
+                        destination_color,
+                        Duration::from_secs_f32(FADE_SECS),
+                    ),
+                    context,
+                );
+            }
+
+            if let Some(title_text) = args.0.get_title() {
+                commands.add_child(
+                    "title",
+                    TextNode {
+                        text: title_text,
+                        font_size: LEVEL_TITLE_FONT_SIZE,
+                        color: LEVEL_TEXT_COLOR,
+                        font: LEVEL_TITLE_FONT_PATH,
+                        alignment: TextAlignment::Center,
+                        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+                    }
+                    .with_transition_in::<TextColorLens<0>>(
+                        initial_color,
+                        destination_color,
+                        Duration::from_secs_f32(FADE_SECS),
+                    ),
+                    context,
+                );
+            }
+
+            if let Some(message) = args.0.get_level_text() {
+                //info!("Message {initial_color:?} {destination_color:?}");
+                commands.add_child(
+                    "message",
+                    level_text_node(message)
+                    .with_transition_in::<TextColorLens<0>>(
+                        initial_color,
+                        destination_color,
+                        Duration::from_secs_f32(FADE_SECS),
+                    ),
+                    context,
+                )
+            }
+        })
+    }
+}
+
+fn level_text_node(text: impl Into<String>  + PartialEq + Clone + Send + Sync + 'static)-> impl MavericNode<Context = AssetServer>{
+    TextNode {
+        text,
+        font_size: LEVEL_TEXT_FONT_SIZE,
+        color: LEVEL_TEXT_COLOR,
+        font: LEVEL_TEXT_FONT_PATH,
+        alignment: TextAlignment::Center,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+    }
+}
+
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct ButtonPanel;
+pub struct ButtonPanel{
+    ui_state: GameUIState,
+    level: GameLevel,
+}
 
 impl MavericNode for ButtonPanel {
-    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+    type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
@@ -351,42 +396,40 @@ impl MavericNode for ButtonPanel {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
-            .ignore_args()
-            .unordered_children_with_context(|context, commands| {
-                if context.1.completion.is_complete() {
-                    if context.0.is_game_splash() {
-                        commands.add_child(
-                            "splash",
-                            icon_button_node(IconButtonAction::MinimizeSplash),
-                            &context.2,
-                        );
-                    } else {
-                        commands.add_child(
-                            "splash",
-                            icon_button_node(IconButtonAction::RestoreSplash),
-                            &context.2,
-                        );
-                    }
 
-                    commands.add_child("share", icon_button_node(IconButtonAction::Share), &context.2);
-
-                    #[cfg(any(feature = "android", feature = "ios"))]
-                    {
-                        if context.1.leaderboard_id().is_some() {
-                            commands.add_child(
-                                "leaderboard",
-                                icon_button_node(IconButtonAction::ShowLeaderboard),
-                                &context.2,
-                            );
-                        }
-                    }
-
+            .unordered_children_with_args_and_context(|args, context, commands| {
+                if args.ui_state.is_game_splash() {
                     commands.add_child(
-                        "next",
-                        icon_button_node(IconButtonAction::NextLevel),
-                        &context.2,
+                        "splash",
+                        icon_button_node(IconButtonAction::MinimizeSplash),
+                        &context,
+                    );
+                } else {
+                    commands.add_child(
+                        "splash",
+                        icon_button_node(IconButtonAction::RestoreSplash),
+                        &context,
                     );
                 }
+
+                commands.add_child("share", icon_button_node(IconButtonAction::Share), &context);
+
+                #[cfg(any(feature = "android", feature = "ios"))]
+                {
+                    if args.level.leaderboard_id().is_some() {
+                        commands.add_child(
+                            "leaderboard",
+                            icon_button_node(IconButtonAction::ShowLeaderboard),
+                            &context,
+                        );
+                    }
+                }
+
+                commands.add_child(
+                    "next",
+                    icon_button_node(IconButtonAction::NextLevel),
+                    &context,
+                );
             });
     }
 }
@@ -395,7 +438,7 @@ impl MavericNode for ButtonPanel {
 pub struct StoreButtonPanel;
 
 impl MavericNode for StoreButtonPanel {
-    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+    type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
@@ -416,16 +459,8 @@ impl MavericNode for StoreButtonPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands
-            .ignore_args()
-            .map_context::<AssetServer>(
-                |x: &(
-                    Res<'_, GameUIState>,
-                    Res<'_, CurrentLevel>,
-                    Res<'_, AssetServer>,
-                )| &x.2,
-            )
-            .unordered_children_with_context(|context: &Res<'_, AssetServer>, commands| {
+        commands.ignore_args().unordered_children_with_context(
+            |context: &Res<'_, AssetServer>, commands| {
                 commands.add_child(
                     4,
                     image_button_node(
@@ -446,7 +481,8 @@ impl MavericNode for StoreButtonPanel {
                     ),
                     context,
                 );
-            });
+            },
+        );
     }
 }
 
@@ -454,7 +490,7 @@ impl MavericNode for StoreButtonPanel {
 pub struct BeggingPanel;
 
 impl MavericNode for BeggingPanel {
-    type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
+    type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
@@ -488,7 +524,7 @@ impl MavericNode for BeggingPanel {
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
-                    &context.2,
+                    &context,
                 );
 
                 commands.add_child(
@@ -516,7 +552,7 @@ impl MavericNode for BeggingPanel {
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
-                    &context.2,
+                    &context,
                 );
 
                 commands.add_child(2, StoreButtonPanel, context);

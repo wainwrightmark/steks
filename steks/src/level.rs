@@ -162,7 +162,7 @@ fn choose_level_on_game_load(
     }
 }
 
-#[derive(Default, Resource, Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Resource, Clone, Debug, PartialEq, Serialize, Deserialize)]
 
 pub struct CurrentLevel {
     pub level: GameLevel,
@@ -221,13 +221,7 @@ impl CurrentLevel {
         }
     }
 
-    pub fn leaderboard_id(&self) -> Option<String> {
-        if let GameLevel::Designed { meta, .. } = &self.level {
-            meta.get_level().leaderboard_id.clone()
-        } else {
-            None
-        }
-    }
+
 
     // pub fn hide_shadows(&self) -> bool {
     //     match &self.level {
@@ -304,7 +298,7 @@ impl CurrentLevel {
         "an overwhelming surplus of nice!",
     ];
 
-    pub fn get_text(&self, ui: &GameUIState) -> Option<String> {
+    pub fn get_level_text(&self)-> Option<String>{
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::Designed { meta, .. } => meta
@@ -325,52 +319,11 @@ impl CurrentLevel {
                 GameLevel::Challenge { .. } => None,
                 GameLevel::Begging => None,
             },
-            LevelCompletion::Complete { score_info } => {
-                let height = score_info.height;
-                if ui.is_game_minimized() {
-                    return Some(format!("{height:.2}m",));
-                }
-
-                let message = match &self.level {
-                    GameLevel::Designed { meta, .. } => meta
-                        .get_level()
-                        .end_text
-                        .as_deref()
-                        .unwrap_or("Level Complete"),
-                    GameLevel::Infinite { .. } => "",
-                    GameLevel::Challenge { .. } => "Challenge Complete",
-                    GameLevel::Loaded { .. } => "Level Complete",
-                    GameLevel::Begging => "Message: Please buy the game",
-                };
-
-                let mut text = message
-                    .lines()
-                    .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
-                    .join("\n");
-
-                text.push_str(format!("\n\nHeight    {height:.2}m").as_str());
-
-                if score_info.is_pb {
-                    text.push_str("\nNew Personal Best");
-                } else {
-                    let pb = score_info.pb;
-                    text.push_str(format!("\nYour Best {pb:.2}m").as_str());
-                }
-
-                if score_info.is_wr {
-                    text.push_str("\nNew World Record");
-                } else if let Some(record) = score_info.wr {
-                    text.push_str(format!("\nRecord    {record:.2}m").as_str());
-                }
-
-                if let GameLevel::Challenge { streak, .. } = &self.level {
-                    text.push_str(format!("\nStreak    {streak:.2}").as_str());
-                }
-
-                Some(text)
-            }
+            LevelCompletion::Complete { .. } => None
         }
     }
+
+
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, EnumIs)]
@@ -449,6 +402,15 @@ pub enum GameLevel {
 }
 
 impl GameLevel {
+
+    pub fn leaderboard_id(&self) -> Option<String> {
+        if let GameLevel::Designed { meta, .. } = &self {
+            meta.get_level().leaderboard_id.clone()
+        } else {
+            None
+        }
+    }
+
     pub fn new_infinite() -> Self {
         let mut rng: rand::rngs::ThreadRng = rand::rngs::ThreadRng::default();
         let seed = rng.next_u64();

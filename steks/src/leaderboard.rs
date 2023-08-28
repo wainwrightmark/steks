@@ -427,7 +427,7 @@ fn update_leaderboard_on_completion(
 }
 
 pub fn try_show_leaderboard(level: &CurrentLevel) {
-    let Some(leaderboard_id) = level.leaderboard_id() else {return;};
+    let Some(leaderboard_id) = level.level.leaderboard_id() else {return;};
 
     info!("Showing leaderboard {:?}", leaderboard_id.clone());
     #[cfg(target_arch = "wasm32")]

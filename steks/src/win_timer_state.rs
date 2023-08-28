@@ -109,7 +109,7 @@ pub struct CircleMarker;
 impl MavericNode for CircleArc {
     type Context = NoContext;
 
-    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert((
             ShapeBundle {
                 transform: Transform {
@@ -123,13 +123,13 @@ impl MavericNode for CircleArc {
         ));
     }
 
-    fn set_children<R: MavericRoot>(_commands: NodeCommands<Self, Self::Context, R, true>) {}
+    fn set_children<R: MavericRoot>(_commands: SetChildrenCommands<Self, Self::Context, R>) {}
 }
 
 impl MavericNode for CircleMarker {
     type Context = NoContext;
 
-    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert((
             ShapeBundle {
                 path: GeometryBuilder::build_as(&bevy_prototype_lyon::shapes::Circle {
@@ -145,8 +145,8 @@ impl MavericNode for CircleMarker {
             Fill::color(MARKER_COLOR),
             Stroke::new(ARC_COLOR, ARC_STROKE),
             CircleMarkerComponent,
-        ))
+        ));
     }
 
-    fn set_children<R: MavericRoot>(_commands: NodeCommands<Self, Self::Context, R, true>) {}
+    fn set_children<R: MavericRoot>(_commands: SetChildrenCommands<Self, Self::Context, R>) {}
 }

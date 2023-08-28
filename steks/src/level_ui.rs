@@ -57,7 +57,7 @@ pub struct MainPanelWrapper;
 impl MavericNode for MainPanelWrapper {
     type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 
-    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -75,7 +75,7 @@ impl MavericNode for MainPanelWrapper {
         });
     }
 
-    fn set_children<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, true>) {
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
             .ignore_args()
             .unordered_children_with_context(|context, commands| {
@@ -90,9 +90,15 @@ pub struct MainPanel;
 impl MavericNode for MainPanel {
     type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 
-    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
-        commands.ignore_args().components_advanced(
-            |_args, _previous, context, _event, commands| {
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
+        commands.ignore_args().advanced(
+            |args, commands| {
+
+                if !args.is_hot(){
+                    return;
+                }
+                let context = args.context;
+
                 let (background, border) = match (context.1.completion, context.0.is_game_splash())
                 {
                     (LevelCompletion::Complete { .. }, true) => (Color::WHITE, Color::BLACK),
@@ -151,7 +157,7 @@ impl MavericNode for MainPanel {
         );
     }
 
-    fn set_children<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, true>) {
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
             .ignore_args()
             .unordered_children_with_context(|context, commands| {
@@ -195,7 +201,7 @@ pub struct TextPanel;
 impl MavericNode for TextPanel {
     type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 
-    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().insert_with_context(|context| {
             let top_margin = match (context.0.is_game_splash(), context.1.completion) {
                 (_, LevelCompletion::Incomplete { .. }) => Val::Px(0.0),
@@ -217,7 +223,7 @@ impl MavericNode for TextPanel {
         });
     }
 
-    fn set_children<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, true>) {
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
             .ignore_args()
             .unordered_children_with_context(|context, commands| {
@@ -325,7 +331,7 @@ pub struct ButtonPanel;
 impl MavericNode for ButtonPanel {
     type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 
-    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
             style: Style {
                 display: Display::Flex,
@@ -343,7 +349,7 @@ impl MavericNode for ButtonPanel {
         });
     }
 
-    fn set_children<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, true>) {
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
             .ignore_args()
             .unordered_children_with_context(|context, commands| {
@@ -391,7 +397,7 @@ pub struct StoreButtonPanel;
 impl MavericNode for StoreButtonPanel {
     type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 
-    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
             style: Style {
                 display: Display::Flex,
@@ -409,7 +415,7 @@ impl MavericNode for StoreButtonPanel {
         });
     }
 
-    fn set_children<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, true>) {
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
             .ignore_args()
             .map_context::<AssetServer>(
@@ -450,7 +456,7 @@ pub struct BeggingPanel;
 impl MavericNode for BeggingPanel {
     type Context = NC3<GameUIState, CurrentLevel, AssetServer>;
 
-    fn set_components<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, false>) {
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
             style: Style {
                 display: Display::Flex,
@@ -468,7 +474,7 @@ impl MavericNode for BeggingPanel {
         });
     }
 
-    fn set_children<R: MavericRoot>(commands: NodeCommands<Self, Self::Context, R, true>) {
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
             .ignore_args()
             .unordered_children_with_context(|context, commands| {

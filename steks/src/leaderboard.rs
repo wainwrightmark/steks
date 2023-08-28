@@ -12,11 +12,12 @@ use crate::prelude::*;
 pub type PBMap = BTreeMap<u64, LevelRecord>;
 pub type LeaderMap = BTreeMap<u64, f32>;
 
-#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone,  PartialEq, Default, Serialize, Deserialize)]
 
 pub struct LevelRecord {
     pub medal: MedalType,
     pub height: f32,
+    pub image_blob: Vec<u8>
 }
 
 #[derive(
@@ -326,9 +327,11 @@ fn update_leaderboard_on_completion(
 
     let hash = sv.hash();
 
-    let record = LevelRecord {
+    let record = || LevelRecord {
         height,
         medal: MedalType::Incomplete,
+        image_blob: encode_shapes(&sv)
+
     };
 
     let pb_changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
@@ -336,12 +339,12 @@ fn update_leaderboard_on_completion(
         .entry(hash)
     {
         std::collections::btree_map::Entry::Vacant(v) => {
-            v.insert(record);
+            v.insert(record());
             true
         }
         std::collections::btree_map::Entry::Occupied(mut o) => {
             if o.get().height + 0.01 < height {
-                o.insert(record);
+                o.insert(record());
                 true
             } else {
                 false

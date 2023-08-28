@@ -41,7 +41,7 @@ impl RootChildren for LevelUiRoot {
                 ),
                 LevelCompletion::Complete { score_info } => {
                     let top = if context.1 .0.is_game_minimized() {
-                        Val::Percent(00.)
+                        Val::Percent(10.)
                     } else {
                         Val::Percent(30.)
                     };
@@ -123,13 +123,11 @@ impl MavericNode for MainPanel {
                 return;
             }
 
-            let (background, border) = if args.node.ui_state.is_game_splash(){
+            let (background, border) = if args.node.ui_state.is_game_splash() {
                 (Color::WHITE, Color::BLACK)
-            } else{
+            } else {
                 (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0))
             };
-
-
 
             let color_speed = Some(ScalarSpeed {
                 amount_per_second: 1.0,
@@ -184,13 +182,10 @@ impl MavericNode for MainPanel {
             if args.level.is_begging() {
                 commands.add_child("begging", BeggingPanel, context);
             } else {
-
                 let height = args.score_info.height;
-                if !args.ui_state.is_game_splash(){
-
-                    commands.add_child("height", level_text_node(format!("{height:.2}m",)) , context)
-                }
-                else{
+                if !args.ui_state.is_game_splash() {
+                    commands.add_child("height", level_text_node(format!("{height:.2}m",)), context)
+                } else {
                     let message = match &args.level {
                         GameLevel::Designed { meta, .. } => meta
                             .get_level()
@@ -203,39 +198,73 @@ impl MavericNode for MainPanel {
                         GameLevel::Begging => "Message: Please buy the game",
                     };
 
-                    let message =
-
-                    std::iter::Iterator::chain([""].into_iter(),
-
-                     std::iter::Iterator::chain(message.lines(), ["", ""].into_iter() )).take(4)
-                    .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS)).join("\n");
-
-                        commands.add_child("blank1", level_text_node("\n\n"), context);
+                    let message = std::iter::Iterator::chain(
+                        [""].into_iter(),
+                        std::iter::Iterator::chain(message.lines(), ["", ""].into_iter()),
+                    )
+                    .take(4)
+                    .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
+                    .join("\n");
 
                     commands.add_child("message", level_text_node(message), context);
 
-                    commands.add_child("height", level_text_node(format!("Height    {height:6.2}m",)) , context);
+                    commands.add_child(
+                        "height_data",
+                        TextPlusIcon {
+                            text: format!("Height    {height:6.2}m",),
+                            icon: IconButtonAction::Share,
+                        },
+                        context,
+                    );
 
-                    let pb = if args.score_info.is_pb {
-                        "New Personal Best".to_string()
+                    if args.score_info.is_pb {
+                        commands.add_child(
+                            "new_best",
+                            TextPlusIcon {
+                                text: format!("New Personal Best"),
+                                icon: IconButtonAction::None,
+                            },
+                            context,
+                        );
                     } else {
                         let pb = args.score_info.pb;
-                        format!("Your Best {pb:6.2}m")
+
+                        commands.add_child(
+                            "your_best",
+                            TextPlusIcon {
+                                text: format!("Your Best {pb:6.2}m"),
+                                icon: IconButtonAction::ViewPB,
+                            },
+                            context,
+                        );
                     };
 
-                    commands.add_child("pb", level_text_node(pb) , context);
-
                     if args.score_info.is_wr {
-                        commands.add_child("new_world_record", level_text_node("New World Record") , context);
-
+                        commands.add_child(
+                            "new_world_record",
+                            TextPlusIcon {
+                                text: "New World Record ".to_string(),
+                                icon: IconButtonAction::None,
+                            },
+                            context,
+                        );
                     } else if let Some(record) = args.score_info.wr {
-                        commands.add_child("world_record", level_text_node(format!("Record    {record:6.2}m",)) , context);
-
+                        commands.add_child(
+                            "new_world_record",
+                            TextPlusIcon {
+                                text: format!("Record    {record:6.2}m",),
+                                icon: IconButtonAction::ViewRecord,
+                            },
+                            context,
+                        );
                     }
 
                     if let GameLevel::Challenge { streak, .. } = args.level {
-                        commands.add_child("streak", level_text_node(format!("Streak    {streak:.2}",)) , context);
-
+                        commands.add_child(
+                            "streak",
+                            level_text_node(format!("Streak    {streak:.2}",)),
+                            context,
+                        );
                     }
                 }
 
@@ -253,10 +282,16 @@ impl MavericNode for MainPanel {
                     }
                 }
 
-                commands.add_child("buttons", ButtonPanel{ui_state: args.ui_state, level: args.level.clone()}, context);
+                commands.add_child(
+                    "buttons",
+                    ButtonPanel {
+                        ui_state: args.ui_state,
+                        level: args.level.clone(),
+                    },
+                    context,
+                );
 
-                let show_store_buttons =
-                    IS_DEMO &&  args.ui_state.is_game_splash();
+                let show_store_buttons = IS_DEMO && args.ui_state.is_game_splash();
 
                 if show_store_buttons {
                     commands.add_child("store", StoreButtonPanel, context);
@@ -342,8 +377,7 @@ impl MavericNode for LevelTextPanel {
                 //info!("Message {initial_color:?} {destination_color:?}");
                 commands.add_child(
                     "message",
-                    level_text_node(message)
-                    .with_transition_in::<TextColorLens<0>>(
+                    level_text_node(message).with_transition_in::<TextColorLens<0>>(
                         initial_color,
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
@@ -355,7 +389,9 @@ impl MavericNode for LevelTextPanel {
     }
 }
 
-fn level_text_node(text: impl Into<String>  + PartialEq + Clone + Send + Sync + 'static)-> impl MavericNode<Context = AssetServer>{
+fn level_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
+    text: T,
+) -> TextNode<T> {
     TextNode {
         text,
         font_size: LEVEL_TEXT_FONT_SIZE,
@@ -366,9 +402,8 @@ fn level_text_node(text: impl Into<String>  + PartialEq + Clone + Send + Sync + 
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct ButtonPanel{
+pub struct ButtonPanel {
     ui_state: GameUIState,
     level: GameLevel,
 }
@@ -395,42 +430,40 @@ impl MavericNode for ButtonPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands
-
-            .unordered_children_with_args_and_context(|args, context, commands| {
-                if args.ui_state.is_game_splash() {
-                    commands.add_child(
-                        "splash",
-                        icon_button_node(IconButtonAction::MinimizeSplash),
-                        &context,
-                    );
-                } else {
-                    commands.add_child(
-                        "splash",
-                        icon_button_node(IconButtonAction::RestoreSplash),
-                        &context,
-                    );
-                }
-
-                commands.add_child("share", icon_button_node(IconButtonAction::Share), &context);
-
-                #[cfg(any(feature = "android", feature = "ios"))]
-                {
-                    if args.level.leaderboard_id().is_some() {
-                        commands.add_child(
-                            "leaderboard",
-                            icon_button_node(IconButtonAction::ShowLeaderboard),
-                            &context,
-                        );
-                    }
-                }
-
+        commands.unordered_children_with_args_and_context(|args, context, commands| {
+            if args.ui_state.is_game_splash() {
                 commands.add_child(
-                    "next",
-                    icon_button_node(IconButtonAction::NextLevel),
+                    "splash",
+                    icon_button_node(IconButtonAction::MinimizeSplash, IconButtonStyle::HeightPadded),
                     &context,
                 );
-            });
+            } else {
+                commands.add_child(
+                    "splash",
+                    icon_button_node(IconButtonAction::RestoreSplash, IconButtonStyle::HeightPadded),
+                    &context,
+                );
+            }
+
+            //commands.add_child("share", icon_button_node(IconButtonAction::Share), &context);
+
+            #[cfg(any(feature = "android", feature = "ios"))]
+            {
+                if args.level.leaderboard_id().is_some() {
+                    commands.add_child(
+                        "leaderboard",
+                        icon_button_node(IconButtonAction::ShowLeaderboard, IconButtonStyle::HeightPadded),
+                        &context,
+                    );
+                }
+            }
+
+            commands.add_child(
+                "next",
+                icon_button_node(IconButtonAction::NextLevel, IconButtonStyle::HeightPadded),
+                &context,
+            );
+        });
     }
 }
 
@@ -557,5 +590,34 @@ impl MavericNode for BeggingPanel {
 
                 commands.add_child(2, StoreButtonPanel, context);
             });
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TextPlusIcon {
+    text: String,
+    icon: IconButtonAction,
+}
+
+impl MavericNode for TextPlusIcon {
+    type Context = AssetServer;
+
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
+        commands.ignore_args().ignore_context().insert(NodeBundle {
+            style: Style {
+                flex_direction: FlexDirection::Row,
+                justify_items: JustifyItems::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        });
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands.unordered_children_with_args_and_context(|args, context, commands| {
+            commands.add_child(0, level_text_node(args.text.clone()), context);
+            commands.add_child(1, icon_button_node(args.icon, IconButtonStyle::Compact), context);
+        });
     }
 }

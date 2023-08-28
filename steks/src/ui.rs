@@ -48,6 +48,7 @@ impl IntoBundle for OpenMenuButtonStyle {
 
 pub(crate) fn icon_button_node(
     button_action: IconButtonAction,
+    style: IconButtonStyle
 ) -> impl MavericNode<Context = AssetServer> {
     ButtonNode {
         background_color: Color::NONE,
@@ -58,7 +59,7 @@ pub(crate) fn icon_button_node(
             button_action,
             button_type: ButtonType::Icon,
         },
-        style: IconButtonStyle,
+        style,
         children: (TextNode {
             text: button_action.icon(),
             font_size: ICON_FONT_SIZE,
@@ -70,23 +71,39 @@ pub(crate) fn icon_button_node(
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-struct IconButtonStyle;
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum IconButtonStyle{
+    HeightPadded, Compact
+}
 
 impl IntoBundle for IconButtonStyle {
     type B = Style;
 
     fn into_bundle(self) -> Self::B {
-        Style {
-            width: Val::Px(ICON_BUTTON_WIDTH),
-            height: Val::Px(ICON_BUTTON_HEIGHT),
-            margin: UiRect::all(Val::Auto),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
-            ..Default::default()
+
+        match self{
+            IconButtonStyle::HeightPadded => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT),
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                ..Default::default()
+            },
+            IconButtonStyle::Compact => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                ..Default::default()
+            },
         }
+
+
     }
 }
 

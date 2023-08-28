@@ -98,6 +98,9 @@ pub enum IconButtonAction {
     Apple,
     Steam,
 
+    ViewPB,
+    ViewRecord,
+
     None,
 }
 
@@ -116,6 +119,8 @@ impl IconButtonAction {
             Apple => "\u{f179}",
             Steam => "\u{f1b6}",
             ShowLeaderboard => "\u{e803}",
+            ViewPB => "\u{e81c}",
+            ViewRecord => "\u{e81c}",
             None => "",
         }
     }
@@ -386,6 +391,9 @@ fn icon_button_system(
                 PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
 
                 Steam | GooglePlay | Apple | None => {}
+
+                ViewPB =>{}
+                ViewRecord=>{}
 
                 ShowLeaderboard => {
                     leaderboard::try_show_leaderboard(&current_level);

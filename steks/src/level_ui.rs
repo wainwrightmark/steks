@@ -149,10 +149,10 @@ impl MavericNode for MainPanel {
 
             let z_index = ZIndex::Global(15);
 
-            let flex_direction: FlexDirection = if true || args.node.ui_state.is_game_splash() {
+            let flex_direction: FlexDirection = if args.node.ui_state.is_game_splash() {
                 FlexDirection::Column
             } else {
-                FlexDirection::RowReverse
+                FlexDirection::Row
             };
 
             let bundle = NodeBundle {
@@ -181,10 +181,48 @@ impl MavericNode for MainPanel {
         commands.ordered_children_with_args_and_context(|args, context, commands| {
             if args.level.is_begging() {
                 commands.add_child("begging", BeggingPanel, context);
+
+                commands.add_child(
+                    "buttons",
+                    ButtonPanel {
+                        ui_state: args.ui_state,
+                        level: args.level.clone(),
+                    },
+                    context,
+                );
+
+                if IS_DEMO {
+                    commands.add_child("store", StoreButtonPanel, context);
+                }
+
+                return;
+            }
+
+            let height = args.score_info.height;
+            if args.ui_state.is_game_minimized() {
+
+                commands.add_child(
+                    "splash",
+                    icon_button_node(
+                        IconButtonAction::RestoreSplash,
+                        IconButtonStyle::HeightPadded,
+                    ),
+                    &context,
+                );
+
+                commands.add_child("height", level_text_node(format!("{height:6.2}m",)), context);
+
+                commands.add_child(
+                    "next",
+                    icon_button_node(IconButtonAction::NextLevel, IconButtonStyle::HeightPadded),
+                    &context,
+                );
+                return;
+            }
+
+            if args.level.is_begging() {
             } else {
-                let height = args.score_info.height;
                 if !args.ui_state.is_game_splash() {
-                    commands.add_child("height", level_text_node(format!("{height:.2}m",)), context)
                 } else {
                     let message = match &args.level {
                         GameLevel::Designed { meta, .. } => meta
@@ -241,7 +279,7 @@ impl MavericNode for MainPanel {
 
                     if args.score_info.is_wr {
                         commands.add_child(
-                            "new_world_record",
+                            "wr",
                             TextPlusIcon {
                                 text: "New World Record ".to_string(),
                                 icon: IconButtonAction::None,
@@ -250,7 +288,7 @@ impl MavericNode for MainPanel {
                         );
                     } else if let Some(record) = args.score_info.wr {
                         commands.add_child(
-                            "new_world_record",
+                            "wr",
                             TextPlusIcon {
                                 text: format!("Record    {record:6.2}m",),
                                 icon: IconButtonAction::ViewRecord,
@@ -266,9 +304,7 @@ impl MavericNode for MainPanel {
                             context,
                         );
                     }
-                }
 
-                if args.ui_state.is_game_splash() {
                     if !args.score_info.medal.is_incomplete() {
                         commands.add_child(
                             "medals",
@@ -280,21 +316,19 @@ impl MavericNode for MainPanel {
                             &context,
                         );
                     }
-                }
 
-                commands.add_child(
-                    "buttons",
-                    ButtonPanel {
-                        ui_state: args.ui_state,
-                        level: args.level.clone(),
-                    },
-                    context,
-                );
+                    commands.add_child(
+                        "buttons",
+                        ButtonPanel {
+                            ui_state: args.ui_state,
+                            level: args.level.clone(),
+                        },
+                        context,
+                    );
 
-                let show_store_buttons = IS_DEMO && args.ui_state.is_game_splash();
-
-                if show_store_buttons {
-                    commands.add_child("store", StoreButtonPanel, context);
+                    if IS_DEMO {
+                        commands.add_child("store", StoreButtonPanel, context);
+                    }
                 }
             }
         });
@@ -431,28 +465,36 @@ impl MavericNode for ButtonPanel {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_args_and_context(|args, context, commands| {
+
             if args.ui_state.is_game_splash() {
                 commands.add_child(
                     "splash",
-                    icon_button_node(IconButtonAction::MinimizeSplash, IconButtonStyle::HeightPadded),
+                    icon_button_node(
+                        IconButtonAction::MinimizeSplash,
+                        IconButtonStyle::HeightPadded,
+                    ),
                     &context,
                 );
             } else {
                 commands.add_child(
                     "splash",
-                    icon_button_node(IconButtonAction::RestoreSplash, IconButtonStyle::HeightPadded),
+                    icon_button_node(
+                        IconButtonAction::RestoreSplash,
+                        IconButtonStyle::HeightPadded,
+                    ),
                     &context,
                 );
             }
-
-            //commands.add_child("share", icon_button_node(IconButtonAction::Share), &context);
 
             #[cfg(any(feature = "android", feature = "ios"))]
             {
                 if args.level.leaderboard_id().is_some() {
                     commands.add_child(
                         "leaderboard",
-                        icon_button_node(IconButtonAction::ShowLeaderboard, IconButtonStyle::HeightPadded),
+                        icon_button_node(
+                            IconButtonAction::ShowLeaderboard,
+                            IconButtonStyle::HeightPadded,
+                        ),
                         &context,
                     );
                 }
@@ -466,6 +508,7 @@ impl MavericNode for ButtonPanel {
         });
     }
 }
+
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct StoreButtonPanel;
@@ -617,7 +660,11 @@ impl MavericNode for TextPlusIcon {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_args_and_context(|args, context, commands| {
             commands.add_child(0, level_text_node(args.text.clone()), context);
-            commands.add_child(1, icon_button_node(args.icon, IconButtonStyle::Compact), context);
+            commands.add_child(
+                1,
+                icon_button_node(args.icon, IconButtonStyle::Compact),
+                context,
+            );
         });
     }
 }

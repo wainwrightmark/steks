@@ -112,11 +112,11 @@ impl Command {
 
         match self {
             Command::Default => {
-                let data = draw_image(&bytes, &text_overlay(), dimensions);
+                let data = try_draw_image(&bytes, &text_overlay(), dimensions).unwrap();
                 Body::Binary(data)
             }
             Command::NoOverlay => {
-                let data = draw_image(&bytes, &OverlayChooser::no_overlay(), dimensions);
+                let data = try_draw_image(&bytes, &OverlayChooser::no_overlay(), dimensions).unwrap();
                 Body::Binary(data)
             }
             Command::SVG => {
@@ -216,7 +216,7 @@ mod tests {
                 } else {
                     OverlayChooser::no_overlay()
                 };
-                let data = draw_image(&bytes, &overlay_chooser, dimensions);
+                let data = try_draw_image(&bytes, &overlay_chooser, dimensions).unwrap();
                 let len = data.len();
                 std::fs::write(name.clone(), data.as_slice()).unwrap();
 

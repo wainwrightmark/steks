@@ -17,7 +17,7 @@ num_enum = "0.7"
 strum = { version = "0.25", features = ["derive"] }
 rand = "0.8.5"
 resvg = { version = "0.35", default-features = false }
-
+anyhow = "1"
 
 # # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 # [profile.dev.package."*"]

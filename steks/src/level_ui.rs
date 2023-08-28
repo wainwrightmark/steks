@@ -287,7 +287,7 @@ impl MavericNode for MainPanel {
                     "new_best",
                     TextPlusIcon {
                         text: format!("New Personal Best"),
-                        icon: IconButtonAction::None,
+                        icon: IconButtonAction::ViewPB,
                     },
                     context,
                 );
@@ -713,26 +713,13 @@ fn update_preview_images(
     match preview {
         PreviewImage::PB => {
             if let Some(level_record) = pbs.map.get(&hash) {
-                let image_bytes = steks_common::images::drawing::draw_image(
-                    level_record.image_blob.as_slice(),
-                    &OverlayChooser::no_overlay(),
-                    Dimensions {
-                        width: PREVIEW_IMAGE_SIZE_U32,
-                        height: PREVIEW_IMAGE_SIZE_U32,
+
+                match game_to_image(&level_record.image_blob.as_slice()){
+                    Ok(image) => {
+                        *im = image;
                     },
-                );
-
-                *im = Image::from_buffer(
-                    &image_bytes,
-                    bevy::render::texture::ImageType::Extension("png"),
-                    CompressedImageFormats::empty(),
-                    true,
-                )
-                .unwrap();
-
-                //info!("old bytes: {} new bytes: {}",im.data.len(), image_bytes.len());
-
-                //im.data = image_bytes;
+                    Err(err) => error!("{err}"),
+                }
             } else {
                 clear = true;
             }
@@ -750,6 +737,24 @@ fn update_preview_images(
             pixel[3] = 255;
         }
     }
+}
+
+fn game_to_image(data: &[u8]) -> Result<Image, anyhow::Error> {
+    let image_bytes = steks_common::images::drawing::try_draw_image(
+        data,
+        &OverlayChooser::no_overlay(),
+        Dimensions {
+            width: PREVIEW_IMAGE_SIZE_U32,
+            height: PREVIEW_IMAGE_SIZE_U32,
+        },
+    )?;
+
+    Ok(Image::from_buffer(
+        &image_bytes,
+        bevy::render::texture::ImageType::Extension("png"),
+        CompressedImageFormats::empty(),
+        true,
+    )?)
 }
 
 #[derive(Debug, Clone, PartialEq)]

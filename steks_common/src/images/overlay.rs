@@ -16,7 +16,7 @@ impl OverlayChooser {
 
 
     pub fn choose_scale_and_overlay(&self, h_scale: f32, v_scale: f32) -> (f32, Option<&Overlay>) {
-        println!("h: {h_scale} v: {v_scale}");
+        //println!("h: {h_scale} v: {v_scale}");
         if self.options.is_empty() {
             return (h_scale.max(v_scale) * DEFAULT_SCALE_MULTIPLIER, None);
         }
@@ -29,7 +29,7 @@ impl OverlayChooser {
                 Ratio::TallerThanWide(r) => (r * v_scale).max(h_scale),
             };
 
-            println!("Scale: {scale}");
+            //println!("Scale: {scale}");
 
             let scale = scale * DEFAULT_SCALE_MULTIPLIER;
 
@@ -59,11 +59,8 @@ pub enum Ratio {
 }
 
 impl Overlay {
-    pub fn include(&self, pixmap: &mut Pixmap, opt: &Options, dimensions: Dimensions) {
-        let logo_tree = match Tree::from_data(self.bytes, &opt) {
-            Ok(tree) => tree,
-            Err(e) => panic!("{e}"),
-        };
+    pub fn try_include(&self, pixmap: &mut Pixmap, opt: &Options, dimensions: Dimensions)-> Result<(), anyhow::Error> {
+        let logo_tree = Tree::from_data(self.bytes, &opt)?;
 
         let logo_scale = (dimensions.width as f32 / logo_tree.size.width() as f32)
             .min(dimensions.height as f32 / logo_tree.size.height() as f32);
@@ -83,5 +80,6 @@ impl Overlay {
             transform,
             &mut pixmap.as_mut(),
         );
+        Ok(())
     }
 }

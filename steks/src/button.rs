@@ -27,14 +27,22 @@ pub struct ButtonPlugin;
 
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(First, button_system);
+        app.add_systems(First, text_button_system)
+            .add_systems(First, icon_button_system);
     }
 }
 
 #[derive(Debug, Clone, Copy, Component, PartialEq)]
-pub struct ButtonComponent {
+pub struct IconButtonComponent {
     pub disabled: bool,
-    pub button_action: ButtonAction,
+    pub button_action: IconButtonAction,
+    pub button_type: ButtonType,
+}
+
+#[derive(Debug, Clone, Copy, Component, PartialEq)]
+pub struct TextButtonComponent {
+    pub disabled: bool,
+    pub button_action: TextButtonAction,
     pub button_type: ButtonType,
 }
 
@@ -74,10 +82,48 @@ impl ButtonType {
 }
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
-pub enum ButtonAction {
+pub enum IconButtonAction {
     OpenMenu,
+    Share,
+
+    NextLevel,
+    MinimizeSplash,
+    RestoreSplash,
+    ShowLeaderboard,
+
+    NextLevelsPage,
+    PreviousLevelsPage,
+
+    GooglePlay,
+    Apple,
+    Steam,
+
+    None,
+}
+
+impl IconButtonAction {
+    pub fn icon(&self) -> &'static str {
+        use IconButtonAction::*;
+        match self {
+            OpenMenu => "\u{f0c9}",
+            Share => "\u{f1e0}",
+            NextLevel => "\u{e808}",
+            PreviousLevelsPage => "\u{e81b}",
+            NextLevelsPage => "\u{e81a}",
+            RestoreSplash => "\u{f149}",
+            MinimizeSplash => "\u{f148}",
+            GooglePlay => "\u{f1a0}",
+            Apple => "\u{f179}",
+            Steam => "\u{f1b6}",
+            ShowLeaderboard => "\u{e803}",
+            None => "",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
+pub enum TextButtonAction {
     Resume,
-    ResetLevel,
     GoFullscreen,
     Tutorial,
     Infinite,
@@ -86,78 +132,49 @@ pub enum ButtonAction {
     ChooseLevel,
     ClipboardImport,
     GotoLevel { level: u8 },
-    NextLevel,
-    MinimizeSplash,
-    RestoreSplash,
     MinimizeApp,
     ToggleSettings,
-
-    ShowLeaderboard,
 
     ToggleArrows,
     ToggleTouchOutlines,
     SetRotationSensitivity(RotationSensitivity),
 
-    NextLevelsPage,
-    PreviousLevelsPage,
     Credits,
-
-    GooglePlay,
-    Apple,
-    Steam,
 
     SyncAchievements,
     ShowAchievements,
-    None,
 }
 
-impl ButtonAction {
-    pub fn icon(&self) -> String {
-        use ButtonAction::*;
+impl TextButtonAction {
+    pub fn closes_menu(&self) -> bool {
+        use TextButtonAction::*;
         match self {
-            OpenMenu => "\u{f0c9}".to_string(),       // "Menu",
-            Resume => "\u{e817}".to_string(),         // "Menu",
-            ResetLevel => "\u{e800}".to_string(),     //"Reset Level",image
-            GoFullscreen => "\u{f0b2}".to_string(),   //"Fullscreen",
-            Tutorial => "\u{e801}".to_string(),       //"Tutorial",
-            Infinite => "\u{e802}".to_string(),       //"Infinite",
-            DailyChallenge => "\u{e803}".to_string(), // "Challenge",
-            Share => "\u{f1e0}".to_string(),          // "Share",
-            ChooseLevel => "\u{e812}".to_string(),    // "\u{e812};".to_string(),
-            GotoLevel { level } => {
-                crate::designed_level::format_campaign_level_number(level, false)
-            }
-            NextLevel => "\u{e808}".to_string(), //play
-
-            MinimizeApp => "\u{e813}".to_string(),     //logout
-            ClipboardImport => "\u{e818}".to_string(), //clipboard
-            PreviousLevelsPage => "\u{e81b}".to_string(),
-            NextLevelsPage => "\u{e81a}".to_string(),
-            Credits => "\u{e811}".to_string(),
-            RestoreSplash => "\u{f149}".to_string(),
-            MinimizeSplash => "\u{f148}".to_string(),
-
-            GooglePlay => "\u{f1a0}".to_string(),
-            Apple => "\u{f179}".to_string(),
-            Steam => "\u{f1b6}".to_string(),
-            ShowLeaderboard => "\u{e803}".to_string(),
-            ToggleSettings => "Settings".to_string(),
-            ToggleArrows => "Toggle Arrows".to_string(),
-            ToggleTouchOutlines => "Toggle Markers".to_string(),
-            SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
-            SyncAchievements => "Sync Achievements".to_string(),
-            ShowAchievements => "Show Achievements".to_string(),
-
-            None => "".to_string(),
+            Resume => true,
+            GoFullscreen => true,
+            Tutorial => true,
+            Infinite => true,
+            DailyChallenge => true,
+            Share => true,
+            ChooseLevel => false,
+            ClipboardImport => true,
+            GotoLevel { .. } => true,
+            MinimizeApp => true,
+            ToggleSettings => false,
+            ToggleArrows => false,
+            ToggleTouchOutlines => false,
+            SetRotationSensitivity(_) => false,
+            Credits => true,
+            SyncAchievements => false,
+            ShowAchievements => false,
         }
     }
 
     pub fn text(&self) -> String {
-        use ButtonAction::*;
+        use TextButtonAction::*;
+
         match self {
-            OpenMenu => "Menu".to_string(),
             Resume => "Resume".to_string(),
-            ResetLevel => "Reset".to_string(),
+
             GoFullscreen => "Fullscreen".to_string(),
             Tutorial => "Tutorial".to_string(),
             Infinite => "Infinite Mode".to_string(),
@@ -180,25 +197,14 @@ impl ButtonAction {
                     level_number
                 }
             }
-            NextLevel => "Next Level".to_string(),
-            MinimizeSplash => "Minimize Splash".to_string(),
-            RestoreSplash => "Restore Splash".to_string(),
             MinimizeApp => "Quit".to_string(),
-            NextLevelsPage => "Next Levels".to_string(),
-            PreviousLevelsPage => "Previous Levels".to_string(),
             Credits => "Credits".to_string(),
-
-            ShowLeaderboard => "Show Leaderboard".to_string(),
-            GooglePlay => "Google Play".to_string(),
-            Apple => "Apple".to_string(),
-            Steam => "Steam".to_string(),
             ToggleSettings => "Settings".to_string(),
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SyncAchievements => "Sync Achievements".to_string(),
             ShowAchievements => "Show Achievements".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
-            None => "".to_string(),
         }
     }
 }
@@ -223,7 +229,7 @@ pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
 
 pub fn spawn_text_button(
     parent: &mut ChildBuilder,
-    button_action: ButtonAction,
+    button_action: TextButtonAction,
     font: Handle<Font>,
     disabled: bool,
     justify_content: JustifyContent,
@@ -241,7 +247,7 @@ pub fn spawn_text_button(
 pub fn spawn_text_button_with_text(
     text: String,
     parent: &mut ChildBuilder,
-    button_action: ButtonAction,
+    button_action: TextButtonAction,
     font: Handle<Font>,
     disabled: bool,
     justify_content: JustifyContent,
@@ -291,7 +297,7 @@ pub fn spawn_text_button_with_text(
         .with_children(|parent| {
             parent.spawn(text_bundle);
         })
-        .insert(ButtonComponent {
+        .insert(TextButtonComponent {
             disabled,
             button_action,
             button_type: ButtonType::Text,
@@ -300,7 +306,7 @@ pub fn spawn_text_button_with_text(
 
 pub fn spawn_icon_button(
     parent: &mut ChildBuilder,
-    button_action: ButtonAction,
+    button_action: IconButtonAction,
 
     font: Handle<Font>,
     disabled: bool,
@@ -324,16 +330,74 @@ pub fn spawn_icon_button(
         .with_children(|parent| {
             parent.spawn(text_bundle);
         })
-        .insert(ButtonComponent {
+        .insert(IconButtonComponent {
             disabled,
             button_action,
             button_type: ButtonType::Icon,
         });
 }
 
-fn button_system(
+fn icon_button_system(
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor, &ButtonComponent),
+        (&Interaction, &mut BackgroundColor, &IconButtonComponent),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut change_level_events: EventWriter<ChangeLevelEvent>,
+    mut share_events: EventWriter<ShareEvent>,
+
+    mut menu_state: ResMut<MenuState>,
+    mut game_ui_state: ResMut<GameUIState>,
+
+    current_level: Res<CurrentLevel>,
+
+    dragged: Query<(), With<BeingDragged>>,
+) {
+    if !dragged.is_empty() {
+        return;
+    }
+
+    for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
+        if button.disabled || button.button_action == IconButtonAction::None {
+            continue;
+        }
+
+        use IconButtonAction::*;
+
+        //info!("{interaction:?} {button:?} {menu_state:?}");
+        *bg_color = button
+            .button_type
+            .background_color(interaction, button.disabled);
+
+        if interaction == &Interaction::Pressed {
+            match button.button_action {
+                OpenMenu => menu_state.as_mut().open_menu(),
+                Share => share_events.send(ShareEvent),
+                NextLevel => change_level_events.send(ChangeLevelEvent::Next),
+                MinimizeSplash => {
+                    info!("Minimizing Splash");
+                    *game_ui_state = GameUIState::GameMinimized;
+                }
+                RestoreSplash => {
+                    info!("Restoring Splash");
+                    *game_ui_state = GameUIState::GameSplash;
+                }
+                NextLevelsPage => menu_state.as_mut().next_levels_page(),
+
+                PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
+
+                Steam | GooglePlay | Apple | None => {}
+
+                ShowLeaderboard => {
+                    leaderboard::try_show_leaderboard(&current_level);
+                }
+            }
+        }
+    }
+}
+
+fn text_button_system(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor, &TextButtonComponent),
         (Changed<Interaction>, With<Button>),
     >,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
@@ -341,7 +405,6 @@ fn button_system(
     mut import_events: EventWriter<ImportEvent>,
 
     mut menu_state: ResMut<MenuState>,
-    mut game_ui_state: ResMut<GameUIState>,
     mut settings: ResMut<GameSettings>,
 
     current_level: Res<CurrentLevel>,
@@ -354,10 +417,11 @@ fn button_system(
     }
 
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
-        if button.disabled || button.button_action == ButtonAction::None {
+        if button.disabled {
             continue;
         }
-        use ButtonAction::*;
+        use TextButtonAction::*;
+
         //info!("{interaction:?} {button:?} {menu_state:?}");
         *bg_color = button
             .button_type
@@ -365,7 +429,6 @@ fn button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                OpenMenu => menu_state.as_mut().open_menu(),
                 Resume => menu_state.as_mut().close_menu(),
                 GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
@@ -378,7 +441,7 @@ fn button_system(
                     .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
                 Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
                 DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
-                ResetLevel => change_level_events.send(ChangeLevelEvent::ResetLevel),
+
                 Share => share_events.send(ShareEvent),
                 GotoLevel { level } => {
                     change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
@@ -387,53 +450,23 @@ fn button_system(
                     })
                 }
                 ChooseLevel => menu_state.as_mut().toggle_levels(current_level.as_ref()),
-                NextLevel => change_level_events.send(ChangeLevelEvent::Next),
-                MinimizeSplash => {
-                    info!("Minimizing Splash");
-                    *game_ui_state = GameUIState::GameMinimized;
-                }
-                RestoreSplash => {
-                    info!("Restoring Splash");
-                    *game_ui_state = GameUIState::GameSplash;
-                }
                 MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })
                         .detach();
                 }
-                NextLevelsPage => menu_state.as_mut().next_levels_page(),
-
-                PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
                 Credits => change_level_events.send(ChangeLevelEvent::Credits),
-
-                Steam | GooglePlay | Apple | None => {}
                 ToggleSettings => menu_state.as_mut().toggle_settings(),
                 ToggleArrows => settings.toggle_arrows(),
                 ToggleTouchOutlines => settings.toggle_touch_outlines(),
                 SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
 
-                ShowLeaderboard => {
-                    leaderboard::try_show_leaderboard(&current_level);
-                }
-
                 SyncAchievements => achievements.resync(),
                 ShowAchievements => show_achievements(),
             }
 
-            match button.button_action {
-                OpenMenu
-                | None
-                | Resume
-                | ChooseLevel
-                | NextLevelsPage
-                | PreviousLevelsPage
-                | ToggleSettings
-                | MinimizeSplash
-                | RestoreSplash
-                | ToggleArrows
-                | ToggleTouchOutlines
-                | SetRotationSensitivity(_) => {}
-                _ => menu_state.close_menu(),
+            if button.button_action.closes_menu() {
+                menu_state.close_menu();
             }
         }
     }

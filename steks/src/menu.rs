@@ -161,7 +161,7 @@ impl MavericNode for MenuPage {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_args_and_context(|args, context, commands| match args {
             MenuPage::Main => {
-                use ButtonAction::*;
+                use TextButtonAction::*;
                 let buttons = [
                     Resume,
                     ChooseLevel,
@@ -195,7 +195,7 @@ impl MavericNode for MenuPage {
                 commands.add_child(
                     "rotation",
                     text_button_node_with_text(
-                        ButtonAction::ToggleArrows,
+                        TextButtonAction::ToggleArrows,
                         arrows_text.to_string(),
                         true,
                         false,
@@ -212,7 +212,7 @@ impl MavericNode for MenuPage {
                 commands.add_child(
                     "outlines",
                     text_button_node_with_text(
-                        ButtonAction::ToggleTouchOutlines,
+                        TextButtonAction::ToggleTouchOutlines,
                         outlines_text.to_string(),
                         true,
                         false,
@@ -232,7 +232,7 @@ impl MavericNode for MenuPage {
                 commands.add_child(
                     "sensitivity",
                     text_button_node_with_text(
-                        ButtonAction::SetRotationSensitivity(next_sensitivity),
+                        TextButtonAction::SetRotationSensitivity(next_sensitivity),
                         sensitivity_text.to_string(),
                         true,
                         false,
@@ -244,13 +244,13 @@ impl MavericNode for MenuPage {
                 {
                     commands.add_child(
                         "sync_achievements",
-                        text_button_node(ButtonAction::SyncAchievements, true, false),
+                        text_button_node(TextButtonAction::SyncAchievements, true, false),
                         &context.1,
                     );
 
                     commands.add_child(
                         "show_achievements",
-                        text_button_node(ButtonAction::ShowAchievements, true, false),
+                        text_button_node(TextButtonAction::ShowAchievements, true, false),
                         &context.1,
                     );
                 }
@@ -258,7 +258,7 @@ impl MavericNode for MenuPage {
                 commands.add_child(
                     "back",
                     text_button_node_with_text(
-                        ButtonAction::ToggleSettings,
+                        TextButtonAction::ToggleSettings,
                         "Back".to_string(),
                         true,
                         false,
@@ -292,7 +292,7 @@ impl MavericNode for MenuPage {
                     commands.add_child(
                         key as u32,
                         text_button_node_with_text_and_image(
-                            ButtonAction::GotoLevel { level },
+                            TextButtonAction::GotoLevel { level },
                             false,
                             !enabled,
                             medal.one_medals_asset_path(),
@@ -347,11 +347,11 @@ impl MavericNode for LevelMenuArrows {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_args_and_context(|args, context, commands| {
             if args.0 == 0 {
-                commands.add_child("left", icon_button_node(ButtonAction::OpenMenu), context)
+                commands.add_child("left", icon_button_node(IconButtonAction::OpenMenu), context)
             } else {
                 commands.add_child(
                     "left",
-                    icon_button_node(ButtonAction::PreviousLevelsPage),
+                    icon_button_node(IconButtonAction::PreviousLevelsPage),
                     context,
                 )
             }
@@ -359,11 +359,11 @@ impl MavericNode for LevelMenuArrows {
             if args.0 < 4 {
                 commands.add_child(
                     "right",
-                    icon_button_node(ButtonAction::NextLevelsPage),
+                    icon_button_node(IconButtonAction::NextLevelsPage),
                     context,
                 )
             } else {
-                commands.add_child("right", icon_button_node(ButtonAction::None), context)
+                commands.add_child("right", icon_button_node(IconButtonAction::None), context)
             }
         });
     }

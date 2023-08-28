@@ -357,25 +357,25 @@ impl MavericNode for ButtonPanel {
                     if context.0.is_game_splash() {
                         commands.add_child(
                             "splash",
-                            icon_button_node(ButtonAction::MinimizeSplash),
+                            icon_button_node(IconButtonAction::MinimizeSplash),
                             &context.2,
                         );
                     } else {
                         commands.add_child(
                             "splash",
-                            icon_button_node(ButtonAction::RestoreSplash),
+                            icon_button_node(IconButtonAction::RestoreSplash),
                             &context.2,
                         );
                     }
 
-                    commands.add_child("share", icon_button_node(ButtonAction::Share), &context.2);
+                    commands.add_child("share", icon_button_node(IconButtonAction::Share), &context.2);
 
                     #[cfg(any(feature = "android", feature = "ios"))]
                     {
                         if context.1.leaderboard_id().is_some() {
                             commands.add_child(
                                 "leaderboard",
-                                icon_button_node(ButtonAction::ShowLeaderboard),
+                                icon_button_node(IconButtonAction::ShowLeaderboard),
                                 &context.2,
                             );
                         }
@@ -383,7 +383,7 @@ impl MavericNode for ButtonPanel {
 
                     commands.add_child(
                         "next",
-                        icon_button_node(ButtonAction::NextLevel),
+                        icon_button_node(IconButtonAction::NextLevel),
                         &context.2,
                     );
                 }
@@ -429,7 +429,7 @@ impl MavericNode for StoreButtonPanel {
                 commands.add_child(
                     4,
                     image_button_node(
-                        ButtonAction::GooglePlay,
+                        IconButtonAction::GooglePlay,
                         "images/google-play-badge.png",
                         BadgeButtonStyle,
                         BadgeImageStyle,
@@ -439,7 +439,7 @@ impl MavericNode for StoreButtonPanel {
                 commands.add_child(
                     5,
                     image_button_node(
-                        ButtonAction::Apple,
+                        IconButtonAction::Apple,
                         "images/apple-store-badge.png",
                         BadgeButtonStyle,
                         BadgeImageStyle,

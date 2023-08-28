@@ -449,7 +449,7 @@ pub fn drag_start(
         if menu_state.is_show_main_menu() || menu_state.is_show_levels_page() {
             continue 'events;
         }
-        if ui_state.is_game_splash() && current_level.completion.is_complete() {
+        if !ui_state.is_minimized() && current_level.completion.is_complete() {
             if let Ok(window) = windows.get_single() {
                 let event_ui_position = Vec2 {
                     x: event.position.x + (window.width() * 0.5),

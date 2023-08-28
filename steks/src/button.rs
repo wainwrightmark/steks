@@ -379,12 +379,12 @@ fn icon_button_system(
                 Share => share_events.send(ShareEvent),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeSplash => {
-                    info!("Minimizing Splash");
-                    *game_ui_state = GameUIState::GameMinimized;
+                    //info!("Minimizing Splash");
+                    *game_ui_state = GameUIState::Minimized;
                 }
                 RestoreSplash => {
-                    info!("Restoring Splash");
-                    *game_ui_state = GameUIState::GameSplash;
+                    //info!("Restoring Splash");
+                    *game_ui_state = GameUIState::Splash;
                 }
                 NextLevelsPage => menu_state.as_mut().next_levels_page(),
 
@@ -392,8 +392,10 @@ fn icon_button_system(
 
                 Steam | GooglePlay | Apple | None => {}
 
-                ViewPB =>{}
-                ViewRecord=>{}
+                ViewPB =>{
+                    *game_ui_state = GameUIState::Preview(PreviewImage::PB);
+                }
+                ViewRecord=>{*game_ui_state = GameUIState::Preview(PreviewImage::Record);}
 
                 ShowLeaderboard => {
                     leaderboard::try_show_leaderboard(&current_level);

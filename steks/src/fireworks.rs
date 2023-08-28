@@ -65,7 +65,7 @@ fn manage_fireworks(
     *previous = current_level.clone();
     let previous = swap;
 
-    if !ui_state.is_game_splash() {
+    if !ui_state.is_splash() {
         countdown.timer.pause();
         return;
     }

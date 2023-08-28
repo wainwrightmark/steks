@@ -88,7 +88,9 @@ pub fn check_for_tower(
     walls: Query<Entity, With<WallPosition>>,
     level: Res<CurrentLevel>,
 ) {
-    let Some(event) = check_events.iter().next() else{return;};
+    let Some(event) = check_events.iter().next() else {
+        return;
+    };
 
     if countdown.0.is_some() {
         return; // no need to check, we're already winning
@@ -127,7 +129,9 @@ pub fn check_for_tower(
 
     let countdown_seconds = event.get_countdown_seconds(prediction_result);
 
-    let Some(countdown_seconds) = countdown_seconds else {return;};
+    let Some(countdown_seconds) = countdown_seconds else {
+        return;
+    };
 
     countdown.0 = Some(Countdown {
         started_elapsed: time.elapsed(),

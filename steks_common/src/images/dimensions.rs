@@ -1,4 +1,3 @@
-
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Dimensions {
     pub width: u32,
@@ -13,4 +12,3 @@ impl Default for Dimensions {
         }
     }
 }
-

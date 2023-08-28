@@ -48,7 +48,7 @@ impl IntoBundle for OpenMenuButtonStyle {
 
 pub(crate) fn icon_button_node(
     button_action: IconButtonAction,
-    style: IconButtonStyle
+    style: IconButtonStyle,
 ) -> impl MavericNode<Context = AssetServer> {
     ButtonNode {
         background_color: Color::NONE,
@@ -72,16 +72,16 @@ pub(crate) fn icon_button_node(
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum IconButtonStyle{
-    HeightPadded, Compact
+pub enum IconButtonStyle {
+    HeightPadded,
+    Compact,
 }
 
 impl IntoBundle for IconButtonStyle {
     type B = Style;
 
     fn into_bundle(self) -> Self::B {
-
-        match self{
+        match self {
             IconButtonStyle::HeightPadded => Style {
                 width: Val::Px(ICON_BUTTON_WIDTH),
                 height: Val::Px(ICON_BUTTON_HEIGHT),
@@ -103,8 +103,6 @@ impl IntoBundle for IconButtonStyle {
                 ..Default::default()
             },
         }
-
-
     }
 }
 
@@ -128,7 +126,7 @@ pub(crate) fn image_button_node(
         children: (ImageNode {
             style: image_style,
             path: image_path,
-            background_color:  Color::WHITE,
+            background_color: Color::WHITE,
         },),
     }
 }

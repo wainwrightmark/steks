@@ -21,10 +21,14 @@ fn subscribe_to_app_url_events(_writer: AsyncEventWriter<ChangeLevelEvent>) {
                     if let Ok(handle) = App::add_app_url_open_listener(move |x| {
                         let url = x.url;
                         let writer = _writer.clone();
-                        let Some(index) = url.to_ascii_lowercase().find("steks.net") else {return};
+                        let Some(index) = url.to_ascii_lowercase().find("steks.net") else {
+                            return;
+                        };
                         let index = index + 9;
                         let path = url[index..].to_string();
-                        let Some(cle) = ChangeLevelEvent::try_from_path(path) else {return};
+                        let Some(cle) = ChangeLevelEvent::try_from_path(path) else {
+                            return;
+                        };
                         //info!("Loaded game from path");
                         writer.send_blocking(cle).unwrap();
                     })

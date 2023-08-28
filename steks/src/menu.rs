@@ -347,11 +347,18 @@ impl MavericNode for LevelMenuArrows {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_args_and_context(|args, context, commands| {
             if args.0 == 0 {
-                commands.add_child("left", icon_button_node(IconButtonAction::OpenMenu, IconButtonStyle::HeightPadded), context)
+                commands.add_child(
+                    "left",
+                    icon_button_node(IconButtonAction::OpenMenu, IconButtonStyle::HeightPadded),
+                    context,
+                )
             } else {
                 commands.add_child(
                     "left",
-                    icon_button_node(IconButtonAction::PreviousLevelsPage, IconButtonStyle::HeightPadded),
+                    icon_button_node(
+                        IconButtonAction::PreviousLevelsPage,
+                        IconButtonStyle::HeightPadded,
+                    ),
                     context,
                 )
             }
@@ -359,11 +366,18 @@ impl MavericNode for LevelMenuArrows {
             if args.0 < 4 {
                 commands.add_child(
                     "right",
-                    icon_button_node(IconButtonAction::NextLevelsPage, IconButtonStyle::HeightPadded),
+                    icon_button_node(
+                        IconButtonAction::NextLevelsPage,
+                        IconButtonStyle::HeightPadded,
+                    ),
                     context,
                 )
             } else {
-                commands.add_child("right", icon_button_node(IconButtonAction::None, IconButtonStyle::HeightPadded), context)
+                commands.add_child(
+                    "right",
+                    icon_button_node(IconButtonAction::None, IconButtonStyle::HeightPadded),
+                    context,
+                )
             }
         });
     }

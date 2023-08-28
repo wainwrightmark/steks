@@ -451,7 +451,9 @@ mod tests {
         max_line_length: usize,
         errors: &mut Vec<String>,
     ) {
-        let Some(string) = string else{return;};
+        let Some(string) = string else {
+            return;
+        };
         for (line_num, s) in string.lines().enumerate() {
             let count = s.chars().count();
             if count > max_line_length {

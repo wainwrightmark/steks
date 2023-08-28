@@ -4,7 +4,6 @@ pub mod overlay;
 pub mod placement;
 pub mod svg;
 
-
 pub mod prelude {
     pub use crate::images::dimensions::*;
     pub use crate::images::drawing::*;

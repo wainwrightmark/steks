@@ -36,17 +36,23 @@ impl From<ShapeState> for ShapeComponent {
 
 impl ShapeComponent {
     pub fn touch_id(&self) -> Option<u64> {
-        let ShapeComponent::Dragged(dragged) = self else {return  None;};
+        let ShapeComponent::Dragged(dragged) = self else {
+            return None;
+        };
         dragged.drag_source.touch_id()
     }
 
     pub fn has_drag_source(&self, drag_source: DragSource) -> bool {
-        let ShapeComponent::Dragged(dragged) = self else {return  false;};
+        let ShapeComponent::Dragged(dragged) = self else {
+            return false;
+        };
         dragged.drag_source == drag_source
     }
 
     pub fn get_offset(&self) -> Vec2 {
-        let ShapeComponent::Dragged(dragged) = self else {return  Default::default();};
+        let ShapeComponent::Dragged(dragged) = self else {
+            return Default::default();
+        };
         dragged.offset
     }
 }

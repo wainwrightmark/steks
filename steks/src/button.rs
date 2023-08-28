@@ -393,10 +393,12 @@ fn icon_button_system(
 
                 Steam | GooglePlay | Apple | None => {}
 
-                ViewPB =>{
+                ViewPB => {
                     *game_ui_state = GameUIState::Preview(PreviewImage::PB);
                 }
-                ViewRecord=>{*game_ui_state = GameUIState::Preview(PreviewImage::Record);}
+                ViewRecord => {
+                    *game_ui_state = GameUIState::Preview(PreviewImage::Record);
+                }
 
                 ShowLeaderboard => {
                     leaderboard::try_show_leaderboard(&current_level);

@@ -89,9 +89,13 @@ pub(crate) async fn my_handler(
 
                 .await?;
 
-            let row = match rows.into_iter().next(){
+            let row = match rows.into_iter().next() {
                 Some(row) => row,
-                None => FullRow{shapes_hash,max_height: 0.0, image_blob: "0".to_string()},
+                None => FullRow {
+                    shapes_hash,
+                    max_height: 0.0,
+                    image_blob: "0".to_string(),
+                },
             };
 
             let resp = ApiGatewayProxyResponse {
@@ -174,7 +178,10 @@ pub struct FullRow {
 
 impl Display for FullRow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{} {} {}", self.shapes_hash, self.max_height, self.image_blob))
+        f.write_fmt(format_args!(
+            "{} {} {}",
+            self.shapes_hash, self.max_height, self.image_blob
+        ))
     }
 }
 

@@ -128,7 +128,9 @@ fn move_walls_when_physics_changed(
         return;
     }
 
-    let Some(window) = window.iter().next() else{return;};
+    let Some(window) = window.iter().next() else {
+        return;
+    };
 
     for (wall, mut transform) in walls_query.iter_mut() {
         let p: Vec3 = wall.get_position(window.height(), window.width(), rapier.gravity, &insets);

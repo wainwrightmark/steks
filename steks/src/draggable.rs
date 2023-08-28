@@ -654,7 +654,9 @@ pub enum DragSource {
 
 impl DragSource {
     pub fn touch_id(&self) -> Option<u64> {
-        let DragSource::Touch { touch_id } = self else{return None};
+        let DragSource::Touch { touch_id } = self else {
+            return None;
+        };
         Some(*touch_id)
     }
 }

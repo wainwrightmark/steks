@@ -107,7 +107,6 @@ impl Command {
     }
 
     pub fn get_response_body(&self, game: &str, dimensions: Dimensions) -> Body {
-
         let bytes = convert_game_to_bytes(game);
 
         match self {
@@ -116,7 +115,8 @@ impl Command {
                 Body::Binary(data)
             }
             Command::NoOverlay => {
-                let data = try_draw_image(&bytes, &OverlayChooser::no_overlay(), dimensions).unwrap();
+                let data =
+                    try_draw_image(&bytes, &OverlayChooser::no_overlay(), dimensions).unwrap();
                 Body::Binary(data)
             }
             Command::SVG => {
@@ -169,8 +169,10 @@ pub const TEXT_RIGHT_OVERLAY: Overlay = Overlay {
     bytes: include_bytes!("text_right.svg"),
 };
 
-pub fn convert_game_to_bytes(data: &str)-> Vec<u8>{
-    base64::engine::general_purpose::URL_SAFE.decode(data).unwrap_or_default()
+pub fn convert_game_to_bytes(data: &str) -> Vec<u8> {
+    base64::engine::general_purpose::URL_SAFE
+        .decode(data)
+        .unwrap_or_default()
 }
 
 #[cfg(test)]

@@ -41,7 +41,9 @@ fn update_dynamic_elements(
     mut marker_circle: Query<&mut Transform, With<CircleMarkerComponent>>,
     mut circle_arc: Query<&mut Path, With<CircleArcComponent>>,
 ) {
-    let Some(countdown) = &countdown.0 else{return;};
+    let Some(countdown) = &countdown.0 else {
+        return;
+    };
     let time_used = time.elapsed().saturating_sub(countdown.started_elapsed);
     let ratio = -time_used.as_secs_f32() / countdown.total_secs;
     let theta = (ratio * TAU) + FRAC_PI_2;

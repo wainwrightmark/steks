@@ -148,7 +148,9 @@ fn control_spirit_main_line(
     const LEEWAY: f32 = 0.1;
     const FRAC_PI_16: f32 = std::f32::consts::PI / 16.0;
     for transform in touch_dragged.iter() {
-        let Some(mut line) = line.iter_mut().next() else {return;};
+        let Some(mut line) = line.iter_mut().next() else {
+            return;
+        };
         let mut angle = transform
             .rotation
             .z

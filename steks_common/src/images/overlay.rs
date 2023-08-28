@@ -13,8 +13,6 @@ impl OverlayChooser {
         Self { options: vec![] }
     }
 
-
-
     pub fn choose_scale_and_overlay(&self, h_scale: f32, v_scale: f32) -> (f32, Option<&Overlay>) {
         //println!("h: {h_scale} v: {v_scale}");
         if self.options.is_empty() {
@@ -59,7 +57,12 @@ pub enum Ratio {
 }
 
 impl Overlay {
-    pub fn try_include(&self, pixmap: &mut Pixmap, opt: &Options, dimensions: Dimensions)-> Result<(), anyhow::Error> {
+    pub fn try_include(
+        &self,
+        pixmap: &mut Pixmap,
+        opt: &Options,
+        dimensions: Dimensions,
+    ) -> Result<(), anyhow::Error> {
         let logo_tree = Tree::from_data(self.bytes, &opt)?;
 
         let logo_scale = (dimensions.width as f32 / logo_tree.size.width() as f32)

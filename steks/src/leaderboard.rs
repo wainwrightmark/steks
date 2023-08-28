@@ -264,7 +264,6 @@ fn hydrate_leaderboard(
                     return; // no change except to time updated
                 }
                 std::cmp::Ordering::Greater => {
-
                     info!("Existing record is better than record from server");
                     let image_blob = base64::engine::general_purpose::URL_SAFE
                         .encode(existing.image_blob.as_slice());

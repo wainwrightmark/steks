@@ -42,21 +42,20 @@ impl RootChildren for LevelUiRoot {
         if context.0.is_closed() {
             match context.1 .1.completion {
                 LevelCompletion::Incomplete { .. } => {
-                    if context.1.1.level.is_begging(){
-                        commands.add_child("begging", BeggingPanel, &context.1.2);
-                    }else{
+                    if context.1 .1.level.is_begging() {
+                        commands.add_child("begging", BeggingPanel, &context.1 .2);
+                    } else {
                         commands.add_child(
                             "text",
-                            LevelTextPanel(context.1 .1.clone()).with_transition_in::<StyleTopLens>(
-                                Val::Percent(00.0),
-                                Val::Percent(30.0),
-                                Duration::from_secs_f32(0.5),
-                            ),
+                            LevelTextPanel(context.1 .1.clone())
+                                .with_transition_in::<StyleTopLens>(
+                                    Val::Percent(00.0),
+                                    Val::Percent(30.0),
+                                    Duration::from_secs_f32(0.5),
+                                ),
                             &context.1 .2,
                         );
                     }
-
-
                 }
                 LevelCompletion::Complete { score_info } => {
                     let top = match context.1 .0.as_ref() {
@@ -68,7 +67,7 @@ impl RootChildren for LevelUiRoot {
                         "panel",
                         MainPanelWrapper {
                             score_info,
-                            ui_state: context.1 .0.clone(),
+                            ui_state: *context.1 .0,
                             level: context.1 .1.level.clone(),
                         }
                         .with_transition_to::<StyleTopLens>(top, ScalarSpeed::new(20.0)),
@@ -203,7 +202,7 @@ impl MavericNode for MainPanel {
                         IconButtonAction::RestoreSplash,
                         IconButtonStyle::HeightPadded,
                     ),
-                    &context,
+                    context,
                 );
 
                 commands.add_child(
@@ -215,7 +214,7 @@ impl MavericNode for MainPanel {
                 commands.add_child(
                     "next",
                     icon_button_node(IconButtonAction::NextLevel, IconButtonStyle::HeightPadded),
-                    &context,
+                    context,
                 );
                 return;
             } else if args.ui_state.is_preview() {
@@ -255,7 +254,7 @@ impl MavericNode for MainPanel {
 
             let message = std::iter::Iterator::chain(
                 [""].into_iter(),
-                std::iter::Iterator::chain(message.lines(), ["", ""].into_iter()),
+                std::iter::Iterator::chain(message.lines(), ["", ""]),
             )
             .take(4)
             .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
@@ -276,7 +275,7 @@ impl MavericNode for MainPanel {
                 commands.add_child(
                     "new_best",
                     TextPlusIcon {
-                        text: format!("New Personal Best"),
+                        text: "New Personal Best".to_string(),
                         icon: IconButtonAction::None,
                     },
                     context,
@@ -339,7 +338,7 @@ impl MavericNode for MainPanel {
                         background_color: Color::WHITE,
                         style: ThreeMedalsImageStyle,
                     },
-                    &context,
+                    context,
                 );
             }
 
@@ -493,7 +492,7 @@ impl MavericNode for ButtonPanel {
                     IconButtonAction::MinimizeSplash,
                     IconButtonStyle::HeightPadded,
                 ),
-                &context,
+                context,
             );
 
             if args.level.leaderboard_id().is_some() {
@@ -513,7 +512,7 @@ impl MavericNode for ButtonPanel {
             commands.add_child(
                 "next",
                 icon_button_node(IconButtonAction::NextLevel, IconButtonStyle::HeightPadded),
-                &context,
+                context,
             );
         });
     }
@@ -610,7 +609,7 @@ impl MavericNode for BeggingPanel {
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
-                    &context,
+                    context,
                 );
 
                 commands.add_child(
@@ -638,7 +637,7 @@ impl MavericNode for BeggingPanel {
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
-                    &context,
+                    context,
                 );
 
                 commands.add_child(2, StoreButtonPanel, context);
@@ -714,7 +713,7 @@ fn update_preview_images(
     match preview {
         PreviewImage::PB => {
             if let Some(pb) = pbs.map.get(&score_info.hash) {
-                match game_to_image(&pb.image_blob.as_slice()) {
+                match game_to_image(pb.image_blob.as_slice()) {
                     Ok(image) => {
                         *im = image;
                     }
@@ -726,7 +725,7 @@ fn update_preview_images(
         }
         PreviewImage::Record => {
             if let Some(wr) = wrs.map.get(&score_info.hash) {
-                match game_to_image(&wr.image_blob.as_slice()) {
+                match game_to_image(wr.image_blob.as_slice()) {
                     Ok(image) => {
                         *im = image;
                     }

@@ -4,6 +4,7 @@ use strum::Display;
 
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
+pub const COMPACT_ICON_BUTTON_HEIGHT: f32 = 22.;
 
 pub const THREE_MEDALS_IMAGE_HEIGHT: f32 = 64.;
 pub const THREE_MEDALS_IMAGE_WIDTH: f32 = 2. * THREE_MEDALS_IMAGE_HEIGHT;
@@ -75,7 +76,7 @@ impl ButtonType {
             (Text, Pressed) => TEXT_PRESSED_BUTTON,
             (Text, Hovered) => TEXT_HOVERED_BUTTON,
             (Text, None) => TEXT_BUTTON_BACKGROUND,
-            (Image, _) => Color::WHITE,
+            (Image, _) => Color::NONE,
         }
         .into()
     }

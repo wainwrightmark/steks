@@ -41,15 +41,23 @@ impl RootChildren for LevelUiRoot {
     ) {
         if context.0.is_closed() {
             match context.1 .1.completion {
-                LevelCompletion::Incomplete { .. } => commands.add_child(
-                    "text",
-                    LevelTextPanel(context.1 .1.clone()).with_transition_in::<StyleTopLens>(
-                        Val::Percent(00.0),
-                        Val::Percent(30.0),
-                        Duration::from_secs_f32(0.5),
-                    ),
-                    &context.1 .2,
-                ),
+                LevelCompletion::Incomplete { .. } => {
+                    if context.1.1.level.is_begging(){
+                        commands.add_child("begging", BeggingPanel, &context.1.2);
+                    }else{
+                        commands.add_child(
+                            "text",
+                            LevelTextPanel(context.1 .1.clone()).with_transition_in::<StyleTopLens>(
+                                Val::Percent(00.0),
+                                Val::Percent(30.0),
+                                Duration::from_secs_f32(0.5),
+                            ),
+                            &context.1 .2,
+                        );
+                    }
+
+
+                }
                 LevelCompletion::Complete { score_info } => {
                     let top = match context.1 .0.as_ref() {
                         GameUIState::Splash | GameUIState::Preview(_) => Val::Percent(30.),
@@ -187,24 +195,6 @@ impl MavericNode for MainPanel {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.ordered_children_with_args_and_context(|args, context, commands| {
-            if args.level.is_begging() {
-                commands.add_child("begging", BeggingPanel, context);
-
-                commands.add_child(
-                    "buttons",
-                    ButtonPanel {
-                        level: args.level.clone(),
-                    },
-                    context,
-                );
-
-                if IS_DEMO {
-                    commands.add_child("store", StoreButtonPanel, context);
-                }
-
-                return;
-            }
-
             let height = args.score_info.height;
             if args.ui_state.is_minimized() {
                 commands.add_child(
@@ -260,7 +250,7 @@ impl MavericNode for MainPanel {
                 GameLevel::Infinite { .. } => "",
                 GameLevel::Challenge { .. } => "Challenge Complete",
                 GameLevel::Loaded { .. } => "Level Complete",
-                GameLevel::Begging => "Message: Please buy the game",
+                GameLevel::Begging => "Message: Please buy the game", //users should never see this
             };
 
             let message = std::iter::Iterator::chain(
@@ -282,12 +272,12 @@ impl MavericNode for MainPanel {
                 context,
             );
 
-            if args.score_info.is_pb {
+            if args.score_info.is_pb() {
                 commands.add_child(
                     "new_best",
                     TextPlusIcon {
                         text: format!("New Personal Best"),
-                        icon: IconButtonAction::ViewPB,
+                        icon: IconButtonAction::None,
                     },
                     context,
                 );
@@ -304,7 +294,7 @@ impl MavericNode for MainPanel {
                 );
             };
 
-            if args.score_info.is_wr {
+            if args.score_info.is_wr() {
                 commands.add_child(
                     "wr",
                     TextPlusIcon {
@@ -317,8 +307,17 @@ impl MavericNode for MainPanel {
                 commands.add_child(
                     "wr",
                     TextPlusIcon {
-                        text: format!("Record    {record:6.2}m",),
+                        text: format!("Record    {:6.2}m", record),
                         icon: IconButtonAction::ViewRecord,
+                    },
+                    context,
+                );
+            } else {
+                commands.add_child(
+                    "wr",
+                    TextPlusIcon {
+                        text: "Loading  Record ".to_string(),
+                        icon: IconButtonAction::None,
                     },
                     context,
                 );
@@ -581,11 +580,12 @@ impl MavericNode for BeggingPanel {
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_args().ignore_context().insert(NodeBundle {
             style: Style {
+                position_type: PositionType::Absolute,
                 display: Display::Flex,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,
                 // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(200.), Val::Px(0.)),
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Percent(30.), Val::Px(0.)),
                 justify_content: JustifyContent::Center,
                 width: Val::Auto,
                 height: Val::Auto,
@@ -688,14 +688,18 @@ fn update_preview_images(
     mut images: ResMut<Assets<Image>>,
     ui_state: Res<GameUIState>,
     pbs: Res<PersonalBests>,
-
-    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
+    wrs: Res<WorldRecords>,
+    current_level: Res<CurrentLevel>,
 ) {
-    if !ui_state.is_changed() {
+    if !ui_state.is_changed() && !current_level.is_changed() {
         return;
     }
 
     let GameUIState::Preview(preview) = ui_state.as_ref() else {
+        return;
+    };
+
+    let LevelCompletion::Complete { score_info } = current_level.completion else {
         return;
     };
 
@@ -705,19 +709,15 @@ fn update_preview_images(
         return;
     };
 
-    let sv = ShapesVec::from_query(shapes_query);
-    let hash = sv.hash();
-
     let mut clear = false;
 
     match preview {
         PreviewImage::PB => {
-            if let Some(level_record) = pbs.map.get(&hash) {
-
-                match game_to_image(&level_record.image_blob.as_slice()){
+            if let Some(pb) = pbs.map.get(&score_info.hash) {
+                match game_to_image(&pb.image_blob.as_slice()) {
                     Ok(image) => {
                         *im = image;
-                    },
+                    }
                     Err(err) => error!("{err}"),
                 }
             } else {
@@ -725,7 +725,16 @@ fn update_preview_images(
             }
         }
         PreviewImage::Record => {
-            clear = true;
+            if let Some(wr) = wrs.map.get(&score_info.hash) {
+                match game_to_image(&wr.image_blob.as_slice()) {
+                    Ok(image) => {
+                        *im = image;
+                    }
+                    Err(err) => error!("{err}"),
+                }
+            } else {
+                clear = true;
+            }
         }
     }
 

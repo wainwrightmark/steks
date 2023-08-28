@@ -39,7 +39,6 @@ pub mod walls;
 pub mod win;
 pub mod win_timer_state;
 
-//#[cfg(target_arch = "wasm32")]
 pub mod logging;
 #[cfg(target_arch = "wasm32")]
 pub mod notifications;

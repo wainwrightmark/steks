@@ -94,6 +94,7 @@ impl IntoBundle for IconButtonStyle {
             },
             IconButtonStyle::Compact => Style {
                 width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(COMPACT_ICON_BUTTON_HEIGHT),
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
@@ -117,7 +118,7 @@ pub(crate) fn image_button_node(
         style: button_node_style,
         visibility: Visibility::Visible,
         border_color: Color::NONE,
-        background_color: Color::WHITE,
+        background_color: Color::NONE,
         //button_node_style,
         marker: IconButtonComponent {
             disabled: false,
@@ -127,7 +128,7 @@ pub(crate) fn image_button_node(
         children: (ImageNode {
             style: image_style,
             path: image_path,
-            background_color: Color::WHITE,
+            background_color:  Color::WHITE,
         },),
     }
 }

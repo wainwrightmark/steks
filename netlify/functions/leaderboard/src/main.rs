@@ -78,15 +78,21 @@ pub(crate) async fn my_handler(
             return Ok(resp);
         }
         Command::GetRow => {
-            let hash = get_parameter(&e, "hash").ok_or_else(|| "Could not get hash")?;
-            let hash: u64 = hash.parse()?;
+            let shapes_hash = get_parameter(&e, "hash").ok_or_else(|| "Could not get hash")?;
+            let shapes_hash: u64 = shapes_hash.parse()?;
 
             let connection = connect_to_database();
 
-            let row: FullRow = query("select shapes_hash, max_height, image_blob FROM tower_height where shapes_hash = $0;")
-                .bind(hash)
-                .fetch_one(&connection)
+            let rows: Vec<FullRow> = query("select shapes_hash, max_height, image_blob FROM tower_height where shapes_hash = $0;")
+                .bind(shapes_hash)
+                .fetch_all(&connection)
+
                 .await?;
+
+            let row = match rows.into_iter().next(){
+                Some(row) => row,
+                None => FullRow{shapes_hash,max_height: 0.0, image_blob: "0".to_string()},
+            };
 
             let resp = ApiGatewayProxyResponse {
                 status_code: 200,

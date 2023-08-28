@@ -221,8 +221,6 @@ impl CurrentLevel {
         }
     }
 
-
-
     // pub fn hide_shadows(&self) -> bool {
     //     match &self.level {
     //         GameLevel::Designed { meta } => meta.get_level().hide_shadows,
@@ -236,7 +234,7 @@ impl CurrentLevel {
             GameLevel::Infinite { .. } => None,
             GameLevel::Challenge { .. } => Some("Daily Challenge".to_string()),
             GameLevel::Loaded { .. } => None,
-            GameLevel::Begging { .. } => Some("Title: Please buy the game!".to_string()),
+            GameLevel::Begging { .. } => Some("Please buy the game!".to_string()), //users should not see this
         }
     }
 
@@ -298,7 +296,7 @@ impl CurrentLevel {
         "an overwhelming surplus of nice!",
     ];
 
-    pub fn get_level_text(&self)-> Option<String>{
+    pub fn get_level_text(&self) -> Option<String> {
         match self.completion {
             LevelCompletion::Incomplete { stage } => match &self.level {
                 GameLevel::Designed { meta, .. } => meta
@@ -319,11 +317,9 @@ impl CurrentLevel {
                 GameLevel::Challenge { .. } => None,
                 GameLevel::Begging => None,
             },
-            LevelCompletion::Complete { .. } => None
+            LevelCompletion::Complete { .. } => None,
         }
     }
-
-
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, EnumIs)]
@@ -334,9 +330,8 @@ pub enum LevelCompletion {
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct ScoreInfo {
+    pub hash: u64,
     pub height: f32,
-    pub is_wr: bool,
-    pub is_pb: bool,
     pub is_first_win: bool,
 
     pub medal: MedalType,
@@ -349,37 +344,35 @@ impl ScoreInfo {
     pub fn generate(
         level: &GameLevel,
         shapes: &ShapesVec,
-        leaderboard: &Res<Leaderboard>,
+        leaderboard: &Res<WorldRecords>,
         pbs: &Res<PersonalBests>,
     ) -> Self {
         let height = shapes.calculate_tower_height();
         let hash = shapes.hash();
 
-        let wr: Option<f32> = leaderboard
-            .map
-            .as_ref()
-            .map(|map| map.get(&hash).copied().unwrap_or(0.0));
-
+        let wr: Option<f32> = leaderboard.map.get(&hash).map(|x| x.height);
         let old_height = pbs.map.get(&hash);
 
         let pb = old_height.map(|x| x.height).unwrap_or(0.0);
-
-        let is_wr = wr.map(|x| x < height).unwrap_or_default();
-        let is_pb = pb < height;
-
         let best = pb.max(height);
-
         let medal = level.get_medal(best);
 
         ScoreInfo {
+            hash,
             height,
-            is_wr,
-            is_pb,
             is_first_win: old_height.is_none(),
             wr,
             pb,
             medal,
         }
+    }
+
+    pub fn is_wr(&self) -> bool {
+        matches!(self.wr, Some(wr) if self.height> wr)
+    }
+
+    pub fn is_pb(&self) -> bool {
+        self.height > self.pb
     }
 }
 
@@ -402,7 +395,6 @@ pub enum GameLevel {
 }
 
 impl GameLevel {
-
     pub fn leaderboard_id(&self) -> Option<String> {
         if let GameLevel::Designed { meta, .. } = &self {
             meta.get_level().leaderboard_id.clone()
@@ -511,9 +503,12 @@ impl GameLevel {
     }
 
     pub fn skip_completion(&self) -> bool {
-        matches!(self, GameLevel::Designed {
+        matches!(
+            self,
+            GameLevel::Designed {
                 meta: DesignedLevelMeta::Tutorial { .. },
-            })
+            }
+        )
     }
 }
 
@@ -620,7 +615,9 @@ impl ChangeLevelEvent {
 
 fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConfiguration>) {
     if level.is_changed() {
-        let LevelCompletion::Incomplete { stage }  = level.completion  else{ return;};
+        let LevelCompletion::Incomplete { stage } = level.completion else {
+            return;
+        };
 
         let gravity = match level.level.clone() {
             GameLevel::Designed { meta, .. } => {

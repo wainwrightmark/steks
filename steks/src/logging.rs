@@ -192,33 +192,6 @@ pub fn try_log_error_message(message: String) {
 }
 
 impl LoggableEvent {
-    // pub async fn try_log_error_message_async(message: String, device_id: DeviceId) {
-    //     log::error!("{}", message);
-    //     if !Self::should_ignore_error(&message) {
-    //         let event = LoggableEvent::Error { message };
-    //         Self::try_log_async(event, device_id).await
-    //     }
-    // }
-
-    // pub fn should_ignore_error(error: &str) -> bool {
-    //     const ERRORS_TO_IGNORE: &[&str] = &[
-    //         "Js Exception: Notifications not supported in this browser.",
-    //         "Js Exception: Browser does not support the vibrate API",
-    //         "Js Exception: Abort due to cancellation of share.",
-    //         "Js Exception: Share canceled",
-    //         "Js Exception: Share API not available in this browser",
-    //     ];
-    //     if ERRORS_TO_IGNORE.contains(&error) {
-    //         return true;
-    //     }
-
-    //     false
-    // }
-
-    // pub async fn try_log_error_async(err: impl Into<anyhow::Error>, device_id: DeviceId) {
-    //     Self::try_log_error_message_async(err.into().to_string(), device_id).await
-    // }
-
     pub async fn try_log_error_message_async2(message: String) {
         Self::try_get_device_id_and_log_async(Self::Error { message }).await
     }

@@ -145,9 +145,12 @@ impl ShapesVec {
         Self(shapes)
     }
 
-    pub fn make_base64_data(&self) -> String {
-        let bytes = encode_shapes(&self.0);
+    pub fn make_bytes(&self) -> Vec<u8> {
+        let bytes: Vec<u8> = self.0.iter().flat_map(|shape| shape.encode()).collect();
+        bytes
+    }
 
-        base64::engine::general_purpose::URL_SAFE.encode(bytes)
+    pub fn make_base64_data(&self) -> String {
+        base64::engine::general_purpose::URL_SAFE.encode(self.make_bytes())
     }
 }

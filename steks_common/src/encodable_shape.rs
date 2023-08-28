@@ -102,10 +102,6 @@ impl EncodableShape {
     }
 }
 
-pub fn encode_shapes(shapes: &[EncodableShape]) -> Vec<u8> {
-    shapes.iter().flat_map(|shape| shape.encode()).collect()
-}
-
 pub fn decode_shapes(data: &[u8]) -> Vec<EncodableShape> {
     data.chunks_exact(7).map(EncodableShape::decode).collect()
 }

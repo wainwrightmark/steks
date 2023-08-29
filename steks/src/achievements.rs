@@ -215,7 +215,7 @@ fn track_level_completion_achievements(
             }
         } else {
             // level complete
-            let shapes = ShapesVec::from_query(shapes_query);
+            let shapes = shapes_vec_from_query(shapes_query);
             let height = shapes.calculate_tower_height();
 
             info!(

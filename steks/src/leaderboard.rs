@@ -300,7 +300,7 @@ fn hydrate_leaderboard(
             update_wr(
                 hash,
                 score_info.height,
-                ShapesVec::from_query(shapes_query).make_base64_data(),
+                shapes_vec_from_query(shapes_query).make_base64_data(),
             );
         } else {
             info!("Updating current level wr");
@@ -417,7 +417,7 @@ fn check_pbs_on_completion(
     let level_pb = || LevelPB {
         height,
         medal: MedalType::Incomplete,
-        image_blob: ShapesVec::from_query(shapes_query).make_bytes(),
+        image_blob: shapes_vec_from_query(shapes_query).make_bytes(),
     };
 
     let pb_changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
@@ -489,7 +489,7 @@ fn check_wrs_on_completion(
     let level_wr = || LevelWR {
         height,
         updated: None,
-        image_blob: ShapesVec::from_query(shapes_query).make_bytes(),
+        image_blob: shapes_vec_from_query(shapes_query).make_bytes(),
     };
 
     let refresh = match world_records.map.entry(hash) {

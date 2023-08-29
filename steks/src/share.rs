@@ -26,7 +26,7 @@ fn handle_shares(
     let Some(ev) = events.iter().next() else {
         return;
     };
-    let shapes = ShapesVec::from_query(shapes_query);
+    let shapes = shapes_vec_from_query(shapes_query);
     let data: String = match ev {
         ShareEvent::CurrentShapes => {
             let data = shapes.make_base64_data();

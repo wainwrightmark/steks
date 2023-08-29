@@ -368,7 +368,7 @@ impl ScoreInfo {
     }
 
     pub fn is_wr(&self) -> bool {
-        matches!(self.wr, Some(wr) if self.height> wr)
+        matches!(self.wr, Some(wr) if self.height>= wr)
     }
 
     pub fn is_pb(&self) -> bool {

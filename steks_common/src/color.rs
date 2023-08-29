@@ -11,7 +11,8 @@ pub const FIXED_SHAPE_STROKE: Color = Color::BLACK;
 pub const VOID_SHAPE_STROKE: Color = WARN_COLOR;
 pub const ICE_SHAPE_STROKE: Color = Color::WHITE;
 
-pub const SHADOW_STROKE: Color = Color::BLACK;
+pub const SHADOW_STROKE: Color = Color::hsla(0.0, 0.0, 0.0, 0.8);
+pub const ARROW_STROKE: Color = Color::hsla(0.0, 0.0, 0.0, 0.8);
 
 pub const LEVEL_TEXT_COLOR: Color = Color::DARK_GRAY;
 pub const LEVEL_TEXT_ALT_COLOR: Color = Color::WHITE;

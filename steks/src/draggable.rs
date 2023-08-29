@@ -333,7 +333,7 @@ fn draw_rotate_arrows(
                 let path_end = touch.centre + point_at_angle(dist, start_angle + sweep_angle);
                 *previous_angle = Some(sweep_angle);
 
-                //const MIN_SWEEP_RADIANS: f32 = 0.0 * TAU;
+
                 const ARROW_WIDTH: f32 = 6.0;
                 const ARROW_LENGTH: f32 = 100.0;
                 let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (dist * TAU);
@@ -348,13 +348,8 @@ fn draw_rotate_arrows(
                     let arrow_point = path.current_position();
 
                     path.line_to(arrow_point.lerp(touch.centre, ARROW_WIDTH / dist));
-
-                    // let path_end = touch
-                    //     .centre
-                    //     .lerp(touch.current, dist / (touch.current.distance(touch.centre)));
                     path.line_to(path_end);
 
-                    //path.move_to(arc_end);
                     path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
 
                     path.line_to(arrow_point);
@@ -369,7 +364,7 @@ fn draw_rotate_arrows(
                                 path: path.build(),
                                 ..default()
                             },
-                            bevy_prototype_lyon::prelude::Stroke::new(Color::BLACK, 10.0),
+                            bevy_prototype_lyon::prelude::Stroke::new(ARROW_STROKE, 10.0),
                         ))
                         .insert(Transform::from_translation(Vec3::Z * 50.0))
                         .insert(RotateArrow);

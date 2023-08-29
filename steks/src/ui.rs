@@ -208,7 +208,7 @@ pub(crate) fn text_button_node_with_text_and_image(
     ButtonNode {
         style: TextButtonStyle,
         visibility: Visibility::Visible,
-        background_color: TEXT_BUTTON_BACKGROUND,
+        background_color: if disabled{ DISABLED_BUTTON_BACKGROUND} else{TEXT_BUTTON_BACKGROUND} ,
         border_color: BUTTON_BORDER,
         marker: TextButtonComponent {
             disabled,
@@ -231,7 +231,7 @@ pub(crate) fn text_button_node_with_text_and_image(
             ImageNode {
                 style: image_style,
                 path: image_path,
-                background_color: Color::WHITE,
+                background_color: if disabled{ DISABLED_BUTTON_BACKGROUND} else{TEXT_BUTTON_BACKGROUND},
             },
         ),
     }

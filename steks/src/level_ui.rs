@@ -47,12 +47,7 @@ impl RootChildren for LevelUiRoot {
                     } else {
                         commands.add_child(
                             "text",
-                            LevelTextPanel(context.1 .1.clone())
-                                .with_transition_in::<StyleTopLens>(
-                                    Val::Percent(00.0),
-                                    Val::Percent(30.0),
-                                    Duration::from_secs_f32(0.5),
-                                ),
+                            LevelTextPanel(context.1 .1.clone()),
                             &context.1 .2,
                         );
                     }
@@ -63,16 +58,20 @@ impl RootChildren for LevelUiRoot {
                         GameUIState::Minimized => Val::Percent(10.),
                     };
 
-                    commands.add_child(
-                        "panel",
-                        MainPanelWrapper {
-                            score_info,
-                            ui_state: *context.1 .0,
-                            level: context.1 .1.level.clone(),
-                        }
-                        .with_transition_to::<StyleTopLens>(top, ScalarSpeed::new(20.0)),
-                        &context.1 .2,
-                    )
+                    if !context.1.1.level.skip_completion(){
+                        commands.add_child(
+                            "panel",
+                            MainPanelWrapper {
+                                score_info,
+                                ui_state: *context.1 .0,
+                                level: context.1 .1.level.clone(),
+                            }
+                            .with_transition_to::<StyleTopLens>(top, ScalarSpeed::new(20.0)),
+                            &context.1 .2,
+                        )
+                    }
+
+
                 }
             };
         }
@@ -157,12 +156,6 @@ impl MavericNode for MainPanel {
 
             let border = commands.transition_value::<BorderColorLens>(border, border, color_speed);
 
-            let visibility = if args.node.level.skip_completion() {
-                Visibility::Hidden
-            } else {
-                Visibility::Inherited
-            };
-
             let z_index = ZIndex::Global(15);
 
             let flex_direction: FlexDirection = match args.node.ui_state {
@@ -183,7 +176,6 @@ impl MavericNode for MainPanel {
 
                 background_color: BackgroundColor(background),
                 border_color: BorderColor(border),
-                visibility,
                 z_index,
                 ..Default::default()
             };
@@ -360,7 +352,7 @@ impl MavericNode for LevelTextPanel {
         commands.ignore_args().ignore_context().insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-
+                top: Val::Percent(30.0),
                 display: Display::Flex,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,

@@ -239,11 +239,15 @@ fn hydrate_leaderboard(
 
     info!("Received wr {hash} {height} {image_blob}");
 
-    let image_blob = match base64::engine::general_purpose::URL_SAFE.decode(image_blob) {
-        Ok(image_blob) => image_blob,
-        Err(err) => {
-            error!("{err}");
-            return;
+    let image_blob = if image_blob == "0" {
+        vec![]
+    } else {
+        match base64::engine::general_purpose::URL_SAFE.decode(image_blob) {
+            Ok(image_blob) => image_blob,
+            Err(err) => {
+                error!("{err}");
+                return;
+            }
         }
     };
 
@@ -407,6 +411,10 @@ fn check_pbs_on_completion(
         return;
     }
 
+    if current_level.level.skip_completion() {
+        return;
+    }
+
     let (height, hash) =
         if let LevelCompletion::Complete { score_info, .. } = current_level.completion {
             (score_info.height, score_info.hash)
@@ -476,6 +484,10 @@ fn check_wrs_on_completion(
     mut world_records: ResMut<WorldRecords>,
 ) {
     if !current_level.is_changed() {
+        return;
+    }
+
+    if current_level.level.skip_completion() {
         return;
     }
 

@@ -109,7 +109,7 @@ impl DesignedLevel {
         std::iter::once(&self.initial_stage).chain(self.stages.iter())
     }
 
-    pub fn get_star(&self, height: f32) -> StarType {
+    pub fn get_medal(&self, height: f32) -> StarType {
         let num_shapes = self.all_stages().map(|z| z.shapes.len()).sum(); //TODO handle void shapes
 
         StarType::guess(height, num_shapes) //TODO specific values for each star

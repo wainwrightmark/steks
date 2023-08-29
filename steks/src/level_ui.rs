@@ -319,13 +319,13 @@ impl MavericNode for MainPanel {
                         );
                     }
 
-                    if !args.score_info.medal.is_incomplete() {
+                    if !args.score_info.star.is_incomplete() {
                         commands.add_child(
-                            "medals",
+                            "stars",
                             ImageNode {
-                                path: args.score_info.medal.three_medals_asset_path(),
+                                path: args.score_info.star.three_medals_asset_path(),
                                 background_color: Color::WHITE,
-                                style: ThreeMedalsImageStyle,
+                                style: ThreeStarsImageStyle,
                             },
                             context,
                         );

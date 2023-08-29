@@ -270,21 +270,21 @@ impl MavericNode for MenuPage {
                         Some(index) => context
                             .0
                              .2
-                            .medals
+                            .stars
                             .get(index as usize)
                             .is_some_and(|m| !m.is_incomplete()), //check if previous level is complete
                         None => true, //first level always unlocked
                     };
 
-                    let medal = context
+                    let star = context
                         .0
                          .2
-                        .medals
+                        .stars
                         .get(level as usize)
                         .cloned()
                         .unwrap_or_default();
 
-                    let style = if enabled && medal.is_incomplete(){
+                    let style = if enabled && star.is_incomplete(){
                         TextButtonStyle::Medium
                     } else{TextButtonStyle::Normal};
 
@@ -294,8 +294,8 @@ impl MavericNode for MenuPage {
                             TextButtonAction::GotoLevel { level },
                             false,
                             !enabled,
-                            medal.one_medals_asset_path(),
-                            LevelMedalsImageStyle,
+                            star.one_medals_asset_path(),
+                            LevelStarsImageStyle,
                             style
                         ),
                         &context.1,

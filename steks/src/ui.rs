@@ -261,15 +261,15 @@ pub(crate) fn text_button_node_with_text_and_image(
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct LevelMedalsImageStyle;
+pub struct LevelStarsImageStyle;
 
-impl IntoBundle for LevelMedalsImageStyle {
+impl IntoBundle for LevelStarsImageStyle {
     type B = Style;
 
     fn into_bundle(self) -> Self::B {
         Style {
-            width: Val::Px((TEXT_BUTTON_HEIGHT - (2.0 * UI_BORDER_WIDTH)) / 1.5),
-            height: Val::Px(TEXT_BUTTON_HEIGHT - (2.0 * UI_BORDER_WIDTH)),
+            width: Val::Px(TEXT_BUTTON_HEIGHT - (2.0 * UI_BORDER_WIDTH_MEDIUM)),
+            height: Val::Px(TEXT_BUTTON_HEIGHT - (2.0 * UI_BORDER_WIDTH_MEDIUM)),
             margin: UiRect {
                 left: Val::Auto,
                 right: Val::Px(5.0),
@@ -282,32 +282,21 @@ impl IntoBundle for LevelMedalsImageStyle {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct ThreeMedalsImageStyle;
+pub struct ThreeStarsImageStyle;
 
-impl IntoBundle for ThreeMedalsImageStyle {
+impl IntoBundle for ThreeStarsImageStyle {
     type B = Style;
 
     fn into_bundle(self) -> Self::B {
         Style {
-            width: Val::Px(THREE_MEDALS_IMAGE_WIDTH),
-            height: Val::Px(THREE_MEDALS_IMAGE_HEIGHT),
-            margin: UiRect::all(Val::Auto),
-            ..Default::default()
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct OneMedalsImageStyle;
-
-impl IntoBundle for OneMedalsImageStyle {
-    type B = Style;
-
-    fn into_bundle(self) -> Self::B {
-        Style {
-            width: Val::Px(ONE_MEDALS_IMAGE_WIDTH),
-            height: Val::Px(ONE_MEDALS_IMAGE_HEIGHT),
-            margin: UiRect::all(Val::Auto),
+            width: Val::Px(THREE_STARS_IMAGE_WIDTH),
+            height: Val::Px(THREE_STARS_IMAGE_HEIGHT),
+            margin: UiRect {
+                left: Val::Auto,
+                right: Val::Auto,
+                top: Val::Px(10.0),
+                bottom: Val::Px(10.0),
+            },
             ..Default::default()
         }
     }

@@ -334,7 +334,7 @@ pub struct ScoreInfo {
     pub height: f32,
     pub is_first_win: bool,
 
-    pub medal: MedalType,
+    pub star: StarType,
 
     pub wr: Option<f32>,
     pub pb: f32,
@@ -355,7 +355,7 @@ impl ScoreInfo {
 
         let pb = old_height.map(|x| x.height).unwrap_or(0.0);
         let best = pb.max(height);
-        let medal = level.get_medal(best);
+        let star = level.get_medal(best);
 
         ScoreInfo {
             hash,
@@ -363,7 +363,7 @@ impl ScoreInfo {
             is_first_win: old_height.is_none(),
             wr,
             pb,
-            medal,
+            star,
         }
     }
 
@@ -414,13 +414,13 @@ impl GameLevel {
         meta: DesignedLevelMeta::Credits,
     };
 
-    pub fn get_medal(&self, height: f32) -> MedalType {
+    pub fn get_medal(&self, height: f32) -> StarType {
         match self {
-            GameLevel::Designed { meta } => meta.get_level().get_medal(height),
-            GameLevel::Infinite { .. } => MedalType::Incomplete,
-            GameLevel::Challenge { .. } => MedalType::guess(height, CHALLENGE_SHAPES),
-            GameLevel::Loaded { .. } => MedalType::Incomplete,
-            GameLevel::Begging => MedalType::Incomplete,
+            GameLevel::Designed { meta } => meta.get_level().get_star(height),
+            GameLevel::Infinite { .. } => StarType::Incomplete,
+            GameLevel::Challenge { .. } => StarType::guess(height, CHALLENGE_SHAPES),
+            GameLevel::Loaded { .. } => StarType::Incomplete,
+            GameLevel::Begging => StarType::Incomplete,
         }
     }
 }

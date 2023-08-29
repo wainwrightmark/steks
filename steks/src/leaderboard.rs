@@ -15,7 +15,7 @@ pub type WrMAP = BTreeMap<u64, LevelWR>;
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct LevelPB {
-    pub medal: MedalType,
+    pub star: StarType,
     pub height: f32,
     pub image_blob: Vec<u8>,
 }
@@ -41,44 +41,44 @@ pub struct LevelWR {
     Ord,
 )]
 #[repr(u8)]
-pub enum MedalType {
+pub enum StarType {
     #[default]
     Incomplete,
-    Bronze,
-    Silver,
-    Gold,
+    OneStar,
+    TwoStar,
+    ThreeStar,
 }
 
-impl MedalType {
+impl StarType {
     pub fn guess(height: f32, num_shapes: usize) -> Self {
         //TODO use a better system
 
         if height <= 0.0 {
-            MedalType::Incomplete
+            StarType::Incomplete
         } else if height < (num_shapes as f32) * 35. {
-            MedalType::Bronze
+            StarType::OneStar
         } else if height < (num_shapes as f32) * 40. {
-            MedalType::Silver
+            StarType::TwoStar
         } else {
-            MedalType::Gold
+            StarType::ThreeStar
         }
     }
 
     pub fn three_medals_asset_path(&self) -> &'static str {
         match self {
-            MedalType::Incomplete => "images/medals/ThreeMedalsBlack.png",
-            MedalType::Bronze => "images/medals/ThreeMedalsBronze.png",
-            MedalType::Silver => "images/medals/ThreeMedalsSilver.png",
-            MedalType::Gold => "images/medals/ThreeMedalsGold.png",
+            StarType::Incomplete => "images/stars/ThreeStarsBlack.png",
+            StarType::OneStar => "images/stars/ThreeStarsBronze.png",
+            StarType::TwoStar => "images/stars/ThreeStarsSilver.png",
+            StarType::ThreeStar => "images/stars/ThreeStarsGold.png",
         }
     }
 
     pub fn one_medals_asset_path(&self) -> &'static str {
         match self {
-            MedalType::Incomplete => "images/medals/OneMedalBlack.png",
-            MedalType::Bronze => "images/medals/OneMedalBronze.png",
-            MedalType::Silver => "images/medals/OneMedalSilver.png",
-            MedalType::Gold => "images/medals/OneMedalGold.png",
+            StarType::Incomplete => "images/stars/OneStarBlack.png",
+            StarType::OneStar => "images/stars/OneStarBronze.png",
+            StarType::TwoStar => "images/stars/OneStarSilver.png",
+            StarType::ThreeStar => "images/stars/OneStarGold.png",
         }
     }
 }
@@ -123,7 +123,7 @@ impl TrackableResource for PersonalBests {
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize)]
 pub struct CampaignCompletion {
-    pub medals: Vec<MedalType>,
+    pub stars: Vec<StarType>,
 }
 
 impl TrackableResource for CampaignCompletion {
@@ -132,14 +132,14 @@ impl TrackableResource for CampaignCompletion {
 
 impl CampaignCompletion {
     pub fn fill_with_incomplete(completion: &mut ResMut<CampaignCompletion>) {
-        let Some(take) = CAMPAIGN_LEVELS.len().checked_sub(completion.medals.len()) else {
+        let Some(take) = CAMPAIGN_LEVELS.len().checked_sub(completion.stars.len()) else {
             return;
         };
 
         if take > 0 {
             completion
-                .medals
-                .extend(std::iter::repeat(MedalType::Incomplete).take(take));
+                .stars
+                .extend(std::iter::repeat(StarType::Incomplete).take(take));
         }
     }
 }
@@ -163,8 +163,8 @@ fn check_for_cheat_on_game_load(mut completion: ResMut<CampaignCompletion>) {
 
         CampaignCompletion::fill_with_incomplete(&mut completion);
 
-        for m in completion.medals.iter_mut().filter(|x| x.is_incomplete()) {
-            *m = MedalType::Bronze;
+        for m in completion.stars.iter_mut().filter(|x| x.is_incomplete()) {
+            *m = StarType::OneStar;
         }
     }
 }
@@ -388,17 +388,17 @@ fn update_campaign_completion(
 
     CampaignCompletion::fill_with_incomplete(&mut campaign_completion);
 
-    let medal_type = campaign_completion.medals[index as usize];
+    let medal_type = campaign_completion.stars[index as usize];
 
-    if medal_type < score_info.medal {
-        if matches!(index + 1, 7 | 25 | 40) && medal_type == MedalType::Incomplete {
+    if medal_type < score_info.star {
+        if matches!(index + 1, 7 | 25 | 40) && medal_type == StarType::Incomplete {
             #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
             {
                 spawn_async(async move { capacitor_bindings::rate::Rate::request_review().await });
             }
         }
 
-        campaign_completion.medals[index as usize] = score_info.medal;
+        campaign_completion.stars[index as usize] = score_info.star;
     }
 }
 
@@ -424,7 +424,7 @@ fn check_pbs_on_completion(
 
     let level_pb = || LevelPB {
         height,
-        medal: MedalType::Incomplete,
+        star: StarType::Incomplete,
         image_blob: shapes_vec_from_query(shapes_query).make_bytes(),
     };
 

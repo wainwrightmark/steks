@@ -226,7 +226,7 @@ fn hydrate_leaderboard(
             return;
         }
     };
-    let height: f32 = match height.parse() {
+    let mut height: f32 = match height.parse() {
         Ok(height) => height,
         Err(_err) => {
             crate::logging::try_log_error_message(format!(
@@ -272,11 +272,11 @@ fn hydrate_leaderboard(
                 }
                 std::cmp::Ordering::Greater => {
                     info!("Existing record is better than record from server");
-                    let image_blob = base64::engine::general_purpose::URL_SAFE
+                    let existing_image_blob = base64::engine::general_purpose::URL_SAFE
                         .encode(existing.image_blob.as_slice());
-                    update_wr(hash, existing.height, image_blob);
+                    update_wr(hash, existing.height, existing_image_blob);
+                    height = existing.height;
                     oe.get_mut().updated = Some(updated);
-                    return;
                 }
             }
         }

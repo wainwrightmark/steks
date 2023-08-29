@@ -181,8 +181,9 @@ pub(crate) fn text_button_node_with_text(
 }
 
 #[derive(Debug, PartialEq, Clone)]
-enum TextButtonStyle{
+pub enum TextButtonStyle{
     Normal,
+    Medium,
     Fat
 }
 
@@ -193,6 +194,7 @@ impl IntoBundle for TextButtonStyle {
 
         let border = match self{
             TextButtonStyle::Normal => UiRect::all(Val::Px(UI_BORDER_WIDTH)),
+            TextButtonStyle::Medium => UiRect::all(Val::Px(UI_BORDER_WIDTH_MEDIUM)),
             TextButtonStyle::Fat => UiRect::all(Val::Px(UI_BORDER_WIDTH_FAT)),
         };
 
@@ -218,16 +220,18 @@ impl IntoBundle for TextButtonStyle {
 
 pub(crate) fn text_button_node_with_text_and_image(
     button_action: TextButtonAction,
-    //text: String,
     centred: bool,
     disabled: bool,
     image_path: &'static str,
     image_style: impl IntoBundle<B = Style>,
+    style: TextButtonStyle
 ) -> impl MavericNode<Context = AssetServer> {
+
+    let background_color = if disabled{ DISABLED_BUTTON_BACKGROUND} else{TEXT_BUTTON_BACKGROUND};
     ButtonNode {
-        style: TextButtonStyle::Normal,
+        style,
         visibility: Visibility::Visible,
-        background_color: if disabled{ DISABLED_BUTTON_BACKGROUND} else{TEXT_BUTTON_BACKGROUND} ,
+        background_color ,
         border_color: BUTTON_BORDER,
         marker: TextButtonComponent {
             disabled,
@@ -250,7 +254,7 @@ pub(crate) fn text_button_node_with_text_and_image(
             ImageNode {
                 style: image_style,
                 path: image_path,
-                background_color: if disabled{ DISABLED_BUTTON_BACKGROUND} else{TEXT_BUTTON_BACKGROUND},
+                background_color,
             },
         ),
     }

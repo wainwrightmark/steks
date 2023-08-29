@@ -3,7 +3,7 @@ use strum::Display;
 
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
 pub const ICON_BUTTON_HEIGHT: f32 = 65.;
-pub const COMPACT_ICON_BUTTON_HEIGHT: f32 = 22.;
+pub const COMPACT_ICON_BUTTON_HEIGHT: f32 = 25.;
 
 pub const THREE_MEDALS_IMAGE_HEIGHT: f32 = 64.;
 pub const THREE_MEDALS_IMAGE_WIDTH: f32 = 2. * THREE_MEDALS_IMAGE_HEIGHT;
@@ -20,6 +20,7 @@ pub const TEXT_BUTTON_HEIGHT: f32 = 50.;
 pub const MENU_TOP_BOTTOM_MARGIN: f32 = 4.0;
 
 pub const UI_BORDER_WIDTH: f32 = 3.0;
+pub const UI_BORDER_WIDTH_MEDIUM: f32 = 6.0;
 pub const UI_BORDER_WIDTH_FAT: f32 = 9.0;
 
 pub struct ButtonPlugin;
@@ -117,7 +118,7 @@ impl IconButtonAction {
             PreviousLevelsPage => "\u{e81b}",
             NextLevelsPage => "\u{e81a}",
             RestoreSplash => "\u{f149}",
-            MinimizeSplash => "\u{f148}",
+            MinimizeSplash => "\u{e814}",
             GooglePlay => "\u{f1a0}",
             Apple => "\u{f179}",
             Steam => "\u{f1b6}",
@@ -245,116 +246,6 @@ pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
         ..default()
     }
 }
-
-// pub fn spawn_text_button(
-//     parent: &mut ChildBuilder,
-//     button_action: TextButtonAction,
-//     font: Handle<Font>,
-//     disabled: bool,
-//     justify_content: JustifyContent,
-// ) {
-//     spawn_text_button_with_text(
-//         button_action.text(),
-//         parent,
-//         button_action,
-//         font,
-//         disabled,
-//         justify_content,
-//     )
-// }
-
-// pub fn spawn_text_button_with_text(
-//     text: String,
-//     parent: &mut ChildBuilder,
-//     button_action: TextButtonAction,
-//     font: Handle<Font>,
-//     disabled: bool,
-//     justify_content: JustifyContent,
-// ) {
-//     let text_bundle = TextBundle {
-//         text: Text::from_section(
-//             text,
-//             TextStyle {
-//                 font,
-//                 font_size: BUTTON_FONT_SIZE,
-//                 color: BUTTON_TEXT_COLOR,
-//             },
-//         ),
-//         style: Style {
-//             ..Default::default()
-//         },
-
-//         ..Default::default()
-//     }
-//     .with_no_wrap();
-
-//     let button_bundle = ButtonBundle {
-//         style: Style {
-//             width: Val::Px(TEXT_BUTTON_WIDTH),
-//             height: Val::Px(TEXT_BUTTON_HEIGHT),
-//             margin: UiRect {
-//                 left: Val::Auto,
-//                 right: Val::Auto,
-//                 top: Val::Px(MENU_TOP_BOTTOM_MARGIN),
-//                 bottom: Val::Px(MENU_TOP_BOTTOM_MARGIN),
-//             },
-//             justify_content,
-//             align_items: AlignItems::Center,
-//             flex_grow: 0.0,
-//             flex_shrink: 0.0,
-//             border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
-
-//             ..Default::default()
-//         },
-//         background_color: ButtonType::Text.background_color(&Interaction::None, disabled),
-//         border_color: color::BUTTON_BORDER.into(),
-//         ..Default::default()
-//     };
-
-//     parent
-//         .spawn(button_bundle)
-//         .with_children(|parent| {
-//             parent.spawn(text_bundle);
-//         })
-//         .insert(TextButtonComponent {
-//             disabled,
-//             button_action,
-//             button_type: ButtonType::Text,
-//         });
-// }
-
-// pub fn spawn_icon_button(
-//     parent: &mut ChildBuilder,
-//     button_action: IconButtonAction,
-
-//     font: Handle<Font>,
-//     disabled: bool,
-// ) {
-//     let text_bundle = TextBundle {
-//         text: Text::from_section(
-//             button_action.icon(),
-//             TextStyle {
-//                 font,
-//                 font_size: ICON_FONT_SIZE,
-//                 color: BUTTON_TEXT_COLOR,
-//             },
-//         ),
-
-//         ..Default::default()
-//     }
-//     .with_no_wrap();
-
-//     parent
-//         .spawn(icon_button_bundle(disabled))
-//         .with_children(|parent| {
-//             parent.spawn(text_bundle);
-//         })
-//         .insert(IconButtonComponent {
-//             disabled,
-//             button_action,
-//             button_type: ButtonType::Icon,
-//         });
-// }
 
 fn icon_button_system(
     mut interaction_query: Query<

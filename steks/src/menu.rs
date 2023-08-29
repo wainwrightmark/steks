@@ -284,6 +284,10 @@ impl MavericNode for MenuPage {
                         .cloned()
                         .unwrap_or_default();
 
+                    let style = if enabled && medal.is_incomplete(){
+                        TextButtonStyle::Medium
+                    } else{TextButtonStyle::Normal};
+
                     commands.add_child(
                         key as u32,
                         text_button_node_with_text_and_image(
@@ -292,6 +296,7 @@ impl MavericNode for MenuPage {
                             !enabled,
                             medal.one_medals_asset_path(),
                             LevelMedalsImageStyle,
+                            style
                         ),
                         &context.1,
                     )

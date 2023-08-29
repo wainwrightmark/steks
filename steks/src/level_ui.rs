@@ -229,6 +229,9 @@ impl MavericNode for MainPanel {
                 }
 
                 GameUIState::Splash => {
+
+                    commands.add_child("top_buttons", ButtonPanel::SplashTop, context);
+
                     let message = match &args.level {
                         GameLevel::Designed { meta, .. } => meta
                             .get_level()
@@ -241,11 +244,8 @@ impl MavericNode for MainPanel {
                         GameLevel::Begging => "Message: Please buy the game", //users should never see this
                     };
 
-                    let message = std::iter::Iterator::chain(
-                        [""].into_iter(),
-                        std::iter::Iterator::chain(message.lines(), ["", ""]),
-                    )
-                    .take(4)
+                    let message = std::iter::Iterator::chain(message.lines(), ["", ""])
+                    .take(3)
                     .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
                     .join("\n");
 
@@ -265,7 +265,7 @@ impl MavericNode for MainPanel {
                             "new_best",
                             TextPlusIcon {
                                 text: "New Personal Best".to_string(),
-                                icon: IconButtonAction::None,
+                                icon: IconButtonAction::ViewPB,
                             },
                             context,
                         );
@@ -331,7 +331,7 @@ impl MavericNode for MainPanel {
                         );
                     }
 
-                    commands.add_child("buttons", ButtonPanel::Splash, context);
+                    commands.add_child("bottom_buttons", ButtonPanel::SplashBottom, context);
 
                     if IS_DEMO {
                         commands.add_child("store", StoreButtonPanel, context);
@@ -443,9 +443,10 @@ fn level_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, EnumIs)]
 pub enum ButtonPanel {
-    Splash,
+    SplashTop,
+    SplashBottom,
     Preview(PreviewImage),
 }
 
@@ -453,13 +454,18 @@ impl MavericNode for ButtonPanel {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert(NodeBundle {
+        commands.ignore_context().insert_with_node(|node|
+             NodeBundle {
+
+
+
             style: Style {
                 display: Display::Flex,
-                align_items: AlignItems::Center,
+
                 flex_direction: FlexDirection::Row,
-                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-                justify_content: JustifyContent::Center,
+                margin: UiRect::new(Val::Px(0.), Val::Px(0.), Val::Px(0.), Val::Px(0.)),
+
+                align_self: if node.is_splash_top() {AlignSelf::End} else {AlignSelf::Center} ,
                 width: Val::Auto,
                 height: Val::Auto,
 
@@ -472,19 +478,20 @@ impl MavericNode for ButtonPanel {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_args_and_context(|args, context, commands| {
             let actions: &[IconButtonAction] = match args {
-                ButtonPanel::Splash => {
+                ButtonPanel::SplashBottom => {
                     if cfg!(any(feature = "android", feature = "ios")) {
                         &[
-                            IconButtonAction::MinimizeSplash,
                             IconButtonAction::ShowLeaderboard,
                             IconButtonAction::NextLevel,
                         ]
                     } else {
                         &[
-                            IconButtonAction::MinimizeSplash,
                             IconButtonAction::NextLevel,
                         ]
                     }
+                }
+                ButtonPanel::SplashTop =>{
+                    &[IconButtonAction::MinimizeSplash]
                 }
                 ButtonPanel::Preview(PreviewImage::PB) => {
                     &[IconButtonAction::SharePB, IconButtonAction::RestoreSplash]
@@ -495,9 +502,10 @@ impl MavericNode for ButtonPanel {
             };
 
             for (key, action) in actions.iter().enumerate() {
+                let style = if *action == IconButtonAction::MinimizeSplash {IconButtonStyle::Compact} else {IconButtonStyle::HeightPadded};
                 commands.add_child(
                     key as u32,
-                    icon_button_node(action.clone(), IconButtonStyle::HeightPadded),
+                    icon_button_node(action.clone(), style),
                     context,
                 );
             }

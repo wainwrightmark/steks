@@ -145,11 +145,21 @@ pub(crate) fn text_button_node_with_text(
     centred: bool,
     disabled: bool,
 ) -> impl MavericNode<Context = AssetServer> {
+
+    let (background_color, color, border_color) = (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
+
+    let style = if button_action.emphasize(){
+        TextButtonStyle::Fat
+    }else{
+        TextButtonStyle::Normal
+    };
+
+
     ButtonNode {
-        style: TextButtonStyle,
+        style,
         visibility: Visibility::Visible,
-        background_color: TEXT_BUTTON_BACKGROUND,
-        border_color: BUTTON_BORDER,
+        background_color,
+        border_color,
         marker: TextButtonComponent {
             disabled,
             button_action,
@@ -158,7 +168,7 @@ pub(crate) fn text_button_node_with_text(
         children: (TextNode {
             text: text.clone(),
             font_size: BUTTON_FONT_SIZE,
-            color: BUTTON_TEXT_COLOR,
+            color,
             font: MENU_TEXT_FONT_PATH,
             alignment: if centred {
                 TextAlignment::Center
@@ -171,12 +181,21 @@ pub(crate) fn text_button_node_with_text(
 }
 
 #[derive(Debug, PartialEq, Clone)]
-struct TextButtonStyle;
+enum TextButtonStyle{
+    Normal,
+    Fat
+}
 
 impl IntoBundle for TextButtonStyle {
     type B = Style;
 
     fn into_bundle(self) -> Self::B {
+
+        let border = match self{
+            TextButtonStyle::Normal => UiRect::all(Val::Px(UI_BORDER_WIDTH)),
+            TextButtonStyle::Fat => UiRect::all(Val::Px(UI_BORDER_WIDTH_FAT)),
+        };
+
         Style {
             width: Val::Px(TEXT_BUTTON_WIDTH),
             height: Val::Px(TEXT_BUTTON_HEIGHT),
@@ -190,7 +209,7 @@ impl IntoBundle for TextButtonStyle {
             align_items: AlignItems::Center,
             flex_grow: 0.0,
             flex_shrink: 0.0,
-            border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
+            border,
 
             ..Default::default()
         }
@@ -206,7 +225,7 @@ pub(crate) fn text_button_node_with_text_and_image(
     image_style: impl IntoBundle<B = Style>,
 ) -> impl MavericNode<Context = AssetServer> {
     ButtonNode {
-        style: TextButtonStyle,
+        style: TextButtonStyle::Normal,
         visibility: Visibility::Visible,
         background_color: if disabled{ DISABLED_BUTTON_BACKGROUND} else{TEXT_BUTTON_BACKGROUND} ,
         border_color: BUTTON_BORDER,

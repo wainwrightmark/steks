@@ -1,5 +1,4 @@
 use crate::{designed_level, leaderboard, prelude::*};
-use steks_common::color;
 use strum::Display;
 
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
@@ -20,9 +19,8 @@ pub const TEXT_BUTTON_HEIGHT: f32 = 50.;
 
 pub const MENU_TOP_BOTTOM_MARGIN: f32 = 4.0;
 
-//pub const MENU_OFFSET: f32 = 10.;
-
 pub const UI_BORDER_WIDTH: f32 = 3.0;
+pub const UI_BORDER_WIDTH_FAT: f32 = 9.0;
 
 pub struct ButtonPlugin;
 
@@ -73,9 +71,11 @@ impl ButtonType {
             (Icon, Pressed) => ICON_PRESSED_BUTTON,
             (Icon, Hovered) => ICON_HOVERED_BUTTON,
             (Icon, None) => ICON_BUTTON_BACKGROUND,
+
             (Text, Pressed) => TEXT_PRESSED_BUTTON,
             (Text, Hovered) => TEXT_HOVERED_BUTTON,
-            (Text, None) => TEXT_BUTTON_BACKGROUND,
+            (Text, None) =>  TEXT_BUTTON_BACKGROUND,
+
             (Image, _) => Color::NONE,
         }
         .into()
@@ -141,7 +141,8 @@ pub enum TextButtonAction {
     ClipboardImport,
     GotoLevel { level: u8 },
     MinimizeApp,
-    ToggleSettings,
+    OpenSettings,
+    BackToMenu,
 
     ToggleArrows,
     ToggleTouchOutlines,
@@ -154,6 +155,14 @@ pub enum TextButtonAction {
 }
 
 impl TextButtonAction {
+
+    pub fn emphasize(&self)-> bool{
+        match self{
+            TextButtonAction::Resume | TextButtonAction::BackToMenu => true,
+            _ => false
+        }
+    }
+
     pub fn closes_menu(&self) -> bool {
         use TextButtonAction::*;
         match self {
@@ -163,11 +172,12 @@ impl TextButtonAction {
             Infinite => true,
             DailyChallenge => true,
             Share => true,
+            BackToMenu => false,
             ChooseLevel => false,
             ClipboardImport => true,
             GotoLevel { .. } => true,
             MinimizeApp => true,
-            ToggleSettings => false,
+            OpenSettings => false,
             ToggleArrows => false,
             ToggleTouchOutlines => false,
             SetRotationSensitivity(_) => false,
@@ -207,12 +217,13 @@ impl TextButtonAction {
             }
             MinimizeApp => "Quit".to_string(),
             Credits => "Credits".to_string(),
-            ToggleSettings => "Settings".to_string(),
+            OpenSettings => "Settings".to_string(),
             ToggleArrows => "Toggle Arrows".to_string(),
             ToggleTouchOutlines => "Toggle Markers".to_string(),
             SyncAchievements => "Sync Achievements".to_string(),
             ShowAchievements => "Show Achievements".to_string(),
             SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
+            BackToMenu => "Back".to_string(),
         }
     }
 }
@@ -235,115 +246,115 @@ pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
     }
 }
 
-pub fn spawn_text_button(
-    parent: &mut ChildBuilder,
-    button_action: TextButtonAction,
-    font: Handle<Font>,
-    disabled: bool,
-    justify_content: JustifyContent,
-) {
-    spawn_text_button_with_text(
-        button_action.text(),
-        parent,
-        button_action,
-        font,
-        disabled,
-        justify_content,
-    )
-}
+// pub fn spawn_text_button(
+//     parent: &mut ChildBuilder,
+//     button_action: TextButtonAction,
+//     font: Handle<Font>,
+//     disabled: bool,
+//     justify_content: JustifyContent,
+// ) {
+//     spawn_text_button_with_text(
+//         button_action.text(),
+//         parent,
+//         button_action,
+//         font,
+//         disabled,
+//         justify_content,
+//     )
+// }
 
-pub fn spawn_text_button_with_text(
-    text: String,
-    parent: &mut ChildBuilder,
-    button_action: TextButtonAction,
-    font: Handle<Font>,
-    disabled: bool,
-    justify_content: JustifyContent,
-) {
-    let text_bundle = TextBundle {
-        text: Text::from_section(
-            text,
-            TextStyle {
-                font,
-                font_size: BUTTON_FONT_SIZE,
-                color: BUTTON_TEXT_COLOR,
-            },
-        ),
-        style: Style {
-            ..Default::default()
-        },
+// pub fn spawn_text_button_with_text(
+//     text: String,
+//     parent: &mut ChildBuilder,
+//     button_action: TextButtonAction,
+//     font: Handle<Font>,
+//     disabled: bool,
+//     justify_content: JustifyContent,
+// ) {
+//     let text_bundle = TextBundle {
+//         text: Text::from_section(
+//             text,
+//             TextStyle {
+//                 font,
+//                 font_size: BUTTON_FONT_SIZE,
+//                 color: BUTTON_TEXT_COLOR,
+//             },
+//         ),
+//         style: Style {
+//             ..Default::default()
+//         },
 
-        ..Default::default()
-    }
-    .with_no_wrap();
+//         ..Default::default()
+//     }
+//     .with_no_wrap();
 
-    let button_bundle = ButtonBundle {
-        style: Style {
-            width: Val::Px(TEXT_BUTTON_WIDTH),
-            height: Val::Px(TEXT_BUTTON_HEIGHT),
-            margin: UiRect {
-                left: Val::Auto,
-                right: Val::Auto,
-                top: Val::Px(MENU_TOP_BOTTOM_MARGIN),
-                bottom: Val::Px(MENU_TOP_BOTTOM_MARGIN),
-            },
-            justify_content,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
-            border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
+//     let button_bundle = ButtonBundle {
+//         style: Style {
+//             width: Val::Px(TEXT_BUTTON_WIDTH),
+//             height: Val::Px(TEXT_BUTTON_HEIGHT),
+//             margin: UiRect {
+//                 left: Val::Auto,
+//                 right: Val::Auto,
+//                 top: Val::Px(MENU_TOP_BOTTOM_MARGIN),
+//                 bottom: Val::Px(MENU_TOP_BOTTOM_MARGIN),
+//             },
+//             justify_content,
+//             align_items: AlignItems::Center,
+//             flex_grow: 0.0,
+//             flex_shrink: 0.0,
+//             border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
 
-            ..Default::default()
-        },
-        background_color: ButtonType::Text.background_color(&Interaction::None, disabled),
-        border_color: color::BUTTON_BORDER.into(),
-        ..Default::default()
-    };
+//             ..Default::default()
+//         },
+//         background_color: ButtonType::Text.background_color(&Interaction::None, disabled),
+//         border_color: color::BUTTON_BORDER.into(),
+//         ..Default::default()
+//     };
 
-    parent
-        .spawn(button_bundle)
-        .with_children(|parent| {
-            parent.spawn(text_bundle);
-        })
-        .insert(TextButtonComponent {
-            disabled,
-            button_action,
-            button_type: ButtonType::Text,
-        });
-}
+//     parent
+//         .spawn(button_bundle)
+//         .with_children(|parent| {
+//             parent.spawn(text_bundle);
+//         })
+//         .insert(TextButtonComponent {
+//             disabled,
+//             button_action,
+//             button_type: ButtonType::Text,
+//         });
+// }
 
-pub fn spawn_icon_button(
-    parent: &mut ChildBuilder,
-    button_action: IconButtonAction,
+// pub fn spawn_icon_button(
+//     parent: &mut ChildBuilder,
+//     button_action: IconButtonAction,
 
-    font: Handle<Font>,
-    disabled: bool,
-) {
-    let text_bundle = TextBundle {
-        text: Text::from_section(
-            button_action.icon(),
-            TextStyle {
-                font,
-                font_size: ICON_FONT_SIZE,
-                color: BUTTON_TEXT_COLOR,
-            },
-        ),
+//     font: Handle<Font>,
+//     disabled: bool,
+// ) {
+//     let text_bundle = TextBundle {
+//         text: Text::from_section(
+//             button_action.icon(),
+//             TextStyle {
+//                 font,
+//                 font_size: ICON_FONT_SIZE,
+//                 color: BUTTON_TEXT_COLOR,
+//             },
+//         ),
 
-        ..Default::default()
-    }
-    .with_no_wrap();
+//         ..Default::default()
+//     }
+//     .with_no_wrap();
 
-    parent
-        .spawn(icon_button_bundle(disabled))
-        .with_children(|parent| {
-            parent.spawn(text_bundle);
-        })
-        .insert(IconButtonComponent {
-            disabled,
-            button_action,
-            button_type: ButtonType::Icon,
-        });
-}
+//     parent
+//         .spawn(icon_button_bundle(disabled))
+//         .with_children(|parent| {
+//             parent.spawn(text_bundle);
+//         })
+//         .insert(IconButtonComponent {
+//             disabled,
+//             button_action,
+//             button_type: ButtonType::Icon,
+//         });
+// }
 
 fn icon_button_system(
     mut interaction_query: Query<
@@ -468,7 +479,8 @@ fn text_button_system(
                         .detach();
                 }
                 Credits => change_level_events.send(ChangeLevelEvent::Credits),
-                ToggleSettings => menu_state.as_mut().toggle_settings(),
+                OpenSettings => menu_state.as_mut().open_settings(),
+                BackToMenu => menu_state.as_mut().open_menu(),
                 ToggleArrows => settings.toggle_arrows(),
                 ToggleTouchOutlines => settings.toggle_touch_outlines(),
                 SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),

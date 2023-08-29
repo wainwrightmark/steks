@@ -44,12 +44,8 @@ impl MenuState {
         *self = MenuState::Closed
     }
 
-    pub fn toggle_settings(&mut self) {
-        use MenuState::*;
-        match self {
-            SettingsPage => *self = ShowMainMenu,
-            _ => *self = SettingsPage,
-        }
+    pub fn open_settings(&mut self) {
+        *self = MenuState::SettingsPage
     }
 
     pub fn toggle_levels(&mut self, current_level: &CurrentLevel) {
@@ -169,7 +165,7 @@ impl MavericNode for MenuPage {
                     Infinite,
                     Tutorial,
                     Share,
-                    ToggleSettings,
+                    OpenSettings,
                     #[cfg(feature = "web")]
                     ClipboardImport, //TODO remove
                     #[cfg(all(feature = "web", target_arch = "wasm32"))]
@@ -257,11 +253,10 @@ impl MavericNode for MenuPage {
 
                 commands.add_child(
                     "back",
-                    text_button_node_with_text(
-                        TextButtonAction::ToggleSettings,
-                        "Back".to_string(),
+                    text_button_node(
+                        TextButtonAction::BackToMenu,
                         true,
-                        false,
+                        false
                     ),
                     &context.1,
                 );

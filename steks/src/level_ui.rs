@@ -26,7 +26,7 @@ pub enum GameUIState {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIs)]
 pub enum PreviewImage {
     PB,
-    Record,
+    WR,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -195,163 +195,156 @@ impl MavericNode for MainPanel {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.ordered_children_with_args_and_context(|args, context, commands| {
             let height = args.score_info.height;
-            if args.ui_state.is_minimized() {
-                commands.add_child(
-                    "splash",
-                    icon_button_node(
-                        IconButtonAction::RestoreSplash,
-                        IconButtonStyle::HeightPadded,
-                    ),
-                    context,
-                );
 
-                commands.add_child(
-                    "height",
-                    level_text_node(format!("{height:7.2}m",)),
-                    context,
-                );
+            match args.ui_state {
+                GameUIState::Minimized => {
+                    commands.add_child(
+                        "splash",
+                        icon_button_node(
+                            IconButtonAction::RestoreSplash,
+                            IconButtonStyle::HeightPadded,
+                        ),
+                        context,
+                    );
 
-                commands.add_child(
-                    "next",
-                    icon_button_node(IconButtonAction::NextLevel, IconButtonStyle::HeightPadded),
-                    context,
-                );
-                return;
-            } else if args.ui_state.is_preview() {
-                commands.add_child(
-                    "image",
-                    ImageNode {
-                        path: PREVIEW_IMAGE_ASSET_PATH,
-                        background_color: Color::WHITE,
-                        style: PreviewImageStyle,
-                    },
-                    context,
-                );
+                    commands.add_child(
+                        "height",
+                        level_text_node(format!("{height:7.2}m",)),
+                        context,
+                    );
 
-                commands.add_child(
-                    "close_image",
-                    icon_button_node(
-                        IconButtonAction::RestoreSplash,
-                        IconButtonStyle::HeightPadded,
-                    ),
-                    context,
-                );
+                    commands.add_child(
+                        "next",
+                        icon_button_node(
+                            IconButtonAction::NextLevel,
+                            IconButtonStyle::HeightPadded,
+                        ),
+                        context,
+                    );
+                }
+                GameUIState::Preview(preview) => {
+                    commands.add_child(
+                        "image",
+                        ImageNode {
+                            path: PREVIEW_IMAGE_ASSET_PATH,
+                            background_color: Color::WHITE,
+                            style: PreviewImageStyle,
+                        },
+                        context,
+                    );
 
-                return;
-            }
+                    commands.add_child("buttons", ButtonPanel::Preview(preview), context);
+                }
 
-            let message = match &args.level {
-                GameLevel::Designed { meta, .. } => meta
-                    .get_level()
-                    .end_text
-                    .as_deref()
-                    .unwrap_or("Level Complete"),
-                GameLevel::Infinite { .. } => "",
-                GameLevel::Challenge { .. } => "Challenge Complete",
-                GameLevel::Loaded { .. } => "Level Complete",
-                GameLevel::Begging => "Message: Please buy the game", //users should never see this
-            };
+                GameUIState::Splash => {
+                    let message = match &args.level {
+                        GameLevel::Designed { meta, .. } => meta
+                            .get_level()
+                            .end_text
+                            .as_deref()
+                            .unwrap_or("Level Complete"),
+                        GameLevel::Infinite { .. } => "",
+                        GameLevel::Challenge { .. } => "Challenge Complete",
+                        GameLevel::Loaded { .. } => "Level Complete",
+                        GameLevel::Begging => "Message: Please buy the game", //users should never see this
+                    };
 
-            let message = std::iter::Iterator::chain(
-                [""].into_iter(),
-                std::iter::Iterator::chain(message.lines(), ["", ""]),
-            )
-            .take(4)
-            .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
-            .join("\n");
+                    let message = std::iter::Iterator::chain(
+                        [""].into_iter(),
+                        std::iter::Iterator::chain(message.lines(), ["", ""]),
+                    )
+                    .take(4)
+                    .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
+                    .join("\n");
 
-            commands.add_child("message", level_text_node(message), context);
+                    commands.add_child("message", level_text_node(message), context);
 
-            commands.add_child(
-                "height_data",
-                TextPlusIcon {
-                    text: format!("Height    {height:6.2}m",),
-                    icon: IconButtonAction::Share,
-                },
-                context,
-            );
+                    commands.add_child(
+                        "height_data",
+                        TextPlusIcon {
+                            text: format!("Height    {height:6.2}m",),
+                            icon: IconButtonAction::Share,
+                        },
+                        context,
+                    );
 
-            if args.score_info.is_pb() {
-                commands.add_child(
-                    "new_best",
-                    TextPlusIcon {
-                        text: "New Personal Best".to_string(),
-                        icon: IconButtonAction::None,
-                    },
-                    context,
-                );
-            } else {
-                let pb = args.score_info.pb;
+                    if args.score_info.is_pb() {
+                        commands.add_child(
+                            "new_best",
+                            TextPlusIcon {
+                                text: "New Personal Best".to_string(),
+                                icon: IconButtonAction::None,
+                            },
+                            context,
+                        );
+                    } else {
+                        let pb = args.score_info.pb;
 
-                commands.add_child(
-                    "your_best",
-                    TextPlusIcon {
-                        text: format!("Your Best {pb:6.2}m"),
-                        icon: IconButtonAction::ViewPB,
-                    },
-                    context,
-                );
-            };
+                        commands.add_child(
+                            "your_best",
+                            TextPlusIcon {
+                                text: format!("Your Best {pb:6.2}m"),
+                                icon: IconButtonAction::ViewPB,
+                            },
+                            context,
+                        );
+                    };
 
-            if args.score_info.is_wr() {
-                commands.add_child(
-                    "wr",
-                    TextPlusIcon {
-                        text: "New World Record ".to_string(),
-                        icon: IconButtonAction::None,
-                    },
-                    context,
-                );
-            } else if let Some(record) = args.score_info.wr {
-                commands.add_child(
-                    "wr",
-                    TextPlusIcon {
-                        text: format!("Record    {:6.2}m", record),
-                        icon: IconButtonAction::ViewRecord,
-                    },
-                    context,
-                );
-            } else {
-                commands.add_child(
-                    "wr",
-                    TextPlusIcon {
-                        text: "Loading  Record ".to_string(),
-                        icon: IconButtonAction::None,
-                    },
-                    context,
-                );
-            }
+                    if args.score_info.is_wr() {
+                        commands.add_child(
+                            "wr",
+                            TextPlusIcon {
+                                text: "New World Record ".to_string(),
+                                icon: IconButtonAction::None,
+                            },
+                            context,
+                        );
+                    } else if let Some(record) = args.score_info.wr {
+                        commands.add_child(
+                            "wr",
+                            TextPlusIcon {
+                                text: format!("Record    {:6.2}m", record),
+                                icon: IconButtonAction::ViewRecord,
+                            },
+                            context,
+                        );
+                    } else {
+                        commands.add_child(
+                            "wr",
+                            TextPlusIcon {
+                                text: "Loading  Record ".to_string(),
+                                icon: IconButtonAction::None,
+                            },
+                            context,
+                        );
+                    }
 
-            if let GameLevel::Challenge { streak, .. } = args.level {
-                commands.add_child(
-                    "streak",
-                    level_text_node(format!("Streak    {streak:.2}",)),
-                    context,
-                );
-            }
+                    if let GameLevel::Challenge { streak, .. } = args.level {
+                        commands.add_child(
+                            "streak",
+                            level_text_node(format!("Streak    {streak:.2}",)),
+                            context,
+                        );
+                    }
 
-            if !args.score_info.medal.is_incomplete() {
-                commands.add_child(
-                    "medals",
-                    ImageNode {
-                        path: args.score_info.medal.three_medals_asset_path(),
-                        background_color: Color::WHITE,
-                        style: ThreeMedalsImageStyle,
-                    },
-                    context,
-                );
-            }
+                    if !args.score_info.medal.is_incomplete() {
+                        commands.add_child(
+                            "medals",
+                            ImageNode {
+                                path: args.score_info.medal.three_medals_asset_path(),
+                                background_color: Color::WHITE,
+                                style: ThreeMedalsImageStyle,
+                            },
+                            context,
+                        );
+                    }
 
-            commands.add_child(
-                "buttons",
-                ButtonPanel {
-                    level: args.level.clone(),
-                },
-                context,
-            );
+                    commands.add_child("buttons", ButtonPanel::Splash, context);
 
-            if IS_DEMO {
-                commands.add_child("store", StoreButtonPanel, context);
+                    if IS_DEMO {
+                        commands.add_child("store", StoreButtonPanel, context);
+                    }
+                }
             }
         });
     }
@@ -458,9 +451,10 @@ fn level_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct ButtonPanel {
-    level: GameLevel,
+#[derive(Debug, Clone, PartialEq)]
+pub enum ButtonPanel {
+    Splash,
+    Preview(PreviewImage),
 }
 
 impl MavericNode for ButtonPanel {
@@ -472,7 +466,6 @@ impl MavericNode for ButtonPanel {
                 display: Display::Flex,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Row,
-                // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
                 margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
                 justify_content: JustifyContent::Center,
                 width: Val::Auto,
@@ -486,34 +479,36 @@ impl MavericNode for ButtonPanel {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_args_and_context(|args, context, commands| {
-            commands.add_child(
-                "splash",
-                icon_button_node(
-                    IconButtonAction::MinimizeSplash,
-                    IconButtonStyle::HeightPadded,
-                ),
-                context,
-            );
-
-            if args.level.leaderboard_id().is_some() {
-                #[cfg(any(feature = "android", feature = "ios"))]
-                {
-                    commands.add_child(
-                        "leaderboard",
-                        icon_button_node(
+            let actions: &[IconButtonAction] = match args {
+                ButtonPanel::Splash => {
+                    if cfg!(any(feature = "android", feature = "ios")) {
+                        &[
+                            IconButtonAction::MinimizeSplash,
                             IconButtonAction::ShowLeaderboard,
-                            IconButtonStyle::HeightPadded,
-                        ),
-                        &context,
-                    );
+                            IconButtonAction::NextLevel,
+                        ]
+                    } else {
+                        &[
+                            IconButtonAction::MinimizeSplash,
+                            IconButtonAction::NextLevel,
+                        ]
+                    }
                 }
-            }
+                ButtonPanel::Preview(PreviewImage::PB) => {
+                    &[IconButtonAction::SharePB, IconButtonAction::RestoreSplash]
+                }
+                ButtonPanel::Preview(PreviewImage::WR) => {
+                    &[ IconButtonAction::RestoreSplash]
+                }
+            };
 
-            commands.add_child(
-                "next",
-                icon_button_node(IconButtonAction::NextLevel, IconButtonStyle::HeightPadded),
-                context,
-            );
+            for (key, action) in actions.iter().enumerate() {
+                commands.add_child(
+                    key as u32,
+                    icon_button_node(action.clone(), IconButtonStyle::HeightPadded),
+                    context,
+                );
+            }
         });
     }
 }
@@ -723,7 +718,7 @@ fn update_preview_images(
                 clear = true;
             }
         }
-        PreviewImage::Record => {
+        PreviewImage::WR => {
             if let Some(wr) = wrs.map.get(&score_info.hash) {
                 match game_to_image(wr.image_blob.as_slice()) {
                     Ok(image) => {
@@ -777,8 +772,8 @@ impl IntoBundle for PreviewImageStyle {
 
     fn into_bundle(self) -> Self::B {
         Style {
-            width: Val::Px(PREVIEW_IMAGE_SIZE_F32),
-            height: Val::Px(PREVIEW_IMAGE_SIZE_F32),
+            width: Val::Px(PREVIEW_IMAGE_SIZE_F32 - 1.0),
+            height: Val::Px(PREVIEW_IMAGE_SIZE_F32  - 1.0),
             margin: UiRect::all(Val::Auto),
 
             ..Default::default()

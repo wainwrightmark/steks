@@ -83,29 +83,39 @@ pub(crate) async fn my_handler(
 
             let connection = connect_to_database();
 
-            let rows: Vec<FullRow> = query("select shapes_hash, max_height, image_blob FROM tower_height where shapes_hash = $0;")
+            let row_result: anyhow::Result<FullRow> = query("select shapes_hash, max_height, image_blob FROM tower_height where shapes_hash = $0;")
                 .bind(shapes_hash)
-                .fetch_all(&connection)
+                .fetch_one(&connection)
 
-                .await?;
+                .await;
 
-            let row = match rows.into_iter().next() {
-                Some(row) => row,
-                None => FullRow {
-                    shapes_hash,
-                    max_height: 0.0,
-                    image_blob: "0".to_string(),
-                },
-            };
-
-            let resp = ApiGatewayProxyResponse {
-                status_code: 200,
-                headers,
-                multi_value_headers: HeaderMap::new(),
-                body: Some(Body::Text(row.to_string())),
-                is_base64_encoded: false,
-            };
-            return Ok(resp);
+            match row_result {
+                Ok(row) => {
+                    let resp = ApiGatewayProxyResponse {
+                        status_code: 200,
+                        headers,
+                        multi_value_headers: HeaderMap::new(),
+                        body: Some(Body::Text(row.to_string())),
+                        is_base64_encoded: false,
+                    };
+                    return Ok(resp);
+                }
+                Err(err) => {
+                    if err.to_string().contains("No results found") {
+                        let row = FullRow{shapes_hash, max_height: 0.0, image_blob: "0".to_string()};
+                        let resp = ApiGatewayProxyResponse {
+                            status_code: 200,
+                            headers,
+                            multi_value_headers: HeaderMap::new(),
+                            body: Some(Body::Text(row.to_string())),
+                            is_base64_encoded: false,
+                        };
+                        return Ok(resp);
+                    } else {
+                        return Err(err.into());
+                    }
+                }
+            }
         }
         Command::TrySet => {
             let hash = get_parameter(&e, "hash").ok_or_else(|| "Could not get hash")?;
@@ -116,7 +126,7 @@ pub(crate) async fn my_handler(
 
             try_set(height, hash, blob).await?;
             let resp = ApiGatewayProxyResponse {
-                status_code: 200,
+                status_code: 202,
                 headers,
                 multi_value_headers: HeaderMap::new(),
                 body: Some(Body::Empty),

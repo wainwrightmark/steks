@@ -86,6 +86,7 @@ impl ButtonType {
 pub enum IconButtonAction {
     OpenMenu,
     Share,
+    SharePB,
 
     NextLevel,
     MinimizeSplash,
@@ -111,6 +112,7 @@ impl IconButtonAction {
         match self {
             OpenMenu => "\u{f0c9}",
             Share => "\u{f1e0}",
+            SharePB => "\u{f1e0}",
             NextLevel => "\u{e808}",
             PreviousLevelsPage => "\u{e81b}",
             NextLevelsPage => "\u{e81a}",
@@ -368,8 +370,6 @@ fn icon_button_system(
         }
 
         use IconButtonAction::*;
-
-        //info!("{interaction:?} {button:?} {menu_state:?}");
         *bg_color = button
             .button_type
             .background_color(interaction, button.disabled);
@@ -377,14 +377,13 @@ fn icon_button_system(
         if interaction == &Interaction::Pressed {
             match button.button_action {
                 OpenMenu => menu_state.as_mut().open_menu(),
-                Share => share_events.send(ShareEvent),
+                Share => share_events.send(ShareEvent::CurrentShapes),
+                SharePB => share_events.send(ShareEvent::PersonalBest),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeSplash => {
-                    //info!("Minimizing Splash");
                     *game_ui_state = GameUIState::Minimized;
                 }
                 RestoreSplash => {
-                    //info!("Restoring Splash");
                     *game_ui_state = GameUIState::Splash;
                 }
                 NextLevelsPage => menu_state.as_mut().next_levels_page(),
@@ -397,7 +396,7 @@ fn icon_button_system(
                     *game_ui_state = GameUIState::Preview(PreviewImage::PB);
                 }
                 ViewRecord => {
-                    *game_ui_state = GameUIState::Preview(PreviewImage::Record);
+                    *game_ui_state = GameUIState::Preview(PreviewImage::WR);
                 }
 
                 ShowLeaderboard => {
@@ -455,7 +454,7 @@ fn text_button_system(
                 Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
                 DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
 
-                Share => share_events.send(ShareEvent),
+                Share => share_events.send(ShareEvent::CurrentShapes),
                 GotoLevel { level } => {
                     change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
                         index: level,

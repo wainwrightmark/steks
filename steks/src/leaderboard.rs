@@ -236,9 +236,16 @@ fn hydrate_leaderboard(
         }
     };
     let updated = chrono::offset::Utc::now();
-    let image_blob = base64::engine::general_purpose::URL_SAFE_NO_PAD
-        .decode(image_blob)
-        .unwrap_or_default();
+
+    info!("Received wr {hash} {height} {image_blob}");
+
+    let image_blob = match base64::engine::general_purpose::URL_SAFE.decode(image_blob) {
+        Ok(image_blob) => image_blob,
+        Err(err) => {
+            error!("{err}");
+            return;
+        }
+    };
 
     match wrs.map.entry(hash) {
         std::collections::btree_map::Entry::Vacant(ve) => {

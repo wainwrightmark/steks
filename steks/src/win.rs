@@ -41,10 +41,16 @@ pub fn check_for_win(
             countdown.0 = None;
 
             if event == CheckForWinEvent::OnLastSpawn {
-                Achievements::unlock_if_locked(
-                    &mut achievements,
-                    Achievement::ThatWasOneInAMillion,
-                );
+                match current_level.level{
+                    GameLevel::Designed { .. } | GameLevel::Infinite { .. } |GameLevel::Challenge { .. }  => {
+                        Achievements::unlock_if_locked(
+                            &mut achievements,
+                            Achievement::ThatWasOneInAMillion,
+                        );
+                    }
+                    _=> {}
+                }
+
             }
 
             let shapes = ShapesVec::from_query(shapes_query);

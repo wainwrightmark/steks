@@ -799,7 +799,7 @@ impl ChangeLevelEvent {
     pub fn try_make_custom(data: &str) -> anyhow::Result<Self> {
         bevy::log::info!("Making custom level with data {data}");
         use base64::Engine;
-        let decoded = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(data)?;
+        let decoded = base64::engine::general_purpose::URL_SAFE.decode(data)?;
 
         let str = std::str::from_utf8(decoded.as_slice())?;
 

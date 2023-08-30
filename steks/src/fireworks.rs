@@ -73,7 +73,7 @@ fn manage_fireworks(
     }
 
     match current_level.completion {
-        crate::level::LevelCompletion::Incomplete { .. } => {
+        LevelCompletion::Incomplete { .. } => {
             if let Some(new_countdown) =
                 get_new_fireworks(&current_level, None, previous.completion.is_complete())
             {
@@ -82,7 +82,7 @@ fn manage_fireworks(
                 countdown.timer.pause();
             }
         }
-        crate::level::LevelCompletion::Complete { score_info } => {
+        LevelCompletion::Complete { score_info } => {
             if let Some(new_countdown) = get_new_fireworks(
                 &current_level,
                 Some(&score_info),

@@ -3832,11 +3832,14 @@ dependencies = [
  "bevy_prototype_lyon",
  "bevy_rapier2d",
  "geometrid",
+ "lazy_static",
  "num_enum 0.7.0",
  "once_cell",
  "rand",
  "resvg",
  "serde",
+ "serde_repr",
+ "serde_yaml",
  "strum",
 ]
 

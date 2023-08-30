@@ -90,7 +90,9 @@ impl ShapeCreationData {
             };
         }
 
-        self.state.fill().unwrap_or_else(|| self.shape.fill(high_contrast))
+        self.state
+            .fill()
+            .unwrap_or_else(|| self.shape.fill(high_contrast))
     }
 
     pub fn stroke(&self) -> Stroke {
@@ -172,6 +174,54 @@ impl From<ShapeIndex> for ShapeCreationData {
             modifiers: ShapeModifiers::Normal,
             id: None,
             color: None,
+        }
+    }
+}
+
+impl From<ShapeCreation> for ShapeCreationData {
+    fn from(val: ShapeCreation) -> Self {
+        let mut fixed_location: Location = Default::default();
+        let mut fl_set = false;
+        if let Some(x) = val.x {
+            fixed_location.position.x = x;
+            fl_set = true;
+        }
+        if let Some(y) = val.y {
+            fixed_location.position.y = y;
+            fl_set = true;
+        }
+        if let Some(r) = val.r {
+            fixed_location.angle = r * std::f32::consts::TAU;
+            fl_set = true;
+        }
+
+        let fixed_location = fl_set.then_some(fixed_location);
+
+        let velocity = match val.state {
+            ShapeState::Locked | ShapeState::Fixed | ShapeState::Void => Some(Default::default()),
+            ShapeState::Normal => {
+                if val.vel_x.is_some() || val.vel_y.is_some() {
+                    Some(Velocity {
+                        linvel: Vec2 {
+                            x: val.vel_x.unwrap_or_default(),
+                            y: val.vel_y.unwrap_or_default(),
+                        },
+                        angvel: Default::default(),
+                    })
+                } else {
+                    None
+                }
+            }
+        };
+
+        ShapeCreationData {
+            shape: val.shape.into(),
+            location: fixed_location,
+            state: val.state,
+            velocity,
+            modifiers: val.modifiers,
+            id: val.id,
+            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
         }
     }
 }

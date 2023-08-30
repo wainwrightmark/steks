@@ -18,6 +18,10 @@ strum = { version = "0.25", features = ["derive"] }
 rand = "0.8.5"
 resvg = { version = "0.35", default-features = false }
 anyhow = "1"
+lazy_static = "1.4.0"
+serde_yaml = "0.9"
+serde_repr = "0.1"
+
 
 # # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 # [profile.dev.package."*"]

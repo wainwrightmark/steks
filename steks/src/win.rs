@@ -63,7 +63,7 @@ pub fn check_for_win(
                         current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
                     } else {
                         let score_info =
-                            ScoreInfo::generate(&current_level.level, &shapes, &score_store, &pbs);
+                            generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
                         current_level.completion = LevelCompletion::Complete { score_info };
                         level_ui.set_if_neq(GameUIState::Splash);
                     }
@@ -71,7 +71,7 @@ pub fn check_for_win(
 
                 LevelCompletion::Complete { .. } => {
                     let score_info =
-                        ScoreInfo::generate(&current_level.level, &shapes, &score_store, &pbs);
+                        generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
                     if score_info.is_pb() | score_info.is_wr() {
                         level_ui.set_if_neq(GameUIState::Splash);
                     }

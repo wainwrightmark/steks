@@ -114,3 +114,46 @@ impl ShapeUpdateData {
         ec.insert(self.modifiers.friction());
     }
 }
+
+impl From<ShapeUpdate> for ShapeUpdateData {
+    fn from(val: ShapeUpdate) -> Self {
+        let location = if val.x.is_some() || val.y.is_some() || val.r.is_some() {
+            Some(Location {
+                position: Vec2 {
+                    x: val.x.unwrap_or_default(),
+                    y: val.y.unwrap_or_default(),
+                },
+                angle: val.r.map(|r| r * std::f32::consts::TAU).unwrap_or_default(),
+            })
+        } else {
+            None
+        };
+
+        let velocity = match val.state {
+            Some(ShapeState::Normal) | None => {
+                if val.vel_x.is_some() || val.vel_y.is_some() {
+                    Some(Velocity {
+                        linvel: Vec2 {
+                            x: val.vel_x.unwrap_or_default(),
+                            y: val.vel_y.unwrap_or_default(),
+                        },
+                        angvel: Default::default(),
+                    })
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        };
+
+        ShapeUpdateData {
+            shape: val.shape.map(|x| x.into()),
+            location,
+            state: val.state,
+            velocity,
+            modifiers: val.modifiers,
+            id: val.id,
+            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
+        }
+    }
+}

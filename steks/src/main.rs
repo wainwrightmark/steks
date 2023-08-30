@@ -9,7 +9,6 @@ pub mod button;
 pub mod camera;
 pub mod collision;
 pub mod demo;
-pub mod designed_level;
 pub mod draggable;
 pub mod fireworks;
 pub mod import;
@@ -78,7 +77,7 @@ pub mod prelude {
     pub use crate::settings::*;
     pub use crate::tracked_resource::*;
 
-    pub use crate::designed_level::*;
+
     pub use crate::prediction::*;
     pub use crate::shape_component::*;
     pub use crate::shape_creation_data::*;

@@ -8,6 +8,9 @@ pub mod location;
 pub mod shape_index;
 pub mod shape_state;
 pub mod shapes_vec;
+pub mod designed_level;
+pub mod star_type;
+pub mod level_completion;
 
 pub mod prelude {
     pub use crate::color::*;
@@ -19,4 +22,7 @@ pub mod prelude {
     pub use crate::shape_index::*;
     pub use crate::shape_state::*;
     pub use crate::shapes_vec::*;
+    pub use crate::designed_level::*;
+    pub use crate::star_type::*;
+    pub use crate::level_completion::*;
 }

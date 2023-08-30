@@ -1,4 +1,4 @@
-use crate::{designed_level, prelude::*};
+use crate::prelude::*;
 use maveric::{impl_maveric_root, prelude::*};
 use strum::EnumIs;
 type MenuContext = NC2<NC4<MenuState, GameSettings, CampaignCompletion, Insets>, AssetServer>;
@@ -31,7 +31,7 @@ pub enum MenuState {
 const LEVELS_PER_PAGE: u8 = 8;
 
 pub fn max_page_exclusive() -> u8 {
-    let t = designed_level::CAMPAIGN_LEVELS.len() as u8;
+    let t = CAMPAIGN_LEVELS.len() as u8;
     t / LEVELS_PER_PAGE + (t % LEVELS_PER_PAGE).min(1) + 1
 }
 

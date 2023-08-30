@@ -1,4 +1,5 @@
-use crate::{designed_level, leaderboard, prelude::*};
+use crate::{leaderboard, prelude::*};
+
 use strum::Display;
 
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
@@ -203,7 +204,7 @@ impl TextButtonAction {
             TextButtonAction::ClipboardImport => "Import Level".to_string(),
             TextButtonAction::GotoLevel { level } => {
                 let level_number = format_campaign_level_number(level, false);
-                if let Some(set_level) = designed_level::get_campaign_level(*level) {
+                if let Some(set_level) = steks_common::designed_level::get_campaign_level(*level) {
                     if let Some(title) = &set_level.title {
                         format!("{level_number:>3}: {title}",)
                     } else {

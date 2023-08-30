@@ -109,7 +109,7 @@ impl DesignedLevel {
         std::iter::once(&self.initial_stage).chain(self.stages.iter())
     }
 
-    pub fn get_medal(&self, height: f32) -> StarType {
+    pub fn get_star(&self, height: f32) -> StarType {
         let num_shapes = self.all_stages().map(|z| z.shapes.len()).sum(); //TODO handle void shapes
 
         StarType::guess(height, num_shapes) //TODO specific values for each star
@@ -135,11 +135,16 @@ pub struct LevelStage {
     #[serde(alias = "Gravity")]
     pub gravity: Option<bevy::prelude::Vec2>,
     #[serde(alias = "Rainfall")]
-    pub rainfall: Option<RaindropSettings>,
+    pub rainfall: Option<SnowdropSettings>,
 
     #[serde(default)]
     #[serde(alias = "Fireworks")]
     pub fireworks: FireworksSettings,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct SnowdropSettings {
+    pub intensity: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -257,96 +262,6 @@ pub struct ShapeUpdate {
     pub color: Option<(u8, u8, u8)>,
 }
 
-impl From<ShapeUpdate> for ShapeUpdateData {
-    fn from(val: ShapeUpdate) -> Self {
-        let location = if val.x.is_some() || val.y.is_some() || val.r.is_some() {
-            Some(Location {
-                position: Vec2 {
-                    x: val.x.unwrap_or_default(),
-                    y: val.y.unwrap_or_default(),
-                },
-                angle: val.r.map(|r| r * consts::TAU).unwrap_or_default(),
-            })
-        } else {
-            None
-        };
-
-        let velocity = match val.state {
-            Some(ShapeState::Normal) | None => {
-                if val.vel_x.is_some() || val.vel_y.is_some() {
-                    Some(Velocity {
-                        linvel: Vec2 {
-                            x: val.vel_x.unwrap_or_default(),
-                            y: val.vel_y.unwrap_or_default(),
-                        },
-                        angvel: Default::default(),
-                    })
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        };
-
-        ShapeUpdateData {
-            shape: val.shape.map(|x| x.into()),
-            location,
-            state: val.state,
-            velocity,
-            modifiers: val.modifiers,
-            id: val.id,
-            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
-        }
-    }
-}
-
-impl From<ShapeCreation> for ShapeCreationData {
-    fn from(val: ShapeCreation) -> Self {
-        let mut fixed_location: Location = Default::default();
-        let mut fl_set = false;
-        if let Some(x) = val.x {
-            fixed_location.position.x = x;
-            fl_set = true;
-        }
-        if let Some(y) = val.y {
-            fixed_location.position.y = y;
-            fl_set = true;
-        }
-        if let Some(r) = val.r {
-            fixed_location.angle = r * consts::TAU;
-            fl_set = true;
-        }
-
-        let fixed_location = fl_set.then_some(fixed_location);
-
-        let velocity = match val.state {
-            ShapeState::Locked | ShapeState::Fixed | ShapeState::Void => Some(Default::default()),
-            ShapeState::Normal => {
-                if val.vel_x.is_some() || val.vel_y.is_some() {
-                    Some(Velocity {
-                        linvel: Vec2 {
-                            x: val.vel_x.unwrap_or_default(),
-                            y: val.vel_y.unwrap_or_default(),
-                        },
-                        angvel: Default::default(),
-                    })
-                } else {
-                    None
-                }
-            }
-        };
-
-        ShapeCreationData {
-            shape: val.shape.into(),
-            location: fixed_location,
-            state: val.state,
-            velocity,
-            modifiers: val.modifiers,
-            id: val.id,
-            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -322,65 +322,35 @@ impl CurrentLevel {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, EnumIs)]
-pub enum LevelCompletion {
-    Incomplete { stage: usize },
-    Complete { score_info: ScoreInfo },
-}
+pub fn generate_score_info(
+    level: &GameLevel,
+    shapes: &ShapesVec,
+    leaderboard: &Res<WorldRecords>,
+    pbs: &Res<PersonalBests>,
+) -> ScoreInfo {
+    let height = shapes.calculate_tower_height();
+    let hash = shapes.hash();
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub struct ScoreInfo {
-    pub hash: u64,
-    pub height: f32,
-    pub is_first_win: bool,
+    let wr: Option<f32> = leaderboard.map.get(&hash).map(|x| x.height);
+    let old_height = pbs.map.get(&hash);
 
-    pub star: StarType,
+    let pb = old_height.map(|x| x.height).unwrap_or(0.0);
+    let best = pb.max(height);
+    let star = level.get_medal(best);
 
-    pub wr: Option<f32>,
-    pub pb: f32,
-}
-
-impl ScoreInfo {
-    pub fn generate(
-        level: &GameLevel,
-        shapes: &ShapesVec,
-        leaderboard: &Res<WorldRecords>,
-        pbs: &Res<PersonalBests>,
-    ) -> Self {
-        let height = shapes.calculate_tower_height();
-        let hash = shapes.hash();
-
-        let wr: Option<f32> = leaderboard.map.get(&hash).map(|x| x.height);
-        let old_height = pbs.map.get(&hash);
-
-        let pb = old_height.map(|x| x.height).unwrap_or(0.0);
-        let best = pb.max(height);
-        let star = level.get_medal(best);
-
-        ScoreInfo {
-            hash,
-            height,
-            is_first_win: old_height.is_none(),
-            wr,
-            pb,
-            star,
-        }
-    }
-
-    pub fn is_wr(&self) -> bool {
-        matches!(self.wr, Some(wr) if self.height>= wr)
-    }
-
-    pub fn is_pb(&self) -> bool {
-        self.height > self.pb
+    ScoreInfo {
+        hash,
+        height,
+        is_first_win: old_height.is_none(),
+        wr,
+        pb,
+        star,
     }
 }
 
-impl Default for LevelCompletion {
-    fn default() -> Self {
-        Self::Incomplete { stage: 0 }
-    }
-}
+
+
+
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum GameLevel {

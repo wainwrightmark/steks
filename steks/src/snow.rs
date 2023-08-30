@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{Fill, FillOptions, ShapeBundle, Stroke, StrokeOptions};
 use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
-use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
 pub struct SnowPlugin;
@@ -27,10 +26,6 @@ struct SnowdropCountdown {
     settings: SnowdropSettings,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub struct SnowdropSettings {
-    pub intensity: usize,
-}
 
 pub const SNOWDROP_INTERVAL_SECONDS: f32 = 0.50;
 

@@ -128,7 +128,7 @@ pub fn check_for_tower(
 
     collision_events.clear();
 
-    let prediction_result: PredictionResult = if level.raindrop_settings().is_some() {
+    let prediction_result: PredictionResult = if level.snowdrop_settings().is_some() {
         PredictionResult::ManyNonWall
     } else {
         prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity)

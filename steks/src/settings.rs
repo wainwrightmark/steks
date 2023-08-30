@@ -19,6 +19,9 @@ pub struct GameSettings {
     pub show_touch_outlines: bool,
     pub rotation_sensitivity: RotationSensitivity,
     pub high_contrast: bool,
+
+    pub fireworks_enabled: bool,
+    pub snow_enabled: bool,
 }
 
 impl TrackableResource for GameSettings {
@@ -32,6 +35,8 @@ impl Default for GameSettings {
             show_touch_outlines: true,
             rotation_sensitivity: RotationSensitivity::Medium,
             high_contrast: false,
+            fireworks_enabled: true,
+            snow_enabled: true
         }
     }
 }

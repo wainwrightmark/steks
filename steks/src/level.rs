@@ -203,7 +203,7 @@ impl CurrentLevel {
         }
     }
 
-    pub fn raindrop_settings(&self) -> Option<RaindropSettings> {
+    pub fn snowdrop_settings(&self) -> Option<SnowdropSettings> {
         let settings = match &self.level {
             GameLevel::Designed { meta, .. } => {
                 meta.get_level().get_current_stage(self.completion).rainfall

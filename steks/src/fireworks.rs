@@ -57,15 +57,17 @@ fn manage_fireworks(
     ui_state: Res<GameUIState>,
     mut previous: Local<CurrentLevel>,
     mut countdown: ResMut<FireworksCountdown>,
+    settings: Res<GameSettings>
 ) {
-    if !current_level.is_changed() && !ui_state.is_changed() {
+    if !current_level.is_changed() && !ui_state.is_changed() && !settings.is_changed() {
         return;
     }
+
     let swap = previous.clone();
     *previous = current_level.clone();
     let previous = swap;
 
-    if !ui_state.is_splash() {
+    if !ui_state.is_splash() ||  !settings.fireworks_enabled{
         countdown.timer.pause();
         return;
     }

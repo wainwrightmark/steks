@@ -5,38 +5,38 @@ use rand::{rngs::ThreadRng, Rng};
 use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
-pub struct RainPlugin;
+pub struct SnowPlugin;
 
-impl Plugin for RainPlugin {
+impl Plugin for SnowPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Update, spawn_raindrops)
-            .add_systems(Update, despawn_raindrops)
-            .add_systems(Update, manage_raindrops)
-            .init_resource::<RaindropCountdown>();
+        app.add_systems(Update, spawn_snowdrops)
+            .add_systems(Update, despawn_snowdrops)
+            .add_systems(Update, manage_snowdrops)
+            .init_resource::<SnowdropCountdown>();
     }
 }
 
 #[derive(Debug, Component)]
-pub struct Raindrop {
+pub struct Snowdrop {
     finish_time: f32,
 }
 
 #[derive(Debug, Resource)]
-struct RaindropCountdown {
+struct SnowdropCountdown {
     timer: Timer,
-    settings: RaindropSettings,
+    settings: SnowdropSettings,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub struct RaindropSettings {
+pub struct SnowdropSettings {
     pub intensity: usize,
 }
 
-pub const RAINDROP_INTERVAL_SECONDS: f32 = 0.50;
+pub const SNOWDROP_INTERVAL_SECONDS: f32 = 0.50;
 
-impl Default for RaindropCountdown {
+impl Default for SnowdropCountdown {
     fn default() -> Self {
-        let mut timer = Timer::from_seconds(RAINDROP_INTERVAL_SECONDS, TimerMode::Once);
+        let mut timer = Timer::from_seconds(SNOWDROP_INTERVAL_SECONDS, TimerMode::Once);
         timer.pause();
         Self {
             timer,
@@ -45,16 +45,16 @@ impl Default for RaindropCountdown {
     }
 }
 
-const RAINDROP_SIZE: f32 = 10.0;
+const SNOWDROP_SIZE: f32 = 10.0;
 
-fn despawn_raindrops(
+fn despawn_snowdrops(
     mut commands: Commands,
-    raindrops: Query<(Entity, &Transform, &Raindrop)>,
+    snowdrops: Query<(Entity, &Transform, &Snowdrop)>,
     time: Res<Time>,
 ) {
     let es = time.elapsed_seconds();
-    for (entity, transform, raindrop) in raindrops.iter() {
-        if es > raindrop.finish_time || !max_window_contains(&transform.translation) {
+    for (entity, transform, snowdrop) in snowdrops.iter() {
+        if es > snowdrop.finish_time || !max_window_contains(&transform.translation) {
             commands.entity(entity).despawn();
         }
     }
@@ -71,13 +71,18 @@ fn max_window_contains(v: &Vec3) -> bool {
     }
 }
 
-fn spawn_raindrops(
+fn spawn_snowdrops(
     mut commands: Commands,
 
-    mut countdown: ResMut<RaindropCountdown>,
+    mut countdown: ResMut<SnowdropCountdown>,
     time: Res<Time>,
+    settings: Res<GameSettings>,
 ) {
     if countdown.timer.paused() {
+        return;
+    }
+
+    if !settings.snow_enabled {
         return;
     }
 
@@ -85,11 +90,11 @@ fn spawn_raindrops(
 
     if countdown.timer.just_finished() {
         let mut rng: ThreadRng = rand::thread_rng();
-        countdown.timer = Timer::from_seconds(RAINDROP_INTERVAL_SECONDS, TimerMode::Once);
+        countdown.timer = Timer::from_seconds(SNOWDROP_INTERVAL_SECONDS, TimerMode::Once);
 
         let count = rng.gen_range(countdown.settings.intensity..(countdown.settings.intensity * 2));
 
-        let linvel_x = rng.gen_range(-ROOT_RAIN_VELOCITY..ROOT_RAIN_VELOCITY);
+        let linvel_x = rng.gen_range(-ROOT_SNOW_VELOCITY..ROOT_SNOW_VELOCITY);
         let linvel_x = linvel_x * linvel_x * linvel_x.signum();
 
         for _ in 0..count {
@@ -104,7 +109,7 @@ fn spawn_raindrops(
             let y = MAX_WINDOW_HEIGHT;
 
             let linvel_x = linvel_x * rng.gen_range(0.9..1.1);
-            let linvel_y = rng.gen_range(0.0..ROOT_RAIN_VELOCITY);
+            let linvel_y = rng.gen_range(0.0..ROOT_SNOW_VELOCITY);
             let linvel_y = linvel_y * linvel_y * -1.0;
 
             let translation = Vec2 { x, y }.extend(0.0);
@@ -125,10 +130,10 @@ fn spawn_raindrops(
     }
 }
 
-fn manage_raindrops(
+fn manage_snowdrops(
     current_level: Res<CurrentLevel>,
     mut previous: Local<CurrentLevel>,
-    mut countdown: ResMut<RaindropCountdown>,
+    mut countdown: ResMut<SnowdropCountdown>,
 ) {
     if !current_level.is_changed() {
         return;
@@ -137,12 +142,12 @@ fn manage_raindrops(
     *previous = current_level.clone();
     let _previous = swap;
 
-    let settings = current_level.raindrop_settings();
+    let settings = current_level.snowdrop_settings();
 
     match settings {
         Some(settings) => {
-            *countdown = RaindropCountdown {
-                timer: Timer::from_seconds(RAINDROP_INTERVAL_SECONDS, TimerMode::Once),
+            *countdown = SnowdropCountdown {
+                timer: Timer::from_seconds(SNOWDROP_INTERVAL_SECONDS, TimerMode::Once),
                 settings,
             }
         }
@@ -150,10 +155,9 @@ fn manage_raindrops(
     }
 }
 
-const RAIN_DENSITY: f32 = 30.0;
+const SNOW_DENSITY: f32 = 30.0;
 
-
-const ROOT_RAIN_VELOCITY: f32 = 22.0;
+const ROOT_SNOW_VELOCITY: f32 = 22.0;
 
 const DROP_LIFETIME_SECONDS: f32 = 5.0;
 
@@ -164,7 +168,7 @@ fn spawn_drop<R: Rng>(
     velocity: Velocity,
     finish_time: f32,
 ) {
-    let size = rng.gen_range(0.5..3.0) * RAINDROP_SIZE;
+    let size = rng.gen_range(0.5..3.0) * SNOWDROP_SIZE;
     let shape_bundle = Circle.get_shape_bundle(size);
     let collider_shape = Collider::ball(size * std::f32::consts::FRAC_2_SQRT_PI * 0.5);
 
@@ -179,7 +183,7 @@ fn spawn_drop<R: Rng>(
             computed_visibility: shape_bundle.computed_visibility,
         })
         .insert(collider_shape)
-        .insert(ColliderMassProperties::Density(RAIN_DENSITY))
+        .insert(ColliderMassProperties::Density(SNOW_DENSITY))
         //.insert(GravityScale(FIREWORK_GRAVITY * gravity_factor * -1.0))
         .insert(Stroke {
             color: Color::WHITE,
@@ -192,10 +196,10 @@ fn spawn_drop<R: Rng>(
         .insert(RigidBody::Dynamic)
         .insert(velocity)
         .insert(CollisionGroups {
-            memberships: RAIN_COLLISION_GROUP,
-            filters: RAIN_COLLISION_FILTERS,
+            memberships: SNOW_COLLISION_GROUP,
+            filters: SNOW_COLLISION_FILTERS,
         })
         .insert(Collider::ball(1.0))
-        .insert(Raindrop { finish_time })
+        .insert(Snowdrop { finish_time })
         .insert(Transform::from_translation(translation));
 }

@@ -142,13 +142,14 @@ pub enum TextButtonAction {
     OpenSettings,
     BackToMenu,
 
-    //ToggleArrows,
-    //ToggleTouchOutlines,
     SetRotationSensitivity(RotationSensitivity),
 
     SetArrows(bool),
     SetTouchOutlines(bool),
     SetHighContrast(bool),
+
+    SetFireworks(bool),
+    SetSnow(bool),
 
     Credits,
 
@@ -181,6 +182,8 @@ impl TextButtonAction {
             TextButtonAction::SetArrows(_) => false,
             TextButtonAction::SetTouchOutlines(_) => false,
             TextButtonAction::SetHighContrast(_) => false,
+            TextButtonAction::SetFireworks(_) => false,
+            TextButtonAction::SetSnow(_) => false,
             TextButtonAction::SetRotationSensitivity(_) => false,
             TextButtonAction::Credits => true,
             TextButtonAction::SyncAchievements => false,
@@ -214,7 +217,14 @@ impl TextButtonAction {
             TextButtonAction::Credits => "Credits".to_string(),
             TextButtonAction::OpenSettings => "Settings".to_string(),
             TextButtonAction::SetArrows(true) => "Rotation Arrows  ".to_string(),
-            TextButtonAction::SetArrows(false) => "Rotation Arrows  ".to_string(),
+            TextButtonAction::SetArrows(false) =>   "Rotation Arrows  ".to_string(),
+
+            TextButtonAction::SetFireworks(true) =>  "Fireworks        ".to_string(),
+            TextButtonAction::SetFireworks(false) => "Fireworks        ".to_string(),
+
+            TextButtonAction::SetSnow(true) =>       "Snow             ".to_string(),
+            TextButtonAction::SetSnow(false) => "Snow             ".to_string(),
+
             TextButtonAction::SetTouchOutlines(true) => "Touch Outlines   ".to_string(),
             TextButtonAction::SetTouchOutlines(false) => "Touch Outlines   ".to_string(),
 
@@ -388,6 +398,9 @@ fn text_button_system(
 
                 TextButtonAction::SyncAchievements => achievements.resync(),
                 TextButtonAction::ShowAchievements => show_achievements(),
+
+                TextButtonAction::SetFireworks(fireworks) => settings.fireworks_enabled = fireworks,
+                TextButtonAction::SetSnow(snow) => settings.snow_enabled = snow,
             }
 
             if button.button_action.closes_menu() {

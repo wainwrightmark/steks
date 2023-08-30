@@ -56,7 +56,7 @@ pub fn setup_app(app: &mut App) {
         //.add_plugins(LensPlugin)
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)
-        .add_plugins(RainPlugin)
+        .add_plugins(SnowPlugin)
         .add_plugins(ImportPlugin)
         //.add_plugins(MenuActionPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(

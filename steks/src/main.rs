@@ -23,7 +23,7 @@ pub mod level_ui;
 pub mod menu;
 pub mod padlock;
 pub mod prediction;
-pub mod rain;
+pub mod snow;
 pub mod settings;
 pub mod shape_component;
 pub mod shape_creation_data;
@@ -74,7 +74,7 @@ pub mod prelude {
     pub use crate::menu::*;
     pub use crate::padlock::*;
     pub use crate::prediction::*;
-    pub use crate::rain::*;
+    pub use crate::snow::*;
     pub use crate::settings::*;
     pub use crate::tracked_resource::*;
 

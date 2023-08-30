@@ -57,7 +57,7 @@ pub fn make_prediction(
 
     let bodies_to_remove: Vec<_> = colliders
         .iter()
-        .filter(|x| x.1.collision_groups().memberships.bits() == RAIN_COLLISION_GROUP.bits())
+        .filter(|x| x.1.collision_groups().memberships.bits() == SNOW_COLLISION_GROUP.bits())
         .flat_map(|x| x.1.parent())
         .collect();
 

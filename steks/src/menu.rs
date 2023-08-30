@@ -182,10 +182,11 @@ impl MavericNode for MenuPage {
                 }
             }
             MenuPage::Settings => {
+                let settings = context.0.1.as_ref();
                 commands.add_child(
                     "arrows",
                     text_button_node(
-                        TextButtonAction::SetArrows(!context.0 .1.show_arrows),
+                        TextButtonAction::SetArrows(!settings.show_arrows),
                         true,
                         false,
                     ),
@@ -195,21 +196,21 @@ impl MavericNode for MenuPage {
                 commands.add_child(
                     "outlines",
                     text_button_node(
-                        TextButtonAction::SetTouchOutlines(!context.0 .1.show_touch_outlines),
+                        TextButtonAction::SetTouchOutlines(!settings.show_touch_outlines),
                         true,
                         false,
                     ),
                     &context.1,
                 );
 
-                let sensitivity_text = match context.0 .1.rotation_sensitivity {
+                let sensitivity_text = match settings.rotation_sensitivity {
                     RotationSensitivity::Low => "Sensitivity    Low",
                     RotationSensitivity::Medium => "Sensitivity Medium",
                     RotationSensitivity::High => "Sensitivity   High",
                     RotationSensitivity::Extreme => "Sensitivity Extreme",
                 };
 
-                let next_sensitivity = context.0 .1.rotation_sensitivity.next();
+                let next_sensitivity = settings.rotation_sensitivity.next();
 
                 commands.add_child(
                     "sensitivity",
@@ -225,7 +226,27 @@ impl MavericNode for MenuPage {
                 commands.add_child(
                     "contrast",
                     text_button_node(
-                        TextButtonAction::SetHighContrast(!context.0 .1.high_contrast),
+                        TextButtonAction::SetHighContrast(!settings.high_contrast),
+                        true,
+                        false,
+                    ),
+                    &context.1,
+                );
+
+                commands.add_child(
+                    "fireworks",
+                    text_button_node(
+                        TextButtonAction::SetFireworks(!settings.fireworks_enabled),
+                        true,
+                        false,
+                    ),
+                    &context.1,
+                );
+
+                commands.add_child(
+                    "snow",
+                    text_button_node(
+                        TextButtonAction::SetSnow(!settings.snow_enabled),
                         true,
                         false,
                     ),

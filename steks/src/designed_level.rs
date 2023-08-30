@@ -135,7 +135,7 @@ pub struct LevelStage {
     #[serde(alias = "Gravity")]
     pub gravity: Option<bevy::prelude::Vec2>,
     #[serde(alias = "Rainfall")]
-    pub rainfall: Option<RaindropSettings>,
+    pub rainfall: Option<SnowdropSettings>,
 
     #[serde(default)]
     #[serde(alias = "Fireworks")]

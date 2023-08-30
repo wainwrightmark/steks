@@ -22,12 +22,12 @@ impl GameShapeBody for Triangle {
                 y: self.0[0].1 as f32 * u,
             },
             Vec2 {
-                x: self.0[1].0 as f32  * u,
-                y: self.0[1].1 as f32 * u,
+                x: self.0[1].0 as f32  * u * 1.00,
+                y: self.0[1].1 as f32 * u * 0.99, //The 0.99s are for if two triangles are sliding against each other
             },
             Vec2 {
-                x: self.0[2].0 as f32 * u,
-                y: self.0[2].1 as f32 * u,
+                x: self.0[2].0 as f32 * u * 0.99, //
+                y: self.0[2].1 as f32 * u * 1.00,
             },
         ];
 

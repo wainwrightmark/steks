@@ -53,12 +53,12 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(LeaderboardPlugin)
         .add_plugins(SpiritPlugin)
         .add_plugins(LevelUiPlugin)
-        //.add_plugins(LensPlugin)
+
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)
         .add_plugins(SnowPlugin)
         .add_plugins(ImportPlugin)
-        //.add_plugins(MenuActionPlugin)
+
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
         ))
@@ -70,7 +70,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
         .insert_resource(Insets::default())
-        //.add_plugins(RecordingPlugin)
+
         .insert_resource(bevy_pkv::PkvStore::new("bleppo", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
@@ -95,7 +95,7 @@ pub fn setup_app(app: &mut App) {
         app.add_plugins(ScreenDiagnosticsPlugin::default());
         app.add_plugins(ScreenFrameDiagnosticsPlugin);
 
-        //builder.add_plugins(RapierDebugRenderPlugin::default());
+        //app.add_plugins(RapierDebugRenderPlugin::default());
     }
 
     app.add_systems(Startup, disable_back);

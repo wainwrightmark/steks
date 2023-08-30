@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_prototype_lyon::prelude::ShapeBundle;
 
@@ -29,7 +27,7 @@ struct FireworksCountdown {
 
     intensity: u32,
     repeat_interval: Option<Duration>,
-    shapes: Arc<Vec<LevelShapeForm>>,
+    shapes: Vec<LevelShapeForm>,
 }
 
 impl Default for FireworksCountdown {
@@ -38,7 +36,7 @@ impl Default for FireworksCountdown {
         timer.pause();
         Self {
             timer,
-            shapes: Arc::new(vec![]),
+            shapes: vec![],
             intensity: DEFAULT_INTENSITY,
             repeat_interval: None,
         }

@@ -433,12 +433,12 @@ impl DesignedLevelMeta {
         }
     }
 
-    pub fn try_get_level(&self) -> Option<Arc<DesignedLevel>> {
+    pub fn try_get_level(&self) -> Option<& DesignedLevel> {
         match self {
-            DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS.get(*index as usize).cloned(),
-            DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS.get(*index as usize).cloned(),
-            DesignedLevelMeta::Credits => CREDITS_LEVELS.get(0).cloned(),
-            DesignedLevelMeta::Custom { level } => Some(level.clone()),
+            DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS.get(*index as usize),
+            DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS.get(*index as usize),
+            DesignedLevelMeta::Credits => CREDITS_LEVELS.get(0),
+            DesignedLevelMeta::Custom { level } => Some(level.as_ref()),
         }
     }
 
@@ -446,17 +446,14 @@ impl DesignedLevelMeta {
         match self {
             DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS
                 .get(*index as usize)
-                .expect("Could not get tutorial level")
-                .as_ref(),
+                .expect("Could not get tutorial level"),
             DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS
                 .get(*index as usize)
-                .expect("Could not get campaign level")
-                .as_ref(),
+                .expect("Could not get campaign level"),
             DesignedLevelMeta::Custom { level } => level.as_ref(),
             DesignedLevelMeta::Credits => CREDITS_LEVELS
                 .get(0)
-                .expect("Could not get credits level")
-                .as_ref(),
+                .expect("Could not get credits level"),
         }
     }
 }
@@ -713,7 +710,7 @@ impl ChangeLevelEvent {
                     text: None,
                     mouse_text: None,
                     text_forever: false,
-                    shapes: Arc::new(shapes),
+                    shapes: shapes,
                     updates: vec![].into(),
                     gravity: None,
                     rainfall: None,

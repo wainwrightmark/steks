@@ -1,40 +1,40 @@
 use serde::{Deserialize, Serialize};
-use std::{f32::consts, sync::Arc};
+use std::{f32::consts};
 
 use crate::prelude::*;
 lazy_static::lazy_static! {
-    pub static ref CAMPAIGN_LEVELS: Vec<Arc<DesignedLevel>> ={
+    pub static ref CAMPAIGN_LEVELS: Vec<DesignedLevel> ={
         let s = include_str!("levels.yaml");
-        let list: Vec<Arc<DesignedLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+        let list: Vec<DesignedLevel> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
 
         list
     };
 }
 
 lazy_static::lazy_static! {
-    pub static ref TUTORIAL_LEVELS: Vec<Arc<DesignedLevel>> ={
+    pub static ref TUTORIAL_LEVELS: Vec<DesignedLevel> ={
         let s = include_str!("tutorial_levels.yaml");
-        let list: Vec<Arc<DesignedLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+        let list: Vec<DesignedLevel> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
 
         list
     };
 }
 
 lazy_static::lazy_static! {
-    pub static ref CREDITS_LEVELS: Vec<Arc<DesignedLevel>> ={
+    pub static ref CREDITS_LEVELS: Vec<DesignedLevel> ={
         let s = include_str!("credits.yaml");
-        let list: Vec<Arc<DesignedLevel>> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+        let list: Vec<DesignedLevel> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
 
         list
     };
 }
 
-pub fn get_campaign_level(index: u8) -> Option<Arc<DesignedLevel>> {
-    CAMPAIGN_LEVELS.get(index as usize).cloned()
+pub fn get_campaign_level(index: u8) -> Option<&'static DesignedLevel> {
+    CAMPAIGN_LEVELS.get(index as usize)
 }
 
-pub fn get_tutorial_level(index: u8) -> Option<Arc<DesignedLevel>> {
-    TUTORIAL_LEVELS.get(index as usize).cloned()
+pub fn get_tutorial_level(index: u8) -> Option<&'static DesignedLevel> {
+    TUTORIAL_LEVELS.get(index as usize)
 }
 
 pub fn format_campaign_level_number(level: &u8, centred: bool) -> String {
@@ -128,10 +128,10 @@ pub struct LevelStage {
     pub text_forever: bool,
     #[serde(default)]
     #[serde(alias = "Shapes")]
-    pub shapes: Arc<Vec<ShapeCreation>>,
+    pub shapes: Vec<ShapeCreation>,
     #[serde(default)]
     #[serde(alias = "Updates")]
-    pub updates: Arc<Vec<ShapeUpdate>>,
+    pub updates: Vec<ShapeUpdate>,
     #[serde(alias = "Gravity")]
     pub gravity: Option<bevy::prelude::Vec2>,
     #[serde(alias = "Rainfall")]
@@ -160,7 +160,7 @@ pub struct FireworksSettings {
 
     #[serde(default)]
     #[serde(alias = "Shapes")]
-    pub shapes: Arc<Vec<LevelShapeForm>>,
+    pub shapes: Vec<LevelShapeForm>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
@@ -280,7 +280,7 @@ mod tests {
                 .as_ref()
                 .cloned()
                 .unwrap_or("No Title".to_string());
-            let sv: ShapesVec = level.as_ref().into();
+            let sv: ShapesVec = level.into();
             let hash = sv.hash();
             let max_height = sv.max_tower_height();
 

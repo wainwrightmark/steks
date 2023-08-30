@@ -23,10 +23,10 @@ impl GameShapeBody for Triangle {
             },
             Vec2 {
                 x: self.0[1].0 as f32  * u * 1.00,
-                y: self.0[1].1 as f32 * u * 0.99, //The 0.99s are for if two triangles are sliding against each other
+                y: self.0[1].1 as f32 * u * 0.985, //The 0.985s are for if two triangles are sliding against each other
             },
             Vec2 {
-                x: self.0[2].0 as f32 * u * 0.99, //
+                x: self.0[2].0 as f32 * u * 0.985, //
                 y: self.0[2].1 as f32 * u * 1.00,
             },
         ];

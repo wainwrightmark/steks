@@ -441,7 +441,7 @@ pub fn drag_start(
     windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     'events: for event in er_drag_start.iter() {
-        if menu_state.is_show_main_menu() || menu_state.is_show_levels_page() {
+        if !menu_state.is_closed() {
             continue 'events;
         }
         if !ui_state.is_minimized() && current_level.completion.is_complete() {

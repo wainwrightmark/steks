@@ -1,5 +1,6 @@
 use bevy::window::{PrimaryWindow, WindowResized};
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
+use maveric::prelude::*;
 use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};
 
 use crate::prelude::*;
@@ -8,9 +9,157 @@ pub struct WallsPlugin;
 
 impl Plugin for WallsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_walls.after(crate::startup::setup))
-            .add_systems(Update, move_walls_when_window_resized)
-            .add_systems(Update, move_walls_when_physics_changed);
+        app.init_resource::<WindowSize>()
+            .register_maveric::<WallsRoot>()
+            .add_systems(Update, handle_window_resized);
+    }
+}
+
+#[derive(Debug, PartialEq, Resource)]
+struct WindowSize {
+    width: f32,
+    height: f32,
+}
+
+impl FromWorld for WindowSize {
+    fn from_world(world: &mut World) -> Self {
+        let mut query = world.query_filtered::<&Window, With<PrimaryWindow>>();
+        let window = query.single(world);
+
+        WindowSize {
+            width: window.width(),
+            height: window.height(),
+        }
+    }
+}
+
+#[derive(Debug, Default, PartialEq)]
+struct WallsRoot;
+
+impl RootChildren for WallsRoot {
+    type Context = NC4<WindowSize, Insets, GameSettings, RapierConfiguration>;
+
+    fn set_children(
+        context: &<Self::Context as maveric::prelude::NodeContext>::Wrapper<'_>,
+        commands: &mut impl maveric::prelude::ChildCommands,
+    ) {
+        for (key, wall_position) in WallPosition::iter().enumerate() {
+            commands.add_child(key as u32, WallNode(wall_position), context);
+        }
+    }
+}
+
+impl_maveric_root!(WallsRoot);
+
+#[derive(Debug, PartialEq)]
+struct WallNode(WallPosition);
+
+impl MavericNode for WallNode {
+    type Context = NC4<WindowSize, Insets, GameSettings, RapierConfiguration>;
+
+    fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
+        commands.scope(|commands| {
+            commands
+                .ignore_args()
+                .ignore_context()
+                .insert((
+                    RigidBody::Fixed,
+                    Restitution {
+                        coefficient: DEFAULT_RESTITUTION,
+                        combine_rule: CoefficientCombineRule::Min,
+                    },
+                    CollisionGroups {
+                        memberships: WALL_COLLISION_GROUP,
+                        filters: WALL_COLLISION_FILTERS,
+                    },
+                ))
+                .finish()
+        });
+
+        commands.scope(|commands| {
+            commands
+                .ignore_context()
+                .insert_with_node(|node| {
+                    let wall = node.0;
+                    let extents = wall.get_extents();
+
+                    let shape = Rectangle {
+                        extents,
+                        origin: RectangleOrigin::Center,
+                    };
+                    let path = GeometryBuilder::build_as(&shape);
+                    let collider_shape =
+                        Collider::cuboid(shape.extents.x / 2.0, shape.extents.y / 2.0);
+                    (
+                        ShapeBundle {
+                            path,
+                            ..Default::default()
+                        },
+                        collider_shape,
+                        wall,
+                    )
+                })
+                .finish()
+        });
+
+        commands.insert_with_node_and_context(|node, context| {
+            let (window_size, insets, settings, rapier) = context;
+            let wall = node.0;
+            let point = wall.get_position(window_size.height, window_size.width, rapier.gravity, insets);
+            let color = wall.color(&settings);
+
+            (Fill::color(color), Transform::from_translation(point))
+        });
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands
+            .ignore_context()
+            .unordered_children_with_args(|node, commands| {
+                commands.add_child(0, WallSensorNode(node.0), &())
+            })
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct WallSensorNode(WallPosition);
+
+impl MavericNode for WallSensorNode {
+    type Context = NoContext;
+
+    fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
+        commands.scope(|commands| {
+            commands
+                .ignore_args()
+                .ignore_context()
+                .insert((
+                    Sensor {},
+                    ActiveEvents::COLLISION_EVENTS,
+                    CollisionGroups {
+                        memberships: WALL_COLLISION_GROUP,
+                        filters: WALL_COLLISION_FILTERS,
+                    },
+                    WallSensor,
+                ))
+                .finish()
+        });
+
+        commands.ignore_context().insert_with_node(|node| {
+            let wall = node.0;
+            let extents = wall.get_extents();
+
+            let shape = Rectangle {
+                extents,
+                origin: RectangleOrigin::Center,
+            };
+
+            let collider_shape = Collider::cuboid(shape.extents.x / 2.0, shape.extents.y / 2.0);
+            collider_shape
+        });
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands.no_children()
     }
 }
 
@@ -26,7 +175,6 @@ pub enum WallPosition {
     Bottom,
     Left,
     Right,
-
     TopLeft,
 }
 
@@ -107,50 +255,26 @@ impl WallPosition {
         }
     }
 
-    pub fn color(&self) -> Color {
+    pub fn color(&self, settings: &GameSettings) -> Color {
         use WallPosition::*;
         match self {
             Top | Bottom | Left | Right => ACCENT_COLOR,
-            TopLeft => BACKGROUND_COLOR,
+            TopLeft => settings.background_color(),
         }
     }
 }
 
 const TOP_LEFT_SQUARE_SIZE: f32 = 60.0;
 
-fn move_walls_when_physics_changed(
-    rapier: Res<RapierConfiguration>,
-    insets: Res<Insets>,
-    window: Query<&Window, With<PrimaryWindow>>,
-    mut walls_query: Query<(&WallPosition, &mut Transform), Without<ShapeComponent>>,
-) {
-    if !rapier.is_changed() && !insets.is_changed() {
-        return;
-    }
-
-    let Some(window) = window.iter().next() else {
-        return;
-    };
-
-    for (wall, mut transform) in walls_query.iter_mut() {
-        let p: Vec3 = wall.get_position(window.height(), window.width(), rapier.gravity, &insets);
-        transform.translation = p;
-    }
-}
-
-fn move_walls_when_window_resized(
+fn handle_window_resized(
     mut window_resized_events: EventReader<WindowResized>,
-    mut walls_query: Query<(&WallPosition, &mut Transform), Without<ShapeComponent>>,
+
     mut draggables_query: Query<&mut Transform, With<ShapeComponent>>,
-    rapier: Res<RapierConfiguration>,
-    insets: Res<Insets>,
+    mut window_size: ResMut<WindowSize>,
 ) {
     for ev in window_resized_events.iter() {
-        for (wall, mut transform) in walls_query.iter_mut() {
-            let p: Vec3 = wall.get_position(ev.height, ev.width, rapier.gravity, &insets);
-            transform.translation = p;
-        }
-
+        window_size.width = ev.width;
+        window_size.height = ev.height;
         for mut transform in draggables_query.iter_mut() {
             let max_x: f32 = ev.width / 2.0; //You can't leave the game area
             let max_y: f32 = ev.height / 2.0;
@@ -165,53 +289,4 @@ fn move_walls_when_window_resized(
             );
         }
     }
-}
-
-fn spawn_walls(mut commands: Commands, rapier: Res<RapierConfiguration>, insets: Res<Insets>) {
-    for wall in WallPosition::iter() {
-        spawn_wall(&mut commands, wall, rapier.gravity, &insets);
-    }
-}
-
-fn spawn_wall(commands: &mut Commands, wall: WallPosition, gravity: Vec2, insets: &Insets) {
-    let point = wall.get_position(WINDOW_HEIGHT, WINDOW_WIDTH, gravity, insets);
-    let extents = wall.get_extents();
-
-    let shape = Rectangle {
-        extents,
-        origin: RectangleOrigin::Center,
-    };
-    let collider_shape = Collider::cuboid(shape.extents.x / 2.0, shape.extents.y / 2.0);
-    let path = GeometryBuilder::build_as(&shape);
-    let color = wall.color();
-    commands
-        .spawn(ShapeBundle {
-            path,
-            ..Default::default()
-        })
-        .insert(Stroke::color(color))
-        .insert(Fill::color(color))
-        .insert(RigidBody::Fixed)
-        .insert(Transform::from_translation(point))
-        .insert(Restitution {
-            coefficient: DEFAULT_RESTITUTION,
-            combine_rule: CoefficientCombineRule::Min,
-        })
-        .insert(collider_shape.clone())
-        .insert(CollisionGroups {
-            memberships: WALL_COLLISION_GROUP,
-            filters: WALL_COLLISION_FILTERS,
-        })
-        .insert(wall)
-        //.insert(CollisionNaughty)
-        .with_children(|f| {
-            f.spawn(collider_shape)
-                .insert(Sensor {})
-                .insert(ActiveEvents::COLLISION_EVENTS)
-                .insert(CollisionGroups {
-                    memberships: WALL_COLLISION_GROUP,
-                    filters: WALL_COLLISION_FILTERS,
-                })
-                .insert(WallSensor);
-        });
 }

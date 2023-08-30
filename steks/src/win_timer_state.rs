@@ -29,10 +29,6 @@ pub struct Countdown {
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
 
 const ARC_STROKE: f32 = 5.0;
-const ARC_COLOR: Color = Color::WHITE; // Color::hsl(148.,0.62,0.76);
-const MARKER_COLOR: Color = Color::WHITE; // Color::hsl(150.,0.22,0.53);
-pub const TIMER_COLOR: Color = Color::BLACK; // Color::hsl(241.,0.62,0.76);
-
 const POSITION_Y: f32 = 200.0;
 
 fn update_dynamic_elements(
@@ -82,15 +78,15 @@ struct TimerStateRoot;
 impl_maveric_root!(TimerStateRoot);
 
 impl RootChildren for TimerStateRoot {
-    type Context = WinCountdown;
+    type Context = NC2<WinCountdown, GameSettings> ;
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
-        if context.0.is_some() {
-            commands.add_child(1, CircleArc, &());
-            commands.add_child(2, CircleMarker, &());
+        if context.0.0.is_some() {
+            commands.add_child(1, CircleArc, &context.1);
+            commands.add_child(2, CircleMarker, &context.1);
         }
     }
 }
@@ -108,11 +104,20 @@ pub struct CircleArc;
 #[derive(Debug, Clone, PartialEq)]
 pub struct CircleMarker;
 
+fn get_color(settings: &GameSettings)-> Color{
+    if settings.high_contrast{
+        Color::DARK_GRAY
+    }else{
+        Color::WHITE
+    }
+}
+
 impl MavericNode for CircleArc {
-    type Context = NoContext;
+    type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert((
+        commands.ignore_args().insert_with_context(|context|(
+
             ShapeBundle {
                 transform: Transform {
                     translation: Vec3::new(00.0, POSITION_Y, 1.0),
@@ -120,7 +125,7 @@ impl MavericNode for CircleArc {
                 },
                 ..Default::default()
             },
-            Stroke::new(ARC_COLOR, ARC_STROKE),
+            Stroke::new(get_color(&context), ARC_STROKE),
             CircleArcComponent,
         ));
     }
@@ -129,10 +134,10 @@ impl MavericNode for CircleArc {
 }
 
 impl MavericNode for CircleMarker {
-    type Context = NoContext;
+    type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert((
+        commands.ignore_args().insert_with_context(|context|(
             ShapeBundle {
                 path: GeometryBuilder::build_as(&bevy_prototype_lyon::shapes::Circle {
                     center: Vec2::ZERO,
@@ -144,8 +149,8 @@ impl MavericNode for CircleMarker {
                 },
                 ..Default::default()
             },
-            Fill::color(MARKER_COLOR),
-            Stroke::new(ARC_COLOR, ARC_STROKE),
+            Fill::color(get_color(context)),
+            Stroke::new(get_color(context), ARC_STROKE),
             CircleMarkerComponent,
         ));
     }

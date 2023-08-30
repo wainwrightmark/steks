@@ -41,6 +41,16 @@ impl Default for GameSettings {
     }
 }
 
+impl GameSettings{
+    pub fn background_color(&self)-> Color{
+        if self.high_contrast{
+            Color::WHITE
+        }else{
+            color::BACKGROUND_COLOR
+        }
+    }
+}
+
 #[derive(
     Debug,
     Clone,
@@ -86,25 +96,20 @@ fn track_settings_changes(
     settings: Res<GameSettings>,
     mut clear_color: ResMut<ClearColor>,
     mut previous: Local<GameSettings>,
-    mut shapes: Query<(&ShapeIndex, &mut Fill)>,
+    mut shapes: Query<(&ShapeIndex, &ShapeComponent, &mut Fill)>,
 ) {
     if !settings.is_changed() {
         return;
     }
 
     if previous.high_contrast != settings.high_contrast {
-        for (shape_index, mut fill) in shapes.iter_mut() {
+        for (shape_index, shape_component, mut fill) in shapes.iter_mut() {
+            let state: ShapeState = shape_component.into();
             let game_shape: &'static GameShape = (*shape_index).into();
-            *fill = game_shape.fill(settings.high_contrast);
+            *fill = state.fill().unwrap_or_else(|| game_shape.fill(settings.high_contrast)) ;
         }
 
-        let background = if settings.high_contrast{
-            Color::WHITE
-        }else{
-            color::BACKGROUND_COLOR
-        };
-
-        *clear_color = ClearColor(background);
+        *clear_color = ClearColor(settings.background_color());
     }
 
     *previous = settings.clone();

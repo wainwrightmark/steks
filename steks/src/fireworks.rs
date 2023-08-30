@@ -245,7 +245,6 @@ fn spawn_spark<R: Rng>(
     commands: &mut Commands,
     translation: Vec3,
     rng: &mut R,
-    // gravity_factor: f32,
     shapes: &Vec<LevelShapeForm>,
 ) {
     let game_shape = if shapes.is_empty() {
@@ -277,7 +276,7 @@ fn spawn_spark<R: Rng>(
             visibility: shape_bundle.visibility,
             computed_visibility: shape_bundle.computed_visibility,
         })
-        .insert(game_shape.fill())
+        .insert(game_shape.fill(false))
         .insert(velocity)
         .insert(Firework)
         .insert(Transform::from_translation(translation));

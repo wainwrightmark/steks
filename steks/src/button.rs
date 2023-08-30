@@ -8,8 +8,6 @@ pub const COMPACT_ICON_BUTTON_HEIGHT: f32 = 25.;
 pub const THREE_STARS_IMAGE_HEIGHT: f32 = 48.;
 pub const THREE_STARS_IMAGE_WIDTH: f32 = 3.2 * THREE_STARS_IMAGE_HEIGHT;
 
-
-
 pub const BADGE_BUTTON_WIDTH: f32 = 2.584 * BADGE_BUTTON_HEIGHT;
 pub const BADGE_BUTTON_HEIGHT: f32 = 60.;
 
@@ -74,7 +72,7 @@ impl ButtonType {
 
             (Text, Pressed) => TEXT_PRESSED_BUTTON,
             (Text, Hovered) => TEXT_HOVERED_BUTTON,
-            (Text, None) =>  TEXT_BUTTON_BACKGROUND,
+            (Text, None) => TEXT_BUTTON_BACKGROUND,
 
             (Image, _) => Color::NONE,
         }
@@ -144,9 +142,13 @@ pub enum TextButtonAction {
     OpenSettings,
     BackToMenu,
 
-    ToggleArrows,
-    ToggleTouchOutlines,
+    //ToggleArrows,
+    //ToggleTouchOutlines,
     SetRotationSensitivity(RotationSensitivity),
+
+    SetArrows(bool),
+    SetTouchOutlines(bool),
+    SetHighContrast(bool),
 
     Credits,
 
@@ -155,59 +157,52 @@ pub enum TextButtonAction {
 }
 
 impl TextButtonAction {
-
-    pub fn emphasize(&self)-> bool{
-        match self{
+    pub fn emphasize(&self) -> bool {
+        match self {
             TextButtonAction::Resume | TextButtonAction::BackToMenu => true,
-            _ => false
+            _ => false,
         }
     }
 
     pub fn closes_menu(&self) -> bool {
-        use TextButtonAction::*;
         match self {
-            Resume => true,
-            GoFullscreen => true,
-            Tutorial => true,
-            Infinite => true,
-            DailyChallenge => true,
-            Share => true,
-            BackToMenu => false,
-            ChooseLevel => false,
-            ClipboardImport => true,
-            GotoLevel { .. } => true,
-            MinimizeApp => true,
-            OpenSettings => false,
-            ToggleArrows => false,
-            ToggleTouchOutlines => false,
-            SetRotationSensitivity(_) => false,
-            Credits => true,
-            SyncAchievements => false,
-            ShowAchievements => false,
+            TextButtonAction::Resume => true,
+            TextButtonAction::GoFullscreen => true,
+            TextButtonAction::Tutorial => true,
+            TextButtonAction::Infinite => true,
+            TextButtonAction::DailyChallenge => true,
+            TextButtonAction::Share => true,
+            TextButtonAction::BackToMenu => false,
+            TextButtonAction::ChooseLevel => false,
+            TextButtonAction::ClipboardImport => true,
+            TextButtonAction::GotoLevel { .. } => true,
+            TextButtonAction::MinimizeApp => true,
+            TextButtonAction::OpenSettings => false,
+            TextButtonAction::SetArrows(_) => false,
+            TextButtonAction::SetTouchOutlines(_) => false,
+            TextButtonAction::SetHighContrast(_) => false,
+            TextButtonAction::SetRotationSensitivity(_) => false,
+            TextButtonAction::Credits => true,
+            TextButtonAction::SyncAchievements => false,
+            TextButtonAction::ShowAchievements => false,
         }
     }
 
     pub fn text(&self) -> String {
-        use TextButtonAction::*;
-
         match self {
-            Resume => "Resume".to_string(),
-
-            GoFullscreen => "Fullscreen".to_string(),
-            Tutorial => "Tutorial".to_string(),
-            Infinite => "Infinite Mode".to_string(),
-            DailyChallenge => "Daily Challenge".to_string(),
-            Share => "Share".to_string(),
-            ChooseLevel => "Choose Level".to_string(),
-            ClipboardImport => "Import Level".to_string(),
-            GotoLevel { level } => {
+            TextButtonAction::Resume => "Resume".to_string(),
+            TextButtonAction::GoFullscreen => "Fullscreen".to_string(),
+            TextButtonAction::Tutorial => "Tutorial".to_string(),
+            TextButtonAction::Infinite => "Infinite Mode".to_string(),
+            TextButtonAction::DailyChallenge => "Daily Challenge".to_string(),
+            TextButtonAction::Share => "Share".to_string(),
+            TextButtonAction::ChooseLevel => "Choose Level".to_string(),
+            TextButtonAction::ClipboardImport => "Import Level".to_string(),
+            TextButtonAction::GotoLevel { level } => {
                 let level_number = format_campaign_level_number(level, false);
                 if let Some(set_level) = designed_level::get_campaign_level(*level) {
-                    if let Some(name) = &set_level.title {
-                        format!(
-                            "{level_number:>3}: {name}",
-                            // width = LEVEL_TITLE_MAX_CHARS
-                        )
+                    if let Some(title) = &set_level.title {
+                        format!("{level_number:>3}: {title}",)
                     } else {
                         level_number
                     }
@@ -215,15 +210,21 @@ impl TextButtonAction {
                     level_number
                 }
             }
-            MinimizeApp => "Quit".to_string(),
-            Credits => "Credits".to_string(),
-            OpenSettings => "Settings".to_string(),
-            ToggleArrows => "Toggle Arrows".to_string(),
-            ToggleTouchOutlines => "Toggle Markers".to_string(),
-            SyncAchievements => "Sync Achievements".to_string(),
-            ShowAchievements => "Show Achievements".to_string(),
-            SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
-            BackToMenu => "Back".to_string(),
+            TextButtonAction::MinimizeApp => "Quit".to_string(),
+            TextButtonAction::Credits => "Credits".to_string(),
+            TextButtonAction::OpenSettings => "Settings".to_string(),
+            TextButtonAction::SetArrows(true) => "Rotation Arrows  ".to_string(),
+            TextButtonAction::SetArrows(false) => "Rotation Arrows  ".to_string(),
+            TextButtonAction::SetTouchOutlines(true) => "Touch Outlines   ".to_string(),
+            TextButtonAction::SetTouchOutlines(false) => "Touch Outlines   ".to_string(),
+
+            TextButtonAction::SetHighContrast(true) => "Default Colours".to_string(),
+            TextButtonAction::SetHighContrast(false) => "High Contrast Colours".to_string(),
+
+            TextButtonAction::SyncAchievements => "Sync Achievements".to_string(),
+            TextButtonAction::ShowAchievements => "Show Achievements".to_string(),
+            TextButtonAction::SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
+            TextButtonAction::BackToMenu => "Back".to_string(),
         }
     }
 }
@@ -333,7 +334,6 @@ fn text_button_system(
         if button.disabled {
             continue;
         }
-        use TextButtonAction::*;
 
         //info!("{interaction:?} {button:?} {menu_state:?}");
         *bg_color = button
@@ -342,41 +342,52 @@ fn text_button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                Resume => menu_state.as_mut().close_menu(),
-                GoFullscreen => {
+                TextButtonAction::Resume => menu_state.as_mut().close_menu(),
+                TextButtonAction::GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
                     {
                         crate::wasm::request_fullscreen();
                     }
                 }
-                ClipboardImport => import_events.send(ImportEvent),
-                Tutorial => change_level_events
+                TextButtonAction::ClipboardImport => import_events.send(ImportEvent),
+                TextButtonAction::Tutorial => change_level_events
                     .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
-                Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
-                DailyChallenge => change_level_events.send(ChangeLevelEvent::StartChallenge),
+                TextButtonAction::Infinite => {
+                    change_level_events.send(ChangeLevelEvent::StartInfinite)
+                }
+                TextButtonAction::DailyChallenge => {
+                    change_level_events.send(ChangeLevelEvent::StartChallenge)
+                }
 
-                Share => share_events.send(ShareEvent::CurrentShapes),
-                GotoLevel { level } => {
+                TextButtonAction::Share => share_events.send(ShareEvent::CurrentShapes),
+                TextButtonAction::GotoLevel { level } => {
                     change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
                         index: level,
                         stage: 0,
                     })
                 }
-                ChooseLevel => menu_state.as_mut().toggle_levels(current_level.as_ref()),
-                MinimizeApp => {
+                TextButtonAction::ChooseLevel => {
+                    menu_state.as_mut().toggle_levels(current_level.as_ref())
+                }
+                TextButtonAction::MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })
                         .detach();
                 }
-                Credits => change_level_events.send(ChangeLevelEvent::Credits),
-                OpenSettings => menu_state.as_mut().open_settings(),
-                BackToMenu => menu_state.as_mut().open_menu(),
-                ToggleArrows => settings.toggle_arrows(),
-                ToggleTouchOutlines => settings.toggle_touch_outlines(),
-                SetRotationSensitivity(rs) => settings.set_rotation_sensitivity(rs),
+                TextButtonAction::Credits => change_level_events.send(ChangeLevelEvent::Credits),
+                TextButtonAction::OpenSettings => menu_state.as_mut().open_settings(),
+                TextButtonAction::BackToMenu => menu_state.as_mut().open_menu(),
+                TextButtonAction::SetArrows(arrows) => settings.show_arrows = arrows,
+                TextButtonAction::SetTouchOutlines(outlines) => {
+                    settings.show_touch_outlines = outlines
+                }
+                TextButtonAction::SetRotationSensitivity(rs) => settings.rotation_sensitivity = rs,
+                TextButtonAction::SetHighContrast(high_contrast) => {
+                    settings.high_contrast = high_contrast
+                }
 
-                SyncAchievements => achievements.resync(),
-                ShowAchievements => show_achievements(),
+                TextButtonAction::SyncAchievements => achievements.resync(),
+                TextButtonAction::ShowAchievements => show_achievements(),
             }
 
             if button.button_action.closes_menu() {

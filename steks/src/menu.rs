@@ -182,34 +182,20 @@ impl MavericNode for MenuPage {
                 }
             }
             MenuPage::Settings => {
-                let arrows_text = if context.0 .1.show_arrows {
-                    "Rotation Arrows  "
-                } else {
-                    "Rotation Arrows  "
-                };
-
                 commands.add_child(
-                    "rotation",
-                    text_button_node_with_text(
-                        TextButtonAction::ToggleArrows,
-                        arrows_text.to_string(),
+                    "arrows",
+                    text_button_node(
+                        TextButtonAction::SetArrows(!context.0 .1.show_arrows),
                         true,
                         false,
                     ),
                     &context.1,
                 );
 
-                let outlines_text = if context.0 .1.show_touch_outlines {
-                    "Touch Outlines   "
-                } else {
-                    "Touch Outlines   "
-                };
-
                 commands.add_child(
                     "outlines",
-                    text_button_node_with_text(
-                        TextButtonAction::ToggleTouchOutlines,
-                        outlines_text.to_string(),
+                    text_button_node(
+                        TextButtonAction::SetTouchOutlines(!context.0 .1.show_touch_outlines),
                         true,
                         false,
                     ),
@@ -236,6 +222,16 @@ impl MavericNode for MenuPage {
                     &context.1,
                 );
 
+                commands.add_child(
+                    "contrast",
+                    text_button_node(
+                        TextButtonAction::SetHighContrast(!context.0 .1.high_contrast),
+                        true,
+                        false,
+                    ),
+                    &context.1,
+                );
+
                 #[cfg(any(feature = "android", feature = "ios"))]
                 {
                     commands.add_child(
@@ -253,11 +249,7 @@ impl MavericNode for MenuPage {
 
                 commands.add_child(
                     "back",
-                    text_button_node(
-                        TextButtonAction::BackToMenu,
-                        true,
-                        false
-                    ),
+                    text_button_node(TextButtonAction::BackToMenu, true, false),
                     &context.1,
                 );
             }
@@ -284,9 +276,11 @@ impl MavericNode for MenuPage {
                         .cloned()
                         .unwrap_or_default();
 
-                    let style = if enabled && star.is_incomplete(){
+                    let style = if enabled && star.is_incomplete() {
                         TextButtonStyle::Medium
-                    } else{TextButtonStyle::Normal};
+                    } else {
+                        TextButtonStyle::Normal
+                    };
 
                     commands.add_child(
                         key as u32,
@@ -296,7 +290,7 @@ impl MavericNode for MenuPage {
                             !enabled,
                             star.one_medals_asset_path(),
                             LevelStarsImageStyle,
-                            style
+                            style,
                         ),
                         &context.1,
                     )

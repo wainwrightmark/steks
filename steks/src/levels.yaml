@@ -4,7 +4,7 @@
 #1
 - title: "Steks Marks The Spot"
   text: "towers may not touch\nthe ground or the sides"
-  end_text: "Not bad for a beginner"
+  end_text: "Not bad for a beginner\nPress  for the next level"
   #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQGA'
   shapes:
@@ -15,7 +15,7 @@
 #2
 - title: "Reach For The Sky"
   text: ""
-  end_text: "Press  to try for a taller tower\nPress  for the next level"
+  end_text: "Press  to try for a taller tower\nTaller towers earn more stars"
   shapes:
     - shape: O4
       # color:
@@ -28,7 +28,7 @@
 #3
 - title: "Steks With An X"
   text: "rotating shapes from further away\nis often easier"
-  end_text: "Wow, that was quick."
+  end_text: "Wow, that was quick"
   shapes:
     - shape: S5
       x: -150.0
@@ -45,9 +45,9 @@
 
 
 #4
-- title: Uneven Foundations 
+- title: Uneven Foundations
   text: white shapes cannot be unlocked
-  end_text: "You're a very stable genius"
+  end_text: "Just want to build cool towers?\nIgnore the stars, you're not Mario!"
   shapes:
     - shape: U5
       x: 0.0
@@ -61,7 +61,7 @@
 
 #5
 - title: "The Pentomino Effect"
-  end_text: "Can you go taller?\nThere's a world record to beat!"
+  end_text: "Now you're thinking with pentominos"
   shapes:
     - shape: I5
     - shape: L5
@@ -103,7 +103,7 @@
 #8
 - title: Cubism
   text: wonky towers are encouraged
-  end_text: "You're basically Picasso"
+  end_text: "You're basically Picasso\nhit  to share your masterpiece"
   shapes:
     - shape: P5
     - shape: F5
@@ -115,7 +115,7 @@
 
 #9
 - title: "At An Angle"
-  text: 
+  text:
   end_text: "That's a cute tower"
   shapes:
     - shape: I4
@@ -188,7 +188,7 @@
 
 #13
 - title: "The Empire Steks Building"
-  end_text: "Proud of your tower?\nHit  to show it off!"
+  end_text: "Think you've got the tallest tower?\nHit  to challenge a friend!"
   shapes:
     - shape: I5
     - shape: L4
@@ -214,7 +214,7 @@
 
 #15
 - title: "Excess"
-  end_text: "Touchdown! Great play, coach."
+  end_text: "You know you love me, XOXO"
   shapes:
     - shape: X5
     - shape: X5
@@ -231,7 +231,7 @@
       - X5
 
   stages:
-    - text: "Balls!"
+    - text: "O No!"
       updates:
         - shape: Circle
           id: 1
@@ -275,6 +275,7 @@
 #17
 - title: Ice Ice Baby
   text: a brand new invention
+  end_text: "Yo, you solved it!"
   shapes:
     - shape: I5
       modifiers: Ice
@@ -290,7 +291,7 @@
       modifiers: Ice
     - shape: X5
       modifiers: Ice
-  end_text: "Yo, you solved it!"
+
 
 #18
 - title: "Double Trouble"
@@ -305,7 +306,7 @@
     - shape: W5
     - shape: W5
 #19
-- title: "Galileo's Folly" 
+- title: "Galileo's Folly"
   text: "Dr. Gravity is making things harder"
   end_text: "Dr. Gravity has gone too far!"
   shapes:
@@ -336,7 +337,7 @@
     - shape: Circle
 #21
 - title: "Tri Hard with A Vengeance"
-  end_text: "Just a fly in the ointment, Hans"
+  end_text: "Just a fly in the ointment, Hans\na monkey in the wrench"
   shapes:
     - shape: Triangle
     - shape: Triangle
@@ -358,6 +359,7 @@
 #22
 - title: "Antarctica"
   text: "Dr. Gravity's polar base\nis guarded by penguins"
+  end_text: "Great Scott!"
   gravity:
         - 0.0
         - 1000.0
@@ -376,8 +378,6 @@
       modifiers: Ice
     - shape: L5
       modifiers: Ice
-  end_text: "Great Scott!"
-
 
 #23
 - title: "Marvin"
@@ -484,10 +484,10 @@
 
 #27
 - title: "Steks Storm"
+  text: "Hate the snow?\nTurn it off in the settings"
   end_text: "You weathered that ok"
   rainfall:
     intensity: 2
-
   shapes:
     - shape: P5
     - shape: Triangle
@@ -496,7 +496,7 @@
     - shape: S4
     - shape: I5
     - shape: Z4
-    
+
 #28
 - title: "Platform Game"
   text: ""
@@ -574,7 +574,7 @@
       y: -180.0
       r: 0.2
       state: Fixed
-    - shape: F5   
+    - shape: F5
     - shape: N5
     - shape: Y5
     - shape: L5
@@ -584,7 +584,7 @@
     - shape: F5
   stages:
     - text: "The ceiling collapses"
-      shapes: 
+      shapes:
         - shape: S4
           x: -25.0
           y: 250.0

@@ -20,6 +20,7 @@ pub fn spawn_and_update_shapes(
     mut recently_finished: Local<bool>,
 
     mut check_win: EventWriter<CheckForWinEvent>,
+    settings: Res<GameSettings>
 ) {
     creation_queue.extend(creations.iter());
     update_queue.extend(updates.iter());
@@ -38,7 +39,7 @@ pub fn spawn_and_update_shapes(
         if let Some(creation) = creation_queue.pop() {
             let mut rng = rand::thread_rng();
 
-            place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng);
+            place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng, &settings);
             changed = true;
         } else if let Some(update) = update_queue.pop_front() {
             if let Some((existing_entity, _, shape_component, shape_index, transform)) =
@@ -51,6 +52,7 @@ pub fn spawn_and_update_shapes(
                     prev,
                     shape_component,
                     transform,
+                    &settings
                 );
                 changed = true;
             } else {
@@ -76,7 +78,7 @@ pub fn place_and_create_shape<RNG: rand::Rng>(
     commands: &mut Commands,
     mut shape_with_data: ShapeCreationData,
     rapier_context: &Res<RapierContext>,
-    rng: &mut RNG,
+    rng: &mut RNG, settings: &GameSettings
 ) {
     let location: Location = if let Some(l) = shape_with_data.location {
         bevy::log::debug!(
@@ -139,7 +141,7 @@ pub fn place_and_create_shape<RNG: rand::Rng>(
     shape_with_data.location = Some(location);
     shape_with_data.velocity = Some(velocity);
 
-    create_shape(commands, shape_with_data);
+    create_shape(commands, shape_with_data, settings);
 }
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
@@ -155,7 +157,7 @@ pub struct ShapeWithId {
     pub id: u32,
 }
 
-pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData) {
+pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData, settings: &GameSettings) {
     debug!(
         "Creating {} in state {:?} {:?}",
         shape_with_data.shape, shape_with_data.state, shape_with_data.id
@@ -182,7 +184,8 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData)
             coefficient: shape_component.restitution_coefficient(),
             combine_rule: CoefficientCombineRule::Min,
         })
-        .insert(shape_with_data.fill())
+        .insert(Ccd::enabled())
+        .insert(shape_with_data.fill(settings.high_contrast))
         .insert(shape_with_data.stroke())
         .insert(shape_with_data.shape.index)
         .insert(RigidBody::Dynamic)

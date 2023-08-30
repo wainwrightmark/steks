@@ -18,17 +18,14 @@ pub const LEVEL_TEXT_COLOR: Color = Color::DARK_GRAY;
 pub const LEVEL_TEXT_ALT_COLOR: Color = Color::WHITE;
 
 pub const BUTTON_BORDER: Color = Color::BLACK;
-//pub const BUTTON_BORDER_INVERTED: Color = Color::WHITE;
 pub const BUTTON_TEXT_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
-//pub const BUTTON_TEXT_COLOR_INVERTED: Color = BUTTON_TEXT_COLOR;// Color::rgb(1.0, 1.0, 1.0);
 
 pub const ICON_BUTTON_BACKGROUND: Color = Color::NONE;
 
 pub const TEXT_BUTTON_BACKGROUND: Color = Color::WHITE;
-//pub const TEXT_BUTTON_BACKGROUND_INVERTED: Color = Color::WHITE;// Color::rgb(0.03, 0.53, 0.28);
 pub const DISABLED_BUTTON_BACKGROUND: Color = Color::GRAY;
 
-pub fn choose_color(index: usize, alt: bool) -> Color {
+pub fn choose_color(index: usize, high_contrast: bool) -> Color {
     const SATURATIONS: [f32; 2] = [0.9, 0.28];
     const LIGHTNESSES: [f32; 2] = [0.28, 0.49];
 
@@ -38,15 +35,16 @@ pub fn choose_color(index: usize, alt: bool) -> Color {
     let lightness: f32;
     let saturation: f32;
 
-    if alt {
-        saturation = SATURATIONS[index % SATURATIONS.len()];
-        lightness =
-            LIGHTNESSES[(index % (SATURATIONS.len() * LIGHTNESSES.len())) / LIGHTNESSES.len()];
-    } else {
-        lightness = LIGHTNESSES[index % LIGHTNESSES.len()];
-        saturation =
-            SATURATIONS[(index % (LIGHTNESSES.len() * SATURATIONS.len())) / SATURATIONS.len()];
-    }
+    lightness = if high_contrast{
+        0.28
+    } else{
+        LIGHTNESSES[index % LIGHTNESSES.len()]
+    } ;
+    saturation = if high_contrast{
+        0.28
+    }else{
+        SATURATIONS[(index % (LIGHTNESSES.len() * SATURATIONS.len())) / SATURATIONS.len()]
+    };
 
     let alpha = 1.0;
     Color::hsla(hue, saturation, lightness, alpha)

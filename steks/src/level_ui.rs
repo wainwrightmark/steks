@@ -225,6 +225,8 @@ impl MavericNode for MainPanel {
                         context,
                     );
 
+                    commands.add_child("preview_message", level_text_node("Challenge a friend to\nbeat your score!"), context);
+
                     commands.add_child("buttons", ButtonPanel::Preview(preview), context);
                 }
 

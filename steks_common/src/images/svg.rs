@@ -9,7 +9,6 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(
     dimensions: Dimensions,
 ) -> String {
     let mut str: String = "".to_owned();
-    //let (background_color, _) = color_to_rgb_and_opacity(BACKGROUND_COLOR);
 
     str.push('\n');
     for shape in iterator {
@@ -24,7 +23,7 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(
             shape
                 .shape
                 .body
-                .as_svg(SHAPE_SIZE, shape.fill_color(), shape.stroke_color());
+                .as_svg(SHAPE_SIZE, shape.fill_color(false), shape.stroke_color());
 
         //println!("{shape_svg}");
         str.push_str(shape_svg.as_str());

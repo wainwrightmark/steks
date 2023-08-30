@@ -101,7 +101,7 @@ fn spawn_raindrops(
                 rng.gen_range((WINDOW_WIDTH * -0.5)..=(WINDOW_HEIGHT * 0.5))
             };
 
-            let y = MAX_WINDOW_HEIGHT; // rng.gen_range((MAX_WINDOW_HEIGHT * 0.5)..(MAX_WINDOW_HEIGHT * 0.6));
+            let y = MAX_WINDOW_HEIGHT;
 
             let linvel_x = linvel_x * rng.gen_range(0.9..1.1);
             let linvel_y = rng.gen_range(0.0..ROOT_RAIN_VELOCITY);
@@ -150,9 +150,9 @@ fn manage_raindrops(
     }
 }
 
-const RAIN_DENSITY: f32 = 50.0;
+const RAIN_DENSITY: f32 = 30.0;
 
-//const RAIN_VELOCITY: f32 = 500.0;
+
 const ROOT_RAIN_VELOCITY: f32 = 22.0;
 
 const DROP_LIFETIME_SECONDS: f32 = 5.0;
@@ -162,7 +162,7 @@ fn spawn_drop<R: Rng>(
     translation: Vec3,
     rng: &mut R,
     velocity: Velocity,
-    finish_time: f32, //gravity_factor: f32,
+    finish_time: f32,
 ) {
     let size = rng.gen_range(0.5..3.0) * RAINDROP_SIZE;
     let shape_bundle = Circle.get_shape_bundle(size);

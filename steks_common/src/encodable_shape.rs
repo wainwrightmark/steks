@@ -26,10 +26,10 @@ impl EncodableShape {
         }
     }
 
-    pub fn fill_color(&self) -> Option<Color> {
+    pub fn fill_color(&self, high_contrast: bool) -> Option<Color> {
         use ShapeState::*;
         match self.state {
-            Normal | Locked => Some(self.shape.default_fill_color()),
+            Normal | Locked => Some(self.shape.default_fill_color(high_contrast)),
             Fixed => Some(crate::color::FIXED_SHAPE_FILL),
             Void => Some(crate::color::VOID_SHAPE_FILL),
         }

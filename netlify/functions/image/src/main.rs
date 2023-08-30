@@ -277,7 +277,7 @@ mod tests {
             svg.push('\n');
             let shape_svg = shape
                 .body
-                .as_svg(SHAPE_SIZE, Some(shape.fill().color), None);
+                .as_svg(SHAPE_SIZE, Some(shape.fill(false).color), None);
 
             //println!("{shape_svg}");
             svg.push_str(shape_svg.as_str());

@@ -14,7 +14,7 @@ pub struct ShapeUpdateData {
 }
 
 impl ShapeUpdateData {
-    pub fn fill(&self) -> Option<Fill> {
+    pub fn fill(&self, high_contrast: bool) -> Option<Fill> {
         if let Some(color) = self.color {
             return Some(Fill {
                 color,
@@ -24,7 +24,7 @@ impl ShapeUpdateData {
 
         self.state
             .and_then(|x| x.fill())
-            .or_else(|| self.shape.map(|x| x.fill()))
+            .or_else(|| self.shape.map(|x| x.fill(high_contrast)))
     }
 
     pub fn stroke(&self) -> Stroke {
@@ -43,6 +43,7 @@ impl ShapeUpdateData {
         previous_shape: &'static GameShape,
         previous_state_component: &ShapeComponent,
         previous_transform: &Transform,
+        settings: &GameSettings
     ) {
         debug!(
             "Creating {:?} in state {:?} {:?}",
@@ -89,7 +90,7 @@ impl ShapeUpdateData {
                 .insert(shape_component);
         }
 
-        ec.insert(self.fill().unwrap_or_else(|| previous_shape.fill()));
+        ec.insert(self.fill(settings.high_contrast).unwrap_or_else(|| previous_shape.fill(settings.high_contrast)));
         ec.insert(self.stroke());
 
         ec.insert(transform);

@@ -82,7 +82,7 @@ pub fn spawn_children(
 }
 
 impl ShapeCreationData {
-    pub fn fill(&self) -> Fill {
+    pub fn fill(&self, high_contrast: bool) -> Fill {
         if let Some(color) = self.color {
             return Fill {
                 color,
@@ -90,7 +90,7 @@ impl ShapeCreationData {
             };
         }
 
-        self.state.fill().unwrap_or_else(|| self.shape.fill())
+        self.state.fill().unwrap_or_else(|| self.shape.fill(high_contrast))
     }
 
     pub fn stroke(&self) -> Stroke {

@@ -336,7 +336,7 @@ pub fn generate_score_info(
 
     let pb = old_height.map(|x| x.height).unwrap_or(0.0);
     let best = pb.max(height);
-    let star = level.get_medal(best);
+    let star = level.get_star_type(best);
 
     ScoreInfo {
         hash,
@@ -384,7 +384,7 @@ impl GameLevel {
         meta: DesignedLevelMeta::Credits,
     };
 
-    pub fn get_medal(&self, height: f32) -> StarType {
+    pub fn get_star_type(&self, height: f32) -> StarType {
         match self {
             GameLevel::Designed { meta } => meta.get_level().get_star(height),
             GameLevel::Infinite { .. } => StarType::Incomplete,

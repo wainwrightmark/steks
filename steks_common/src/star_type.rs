@@ -38,7 +38,7 @@ impl StarType {
         }
     }
 
-    pub fn three_medals_asset_path(&self) -> &'static str {
+    pub fn wide_stars_asset_path(&self) -> &'static str {
         match self {
             StarType::Incomplete => "images/stars/ThreeStarsBlack.png",
             StarType::OneStar => "images/stars/ThreeStarsBronze.png",
@@ -47,7 +47,7 @@ impl StarType {
         }
     }
 
-    pub fn one_medals_asset_path(&self) -> &'static str {
+    pub fn narrow_stars_asset_path(&self) -> &'static str {
         match self {
             StarType::Incomplete => "images/stars/OneStarBlack.png",
             StarType::OneStar => "images/stars/OneStarBronze.png",

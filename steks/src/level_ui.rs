@@ -325,7 +325,7 @@ impl MavericNode for MainPanel {
                         commands.add_child(
                             "stars",
                             ImageNode {
-                                path: args.score_info.star.three_medals_asset_path(),
+                                path: args.score_info.star.wide_stars_asset_path(),
                                 background_color: Color::WHITE,
                                 style: ThreeStarsImageStyle,
                             },

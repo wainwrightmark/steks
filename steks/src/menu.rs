@@ -309,7 +309,7 @@ impl MavericNode for MenuPage {
                             TextButtonAction::GotoLevel { level },
                             false,
                             !enabled,
-                            star.one_medals_asset_path(),
+                            star.narrow_stars_asset_path(),
                             LevelStarsImageStyle,
                             style,
                         ),

@@ -109,7 +109,7 @@ pub fn drag_end(
         }
 
         if let DragSource::Touch { touch_id } = event.drag_source {
-            if let Some(rotate) = touch_rotate.0 {
+            if let Some(rotate) = &touch_rotate.0 {
                 if rotate.touch_id == touch_id {
                     *touch_rotate = TouchRotateResource(None);
                 }
@@ -212,13 +212,40 @@ fn apply_forces(
 pub fn drag_move(
     mut er_drag_move: EventReader<DragMoveEvent>,
 
-    mut dragged_entities: Query<(&ShapeComponent, &mut BeingDragged)>,
+    mut dragged_shapes: Query<(&ShapeComponent, &mut BeingDragged)>,
+    dragged_transforms: Query<&Transform, With<BeingDragged>>,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut ev_rotate: EventWriter<RotateEvent>,
     settings: Res<GameSettings>,
 ) {
     for event in er_drag_move.iter() {
-        if let Some((draggable, mut bd)) = dragged_entities
+        if let DragSource::Touch { touch_id } = event.drag_source {
+            if let Some(rotate) = touch_rotate.0.as_mut() {
+                if rotate.touch_id == touch_id {
+                    if let Some(transform) = dragged_transforms.iter().next() {
+                        let new_angle =
+                            angle_to(event.new_position - transform.translation.truncate());
+
+                        let previous_angle =
+                            angle_to(rotate.current - transform.translation.truncate());
+                        let new_angle = closest_angle_representation(new_angle, previous_angle);
+                        let angle = (new_angle - previous_angle)
+                            * settings.rotation_sensitivity.coefficient();
+
+                        ev_rotate.send(RotateEvent {
+                            angle,
+                            snap_resolution: None,
+                        });
+                        rotate.current = event.new_position;
+                        rotate.total_radians += angle;
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        if let Some((draggable, mut bd)) = dragged_shapes
             .iter_mut()
             .find(|d| d.0.has_drag_source(event.drag_source))
         {
@@ -237,25 +264,6 @@ pub fn drag_move(
             let new_position = (draggable.get_offset() + clamped_position).extend(0.0);
 
             bd.desired_position = new_position.truncate();
-        } else if let DragSource::Touch { touch_id } = event.drag_source {
-            if let Some(mut rotate) = touch_rotate.0 {
-                if rotate.touch_id == touch_id {
-                    let new_angle = angle_to(event.new_position - rotate.centre);
-
-                    let previous_angle = angle_to(rotate.current - rotate.centre);
-                    let new_angle = closest_angle_representation(new_angle, previous_angle);
-                    let angle =
-                        (new_angle - previous_angle) * settings.rotation_sensitivity.coefficient();
-
-
-                    ev_rotate.send(RotateEvent {
-                        angle,
-                        snap_resolution: None,
-                    });
-                    rotate.current = event.new_position;
-                    *touch_rotate = TouchRotateResource(Some(rotate));
-                }
-            }
         }
     }
 }
@@ -263,35 +271,12 @@ pub fn drag_move(
 fn handle_rotate_events(
     mut ev_rotate: EventReader<RotateEvent>,
     mut dragged: Query<&mut Transform, With<BeingDragged>>,
-    mut touch_rotate: ResMut<TouchRotateResource>,
 ) {
     for ev in ev_rotate.iter() {
         for mut transform in dragged.iter_mut() {
-            //info!("Rotate Event");
-            //bd.desired_rotation = rb.rotation*  Quat::from_rotation_z(ev.angle);
             transform.rotation *= Quat::from_rotation_z(ev.angle);
             if let Some(multiple) = ev.snap_resolution {
                 transform.rotation = round_z(transform.rotation, multiple);
-            }
-
-            if let Some(tr) = touch_rotate.0 {
-                let radius_squared = tr.centre.distance_squared(tr.start);
-                let new_distance_squared = tr.centre.distance_squared(transform.translation.truncate());
-
-                if new_distance_squared > radius_squared {
-
-                    let normalized = (transform.translation.truncate() - tr.centre).normalize_or_zero();
-                    let radius = radius_squared.sqrt();
-                    let new_start = tr.centre + (radius * normalized);
-                    let new_centre = tr.centre +  (radius * 2.0 * normalized);
-
-                    touch_rotate.0 = Some(TouchRotate {
-                        start: new_start,
-                        current: tr.current,
-                        centre: new_centre,
-                        touch_id: tr.touch_id,
-                    });
-                }
             }
         }
     }
@@ -322,92 +307,97 @@ fn point_at_angle(dist: f32, radians: f32) -> Vec2 {
 fn draw_rotate_arrows(
     mut commands: Commands,
     touch_rotate: Res<TouchRotateResource>,
-    mut query: Query<(Entity, &mut Path), With<RotateArrow>>,
+    mut existing_arrows: Query<(Entity, &mut Path), With<RotateArrow>>,
+    draggables: Query<(&ShapeComponent, &Transform), With<BeingDragged>>,
     mut previous_angle: Local<Option<f32>>,
     current_level: Res<CurrentLevel>,
-    settings: Res<GameSettings>, //mut gizmos: Gizmos,
+    settings: Res<GameSettings>,
 ) {
-    if touch_rotate.is_changed() {
-        if !settings.show_arrows && !current_level.show_rotate_arrow() {
-            for e in query.iter() {
-                commands.entity(e.0).despawn_recursive();
-            }
-
-            *previous_angle = None;
-            return;
+    if !touch_rotate.is_changed() {
+        return;
+    }
+    if !settings.show_arrows && !current_level.show_rotate_arrow() {
+        for (entity, _) in existing_arrows.iter() {
+            commands.entity(entity).despawn_recursive();
         }
 
-        match touch_rotate.0 {
-            Some(touch) => {
-                let mut path = bevy_prototype_lyon::path::PathBuilder::new();
-                let radius = touch.centre.distance(touch.start);
+        *previous_angle = None;
+        return;
+    }
 
-                let current_angle = angle_to(touch.current - touch.centre);
-                let start_angle = angle_to(touch.start - touch.centre);
-
-                let mut sweep_angle = current_angle - start_angle;
-
-                sweep_angle =
-                    closest_angle_representation(sweep_angle, previous_angle.unwrap_or_default())
-                        * settings.rotation_sensitivity.coefficient();
-
-                // if sweep_angle > TAU{
-                //     sweep_angle -= TAU;
-                // }
-
-                let path_end = touch.centre + point_at_angle(radius, start_angle + sweep_angle);
-                *previous_angle = Some(sweep_angle);
-
-                const ARROW_WIDTH: f32 = 6.0;
-                const ARROW_LENGTH: f32 = 100.0;
-                let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (radius * TAU);
-                if sweep_angle.abs() > arrow_angle.abs() {
-                    path.move_to(touch.start);
-
-                    path.arc(
-                        touch.centre,
-                        Vec2 { x: radius, y: radius },
-                        sweep_angle - arrow_angle,
-                        0.0,
-                    );
-
-                    let arrow_point = touch.centre + point_at_angle(radius, start_angle + sweep_angle - arrow_angle);
-                    //let arrow_point = touch.centre + point_at_angle(radius, (current_angle - arrow_angle) * settings.rotation_sensitivity.coefficient());
-                    //let arrow_point = path.current_position();
-
-                    path.move_to(arrow_point); // just incase
-
-                    path.line_to(arrow_point.lerp(touch.centre, ARROW_WIDTH / radius));
-                    path.line_to(path_end);
-
-                    path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / radius));
-
-                    path.line_to(arrow_point);
-                }
-
-                if let Some(mut p) = query.iter_mut().next() {
-                    *p.1 = path.build();
-                } else {
-                    commands
-                        .spawn((
-                            bevy_prototype_lyon::prelude::ShapeBundle {
-                                path: path.build(),
-                                ..default()
-                            },
-                            bevy_prototype_lyon::prelude::Stroke::new(ARROW_STROKE, 10.0),
-                        ))
-                        .insert(Transform::from_translation(Vec3::Z * 50.0))
-                        .insert(RotateArrow);
-                }
-            }
-            None => {
-                for e in query.iter() {
-                    commands.entity(e.0).despawn_recursive();
-                }
-
-                *previous_angle = None;
-            }
+    let Some(touch) = touch_rotate.0.as_ref() else {
+        for (entity, _) in existing_arrows.iter() {
+            commands.entity(entity).despawn_recursive();
         }
+
+        *previous_angle = None;
+        return;
+    };
+
+    let transform = draggables
+        .iter()
+        .find(|x| x.0.touch_id().is_some())
+        .map(|x| x.1)
+        .cloned()
+        .unwrap_or_default();
+
+    let mut path = bevy_prototype_lyon::path::PathBuilder::new();
+    let radius = touch.current.distance(transform.translation.truncate());
+
+    let centre = transform.translation.truncate();
+
+    let current_angle = angle_to(touch.current - centre);
+    let start_angle = current_angle - touch.total_radians;
+
+    let sweep_angle = touch.total_radians;
+
+    let path_start = centre + point_at_angle(radius, start_angle);
+    let path_end = centre + point_at_angle(radius, start_angle + sweep_angle);
+    *previous_angle = Some(sweep_angle);
+
+    const ARROW_WIDTH: f32 = 6.0;
+    const ARROW_LENGTH: f32 = 100.0;
+    let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (radius * TAU);
+    if sweep_angle.abs() > arrow_angle.abs() {
+        path.move_to(path_start);
+
+        //path.quadratic_bezier_to(ctrl, to)
+
+        path.arc(
+            centre,
+            Vec2 {
+                x: radius,
+                y: radius,
+            },
+            sweep_angle - arrow_angle,
+            0.0,
+        );
+
+        let arrow_point = centre + point_at_angle(radius, start_angle + sweep_angle - arrow_angle);
+
+        path.move_to(arrow_point); // just incase
+
+        path.line_to(arrow_point.lerp(centre, ARROW_WIDTH / radius));
+        path.line_to(path_end);
+
+        path.line_to(arrow_point.lerp(centre, -ARROW_WIDTH / radius));
+
+        path.line_to(arrow_point);
+    }
+
+    if let Some(mut p) = existing_arrows.iter_mut().next() {
+        *p.1 = path.build();
+    } else {
+        commands
+            .spawn((
+                bevy_prototype_lyon::prelude::ShapeBundle {
+                    path: path.build(),
+                    ..default()
+                },
+                bevy_prototype_lyon::prelude::Stroke::new(ARROW_STROKE, 10.0),
+            ))
+            .insert(Transform::from_translation(Vec3::Z * 50.0))
+            .insert(RotateArrow);
     }
 }
 
@@ -517,11 +507,14 @@ pub fn drag_start(
                 true //keep looking for intersections
             });
         } else if let DragSource::Touch { touch_id } = event.drag_source {
-            if let Some((_, transform)) = draggables.iter().find(|x| x.0.touch_id().is_some()) {
+            if draggables
+                .iter()
+                .find(|x| x.0.touch_id().is_some())
+                .is_some()
+            {
                 *touch_rotate = TouchRotateResource(Some(TouchRotate {
-                    start: event.position,
+                    total_radians: 0.0,
                     current: event.position,
-                    centre: transform.translation.truncate(),
                     touch_id,
                 }));
             }
@@ -614,14 +607,13 @@ pub struct Dragged {
     pub drag_source: DragSource,
 }
 
-#[derive(Resource, Default)]
+#[derive(Debug, Resource, Default)]
 pub struct TouchRotateResource(Option<TouchRotate>);
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct TouchRotate {
-    pub start: Vec2,
     pub current: Vec2,
-    pub centre: Vec2,
+    pub total_radians: f32,
     pub touch_id: u64,
 }
 #[derive(Debug, Event)]

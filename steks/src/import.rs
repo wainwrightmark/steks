@@ -20,7 +20,7 @@ fn handle_import_events(
 ) {
     #[cfg(target_arch = "wasm32")]
     {
-        use crate::designed_level::DesignedLevel;
+        use steks_common::prelude::*;
         use anyhow::anyhow;
         use std::sync::Arc;
         for _ in _events.iter() {

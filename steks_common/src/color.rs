@@ -10,6 +10,7 @@ pub const VOID_SHAPE_FILL: Color = Color::BLACK;
 pub const FIXED_SHAPE_STROKE: Color = Color::BLACK;
 pub const VOID_SHAPE_STROKE: Color = WARN_COLOR;
 pub const ICE_SHAPE_STROKE: Color = Color::WHITE;
+pub const ICE_SHAPE_STROKE_HIGH_CONTRAST: Color = Color::GRAY;
 
 pub const SHADOW_STROKE: Color = Color::hsla(0.0, 0.0, 0.0, 0.8);
 pub const ARROW_STROKE: Color = Color::hsla(0.0, 0.0, 0.0, 0.8);

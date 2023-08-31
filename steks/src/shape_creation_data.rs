@@ -95,9 +95,9 @@ impl ShapeCreationData {
             .unwrap_or_else(|| self.shape.fill(high_contrast))
     }
 
-    pub fn stroke(&self) -> Stroke {
+    pub fn stroke(&self, high_contrast: bool) -> Stroke {
         self.state.stroke().unwrap_or_else(|| {
-            self.modifiers.stroke().unwrap_or_else(|| Stroke {
+            self.modifiers.stroke(high_contrast).unwrap_or_else(|| Stroke {
                 color: color::Color::NONE,
                 options: StrokeOptions::DEFAULT.with_line_width(0.0),
             })

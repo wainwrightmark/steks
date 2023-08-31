@@ -75,12 +75,14 @@ fn clear_padlock_on_level_change(
 fn control_padlock(
     mut commands: Commands,
     padlock_resource: Res<PadlockResource>,
+    settings: Res<GameSettings>,
     mut query: Query<(Entity, &mut Visibility, &mut Transform), With<Padlock>>,
 ) {
     if padlock_resource.is_changed() {
         debug!("Padlock changed {padlock_resource:?}");
         match padlock_resource.status {
             PadlockStatus::Locked { translation, .. } => {
+                let color = if settings.high_contrast { Color::WHITE} else{ Color::BLACK};
                 for (e, mut visibility, mut transform) in query.iter_mut() {
                     *visibility = Visibility::Inherited;
 
@@ -105,7 +107,7 @@ fn control_padlock(
                         }))
                         .insert(Fill {
                             options: FillOptions::DEFAULT,
-                            color: Color::BLACK,
+                            color,
                         })
                         .insert(Transition::<TransformTranslationLens> {
                             step: TransitionStep::new_arc(
@@ -114,18 +116,10 @@ fn control_padlock(
                                 None,
                             ),
                         });
-
-                    // // .insert(bevy_tweening::Animator::new(Tween::new(
-                    // //     EaseFunction::QuadraticInOut,
-                    // //     Duration::from_secs(1),
-                    // //     TransformPositionLens {
-                    // //         start: transform.translation,
-                    // //         end: transform_to.translation,
-                    // //     },
-                    // // )));
                 }
             }
             PadlockStatus::Visible { translation, .. } => {
+                let color = if settings.high_contrast { Color::BLACK} else{ Color::BLACK};
                 for (e, mut visibility, mut transform) in query.iter_mut() {
                     *visibility = Visibility::Inherited;
 
@@ -138,7 +132,7 @@ fn control_padlock(
                         }))
                         .insert(Fill {
                             options: FillOptions::DEFAULT,
-                            color: Color::BLACK,
+                            color
                         });
                 }
             }

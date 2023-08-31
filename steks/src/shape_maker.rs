@@ -186,7 +186,7 @@ pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData,
         })
         .insert(Ccd::enabled())
         .insert(shape_with_data.fill(settings.high_contrast))
-        .insert(shape_with_data.stroke())
+        .insert(shape_with_data.stroke(settings.high_contrast))
         .insert(shape_with_data.shape.index)
         .insert(RigidBody::Dynamic)
         .insert(collider_shape)

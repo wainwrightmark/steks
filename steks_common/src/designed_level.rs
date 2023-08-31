@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{f32::consts};
+use std::f32::consts;
 
 use crate::prelude::*;
 lazy_static::lazy_static! {

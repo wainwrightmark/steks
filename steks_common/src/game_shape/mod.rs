@@ -69,10 +69,6 @@ impl GameShape {
         Fill::color(color)
     }
 
-    pub fn stroke(&self) -> Stroke {
-        Stroke::color(Color::BLACK)
-    }
-
     pub fn from_index(index: &usize) -> &Self {
         &ALL_SHAPES[*index]
     }

@@ -27,9 +27,9 @@ impl ShapeUpdateData {
             .or_else(|| self.shape.map(|x| x.fill(high_contrast)))
     }
 
-    pub fn stroke(&self) -> Stroke {
+    pub fn stroke(&self, high_contrast: bool) -> Stroke {
         self.state.and_then(|x| x.stroke()).unwrap_or_else(|| {
-            self.modifiers.stroke().unwrap_or_else(|| Stroke {
+            self.modifiers.stroke(high_contrast).unwrap_or_else(|| Stroke {
                 color: color::Color::NONE,
                 options: StrokeOptions::DEFAULT.with_line_width(0.0),
             })
@@ -91,7 +91,7 @@ impl ShapeUpdateData {
         }
 
         ec.insert(self.fill(settings.high_contrast).unwrap_or_else(|| previous_shape.fill(settings.high_contrast)));
-        ec.insert(self.stroke());
+        ec.insert(self.stroke(settings.high_contrast));
 
         ec.insert(transform);
 

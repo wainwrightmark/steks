@@ -34,9 +34,11 @@ impl Plugin for LeaderboardPlugin {
             .add_plugins(TrackedResourcePlugin::<WorldRecords>::default())
             .add_plugins(TrackedResourcePlugin::<CampaignCompletion>::default())
             .add_plugins(TrackedResourcePlugin::<Streak>::default())
+            .add_plugins(AsyncEventPlugin::<CheatEvent>::default())
             .init_resource::<WorldRecords>()
-            //.add_systems(Startup, load_leaderboard_data)
+
             .add_systems(PostStartup, check_for_cheat_on_game_load)
+            .add_systems(Update, detect_cheat)
             .add_systems(Update, hydrate_leaderboard)
             .add_systems(Update, check_pbs_on_completion)
             .add_systems(Update, check_pbs_on_completion)
@@ -99,10 +101,20 @@ impl TrackableResource for Streak {
 #[derive(Debug, Event)]
 pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
 
-fn check_for_cheat_on_game_load(mut completion: ResMut<CampaignCompletion>) {
-    if is_cheat_in_path().is_some() {
-        info!("Found cheat in path");
+#[derive(Debug, Event)]
+pub struct CheatEvent;
 
+
+
+fn check_for_cheat_on_game_load(mut events: EventWriter<CheatEvent>) {
+    if is_cheat_in_path().is_some(){
+        events.send(CheatEvent);
+    }
+}
+
+fn detect_cheat(mut events: EventReader<CheatEvent>, mut completion: ResMut<CampaignCompletion>){
+    for _ in events.into_iter(){
+        info!("Detected cheat event");
         CampaignCompletion::fill_with_incomplete(&mut completion);
 
         for m in completion.stars.iter_mut().filter(|x| x.is_incomplete()) {
@@ -336,7 +348,8 @@ fn update_campaign_completion(
         if matches!(index + 1, 7 | 25 | 40) && medal_type == StarType::Incomplete {
             #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
             {
-                spawn_async(async move { capacitor_bindings::rate::Rate::request_review().await });
+                bevy::tasks::IoTaskPool::get()
+                .spawn(async move { capacitor_bindings::rate::Rate::request_review().await }).detach();
             }
         }
 
@@ -396,7 +409,7 @@ fn check_pbs_on_completion(
         #[cfg(any(feature = "android", feature = "ios"))]
         {
             if pb_changed {
-                if let Some(leaderboard_id) = current_level.leaderboard_id() {
+                if let Some(leaderboard_id) = current_level.level.leaderboard_id() {
                     use capacitor_bindings::game_connect::*;
                     let options = SubmitScoreOptions {
                         total_score_amount: (height * 100.).floor() as i32, //multiply by 100 as there are two decimal places

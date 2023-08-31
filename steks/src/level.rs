@@ -393,6 +393,20 @@ impl GameLevel {
             GameLevel::Begging => StarType::Incomplete,
         }
     }
+
+    pub fn get_two_star_threshold(&self)-> Option<f32>{
+        match self {
+            GameLevel::Designed { meta } => Some(meta.get_level().get_silver_threshold()),
+            _ => None,
+        }
+    }
+
+    pub fn get_three_star_threshold(&self)-> Option<f32>{
+        match self {
+            GameLevel::Designed { meta } => Some(meta.get_level().get_gold_threshold()),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]

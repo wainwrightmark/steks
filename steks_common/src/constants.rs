@@ -72,11 +72,15 @@ pub const LEVEL_END_TEXT_MAX_CHARS: usize = "if it weren't for you meddling kids
 
 const FIRA_FONT_PATH: &str = "fonts/merged-font.ttf";
 
+const OSWALD_FONT_PATH: &str = "fonts/Oswald-Medium.ttf";
+
 pub const LEVEL_TEXT_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const LEVEL_TITLE_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const LEVEL_NUMBER_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const MENU_TEXT_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const ICON_FONT_PATH: &str = "fonts/merged-font.ttf";
+
+pub const STAR_HEIGHT_FONT_PATH: &str = OSWALD_FONT_PATH;
 
 pub const ICON_FONT_SIZE: f32 = 30.0;
 pub const BUTTON_FONT_SIZE: f32 = 20.0;

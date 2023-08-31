@@ -114,6 +114,16 @@ impl DesignedLevel {
 
         StarType::guess(height, num_shapes) //TODO specific values for each star
     }
+
+    pub fn get_silver_threshold(&self)-> f32{
+        let num_shapes: usize = self.all_stages().map(|z| z.shapes.len()).sum(); //TODO handle void shapes
+        num_shapes as f32 * 35.
+    }
+
+    pub fn get_gold_threshold(&self)-> f32{
+        let num_shapes: usize = self.all_stages().map(|z| z.shapes.len()).sum(); //TODO handle void shapes
+        num_shapes as f32 * 40.
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]

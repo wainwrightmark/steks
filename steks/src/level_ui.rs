@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate:: prelude::*;
 use bevy::render::texture::CompressedImageFormats;
 use itertools::Itertools;
 use maveric::{impl_maveric_root, prelude::*, transition::speed::ScalarSpeed};
@@ -58,7 +58,7 @@ impl RootChildren for LevelUiRoot {
                         GameUIState::Minimized => Val::Percent(10.),
                     };
 
-                    if !context.1.1.level.skip_completion(){
+                    if !context.1 .1.level.skip_completion() {
                         commands.add_child(
                             "panel",
                             MainPanelWrapper {
@@ -70,8 +70,6 @@ impl RootChildren for LevelUiRoot {
                             &context.1 .2,
                         )
                     }
-
-
                 }
             };
         }
@@ -225,13 +223,16 @@ impl MavericNode for MainPanel {
                         context,
                     );
 
-                    commands.add_child("preview_message", level_text_node("Challenge a friend to\nbeat your score!"), context);
+                    commands.add_child(
+                        "preview_message",
+                        level_text_node("Challenge a friend to\nbeat your score!"),
+                        context,
+                    );
 
                     commands.add_child("buttons", ButtonPanel::Preview(preview), context);
                 }
 
                 GameUIState::Splash => {
-
                     commands.add_child("top_buttons", ButtonPanel::SplashTop, context);
 
                     let message = match &args.level {
@@ -247,9 +248,9 @@ impl MavericNode for MainPanel {
                     };
 
                     let message = std::iter::Iterator::chain(message.lines(), ["", ""])
-                    .take(3)
-                    .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
-                    .join("\n");
+                        .take(3)
+                        .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
+                        .join("\n");
 
                     commands.add_child("message", level_text_node(message), context);
 
@@ -289,7 +290,7 @@ impl MavericNode for MainPanel {
                             "wr",
                             TextPlusIcon {
                                 text: "New World Record ".to_string(),
-                                icon: IconButtonAction::None,
+                                icon: IconButtonAction::ViewRecord,
                             },
                             context,
                         );
@@ -331,6 +332,16 @@ impl MavericNode for MainPanel {
                             },
                             context,
                         );
+
+                        commands.add_child(
+                            "star_heights",
+                            StarHeights
+                            {
+                                level: args.level.clone(),
+                                score_info: args.score_info.clone()
+                            },
+                            context,
+                        );
                     }
 
                     commands.add_child("bottom_buttons", ButtonPanel::SplashBottom, context);
@@ -340,6 +351,76 @@ impl MavericNode for MainPanel {
                     }
                 }
             }
+        });
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StarHeights{
+    level: GameLevel,
+    score_info: ScoreInfo
+}
+
+impl MavericNode for StarHeights {
+    type Context = AssetServer;
+
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
+        commands.ignore_args().ignore_context().insert(NodeBundle {
+            style: Style {
+                display: Display::Flex,
+                grid_template_columns: vec![RepeatedGridTrack::px(
+                    3,
+                    THREE_STARS_IMAGE_WIDTH / 3.0,
+                )],
+                width: Val::Px(THREE_STARS_IMAGE_WIDTH),
+                grid_auto_flow: GridAutoFlow::Column,
+                // flex_basis: Val::Px(THREE_STARS_IMAGE_WIDTH / 3.0),
+                // flex_grow: 200.0,
+
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(-10.0), Val::Px(0.)),
+                justify_content: JustifyContent::SpaceEvenly,
+                ..Default::default()
+            },
+            //background_color: BackgroundColor(Color::RED),
+            ..Default::default()
+        });
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands.unordered_children_with_args_and_context(|args, context, commands| {
+            let filler:  &str = "    ";
+            let empty = "        ";
+
+            let second_star: String = match args.score_info.star{
+                StarType::Incomplete | StarType::OneStar  => args
+                .level
+                .get_two_star_threshold()
+                .map(|x| format!("{filler}{x:3.0}m"))
+                .unwrap_or_else(|| empty.to_string()),
+                StarType::ThreeStar | StarType::TwoStar => empty.to_string(),
+            };
+
+            let third_star: String = match args.score_info.star{
+                StarType::Incomplete | StarType::OneStar | StarType::TwoStar => args
+                .level
+                .get_three_star_threshold()
+                .map(|x| format!("{filler}{x:3.0}m"))
+                .unwrap_or_else(|| empty.to_string()),
+                StarType::ThreeStar => empty.to_string(),
+            };
+
+            let tn = |text: String| TextNode {
+                text,
+                font_size: LEVEL_TEXT_FONT_SIZE,
+                color: Color::BLACK,
+                font: STAR_HEIGHT_FONT_PATH,
+                alignment: TextAlignment::Center,
+                linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+            };
+
+            commands.add_child(0, tn(empty.to_string()), context);
+            commands.add_child(1, tn(second_star), context);
+            commands.add_child(2, tn(third_star), context);
         });
     }
 }
@@ -456,25 +537,27 @@ impl MavericNode for ButtonPanel {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_context().insert_with_node(|node|
-             NodeBundle {
+        commands
+            .ignore_context()
+            .insert_with_node(|node| NodeBundle {
+                style: Style {
+                    display: Display::Flex,
 
+                    flex_direction: FlexDirection::Row,
+                    margin: UiRect::new(Val::Px(0.), Val::Px(0.), Val::Px(0.), Val::Px(0.)),
 
+                    align_self: if node.is_splash_top() {
+                        AlignSelf::End
+                    } else {
+                        AlignSelf::Center
+                    },
+                    width: Val::Auto,
+                    height: Val::Auto,
 
-            style: Style {
-                display: Display::Flex,
-
-                flex_direction: FlexDirection::Row,
-                margin: UiRect::new(Val::Px(0.), Val::Px(0.), Val::Px(0.), Val::Px(0.)),
-
-                align_self: if node.is_splash_top() {AlignSelf::End} else {AlignSelf::Center} ,
-                width: Val::Auto,
-                height: Val::Auto,
-
+                    ..Default::default()
+                },
                 ..Default::default()
-            },
-            ..Default::default()
-        });
+            });
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
@@ -487,29 +570,23 @@ impl MavericNode for ButtonPanel {
                             IconButtonAction::NextLevel,
                         ]
                     } else {
-                        &[
-                            IconButtonAction::NextLevel,
-                        ]
+                        &[IconButtonAction::NextLevel]
                     }
                 }
-                ButtonPanel::SplashTop =>{
-                    &[IconButtonAction::MinimizeSplash]
-                }
+                ButtonPanel::SplashTop => &[IconButtonAction::MinimizeSplash],
                 ButtonPanel::Preview(PreviewImage::PB) => {
                     &[IconButtonAction::SharePB, IconButtonAction::RestoreSplash]
                 }
-                ButtonPanel::Preview(PreviewImage::WR) => {
-                    &[ IconButtonAction::RestoreSplash]
-                }
+                ButtonPanel::Preview(PreviewImage::WR) => &[IconButtonAction::RestoreSplash],
             };
 
             for (key, action) in actions.iter().enumerate() {
-                let style = if *action == IconButtonAction::MinimizeSplash {IconButtonStyle::Compact} else {IconButtonStyle::HeightPadded};
-                commands.add_child(
-                    key as u32,
-                    icon_button_node(action.clone(), style),
-                    context,
-                );
+                let style = if *action == IconButtonAction::MinimizeSplash {
+                    IconButtonStyle::Compact
+                } else {
+                    IconButtonStyle::HeightPadded
+                };
+                commands.add_child(key as u32, icon_button_node(action.clone(), style), context);
             }
         });
     }
@@ -775,7 +852,7 @@ impl IntoBundle for PreviewImageStyle {
     fn into_bundle(self) -> Self::B {
         Style {
             width: Val::Px(PREVIEW_IMAGE_SIZE_F32 - 1.0),
-            height: Val::Px(PREVIEW_IMAGE_SIZE_F32  - 1.0),
+            height: Val::Px(PREVIEW_IMAGE_SIZE_F32 - 1.0),
             margin: UiRect::all(Val::Auto),
 
             ..Default::default()

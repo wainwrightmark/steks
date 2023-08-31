@@ -320,6 +320,7 @@ async fn update_wrs_async(hash: u64, height: f32, blob: String) -> Result<(), re
 fn update_campaign_completion(
     current_level: Res<CurrentLevel>,
     mut campaign_completion: ResMut<CampaignCompletion>,
+    mut achievements: ResMut<Achievements>
 ) {
     if !current_level.is_changed() {
         return;
@@ -342,10 +343,10 @@ fn update_campaign_completion(
 
     CampaignCompletion::fill_with_incomplete(&mut campaign_completion);
 
-    let medal_type = campaign_completion.stars[index as usize];
+    let start_type = campaign_completion.stars[index as usize];
 
-    if medal_type < score_info.star {
-        if matches!(index + 1, 7 | 25 | 40) && medal_type == StarType::Incomplete {
+    if start_type < score_info.star {
+        if matches!(index + 1, 7 | 25 | 40) && start_type == StarType::Incomplete {
             #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
             {
                 bevy::tasks::IoTaskPool::get()
@@ -354,6 +355,14 @@ fn update_campaign_completion(
         }
 
         campaign_completion.stars[index as usize] = score_info.star;
+
+        if start_type.is_three_star() && campaign_completion.stars.iter().all(|x|x.is_three_star()) {
+            Achievements::unlock_if_locked(&mut achievements, Achievement::SuperMario);
+            Achievements::unlock_if_locked(&mut achievements, Achievement::OkMario);
+        }
+        else if (start_type.is_two_star() || start_type.is_three_star())  && campaign_completion.stars.iter().all(|x|x.is_two_star() || x.is_three_star() ) {
+            Achievements::unlock_if_locked(&mut achievements, Achievement::OkMario);
+        }
     }
 }
 

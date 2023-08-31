@@ -147,6 +147,10 @@ pub enum Achievement {
     IAmInevitable,
     ItsATrap,
     LookTheresBleppo,
+
+    CivilEngineer,
+    OkMario,
+    SuperMario,
 }
 
 impl Achievement {
@@ -177,6 +181,9 @@ impl Achievement {
             IAmInevitable => "CgkItNbalLwcEAIQFQ",
             ItsATrap => "CgkItNbalLwcEAIQFg",
             LookTheresBleppo => "CgkItNbalLwcEAIQFw",
+            CivilEngineer => "CgkItNbalLwcEAIQGQ",
+            OkMario => "CgkItNbalLwcEAIQGg",
+            SuperMario => "CgkItNbalLwcEAIQGw",
         }
         //spell-checker: enable
     }
@@ -202,78 +209,86 @@ fn track_level_completion_achievements(
     use DesignedLevelMeta::*;
 
     if current_level.is_changed() {
-        if let LevelCompletion::Incomplete { stage } = current_level.completion {
-            if let Infinite { .. } = current_level.level {
-                if let Some(achievement) = match stage + 2 {
-                    5 => Some(InfinityMinus5),
-                    10 => Some(AlephOmega),
-                    20 => Some(EverythingEverywhereAllAtOnce),
-                    _ => None,
-                } {
-                    Achievements::unlock_if_locked(&mut achievements, achievement);
-                }
-            }
-        } else {
-            // level complete
-            let shapes = shapes_vec_from_query(shapes_query);
-            let height = shapes.calculate_tower_height();
-
-            info!(
-                "Checking achievements {} shapes, height {height}",
-                shapes.len()
-            );
-            for achievement in [
-                BusinessSecretsOfThePharaohs,
-                LiveFromNewYork,
-                IOughtToBeJealous,
-                KingKong,
-            ] {
-                if achievement.met_by_shapes(shapes.len(), height) {
-                    Achievements::unlock_if_locked(&mut achievements, achievement);
-                }
-            }
-
-            match current_level.level {
-                Designed {
-                    meta: Tutorial { index },
-                } => {
-                    if index == 2 {
-                        Achievements::unlock_if_locked(&mut achievements, QualifyAsAnArchitect);
-                    }
-                }
-                Designed {
-                    meta: Campaign { index },
-                } => {
-                    if let Some(achievement) = match index + 1 {
-                        5 => Some(Imhotep),
-                        10 => Some(Vitruvius),
-                        15 => Some(QinShiHuang),
-                        20 => Some(UstadAhmadLahori),
-                        25 => Some(ChristopherWren),
-                        30 => Some(DenysLasdun),
-                        35 => Some(ZahaHadid),
-                        40 => Some(IAmInevitable),
+        match current_level.completion {
+            LevelCompletion::Incomplete { stage } => {
+                if let Infinite { .. } = current_level.level {
+                    if let Some(achievement) = match stage + 2 {
+                        5 => Some(InfinityMinus5),
+                        10 => Some(AlephOmega),
+                        20 => Some(EverythingEverywhereAllAtOnce),
                         _ => None,
                     } {
                         Achievements::unlock_if_locked(&mut achievements, achievement);
                     }
                 }
-                Challenge { streak, .. } => {
-                    if let Some(achievement) = match streak {
-                        1 => Some(Enthusiast),
-                        3 => Some(OnTheBrain),
-                        7 => Some(Obsessed),
-                        30 => Some(Addict),
-                        _ => None,
-                    } {
+            }
+            LevelCompletion::Complete { score_info } => {
+                // level complete
+                let shapes = shapes_vec_from_query(shapes_query);
+                let height = score_info.height;
+
+                info!(
+                    "Checking achievements {} shapes, height {height}",
+                    shapes.len()
+                );
+
+                if score_info.star.is_three_star(){
+                    Achievements::unlock_if_locked(&mut achievements, CivilEngineer);
+                }
+
+                for achievement in [
+                    BusinessSecretsOfThePharaohs,
+                    LiveFromNewYork,
+                    IOughtToBeJealous,
+                    KingKong,
+                ] {
+                    if achievement.met_by_shapes(shapes.len(), height) {
                         Achievements::unlock_if_locked(&mut achievements, achievement);
                     }
                 }
-                Designed { meta: Credits } => {
-                    Achievements::unlock_if_locked(&mut achievements, LookTheresBleppo);
-                }
 
-                _ => {}
+                match current_level.level {
+                    Designed {
+                        meta: Tutorial { index },
+                    } => {
+                        if index == 2 {
+                            Achievements::unlock_if_locked(&mut achievements, QualifyAsAnArchitect);
+                        }
+                    }
+                    Designed {
+                        meta: Campaign { index },
+                    } => {
+                        if let Some(achievement) = match index + 1 {
+                            5 => Some(Imhotep),
+                            10 => Some(Vitruvius),
+                            15 => Some(QinShiHuang),
+                            20 => Some(UstadAhmadLahori),
+                            25 => Some(ChristopherWren),
+                            30 => Some(DenysLasdun),
+                            35 => Some(ZahaHadid),
+                            40 => Some(IAmInevitable),
+                            _ => None,
+                        } {
+                            Achievements::unlock_if_locked(&mut achievements, achievement);
+                        }
+                    }
+                    Challenge { streak, .. } => {
+                        if let Some(achievement) = match streak {
+                            1 => Some(Enthusiast),
+                            3 => Some(OnTheBrain),
+                            7 => Some(Obsessed),
+                            30 => Some(Addict),
+                            _ => None,
+                        } {
+                            Achievements::unlock_if_locked(&mut achievements, achievement);
+                        }
+                    }
+                    Designed { meta: Credits } => {
+                        Achievements::unlock_if_locked(&mut achievements, LookTheresBleppo);
+                    }
+
+                    _ => {}
+                }
             }
         }
     }

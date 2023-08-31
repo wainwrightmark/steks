@@ -25,23 +25,20 @@
     - text: "Shu-Min Wee"
       text_forever: true
       shapes:
-        - shape: u5
+        - shape: X5
     - text: "Felix Johnston"
       text_forever: true
       shapes:
-        - shape: f5
+        - shape: U5
+    - text: "Chris Bredie"
+      text_forever: true
+      shapes:
+        - shape: J4
     - text: "Johnny Lucas"
       text_forever: true
       shapes:
         - shape: J4
-    - text: "Molly Luckhurst"
-      text_forever: true
-      shapes:
-        - shape: y5
-    - text: "Toby Luckhurst"
-      text_forever: true
-      shapes:
-        - shape: t5
+
     - text: "Bevy Game Engine"
       text_forever: true
       shapes:

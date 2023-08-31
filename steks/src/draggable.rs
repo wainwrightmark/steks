@@ -57,22 +57,6 @@ impl Plugin for DragPlugin {
     }
 }
 
-fn handle_rotate_events(
-    mut ev_rotate: EventReader<RotateEvent>,
-    mut dragged: Query<(&mut Transform, &BeingDragged)>,
-) {
-    for ev in ev_rotate.iter() {
-        for (mut rb, _) in dragged.iter_mut() {
-            //info!("Rotate Event");
-            //bd.desired_rotation = rb.rotation*  Quat::from_rotation_z(ev.angle);
-            rb.rotation *= Quat::from_rotation_z(ev.angle);
-            if let Some(multiple) = ev.snap_resolution {
-                rb.rotation = round_z(rb.rotation, multiple);
-            }
-        }
-    }
-}
-
 fn round_z(q: Quat, multiple: f32) -> Quat {
     let multiple = multiple / 2.;
     let [x, y, z, w] = q.to_array();
@@ -263,13 +247,50 @@ pub fn drag_move(
                     let angle =
                         (new_angle - previous_angle) * settings.rotation_sensitivity.coefficient();
 
-                    //let angle = closest_angle_representation(angle, previous_angle);
+
                     ev_rotate.send(RotateEvent {
                         angle,
                         snap_resolution: None,
                     });
                     rotate.current = event.new_position;
                     *touch_rotate = TouchRotateResource(Some(rotate));
+                }
+            }
+        }
+    }
+}
+
+fn handle_rotate_events(
+    mut ev_rotate: EventReader<RotateEvent>,
+    mut dragged: Query<&mut Transform, With<BeingDragged>>,
+    mut touch_rotate: ResMut<TouchRotateResource>,
+) {
+    for ev in ev_rotate.iter() {
+        for mut transform in dragged.iter_mut() {
+            //info!("Rotate Event");
+            //bd.desired_rotation = rb.rotation*  Quat::from_rotation_z(ev.angle);
+            transform.rotation *= Quat::from_rotation_z(ev.angle);
+            if let Some(multiple) = ev.snap_resolution {
+                transform.rotation = round_z(transform.rotation, multiple);
+            }
+
+            if let Some(tr) = touch_rotate.0 {
+                let radius_squared = tr.centre.distance_squared(tr.start);
+                let new_distance_squared = tr.centre.distance_squared(transform.translation.truncate());
+
+                if new_distance_squared > radius_squared {
+
+                    let normalized = (transform.translation.truncate() - tr.centre).normalize_or_zero();
+                    let radius = radius_squared.sqrt();
+                    let new_start = tr.centre + (radius * normalized);
+                    let new_centre = tr.centre +  (radius * 2.0 * normalized);
+
+                    touch_rotate.0 = Some(TouchRotate {
+                        start: new_start,
+                        current: tr.current,
+                        centre: new_centre,
+                        touch_id: tr.touch_id,
+                    });
                 }
             }
         }
@@ -319,38 +340,47 @@ fn draw_rotate_arrows(
         match touch_rotate.0 {
             Some(touch) => {
                 let mut path = bevy_prototype_lyon::path::PathBuilder::new();
-                let dist = touch.centre.distance(touch.start);
+                let radius = touch.centre.distance(touch.start);
 
                 let current_angle = angle_to(touch.current - touch.centre);
                 let start_angle = angle_to(touch.start - touch.centre);
 
-                let sweep_angle = current_angle - start_angle;
+                let mut sweep_angle = current_angle - start_angle;
 
-                let sweep_angle =
+                sweep_angle =
                     closest_angle_representation(sweep_angle, previous_angle.unwrap_or_default())
                         * settings.rotation_sensitivity.coefficient();
 
-                let path_end = touch.centre + point_at_angle(dist, start_angle + sweep_angle);
-                *previous_angle = Some(sweep_angle);
+                // if sweep_angle > TAU{
+                //     sweep_angle -= TAU;
+                // }
 
+                let path_end = touch.centre + point_at_angle(radius, start_angle + sweep_angle);
+                *previous_angle = Some(sweep_angle);
 
                 const ARROW_WIDTH: f32 = 6.0;
                 const ARROW_LENGTH: f32 = 100.0;
-                let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (dist * TAU);
+                let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (radius * TAU);
                 if sweep_angle.abs() > arrow_angle.abs() {
                     path.move_to(touch.start);
+
                     path.arc(
                         touch.centre,
-                        Vec2 { x: dist, y: dist },
+                        Vec2 { x: radius, y: radius },
                         sweep_angle - arrow_angle,
                         0.0,
                     );
-                    let arrow_point = path.current_position();
 
-                    path.line_to(arrow_point.lerp(touch.centre, ARROW_WIDTH / dist));
+                    let arrow_point = touch.centre + point_at_angle(radius, start_angle + sweep_angle - arrow_angle);
+                    //let arrow_point = touch.centre + point_at_angle(radius, (current_angle - arrow_angle) * settings.rotation_sensitivity.coefficient());
+                    //let arrow_point = path.current_position();
+
+                    path.move_to(arrow_point); // just incase
+
+                    path.line_to(arrow_point.lerp(touch.centre, ARROW_WIDTH / radius));
                     path.line_to(path_end);
 
-                    path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / dist));
+                    path.line_to(arrow_point.lerp(touch.centre, -ARROW_WIDTH / radius));
 
                     path.line_to(arrow_point);
                 }

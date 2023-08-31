@@ -673,9 +673,10 @@ impl ChangeLevelEvent {
                     }
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),
-                GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
+                GameLevel::Challenge { .. } |  GameLevel::Begging => {
                     (GameLevel::CREDITS, 0)
-                }
+                },
+                GameLevel::Loaded { .. } => (GameLevel::CREDITS, 0)//todo tutorial if not completed
             },
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
             ChangeLevelEvent::StartInfinite => (GameLevel::new_infinite(), 0),

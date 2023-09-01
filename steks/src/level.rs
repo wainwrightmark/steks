@@ -122,9 +122,10 @@ fn handle_change_level_events(
     mut change_level_events: EventReader<ChangeLevelEvent>,
     mut current_level: ResMut<CurrentLevel>,
     streak: Res<Streak>,
+    completion:Res<CampaignCompletion>,
 ) {
     if let Some(event) = change_level_events.iter().next() {
-        let (level, stage) = event.get_new_level(&current_level.level, &streak);
+        let (level, stage) = event.get_new_level(&current_level.level, &streak, &completion);
 
         #[cfg(target_arch = "wasm32")]
         {
@@ -348,10 +349,6 @@ pub fn generate_score_info(
     }
 }
 
-
-
-
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum GameLevel {
     Designed { meta: DesignedLevelMeta },
@@ -394,14 +391,14 @@ impl GameLevel {
         }
     }
 
-    pub fn get_two_star_threshold(&self)-> Option<f32>{
+    pub fn get_two_star_threshold(&self) -> Option<f32> {
         match self {
             GameLevel::Designed { meta } => Some(meta.get_level().get_silver_threshold()),
             _ => None,
         }
     }
 
-    pub fn get_three_star_threshold(&self)-> Option<f32>{
+    pub fn get_three_star_threshold(&self) -> Option<f32> {
         match self {
             GameLevel::Designed { meta } => Some(meta.get_level().get_gold_threshold()),
             _ => None,
@@ -447,7 +444,7 @@ impl DesignedLevelMeta {
         }
     }
 
-    pub fn try_get_level(&self) -> Option<& DesignedLevel> {
+    pub fn try_get_level(&self) -> Option<&DesignedLevel> {
         match self {
             DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS.get(*index as usize),
             DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS.get(*index as usize),
@@ -465,9 +462,9 @@ impl DesignedLevelMeta {
                 .get(*index as usize)
                 .expect("Could not get campaign level"),
             DesignedLevelMeta::Custom { level } => level.as_ref(),
-            DesignedLevelMeta::Credits => CREDITS_LEVELS
-                .get(0)
-                .expect("Could not get credits level"),
+            DesignedLevelMeta::Credits => {
+                CREDITS_LEVELS.get(0).expect("Could not get credits level")
+            }
         }
     }
 }
@@ -654,7 +651,12 @@ fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<
 
 impl ChangeLevelEvent {
     #[must_use]
-    pub fn get_new_level(&self, level: &GameLevel, streak_data: &Streak) -> (GameLevel, usize) {
+    pub fn get_new_level(
+        &self,
+        level: &GameLevel,
+        streak_data: &Streak,
+        completion: &CampaignCompletion,
+    ) -> (GameLevel, usize) {
         info!("Changing level {self:?} level {level:?}");
 
         match self {
@@ -673,10 +675,20 @@ impl ChangeLevelEvent {
                     }
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),
-                GameLevel::Challenge { .. } |  GameLevel::Begging => {
-                    (GameLevel::CREDITS, 0)
-                },
-                GameLevel::Loaded { .. } => (GameLevel::CREDITS, 0)//todo tutorial if not completed
+                GameLevel::Challenge { .. } | GameLevel::Begging => (GameLevel::CREDITS, 0),
+                GameLevel::Loaded { .. } => {
+                    if completion.stars.iter().all(|x| x.is_incomplete()) {
+                        //IF they've never played the game before, take them to the tutorial
+                        (
+                            GameLevel::Designed {
+                                meta: DesignedLevelMeta::Tutorial { index: 0 },
+                            },
+                            0,
+                        )
+                    } else {
+                        (GameLevel::CREDITS, 0)
+                    }
+                } // , //todo tutorial if not completed
             },
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
             ChangeLevelEvent::StartInfinite => (GameLevel::new_infinite(), 0),

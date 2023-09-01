@@ -77,7 +77,7 @@ struct TimerStateRoot;
 
 impl_maveric_root!(TimerStateRoot);
 
-impl RootChildren for TimerStateRoot {
+impl MavericRootChildren for TimerStateRoot {
     type Context = NC2<WinCountdown, GameSettings> ;
 
     fn set_children(

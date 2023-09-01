@@ -28,7 +28,7 @@ impl Plugin for PadlockPlugin {
 #[derive(Debug, PartialEq, Default)]
 pub struct PadlockRoot;
 
-impl RootChildren for PadlockRoot {
+impl MavericRootChildren for PadlockRoot {
     type Context = NC2<PadlockResource, GameSettings>;
 
     fn set_children(

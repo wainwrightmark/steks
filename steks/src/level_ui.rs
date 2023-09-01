@@ -32,7 +32,7 @@ pub enum PreviewImage {
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct LevelUiRoot;
 
-impl RootChildren for LevelUiRoot {
+impl MavericRootChildren for LevelUiRoot {
     type Context = NC2<MenuState, NC3<GameUIState, CurrentLevel, AssetServer>>;
 
     fn set_children(
@@ -107,7 +107,7 @@ impl MavericNode for MainPanelWrapper {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_args_and_context(|args, context, commands| {
+        commands.unordered_children_with_node_and_context(|args, context, commands| {
             commands.add_child(
                 0,
                 MainPanel {
@@ -183,7 +183,7 @@ impl MavericNode for MainPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.ordered_children_with_args_and_context(|args, context, commands| {
+        commands.ordered_children_with_node_and_context(|args, context, commands| {
             let height = args.score_info.height;
 
             match args.ui_state {
@@ -387,7 +387,7 @@ impl MavericNode for StarHeights {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_args_and_context(|args, context, commands| {
+        commands.unordered_children_with_node_and_context(|args, context, commands| {
             let filler:  &str = "    ";
             let empty = "        ";
 
@@ -448,7 +448,7 @@ impl MavericNode for LevelTextPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_args_and_context(|args, context, commands| {
+        commands.unordered_children_with_node_and_context(|args, context, commands| {
             let initial_color = args.0.text_color();
             let destination_color = if args.0.text_fade() {
                 initial_color.with_a(0.0)
@@ -561,7 +561,7 @@ impl MavericNode for ButtonPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_args_and_context(|args, context, commands| {
+        commands.unordered_children_with_node_and_context(|args, context, commands| {
             let actions: &[IconButtonAction] = match args {
                 ButtonPanel::SplashBottom => {
                     if cfg!(any(feature = "android", feature = "ios")) {
@@ -741,7 +741,7 @@ impl MavericNode for TextPlusIcon {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_args_and_context(|args, context, commands| {
+        commands.unordered_children_with_node_and_context(|args, context, commands| {
             commands.add_child(0, level_text_node(args.text.clone()), context);
             commands.add_child(
                 1,

@@ -88,7 +88,7 @@ pub struct MenuRoot;
 
 impl_maveric_root!(MenuRoot);
 
-impl RootChildren for MenuRoot {
+impl MavericRootChildren for MenuRoot {
     type Context = MenuContext;
 
     fn set_children(
@@ -155,7 +155,7 @@ impl MavericNode for MenuPage {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_args_and_context(|args, context, commands| match args {
+        commands.unordered_children_with_node_and_context(|args, context, commands| match args {
             MenuPage::Main => {
                 use TextButtonAction::*;
                 let buttons = [
@@ -360,7 +360,7 @@ impl MavericNode for LevelMenuArrows {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_args_and_context(|args, context, commands| {
+        commands.unordered_children_with_node_and_context(|args, context, commands| {
             if args.0 == 0 {
                 commands.add_child(
                     "left",

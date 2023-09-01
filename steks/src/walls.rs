@@ -36,7 +36,7 @@ impl FromWorld for WindowSize {
 #[derive(Debug, Default, PartialEq)]
 struct WallsRoot;
 
-impl RootChildren for WallsRoot {
+impl MavericRootChildren for WallsRoot {
     type Context = NC4<WindowSize, Insets, GameSettings, RapierConfiguration>;
 
     fn set_children(
@@ -115,7 +115,7 @@ impl MavericNode for WallNode {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
             .ignore_context()
-            .unordered_children_with_args(|node, commands| {
+            .unordered_children_with_node(|node, commands| {
                 commands.add_child(0, WallSensorNode(node.0), &())
             })
     }

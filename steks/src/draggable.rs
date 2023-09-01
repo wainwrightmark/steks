@@ -237,7 +237,6 @@ pub fn drag_move(
                             snap_resolution: None,
                         });
                         rotate.current = event.new_position;
-                        rotate.total_radians += angle;
                     }
 
                     return;
@@ -309,7 +308,7 @@ fn draw_rotate_arrows(
     touch_rotate: Res<TouchRotateResource>,
     mut existing_arrows: Query<(Entity, &mut Path), With<RotateArrow>>,
     draggables: Query<(&ShapeComponent, &Transform), With<BeingDragged>>,
-    mut previous_angle: Local<Option<f32>>,
+    mut previous_angle: Local<f32>,
     current_level: Res<CurrentLevel>,
     settings: Res<GameSettings>,
 ) {
@@ -321,7 +320,7 @@ fn draw_rotate_arrows(
             commands.entity(entity).despawn_recursive();
         }
 
-        *previous_angle = None;
+        *previous_angle = 0.0;
         return;
     }
 
@@ -330,7 +329,7 @@ fn draw_rotate_arrows(
             commands.entity(entity).despawn_recursive();
         }
 
-        *previous_angle = None;
+        *previous_angle = 0.0;
         return;
     };
 
@@ -342,18 +341,18 @@ fn draw_rotate_arrows(
         .unwrap_or_default();
 
     let mut path = bevy_prototype_lyon::path::PathBuilder::new();
-    let radius = touch.current.distance(transform.translation.truncate());
 
     let centre = transform.translation.truncate();
+    let radius = centre.distance(touch.start);
 
-    let current_angle = angle_to(touch.current - centre);
-    let start_angle = current_angle - touch.total_radians;
+    let start_angle = angle_to(touch.start - centre);
+    let end_angle = angle_to(touch.current - centre);
 
-    let sweep_angle = touch.total_radians;
+    let sweep_angle = closest_angle_representation(end_angle - start_angle, *previous_angle);
+    *previous_angle = sweep_angle;
 
     let path_start = centre + point_at_angle(radius, start_angle);
     let path_end = centre + point_at_angle(radius, start_angle + sweep_angle);
-    *previous_angle = Some(sweep_angle);
 
     const ARROW_WIDTH: f32 = 6.0;
     const ARROW_LENGTH: f32 = 100.0;
@@ -513,7 +512,7 @@ pub fn drag_start(
                 .is_some()
             {
                 *touch_rotate = TouchRotateResource(Some(TouchRotate {
-                    total_radians: 0.0,
+                    start: event.position,
                     current: event.position,
                     touch_id,
                 }));
@@ -613,7 +612,7 @@ pub struct TouchRotateResource(Option<TouchRotate>);
 #[derive(Debug, Clone)]
 pub struct TouchRotate {
     pub current: Vec2,
-    pub total_radians: f32,
+    pub start: Vec2,
     pub touch_id: u64,
 }
 #[derive(Debug, Event)]

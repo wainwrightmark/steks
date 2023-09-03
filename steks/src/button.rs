@@ -403,7 +403,7 @@ fn text_button_system(
             }
 
             if button.button_action.closes_menu() {
-                global_ui_state.close_menu();
+                global_ui_state.minimize();
             }
         }
     }

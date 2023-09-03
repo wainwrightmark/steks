@@ -50,7 +50,7 @@ impl GlobalUiState {
         };
 
         match self {
-            GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(..)) => self.close_menu(),
+            GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(..)) => self.minimize(),
             _ => *self = GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(page)),
         }
     }
@@ -59,7 +59,7 @@ impl GlobalUiState {
         *self = GlobalUiState::MenuOpen(MenuState::ShowMainMenu)
     }
 
-    pub fn close_menu(&mut self) {
+    pub fn minimize(&mut self) {
         *self = GlobalUiState::MenuClosed(GameUIState::Minimized)
     }
 

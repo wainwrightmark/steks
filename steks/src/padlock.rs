@@ -52,7 +52,7 @@ impl MavericNode for Padlock {
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
             commands
-                .ignore_args()
+                .ignore_node()
                 .ignore_context()
                 .insert({
                     let default = PadlockStatus::Invisible { last_moved: None };

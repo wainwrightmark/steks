@@ -218,12 +218,12 @@ impl TextButtonAction {
             TextButtonAction::Credits => "Credits".to_string(),
             TextButtonAction::OpenSettings => "Settings".to_string(),
             TextButtonAction::SetArrows(true) => "Rotation Arrows  ".to_string(),
-            TextButtonAction::SetArrows(false) =>   "Rotation Arrows  ".to_string(),
+            TextButtonAction::SetArrows(false) => "Rotation Arrows  ".to_string(),
 
-            TextButtonAction::SetFireworks(true) =>  "Fireworks        ".to_string(),
+            TextButtonAction::SetFireworks(true) => "Fireworks        ".to_string(),
             TextButtonAction::SetFireworks(false) => "Fireworks        ".to_string(),
 
-            TextButtonAction::SetSnow(true) =>       "Snow             ".to_string(),
+            TextButtonAction::SetSnow(true) => "Snow             ".to_string(),
             TextButtonAction::SetSnow(false) => "Snow             ".to_string(),
 
             TextButtonAction::SetTouchOutlines(true) => "Touch Outlines   ".to_string(),
@@ -265,12 +265,8 @@ fn icon_button_system(
     >,
     mut change_level_events: EventWriter<ChangeLevelEvent>,
     mut share_events: EventWriter<ShareEvent>,
-
-    mut menu_state: ResMut<MenuState>,
-    mut game_ui_state: ResMut<GameUIState>,
-
+    mut global_ui_state: ResMut<GlobalUiState>,
     current_level: Res<CurrentLevel>,
-
     dragged: Query<(), With<BeingDragged>>,
 ) {
     if !dragged.is_empty() {
@@ -289,27 +285,29 @@ fn icon_button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                OpenMenu => menu_state.as_mut().open_menu(),
+                OpenMenu => *global_ui_state = GlobalUiState::MenuOpen(MenuState::ShowMainMenu),
                 Share => share_events.send(ShareEvent::CurrentShapes),
                 SharePB => share_events.send(ShareEvent::PersonalBest),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
                 MinimizeSplash => {
-                    *game_ui_state = GameUIState::Minimized;
+                    *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
                 }
                 RestoreSplash => {
-                    *game_ui_state = GameUIState::Splash;
+                    *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Splash);
                 }
-                NextLevelsPage => menu_state.as_mut().next_levels_page(),
+                NextLevelsPage => global_ui_state.as_mut().next_levels_page(),
 
-                PreviousLevelsPage => menu_state.as_mut().previous_levels_page(),
+                PreviousLevelsPage => global_ui_state.as_mut().previous_levels_page(),
 
                 Steam | GooglePlay | Apple | None => {}
 
                 ViewPB => {
-                    *game_ui_state = GameUIState::Preview(PreviewImage::PB);
+                    *global_ui_state =
+                        GlobalUiState::MenuClosed(GameUIState::Preview(PreviewImage::PB));
                 }
                 ViewRecord => {
-                    *game_ui_state = GameUIState::Preview(PreviewImage::WR);
+                    *global_ui_state =
+                        GlobalUiState::MenuClosed(GameUIState::Preview(PreviewImage::WR));
                 }
 
                 ShowLeaderboard => {
@@ -329,7 +327,7 @@ fn text_button_system(
     mut share_events: EventWriter<ShareEvent>,
     mut import_events: EventWriter<ImportEvent>,
 
-    mut menu_state: ResMut<MenuState>,
+    mut global_ui_state: ResMut<GlobalUiState>,
     mut settings: ResMut<GameSettings>,
 
     current_level: Res<CurrentLevel>,
@@ -353,7 +351,7 @@ fn text_button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                TextButtonAction::Resume => menu_state.as_mut().close_menu(),
+                TextButtonAction::Resume => *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized),
                 TextButtonAction::GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
                     {
@@ -378,7 +376,7 @@ fn text_button_system(
                     })
                 }
                 TextButtonAction::ChooseLevel => {
-                    menu_state.as_mut().toggle_levels(current_level.as_ref())
+                    global_ui_state.as_mut().toggle_levels(current_level.as_ref())
                 }
                 TextButtonAction::MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
@@ -386,8 +384,8 @@ fn text_button_system(
                         .detach();
                 }
                 TextButtonAction::Credits => change_level_events.send(ChangeLevelEvent::Credits),
-                TextButtonAction::OpenSettings => menu_state.as_mut().open_settings(),
-                TextButtonAction::BackToMenu => menu_state.as_mut().open_menu(),
+                TextButtonAction::OpenSettings => global_ui_state.as_mut().open_settings(),
+                TextButtonAction::BackToMenu => global_ui_state.as_mut().open_menu(),
                 TextButtonAction::SetArrows(arrows) => settings.show_arrows = arrows,
                 TextButtonAction::SetTouchOutlines(outlines) => {
                     settings.show_touch_outlines = outlines
@@ -405,7 +403,7 @@ fn text_button_system(
             }
 
             if button.button_action.closes_menu() {
-                menu_state.close_menu();
+                global_ui_state.close_menu();
             }
         }
     }

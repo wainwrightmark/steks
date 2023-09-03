@@ -121,6 +121,7 @@ fn manage_level_shapes(
 fn handle_change_level_events(
     mut change_level_events: EventReader<ChangeLevelEvent>,
     mut current_level: ResMut<CurrentLevel>,
+    mut global_ui_state: ResMut<GlobalUiState>,
     streak: Res<Streak>,
     completion:Res<CampaignCompletion>,
 ) {
@@ -137,6 +138,7 @@ fn handle_change_level_events(
 
         current_level.level = level;
         current_level.completion = LevelCompletion::Incomplete { stage };
+        *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
     }
 }
 
@@ -164,7 +166,6 @@ fn choose_level_on_game_load(
 }
 
 #[derive(Default, Resource, Clone, Debug, PartialEq, Serialize, Deserialize)]
-
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,

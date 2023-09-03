@@ -19,6 +19,7 @@ pub mod leaderboard;
 pub mod lens;
 pub mod level;
 pub mod level_ui;
+pub mod global_ui;
 pub mod menu;
 pub mod padlock;
 pub mod prediction;
@@ -76,6 +77,7 @@ pub mod prelude {
     pub use crate::snow::*;
     pub use crate::settings::*;
     pub use crate::tracked_resource::*;
+    pub use crate::global_ui::*;
 
 
     pub use crate::prediction::*;

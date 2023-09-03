@@ -52,12 +52,12 @@ const DEFAULT_INTENSITY: u32 = 5;
 
 fn manage_fireworks(
     current_level: Res<CurrentLevel>,
-    ui_state: Res<GameUIState>,
+    global_ui_state: Res<GlobalUiState>,
     mut previous: Local<CurrentLevel>,
     mut countdown: ResMut<FireworksCountdown>,
     settings: Res<GameSettings>
 ) {
-    if !current_level.is_changed() && !ui_state.is_changed() && !settings.is_changed() {
+    if !current_level.is_changed() && !global_ui_state.is_changed() && !settings.is_changed() {
         return;
     }
 
@@ -65,7 +65,7 @@ fn manage_fireworks(
     *previous = current_level.clone();
     let previous = swap;
 
-    if !ui_state.is_splash() ||  !settings.fireworks_enabled{
+    if !global_ui_state.is_minimized() ||  !settings.fireworks_enabled{
         countdown.timer.pause();
         return;
     }

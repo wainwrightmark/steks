@@ -116,7 +116,7 @@ impl MavericNode for CircleArc {
     type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().insert_with_context(|context|(
+        commands.ignore_node().insert_with_context(|context|(
 
             ShapeBundle {
                 transform: Transform {
@@ -137,7 +137,7 @@ impl MavericNode for CircleMarker {
     type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().insert_with_context(|context|(
+        commands.ignore_node().insert_with_context(|context|(
             ShapeBundle {
                 path: GeometryBuilder::build_as(&bevy_prototype_lyon::shapes::Circle {
                     center: Vec2::ZERO,

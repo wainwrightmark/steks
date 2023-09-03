@@ -1,25 +1,23 @@
-use crate:: prelude::*;
+use crate::prelude::*;
 use bevy::render::texture::CompressedImageFormats;
 use itertools::Itertools;
-use maveric::{impl_maveric_root, prelude::*, transition::speed::ScalarSpeed};
+use maveric::{prelude::*, transition::speed::ScalarSpeed};
 use steks_common::images::prelude::{Dimensions, OverlayChooser};
 use strum::EnumIs;
 pub struct LevelUiPlugin;
 
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<GameUIState>()
-            .add_systems(Startup, set_up_preview_image)
-            .add_systems(Update, update_preview_images)
-            .register_maveric::<LevelUiRoot>();
+        app.add_systems(Startup, set_up_preview_image)
+            .add_systems(Update, update_preview_images);
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource, EnumIs)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, EnumIs)]
 pub enum GameUIState {
     #[default]
-    Splash,
     Minimized,
+    Splash,
     Preview(PreviewImage),
 }
 
@@ -29,80 +27,48 @@ pub enum PreviewImage {
     WR,
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct LevelUiRoot;
-
-impl MavericRootChildren for LevelUiRoot {
-    type Context = NC2<MenuState, NC3<GameUIState, CurrentLevel, AssetServer>>;
-
-    fn set_children(
-        context: &<Self::Context as NodeContext>::Wrapper<'_>,
-        commands: &mut impl ChildCommands,
-    ) {
-        if context.0.is_closed() {
-            match context.1 .1.completion {
-                LevelCompletion::Incomplete { .. } => {
-                    if context.1 .1.level.is_begging() {
-                        commands.add_child("begging", BeggingPanel, &context.1 .2);
-                    } else {
-                        commands.add_child(
-                            "text",
-                            LevelTextPanel(context.1 .1.clone()),
-                            &context.1 .2,
-                        );
-                    }
-                }
-                LevelCompletion::Complete { score_info } => {
-                    let top = match context.1 .0.as_ref() {
-                        GameUIState::Splash | GameUIState::Preview(_) => Val::Percent(30.),
-                        GameUIState::Minimized => Val::Percent(10.),
-                    };
-
-                    if !context.1 .1.level.skip_completion() {
-                        commands.add_child(
-                            "panel",
-                            MainPanelWrapper {
-                                score_info,
-                                ui_state: *context.1 .0,
-                                level: context.1 .1.level.clone(),
-                            }
-                            .with_transition_to::<StyleTopLens>(top, ScalarSpeed::new(20.0)),
-                            &context.1 .2,
-                        )
-                    }
-                }
-            };
-        }
-    }
-}
-
-impl_maveric_root!(LevelUiRoot);
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct MainPanelWrapper {
-    ui_state: GameUIState,
-    level: GameLevel,
-    score_info: ScoreInfo,
+    pub ui_state: GameUIState,
+    pub level: GameLevel,
+    pub score_info: ScoreInfo,
 }
 
 impl MavericNode for MainPanelWrapper {
     type Context = AssetServer;
 
-    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Percent(50.0),
-                top: Val::Percent(30.0),
-                right: Val::Percent(50.0),
-                bottom: Val::Percent(90.0),
-                justify_content: JustifyContent::Center,
-                flex_direction: FlexDirection::Column,
-                ..Default::default()
-            },
+    fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
+        commands.scope(|commands| {
+            commands.ignore_node().ignore_context().insert(NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
 
-            z_index: ZIndex::Global(15),
-            ..Default::default()
+                    top: Val::Px(50.0),
+                    //width: Val::Px(350.0),
+                    left: Val::Percent(50.0),
+                    right: Val::Percent(50.0),
+                    bottom: Val::Auto,
+                    justify_content: JustifyContent::Center,
+                    flex_direction: FlexDirection::Column,
+                    ..Default::default()
+                },
+
+                z_index: ZIndex::Global(15),
+                ..Default::default()
+            }).finish()
+        });
+
+        commands.ignore_context().advanced(|args, commands|{
+            if args.is_hot(){
+                let top = match args.node.ui_state {
+                    GameUIState::Splash | GameUIState::Preview(_) => Val::Px(50.0),
+                    GameUIState::Minimized => Val::Px(0.0),
+                };
+
+
+
+                commands.transition_value::<StyleTopLens>(top, top, Some(ScalarSpeed::new(100.0)));
+            }
         });
     }
 
@@ -188,6 +154,12 @@ impl MavericNode for MainPanel {
 
             match args.ui_state {
                 GameUIState::Minimized => {
+                    commands.add_child(
+                        "menu",
+                        icon_button_node(IconButtonAction::OpenMenu, IconButtonStyle::HeightPadded),
+                        context,
+                    );
+
                     commands.add_child(
                         "splash",
                         icon_button_node(
@@ -335,10 +307,9 @@ impl MavericNode for MainPanel {
 
                         commands.add_child(
                             "star_heights",
-                            StarHeights
-                            {
+                            StarHeights {
                                 level: args.level.clone(),
-                                score_info: args.score_info.clone()
+                                score_info: args.score_info.clone(),
                             },
                             context,
                         );
@@ -356,16 +327,16 @@ impl MavericNode for MainPanel {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct StarHeights{
+pub struct StarHeights {
     level: GameLevel,
-    score_info: ScoreInfo
+    score_info: ScoreInfo,
 }
 
 impl MavericNode for StarHeights {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert(NodeBundle {
+        commands.ignore_node().ignore_context().insert(NodeBundle {
             style: Style {
                 display: Display::Flex,
                 grid_template_columns: vec![RepeatedGridTrack::px(
@@ -376,7 +347,6 @@ impl MavericNode for StarHeights {
                 grid_auto_flow: GridAutoFlow::Column,
                 // flex_basis: Val::Px(THREE_STARS_IMAGE_WIDTH / 3.0),
                 // flex_grow: 200.0,
-
                 margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(-10.0), Val::Px(0.)),
                 justify_content: JustifyContent::SpaceEvenly,
                 ..Default::default()
@@ -388,24 +358,24 @@ impl MavericNode for StarHeights {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_node_and_context(|args, context, commands| {
-            let filler:  &str = "    ";
+            let filler: &str = "    ";
             let empty = "        ";
 
-            let second_star: String = match args.score_info.star{
-                StarType::Incomplete | StarType::OneStar  => args
-                .level
-                .get_two_star_threshold()
-                .map(|x| format!("{filler}{x:3.0}m"))
-                .unwrap_or_else(|| empty.to_string()),
+            let second_star: String = match args.score_info.star {
+                StarType::Incomplete | StarType::OneStar => args
+                    .level
+                    .get_two_star_threshold()
+                    .map(|x| format!("{filler}{x:3.0}m"))
+                    .unwrap_or_else(|| empty.to_string()),
                 StarType::ThreeStar | StarType::TwoStar => empty.to_string(),
             };
 
-            let third_star: String = match args.score_info.star{
+            let third_star: String = match args.score_info.star {
                 StarType::Incomplete | StarType::OneStar | StarType::TwoStar => args
-                .level
-                .get_three_star_threshold()
-                .map(|x| format!("{filler}{x:3.0}m"))
-                .unwrap_or_else(|| empty.to_string()),
+                    .level
+                    .get_three_star_threshold()
+                    .map(|x| format!("{filler}{x:3.0}m"))
+                    .unwrap_or_else(|| empty.to_string()),
                 StarType::ThreeStar => empty.to_string(),
             };
 
@@ -426,13 +396,13 @@ impl MavericNode for StarHeights {
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct LevelTextPanel(CurrentLevel);
+pub struct LevelTextPanel(pub CurrentLevel);
 
 impl MavericNode for LevelTextPanel {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert(NodeBundle {
+        commands.ignore_node().ignore_context().insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 top: Val::Percent(30.0),
@@ -547,7 +517,7 @@ impl MavericNode for ButtonPanel {
                     margin: UiRect::new(Val::Px(0.), Val::Px(0.), Val::Px(0.), Val::Px(0.)),
 
                     align_self: if node.is_splash_top() {
-                        AlignSelf::End
+                        AlignSelf::Stretch
                     } else {
                         AlignSelf::Center
                     },
@@ -573,19 +543,21 @@ impl MavericNode for ButtonPanel {
                         &[IconButtonAction::NextLevel]
                     }
                 }
-                ButtonPanel::SplashTop => &[IconButtonAction::MinimizeSplash],
+                ButtonPanel::SplashTop => {
+                    &[IconButtonAction::OpenMenu, IconButtonAction::MinimizeSplash]
+                }
                 ButtonPanel::Preview(PreviewImage::PB) => {
                     &[IconButtonAction::SharePB, IconButtonAction::RestoreSplash]
                 }
                 ButtonPanel::Preview(PreviewImage::WR) => &[IconButtonAction::RestoreSplash],
             };
 
+            let style = match args {
+                ButtonPanel::SplashTop => IconButtonStyle::HeightPadded,
+                _ => IconButtonStyle::HeightPadded,
+            };
+
             for (key, action) in actions.iter().enumerate() {
-                let style = if *action == IconButtonAction::MinimizeSplash {
-                    IconButtonStyle::Compact
-                } else {
-                    IconButtonStyle::HeightPadded
-                };
                 commands.add_child(key as u32, icon_button_node(action.clone(), style), context);
             }
         });
@@ -599,7 +571,7 @@ impl MavericNode for StoreButtonPanel {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert(NodeBundle {
+        commands.ignore_node().ignore_context().insert(NodeBundle {
             style: Style {
                 display: Display::Flex,
                 align_items: AlignItems::Center,
@@ -617,7 +589,7 @@ impl MavericNode for StoreButtonPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.ignore_args().unordered_children_with_context(
+        commands.ignore_node().unordered_children_with_context(
             |context: &Res<'_, AssetServer>, commands| {
                 commands.add_child(
                     4,
@@ -651,7 +623,7 @@ impl MavericNode for BeggingPanel {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert(NodeBundle {
+        commands.ignore_node().ignore_context().insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 display: Display::Flex,
@@ -671,7 +643,7 @@ impl MavericNode for BeggingPanel {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands
-            .ignore_args()
+            .ignore_node()
             .unordered_children_with_context(|context, commands| {
                 commands.add_child(
                     0,
@@ -729,7 +701,7 @@ impl MavericNode for TextPlusIcon {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_args().ignore_context().insert(NodeBundle {
+        commands.ignore_node().ignore_context().insert(NodeBundle {
             style: Style {
                 flex_direction: FlexDirection::Row,
                 justify_items: JustifyItems::Center,
@@ -759,7 +731,7 @@ fn set_up_preview_image(asset_server: Res<AssetServer>) {
 
 fn update_preview_images(
     mut images: ResMut<Assets<Image>>,
-    ui_state: Res<GameUIState>,
+    ui_state: Res<GlobalUiState>,
     pbs: Res<PersonalBests>,
     wrs: Res<WorldRecords>,
     current_level: Res<CurrentLevel>,
@@ -768,7 +740,7 @@ fn update_preview_images(
         return;
     }
 
-    let GameUIState::Preview(preview) = ui_state.as_ref() else {
+    let GlobalUiState::MenuClosed(GameUIState::Preview(preview)) = ui_state.as_ref() else {
         return;
     };
 

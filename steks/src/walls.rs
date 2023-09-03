@@ -60,7 +60,7 @@ impl MavericNode for WallNode {
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
             commands
-                .ignore_args()
+                .ignore_node()
                 .ignore_context()
                 .insert((
                     RigidBody::Fixed,
@@ -130,7 +130,7 @@ impl MavericNode for WallSensorNode {
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
             commands
-                .ignore_args()
+                .ignore_node()
                 .ignore_context()
                 .insert((
                     Sensor {},

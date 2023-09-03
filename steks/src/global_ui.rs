@@ -22,7 +22,7 @@ impl Plugin for GlobalUiPlugin {
 #[derive(Debug, Clone, PartialEq, Resource, EnumIs)]
 pub enum GlobalUiState {
     MenuClosed(GameUIState),
-    MenuOpen(MenuState),
+    MenuOpen(MenuPage),
 }
 
 impl Default for GlobalUiState {
@@ -50,13 +50,13 @@ impl GlobalUiState {
         };
 
         match self {
-            GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(..)) => self.minimize(),
-            _ => *self = GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(page)),
+            GlobalUiState::MenuOpen(MenuPage::Level(..)) => self.minimize(),
+            _ => *self = GlobalUiState::MenuOpen(MenuPage::Level(page)),
         }
     }
 
     pub fn open_menu(&mut self) {
-        *self = GlobalUiState::MenuOpen(MenuState::ShowMainMenu)
+        *self = GlobalUiState::MenuOpen(MenuPage::Main)
     }
 
     pub fn minimize(&mut self) {
@@ -64,23 +64,27 @@ impl GlobalUiState {
     }
 
     pub fn open_settings(&mut self) {
-        *self = GlobalUiState::MenuOpen(MenuState::SettingsPage)
+        *self = GlobalUiState::MenuOpen(MenuPage::Settings)
+    }
+
+    pub fn open_accessibility(&mut self) {
+        *self = GlobalUiState::MenuOpen(MenuPage::Accessibility)
     }
 
     pub fn next_levels_page(&mut self) {
-        if let GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(levels)) = self {
+        if let GlobalUiState::MenuOpen(MenuPage::Level(levels)) = self {
             let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
 
-            *self = GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(new_page))
+            *self = GlobalUiState::MenuOpen(MenuPage::Level(new_page))
         }
     }
 
     pub fn previous_levels_page(&mut self) {
-        if let GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(levels)) = self {
+        if let GlobalUiState::MenuOpen(MenuPage::Level(levels)) = self {
             if let Some(new_page) = levels.checked_sub(1) {
-                *self = GlobalUiState::MenuOpen(MenuState::ShowLevelsPage(new_page));
+                *self = GlobalUiState::MenuOpen(MenuPage::Level(new_page));
             } else {
-                *self = GlobalUiState::MenuOpen(MenuState::ShowMainMenu);
+                *self = GlobalUiState::MenuOpen(MenuPage::Main);
             }
         }
     }
@@ -109,21 +113,24 @@ impl MavericRootChildren for GlobalUiRoot {
                     Some(match page {
                         0 => MenuPage::Main,
                         1 => MenuPage::Settings,
-
-                        n => MenuPage::Level((n - 2) as u8),
+                        2 => MenuPage::Accessibility,
+                        n => MenuPage::Level((n - 3) as u8),
                     })
                 }
 
                 let carousel = match menu_state {
-                    MenuState::ShowMainMenu => {
+                    MenuPage::Main => {
                         Carousel::new(0, get_carousel_child, transition_duration)
                     }
-                    MenuState::SettingsPage => {
+                    MenuPage::Settings => {
                         Carousel::new(1, get_carousel_child, transition_duration)
                     }
+                    MenuPage::Accessibility => {
+                        Carousel::new(2, get_carousel_child, transition_duration)
+                    }
 
-                    MenuState::ShowLevelsPage(n) => {
-                        Carousel::new((n + 2) as u32, get_carousel_child, transition_duration)
+                    MenuPage::Level(n) => {
+                        Carousel::new((n + 3) as u32, get_carousel_child, transition_duration)
                     }
                 };
 

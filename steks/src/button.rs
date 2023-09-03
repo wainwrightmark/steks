@@ -141,6 +141,7 @@ pub enum TextButtonAction {
     GotoLevel { level: u8 },
     MinimizeApp,
     OpenSettings,
+    OpenAccessibility,
     BackToMenu,
 
     SetRotationSensitivity(RotationSensitivity),
@@ -180,6 +181,7 @@ impl TextButtonAction {
             TextButtonAction::GotoLevel { .. } => true,
             TextButtonAction::MinimizeApp => true,
             TextButtonAction::OpenSettings => false,
+            TextButtonAction::OpenAccessibility => false,
             TextButtonAction::SetArrows(_) => false,
             TextButtonAction::SetTouchOutlines(_) => false,
             TextButtonAction::SetHighContrast(_) => false,
@@ -217,6 +219,7 @@ impl TextButtonAction {
             TextButtonAction::MinimizeApp => "Quit".to_string(),
             TextButtonAction::Credits => "Credits".to_string(),
             TextButtonAction::OpenSettings => "Settings".to_string(),
+            TextButtonAction::OpenAccessibility => "Accessibility".to_string(),
             TextButtonAction::SetArrows(true) => "Rotation Arrows  ".to_string(),
             TextButtonAction::SetArrows(false) => "Rotation Arrows  ".to_string(),
 
@@ -285,7 +288,7 @@ fn icon_button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                OpenMenu => *global_ui_state = GlobalUiState::MenuOpen(MenuState::ShowMainMenu),
+                OpenMenu => global_ui_state.open_menu(),
                 Share => share_events.send(ShareEvent::CurrentShapes),
                 SharePB => share_events.send(ShareEvent::PersonalBest),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
@@ -385,6 +388,7 @@ fn text_button_system(
                 }
                 TextButtonAction::Credits => change_level_events.send(ChangeLevelEvent::Credits),
                 TextButtonAction::OpenSettings => global_ui_state.as_mut().open_settings(),
+                TextButtonAction::OpenAccessibility => global_ui_state.as_mut().open_accessibility(),
                 TextButtonAction::BackToMenu => global_ui_state.as_mut().open_menu(),
                 TextButtonAction::SetArrows(arrows) => settings.show_arrows = arrows,
                 TextButtonAction::SetTouchOutlines(outlines) => {

@@ -2,12 +2,6 @@ use crate::prelude::*;
 use maveric::prelude::*;
 use strum::EnumIs;
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumIs)]
-pub enum MenuState {
-    ShowMainMenu,
-    ShowLevelsPage(u8),
-    SettingsPage,
-}
 
 const LEVELS_PER_PAGE: u8 = 8;
 
@@ -16,10 +10,11 @@ pub fn max_page_exclusive() -> u8 {
     t / LEVELS_PER_PAGE + (t % LEVELS_PER_PAGE).min(1) + 1
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, EnumIs)]
 pub enum MenuPage {
     Main,
     Settings,
+    Accessibility,
     Level(u8),
 }
 
@@ -73,6 +68,49 @@ impl MavericNode for MenuPage {
                     commands.add_child(key as u32, button, &context.3)
                 }
             }
+            MenuPage::Accessibility => {
+                let settings = context.0.as_ref();
+
+
+                commands.add_child(
+                    "contrast",
+                    text_button_node(
+                        TextButtonAction::SetHighContrast(!settings.high_contrast),
+                        true,
+                        false,
+                    ),
+                    &context.3,
+                );
+
+                commands.add_child(
+                    "fireworks",
+                    text_button_node(
+                        TextButtonAction::SetFireworks(!settings.fireworks_enabled),
+                        true,
+                        false,
+                    ),
+                    &context.3,
+                );
+
+                commands.add_child(
+                    "snow",
+                    text_button_node(
+                        TextButtonAction::SetSnow(!settings.snow_enabled),
+                        true,
+                        false,
+                    ),
+                    &context.3,
+                );
+
+
+                commands.add_child(
+                    "back",
+                    text_button_node(TextButtonAction::OpenSettings, true, false),
+                    &context.3,
+                );
+            }
+
+
             MenuPage::Settings => {
                 let settings = context.0.as_ref();
                 commands.add_child(
@@ -115,36 +153,6 @@ impl MavericNode for MenuPage {
                     &context.3,
                 );
 
-                commands.add_child(
-                    "contrast",
-                    text_button_node(
-                        TextButtonAction::SetHighContrast(!settings.high_contrast),
-                        true,
-                        false,
-                    ),
-                    &context.3,
-                );
-
-                commands.add_child(
-                    "fireworks",
-                    text_button_node(
-                        TextButtonAction::SetFireworks(!settings.fireworks_enabled),
-                        true,
-                        false,
-                    ),
-                    &context.3,
-                );
-
-                commands.add_child(
-                    "snow",
-                    text_button_node(
-                        TextButtonAction::SetSnow(!settings.snow_enabled),
-                        true,
-                        false,
-                    ),
-                    &context.3,
-                );
-
                 #[cfg(any(feature = "android", feature = "ios"))]
                 {
                     commands.add_child(
@@ -159,6 +167,12 @@ impl MavericNode for MenuPage {
                         &context.3,
                     );
                 }
+
+                commands.add_child(
+                    "accessibility",
+                    text_button_node(TextButtonAction::OpenAccessibility, true, false),
+                    &context.3,
+                );
 
                 commands.add_child(
                     "back",

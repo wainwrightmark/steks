@@ -467,7 +467,8 @@ pub fn drag_start(
                         x: event.position.x + (window.width() * 0.5),
                         y: (window.height() * 0.5) - event.position.y,
                     };
-                    for (node, global_transform, _) in
+                    let mut captured = false;
+                    'capture: for (node, global_transform, _) in
                         node_query.iter().filter(|x| x.2.is_visible())
                     {
                         let node_position = global_transform.translation().truncate();
@@ -475,12 +476,17 @@ pub fn drag_start(
                         let half_size = 0.5 * node.size();
                         let min = node_position - half_size;
                         let max = node_position + half_size;
-                        let captured = (min.x..max.x).contains(&event_ui_position.x)
-                            && (min.y..max.y).contains(&event_ui_position.y);
 
-                        if !captured{
-                            global_ui_state.minimize();
+                        if (min.x..max.x).contains(&event_ui_position.x)
+                            && (min.y..max.y).contains(&event_ui_position.y)
+                        {
+                            captured = true;
+                            break 'capture;
                         }
+                    }
+
+                    if !captured {
+                        global_ui_state.minimize();
                     }
                 }
                 continue 'events;
@@ -511,7 +517,7 @@ pub fn drag_start(
             if let Some(center) = draggables
                 .iter()
                 .find(|x| x.0.touch_id().is_some())
-                .map(|x|x.1)
+                .map(|x| x.1)
             {
                 *touch_rotate = TouchRotateResource(Some(TouchRotate {
                     start_angle: angle_to(event.position - center.translation.truncate()),

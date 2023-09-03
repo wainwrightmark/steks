@@ -171,7 +171,7 @@ impl MavericNode for MainPanel {
 
                     commands.add_child(
                         "height",
-                        level_text_node(format!("{height:7.2}m",)),
+                        panel_text_node(format!("{height:7.2}m",)),
                         context,
                     );
 
@@ -197,7 +197,7 @@ impl MavericNode for MainPanel {
 
                     commands.add_child(
                         "preview_message",
-                        level_text_node("Challenge a friend to\nbeat your score!"),
+                        panel_text_node("Challenge a friend to\nbeat your score!"),
                         context,
                     );
 
@@ -224,7 +224,7 @@ impl MavericNode for MainPanel {
                         .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
                         .join("\n");
 
-                    commands.add_child("message", level_text_node(message), context);
+                    commands.add_child("message", panel_text_node(message), context);
 
                     commands.add_child(
                         "height_data",
@@ -289,7 +289,7 @@ impl MavericNode for MainPanel {
                     if let GameLevel::Challenge { streak, .. } = args.level {
                         commands.add_child(
                             "streak",
-                            level_text_node(format!("Streak    {streak:.2}",)),
+                            panel_text_node(format!("Streak    {streak:.2}",)),
                             context,
                         );
                     }
@@ -395,106 +395,6 @@ impl MavericNode for StarHeights {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct LevelTextPanel(pub CurrentLevel);
-
-impl MavericNode for LevelTextPanel {
-    type Context = AssetServer;
-
-    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_node().ignore_context().insert(NodeBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                top: Val::Percent(30.0),
-                display: Display::Flex,
-                align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Column,
-                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.0), Val::Px(0.)),
-                justify_content: JustifyContent::Center,
-                ..Default::default()
-            },
-            ..Default::default()
-        });
-    }
-
-    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_node_and_context(|args, context, commands| {
-            let initial_color = args.0.text_color();
-            let destination_color = if args.0.text_fade() {
-                initial_color.with_a(0.0)
-            } else {
-                initial_color
-            };
-
-            const FADE_SECS: f32 = 20.;
-            if let Some(level_number_text) = args.0.get_level_number_text(true) {
-                commands.add_child(
-                    "level_number",
-                    TextNode {
-                        text: level_number_text,
-                        font_size: LEVEL_NUMBER_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
-                        font: LEVEL_NUMBER_FONT_PATH,
-                        alignment: TextAlignment::Center,
-                        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-                    }
-                    .with_transition_in::<TextColorLens<0>>(
-                        initial_color,
-                        destination_color,
-                        Duration::from_secs_f32(FADE_SECS),
-                    ),
-                    context,
-                );
-            }
-
-            if let Some(title_text) = args.0.get_title() {
-                commands.add_child(
-                    "title",
-                    TextNode {
-                        text: title_text,
-                        font_size: LEVEL_TITLE_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
-                        font: LEVEL_TITLE_FONT_PATH,
-                        alignment: TextAlignment::Center,
-                        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-                    }
-                    .with_transition_in::<TextColorLens<0>>(
-                        initial_color,
-                        destination_color,
-                        Duration::from_secs_f32(FADE_SECS),
-                    ),
-                    context,
-                );
-            }
-
-            if let Some(message) = args.0.get_level_text() {
-                //info!("Message {initial_color:?} {destination_color:?}");
-                commands.add_child(
-                    "message",
-                    level_text_node(message).with_transition_in::<TextColorLens<0>>(
-                        initial_color,
-                        destination_color,
-                        Duration::from_secs_f32(FADE_SECS),
-                    ),
-                    context,
-                )
-            }
-        })
-    }
-}
-
-fn level_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
-    text: T,
-) -> TextNode<T> {
-    TextNode {
-        text,
-        font_size: LEVEL_TEXT_FONT_SIZE,
-        color: LEVEL_TEXT_COLOR,
-        font: LEVEL_TEXT_FONT_PATH,
-        alignment: TextAlignment::Center,
-        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, EnumIs)]
 pub enum ButtonPanel {
@@ -714,7 +614,7 @@ impl MavericNode for TextPlusIcon {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_node_and_context(|args, context, commands| {
-            commands.add_child(0, level_text_node(args.text.clone()), context);
+            commands.add_child(0, panel_text_node(args.text.clone()), context);
             commands.add_child(
                 1,
                 icon_button_node(args.icon, IconButtonStyle::Compact),

@@ -123,7 +123,7 @@ fn handle_change_level_events(
     mut current_level: ResMut<CurrentLevel>,
     mut global_ui_state: ResMut<GlobalUiState>,
     streak: Res<Streak>,
-    completion:Res<CampaignCompletion>,
+    completion: Res<CampaignCompletion>,
 ) {
     if let Some(event) = change_level_events.iter().next() {
         let (level, stage) = event.get_new_level(&current_level.level, &streak, &completion);
@@ -176,35 +176,6 @@ impl TrackableResource for CurrentLevel {
 }
 
 impl CurrentLevel {
-    pub fn text_color(&self) -> Color {
-        let alt = self.completion.is_incomplete()
-            && match &self.level {
-                GameLevel::Designed { meta } => meta.get_level().alt_text_color,
-                _ => false,
-            };
-
-        if alt {
-            color::LEVEL_TEXT_ALT_COLOR
-        } else {
-            color::LEVEL_TEXT_COLOR
-        }
-    }
-
-    pub fn text_fade(&self) -> bool {
-        match self.completion {
-            LevelCompletion::Incomplete { stage } => match &self.level {
-                GameLevel::Designed { meta, .. } => meta
-                    .get_level()
-                    .get_stage(&stage)
-                    .map(|x| !x.text_forever)
-                    .unwrap_or(true),
-                GameLevel::Infinite { .. } | GameLevel::Begging => false,
-                GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => true,
-            },
-            LevelCompletion::Complete { .. } => false,
-        }
-    }
-
     pub fn snowdrop_settings(&self) -> Option<SnowdropSettings> {
         let settings = match &self.level {
             GameLevel::Designed { meta, .. } => {
@@ -223,105 +194,7 @@ impl CurrentLevel {
         }
     }
 
-    // pub fn hide_shadows(&self) -> bool {
-    //     match &self.level {
-    //         GameLevel::Designed { meta } => meta.get_level().hide_shadows,
-    //         _ => false,
-    //     }
-    // }
 
-    pub fn get_title(&self) -> Option<String> {
-        match &self.level {
-            GameLevel::Designed { meta, .. } => meta.get_level().title.clone(),
-            GameLevel::Infinite { .. } => None,
-            GameLevel::Challenge { .. } => Some("Daily Challenge".to_string()),
-            GameLevel::Loaded { .. } => None,
-            GameLevel::Begging { .. } => Some("Please buy the game!".to_string()), //users should not see this
-        }
-    }
-
-    pub fn get_level_number_text(&self, centred: bool) -> Option<String> {
-        let stage = match self.completion {
-            LevelCompletion::Incomplete { stage } => stage,
-            LevelCompletion::Complete { .. } => {
-                return None;
-            }
-        };
-
-        match &self.level {
-            GameLevel::Designed { meta, .. } => match meta {
-                DesignedLevelMeta::Tutorial { .. } => None,
-                DesignedLevelMeta::Campaign { index } => {
-                    Some(format_campaign_level_number(index, centred))
-                }
-                DesignedLevelMeta::Custom { .. } | DesignedLevelMeta::Credits => None,
-            },
-            GameLevel::Infinite { .. } => {
-                if stage == 0 {
-                    None
-                } else {
-                    let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
-
-                    Some(format!("{shapes}"))
-                }
-            }
-            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => None,
-        }
-    }
-
-    const INFINITE_COMMENTS: &'static [&'static str] = &[
-        "",
-        "just getting started", //1
-        "",
-        "",
-        "",
-        "hitting your stride", //5
-        "",
-        "",
-        "",
-        "",
-        "looking good",
-        "",
-        "",
-        "",
-        "",
-        "nice!",
-        "",
-        "",
-        "",
-        "",
-        "very nice!",
-        "",
-        "",
-        "",
-        "",
-        "an overwhelming surplus of nice!",
-    ];
-
-    pub fn get_level_text(&self) -> Option<String> {
-        match self.completion {
-            LevelCompletion::Incomplete { stage } => match &self.level {
-                GameLevel::Designed { meta, .. } => meta
-                    .get_level()
-                    .get_stage(&stage)
-                    .and_then(|x| x.text.clone()),
-                GameLevel::Infinite { .. } => {
-                    if stage == 0 {
-                        None
-                    } else {
-                        let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
-                        let line = Self::INFINITE_COMMENTS.get(shapes).unwrap_or(&"");
-
-                        Some(line.to_string())
-                    }
-                }
-                GameLevel::Loaded { .. } => Some("Loaded Game".to_string()),
-                GameLevel::Challenge { .. } => None,
-                GameLevel::Begging => None,
-            },
-            LevelCompletion::Complete { .. } => None,
-        }
-    }
 }
 
 pub fn generate_score_info(
@@ -363,6 +236,86 @@ pub enum GameLevel {
 }
 
 impl GameLevel {
+
+    pub fn get_level_text(&self, stage: usize) -> Option<String> {
+        match &self {
+            GameLevel::Designed { meta, .. } => meta
+                .get_level()
+                .get_stage(&stage)
+                .and_then(|x| x.text.clone()),
+            GameLevel::Infinite { .. } => {
+                if stage == 0 {
+                    None
+                } else {
+                    let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
+                    let line = INFINITE_COMMENTS.get(shapes).unwrap_or(&"");
+
+                    Some(line.to_string())
+                }
+            }
+            GameLevel::Loaded { .. } => Some("Loaded Game".to_string()),
+            GameLevel::Challenge { .. } => None,
+            GameLevel::Begging => None,
+        }
+    }
+
+    pub fn text_color(&self) -> Color {
+        let alt = match &self {
+            GameLevel::Designed { meta } => meta.get_level().alt_text_color,
+            _ => false,
+        };
+
+        if alt {
+            color::LEVEL_TEXT_ALT_COLOR
+        } else {
+            color::LEVEL_TEXT_COLOR
+        }
+    }
+
+    pub fn text_fade(&self, stage: usize) -> bool {
+        match &self {
+            GameLevel::Designed { meta, .. } => meta
+                .get_level()
+                .get_stage(&stage)
+                .map(|x| !x.text_forever)
+                .unwrap_or(true),
+            GameLevel::Infinite { .. } | GameLevel::Begging => false,
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => true,
+        }
+    }
+
+    pub fn get_title(&self) -> Option<String> {
+        match &self {
+            GameLevel::Designed { meta, .. } => meta.get_level().title.clone(),
+            GameLevel::Infinite { .. } => None,
+            GameLevel::Challenge { .. } => Some("Daily Challenge".to_string()),
+            GameLevel::Loaded { .. } => None,
+            GameLevel::Begging { .. } => Some("Please buy the game!".to_string()), //users should not see this
+        }
+    }
+
+    pub fn get_level_number_text(&self, centred: bool, stage: usize) -> Option<String> {
+        match &self {
+            GameLevel::Designed { meta, .. } => match meta {
+                DesignedLevelMeta::Tutorial { .. } => None,
+                DesignedLevelMeta::Campaign { index } => {
+                    Some(format_campaign_level_number(index, centred))
+                }
+                DesignedLevelMeta::Custom { .. } | DesignedLevelMeta::Credits => None,
+            },
+            GameLevel::Infinite { .. } => {
+                if stage == 0 {
+                    None
+                } else {
+                    let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
+
+                    Some(format!("{shapes}"))
+                }
+            }
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => None,
+        }
+    }
+
     pub fn leaderboard_id(&self) -> Option<String> {
         if let GameLevel::Designed { meta, .. } = &self {
             meta.get_level().leaderboard_id.clone()
@@ -810,3 +763,33 @@ impl ChangeLevelEvent {
         })
     }
 }
+
+
+const INFINITE_COMMENTS: &'static [&'static str] = &[
+        "",
+        "just getting started", //1
+        "",
+        "",
+        "",
+        "hitting your stride", //5
+        "",
+        "",
+        "",
+        "",
+        "looking good",
+        "",
+        "",
+        "",
+        "",
+        "nice!",
+        "",
+        "",
+        "",
+        "",
+        "very nice!",
+        "",
+        "",
+        "",
+        "",
+        "an overwhelming surplus of nice!",
+    ];

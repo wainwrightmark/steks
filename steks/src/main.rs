@@ -38,6 +38,7 @@ pub mod ui;
 pub mod walls;
 pub mod win;
 pub mod win_timer_state;
+pub mod level_text_panel;
 
 pub mod logging;
 #[cfg(target_arch = "wasm32")]
@@ -68,6 +69,7 @@ pub mod prelude {
     pub use crate::input::*;
     pub use crate::insets::*;
     pub use crate::leaderboard::*;
+    pub use crate::level_text_panel::*;
     pub use crate::lens::*;
     pub use crate::level::*;
     pub use crate::level_ui::*;

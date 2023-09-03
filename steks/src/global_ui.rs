@@ -141,7 +141,7 @@ impl MavericRootChildren for GlobalUiRoot {
                 let asset_server = &context.2.3;
 
                 match current_level.completion {
-                    LevelCompletion::Incomplete { .. } => {
+                    LevelCompletion::Incomplete { stage } => {
 
                         commands.add_child("open_icon", menu_button_node(), asset_server);
                         if current_level.level.is_begging() {
@@ -149,7 +149,10 @@ impl MavericRootChildren for GlobalUiRoot {
                         } else {
                             commands.add_child(
                                 "text",
-                                LevelTextPanel(current_level.clone()),
+                                LevelTextPanel{
+                                    level: current_level.level.clone(),
+                                    stage
+                                },
                                 asset_server,
                             );
                         }

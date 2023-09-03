@@ -343,9 +343,9 @@ fn draw_rotate_arrows(
     let mut path = bevy_prototype_lyon::path::PathBuilder::new();
 
     let centre = transform.translation.truncate();
-    let radius = centre.distance(touch.start);
+    let radius = touch.radius;
 
-    let start_angle = angle_to(touch.start - centre);
+    let start_angle = touch.start_angle;
     let end_angle = angle_to(touch.current - centre);
 
     let sweep_angle = closest_angle_representation(end_angle - start_angle, *previous_angle);
@@ -508,13 +508,14 @@ pub fn drag_start(
                 true //keep looking for intersections
             });
         } else if let DragSource::Touch { touch_id } = event.drag_source {
-            if draggables
+            if let Some(center) = draggables
                 .iter()
                 .find(|x| x.0.touch_id().is_some())
-                .is_some()
+                .map(|x|x.1)
             {
                 *touch_rotate = TouchRotateResource(Some(TouchRotate {
-                    start: event.position,
+                    start_angle: angle_to(event.position - center.translation.truncate()),
+                    radius: event.position.distance(center.translation.truncate()),
                     current: event.position,
                     touch_id,
                 }));
@@ -613,9 +614,11 @@ pub struct TouchRotateResource(Option<TouchRotate>);
 
 #[derive(Debug, Clone)]
 pub struct TouchRotate {
-    pub current: Vec2,
-    pub start: Vec2,
     pub touch_id: u64,
+
+    pub start_angle: f32,
+    pub radius: f32,
+    pub current: Vec2,
 }
 #[derive(Debug, Event)]
 pub struct RotateEvent {

@@ -23,3 +23,7 @@ steks/icon/logo.png
 steks/src/Untitled-1.yml
 achievements/*.png
 steksgame_key.jks
+App store assets/Android/*.png
+App store assets/iOS iPad/*.png
+App store assets/iOS 5.5/*.png
+App store assets/iOS/*.png

@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use maveric::prelude::*;
 
-
 pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
     text: T,
 ) -> TextNode<T> {
@@ -15,50 +14,8 @@ pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync 
     }
 }
 
-pub(crate) fn menu_button_node() -> impl MavericNode<Context = AssetServer> {
-    ButtonNode {
-        background_color: Color::NONE,
-        visibility: Visibility::Visible,
-        border_color: Color::NONE,
-        marker: IconButtonComponent {
-            disabled: false,
-            button_action: IconButtonAction::OpenMenu,
-            button_type: ButtonType::Icon,
-        },
-        style: OpenMenuButtonStyle,
-        children: (TextNode {
-            text: IconButtonAction::OpenMenu.icon(),
-            font_size: ICON_FONT_SIZE,
-            color: BUTTON_TEXT_COLOR,
-            font: ICON_FONT_PATH,
-            alignment: TextAlignment::Left,
-            linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-        },),
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 struct OpenMenuButtonStyle;
-
-impl IntoBundle for OpenMenuButtonStyle {
-    type B = Style;
-
-    fn into_bundle(self) -> Self::B {
-        Style {
-            width: Val::Px(ICON_BUTTON_WIDTH),
-            height: Val::Px(ICON_BUTTON_HEIGHT),
-            margin: UiRect::DEFAULT,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
-            left: Val::Percent(0.0),
-            top: Val::Percent(0.0), // Val::Px(MENU_OFFSET),
-
-            ..Default::default()
-        }
-    }
-}
 
 pub(crate) fn icon_button_node(
     button_action: IconButtonAction,
@@ -89,6 +46,8 @@ pub(crate) fn icon_button_node(
 pub enum IconButtonStyle {
     HeightPadded,
     Compact,
+    Menu,
+    Snow,
 }
 
 impl IntoBundle for IconButtonStyle {
@@ -114,6 +73,32 @@ impl IntoBundle for IconButtonStyle {
                 align_items: AlignItems::Center,
                 flex_grow: 0.0,
                 flex_shrink: 0.0,
+                ..Default::default()
+            },
+            IconButtonStyle::Menu => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT),
+                margin: UiRect::DEFAULT,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                left: Val::Percent(0.0),
+                top: Val::Percent(0.0),
+
+                ..Default::default()
+            },
+            IconButtonStyle::Snow => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT),
+                margin: UiRect::DEFAULT,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                right: Val::Percent(0.0),
+                top: Val::Percent(0.0),
+
                 ..Default::default()
             },
         }
@@ -159,15 +144,14 @@ pub(crate) fn text_button_node_with_text(
     centred: bool,
     disabled: bool,
 ) -> impl MavericNode<Context = AssetServer> {
+    let (background_color, color, border_color) =
+        (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
 
-    let (background_color, color, border_color) = (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
-
-    let style = if button_action.emphasize(){
+    let style = if button_action.emphasize() {
         TextButtonStyle::Fat
-    }else{
+    } else {
         TextButtonStyle::Normal
     };
-
 
     ButtonNode {
         style,
@@ -195,18 +179,17 @@ pub(crate) fn text_button_node_with_text(
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum TextButtonStyle{
+pub enum TextButtonStyle {
     Normal,
     Medium,
-    Fat
+    Fat,
 }
 
 impl IntoBundle for TextButtonStyle {
     type B = Style;
 
     fn into_bundle(self) -> Self::B {
-
-        let border = match self{
+        let border = match self {
             TextButtonStyle::Normal => UiRect::all(Val::Px(UI_BORDER_WIDTH)),
             TextButtonStyle::Medium => UiRect::all(Val::Px(UI_BORDER_WIDTH_MEDIUM)),
             TextButtonStyle::Fat => UiRect::all(Val::Px(UI_BORDER_WIDTH_FAT)),
@@ -238,14 +221,17 @@ pub(crate) fn text_button_node_with_text_and_image(
     disabled: bool,
     image_path: &'static str,
     image_style: impl IntoBundle<B = Style>,
-    style: TextButtonStyle
+    style: TextButtonStyle,
 ) -> impl MavericNode<Context = AssetServer> {
-
-    let background_color = if disabled{ DISABLED_BUTTON_BACKGROUND} else{TEXT_BUTTON_BACKGROUND};
+    let background_color = if disabled {
+        DISABLED_BUTTON_BACKGROUND
+    } else {
+        TEXT_BUTTON_BACKGROUND
+    };
     ButtonNode {
         style,
         visibility: Visibility::Visible,
-        background_color ,
+        background_color,
         border_color: BUTTON_BORDER,
         marker: TextButtonComponent {
             disabled,

@@ -87,6 +87,8 @@ pub enum IconButtonAction {
     Share,
     SharePB,
 
+    EnableSnow,
+
     NextLevel,
     MinimizeSplash,
     RestoreSplash,
@@ -123,6 +125,7 @@ impl IconButtonAction {
             ShowLeaderboard => "\u{e803}",
             ViewPB => "\u{e81c}",
             ViewRecord => "\u{e81c}",
+            EnableSnow => "\u{f2dc}",
             None => "",
         }
     }
@@ -223,17 +226,17 @@ impl TextButtonAction {
             TextButtonAction::SetArrows(true) => "Rotation Arrows  ".to_string(),
             TextButtonAction::SetArrows(false) => "Rotation Arrows  ".to_string(),
 
-            TextButtonAction::SetFireworks(true) => "Fireworks        ".to_string(),
-            TextButtonAction::SetFireworks(false) => "Fireworks        ".to_string(),
+            TextButtonAction::SetFireworks(true) => "Fireworks               ".to_string(),
+            TextButtonAction::SetFireworks(false) => "Fireworks               ".to_string(),
 
-            TextButtonAction::SetSnow(true) => "Snow             ".to_string(),
-            TextButtonAction::SetSnow(false) => "Snow             ".to_string(),
+            TextButtonAction::SetSnow(true) => "Snow (affects gameplay) ".to_string(),
+            TextButtonAction::SetSnow(false) => "Snow (affects gameplay) ".to_string(),
 
             TextButtonAction::SetTouchOutlines(true) => "Touch Outlines   ".to_string(),
             TextButtonAction::SetTouchOutlines(false) => "Touch Outlines   ".to_string(),
 
-            TextButtonAction::SetHighContrast(true) => "Default Colours".to_string(),
-            TextButtonAction::SetHighContrast(false) => "High Contrast Colours".to_string(),
+            TextButtonAction::SetHighContrast(true) => "Default           Colours".to_string(),
+            TextButtonAction::SetHighContrast(false) => "High Contrast     Colours".to_string(),
 
             TextButtonAction::SyncAchievements => "Sync Achievements".to_string(),
             TextButtonAction::ShowAchievements => "Show Achievements".to_string(),
@@ -269,6 +272,7 @@ fn icon_button_system(
     mut change_level_events: EventWriter<ChangeLevelEvent>,
     mut share_events: EventWriter<ShareEvent>,
     mut global_ui_state: ResMut<GlobalUiState>,
+    mut settings: ResMut<GameSettings>,
     current_level: Res<CurrentLevel>,
     dragged: Query<(), With<BeingDragged>>,
 ) {
@@ -316,6 +320,7 @@ fn icon_button_system(
                 ShowLeaderboard => {
                     leaderboard::try_show_leaderboard(&current_level);
                 }
+                EnableSnow => settings.snow_enabled = true,
             }
         }
     }

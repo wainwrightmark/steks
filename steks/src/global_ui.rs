@@ -119,12 +119,8 @@ impl MavericRootChildren for GlobalUiRoot {
                 }
 
                 let carousel = match menu_state {
-                    MenuPage::Main => {
-                        Carousel::new(0, get_carousel_child, transition_duration)
-                    }
-                    MenuPage::Settings => {
-                        Carousel::new(1, get_carousel_child, transition_duration)
-                    }
+                    MenuPage::Main => Carousel::new(0, get_carousel_child, transition_duration),
+                    MenuPage::Settings => Carousel::new(1, get_carousel_child, transition_duration),
                     MenuPage::Accessibility => {
                         Carousel::new(2, get_carousel_child, transition_duration)
                     }
@@ -138,27 +134,42 @@ impl MavericRootChildren for GlobalUiRoot {
             }
             GlobalUiState::MenuClosed(ui_state) => {
                 let current_level = context.1.as_ref();
-                let asset_server = &context.2.3;
+                let asset_server = &context.2 .3;
 
                 match current_level.completion {
                     LevelCompletion::Incomplete { stage } => {
+                        commands.add_child(
+                            "open_icon",
+                            icon_button_node(IconButtonAction::OpenMenu, IconButtonStyle::Menu),
+                            asset_server,
+                        );
 
-                        commands.add_child("open_icon", menu_button_node(), asset_server);
+                        if !context.2 .0.snow_enabled && current_level.snowdrop_settings().is_some()
+                        {
+                            commands.add_child(
+                                "snow_icon",
+                                icon_button_node(
+                                    IconButtonAction::EnableSnow,
+                                    IconButtonStyle::Snow,
+                                ),
+                                asset_server,
+                            );
+                        }
+
                         if current_level.level.is_begging() {
                             commands.add_child("begging", BeggingPanel, asset_server);
                         } else {
                             commands.add_child(
                                 "text",
-                                LevelTextPanel{
+                                LevelTextPanel {
                                     level: current_level.level.clone(),
-                                    stage
+                                    stage,
                                 },
                                 asset_server,
                             );
                         }
                     }
                     LevelCompletion::Complete { score_info } => {
-
                         if !current_level.level.skip_completion() {
                             commands.add_child(
                                 "panel",

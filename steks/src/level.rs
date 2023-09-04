@@ -16,6 +16,7 @@ impl Plugin for LevelPlugin {
             .add_systems(Update, skip_tutorial_completion)
             .add_systems(Update, adjust_gravity)
             .add_plugins(TrackedResourcePlugin::<CurrentLevel>::default())
+            .add_plugins(TrackedResourcePlugin::<SavedData>::default())
             .add_plugins(AsyncEventPlugin::<ChangeLevelEvent>::default());
     }
 }
@@ -65,55 +66,51 @@ fn manage_level_shapes(
     mut previous: Local<CurrentLevel>,
 ) {
     if current_level.is_changed() {
-        let swap = previous.clone();
+        let previous_level = previous.clone();
         *previous = current_level.clone();
-        let previous = swap;
-        match current_level.completion {
-            LevelCompletion::Incomplete { stage } => {
-                let previous_stage = if stage == 0 || previous.level != current_level.level {
-                    for ((e, _), _) in draggables.iter() {
-                        commands.entity(e).despawn_recursive();
-                    }
-                    create_initial_shapes(&current_level.level, &mut shape_creation_events);
-                    0
-                } else {
-                    match previous.completion {
-                        LevelCompletion::Incomplete { stage } => stage,
-                        LevelCompletion::Complete { .. } => 0,
-                    }
-                };
-                if stage > 0 {
-                    match &current_level.as_ref().level {
-                        GameLevel::Designed { meta, .. } => {
-                            for stage in (previous_stage + 1)..=(stage) {
-                                if let Some(stage) = meta.get_level().get_stage(&stage) {
-                                    for creation in stage.shapes.iter() {
-                                        shape_creation_events.send((*creation).into())
-                                    }
 
-                                    for update in stage.updates.iter() {
-                                        shape_update_events.send((*update).into())
-                                    }
-                                }
+        let current_stage = current_level.get_current_stage();
+        let previous_stage = previous_level.get_current_stage();
+
+        if previous_level.level == current_level.level && previous_stage == current_stage {
+            return;
+        }
+
+        if current_stage == 0 || previous_level.level != current_level.level {
+            for ((e, _), _) in draggables.iter() {
+                commands.entity(e).despawn_recursive();
+            }
+            create_initial_shapes(&current_level.level, &mut shape_creation_events);
+        }
+        if current_stage > 0 {
+            match &current_level.as_ref().level {
+                GameLevel::Designed { meta, .. } => {
+                    for stage in (previous_stage + 1)..=(current_stage) {
+                        if let Some(stage) = meta.get_level().get_stage(&stage) {
+                            for creation in stage.shapes.iter() {
+                                shape_creation_events.send((*creation).into())
+                            }
+
+                            for update in stage.updates.iter() {
+                                shape_update_events.send((*update).into())
                             }
                         }
-                        GameLevel::Infinite { seed } => {
-                            let next_shapes = infinity::get_all_shapes(
-                                *seed,
-                                stage + INFINITE_MODE_STARTING_SHAPES,
-                            );
-                            shape_creation_events.send_batch(
-                                next_shapes
-                                    .into_iter()
-                                    .skip(INFINITE_MODE_STARTING_SHAPES + previous_stage),
-                            );
-                        }
-                        GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => {}
-                        GameLevel::Begging => {}
                     }
                 }
+                GameLevel::Infinite { seed } => {
+                    let next_shapes = infinity::get_all_shapes(
+                        *seed,
+                        current_stage + INFINITE_MODE_STARTING_SHAPES,
+                    );
+                    shape_creation_events.send_batch(
+                        next_shapes
+                            .into_iter()
+                            .skip(INFINITE_MODE_STARTING_SHAPES + previous_stage),
+                    );
+                }
+                GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => {}
+                GameLevel::Begging => {}
             }
-            LevelCompletion::Complete { .. } => {}
         }
     }
 }
@@ -143,15 +140,14 @@ fn handle_change_level_events(
 }
 
 fn choose_level_on_game_load(
-    mut change_level_events: EventWriter<ChangeLevelEvent>,
-    current_level: Res<CurrentLevel>,
+    mut _change_level_events: EventWriter<ChangeLevelEvent>,
 ) {
     #[cfg(target_arch = "wasm32")]
     {
         match crate::wasm::get_game_from_location() {
             Some(level) => {
                 //info!("Loaded level from url");
-                change_level_events.send(level);
+                _change_level_events.send(level);
                 return;
             }
             None => {
@@ -159,10 +155,15 @@ fn choose_level_on_game_load(
             }
         }
     }
+}
 
-    if current_level.completion.is_complete() {
-        change_level_events.send(ChangeLevelEvent::Next);
-    }
+#[derive(Debug, Default, Resource, PartialEq, Serialize, Deserialize)]
+pub struct SavedData {
+    data: Vec<u8>,
+}
+
+impl TrackableResource for SavedData {
+    const KEY: &'static str = "SavedData";
 }
 
 #[derive(Default, Resource, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -176,6 +177,13 @@ impl TrackableResource for CurrentLevel {
 }
 
 impl CurrentLevel {
+    pub fn get_current_stage(&self) -> usize {
+        match self.completion {
+            LevelCompletion::Incomplete { stage } => stage,
+            LevelCompletion::Complete { .. } => self.level.get_last_stage(),
+        }
+    }
+
     pub fn snowdrop_settings(&self) -> Option<SnowdropSettings> {
         let settings = match &self.level {
             GameLevel::Designed { meta, .. } => {
@@ -193,8 +201,6 @@ impl CurrentLevel {
             _ => false,
         }
     }
-
-
 }
 
 pub fn generate_score_info(
@@ -236,7 +242,6 @@ pub enum GameLevel {
 }
 
 impl GameLevel {
-
     pub fn get_level_text(&self, stage: usize) -> Option<String> {
         match &self {
             GameLevel::Designed { meta, .. } => meta
@@ -424,6 +429,13 @@ impl DesignedLevelMeta {
 }
 
 impl GameLevel {
+    pub fn get_last_stage(&self) -> usize {
+        match self {
+            GameLevel::Designed { meta } => meta.get_level().total_stages().saturating_sub(1),
+            _ => 0,
+        }
+    }
+
     pub fn has_stage(&self, stage: &usize) -> bool {
         match self {
             GameLevel::Designed { meta, .. } => meta.get_level().total_stages() > *stage,
@@ -764,32 +776,31 @@ impl ChangeLevelEvent {
     }
 }
 
-
 const INFINITE_COMMENTS: &'static [&'static str] = &[
-        "",
-        "just getting started", //1
-        "",
-        "",
-        "",
-        "hitting your stride", //5
-        "",
-        "",
-        "",
-        "",
-        "looking good",
-        "",
-        "",
-        "",
-        "",
-        "nice!",
-        "",
-        "",
-        "",
-        "",
-        "very nice!",
-        "",
-        "",
-        "",
-        "",
-        "an overwhelming surplus of nice!",
-    ];
+    "",
+    "just getting started", //1
+    "",
+    "",
+    "",
+    "hitting your stride", //5
+    "",
+    "",
+    "",
+    "",
+    "looking good",
+    "",
+    "",
+    "",
+    "",
+    "nice!",
+    "",
+    "",
+    "",
+    "",
+    "very nice!",
+    "",
+    "",
+    "",
+    "",
+    "an overwhelming surplus of nice!",
+];

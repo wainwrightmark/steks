@@ -131,9 +131,13 @@ fn handle_change_level_events(
             }
             .try_log1();
         }
+        let completion = LevelCompletion::Incomplete { stage };
 
-        current_level.level = level;
-        current_level.completion = LevelCompletion::Incomplete { stage };
+        current_level.set_if_neq(CurrentLevel{
+            level,
+            completion
+        });
+
         *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
     }
 }

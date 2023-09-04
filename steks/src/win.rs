@@ -29,6 +29,11 @@ pub fn check_for_win(
     pbs: Res<PersonalBests>,
     mut achievements: ResMut<Achievements>,
 ) {
+    if current_level.is_changed(){
+        *countdown = WinCountdown(None);
+        return;
+    }
+
     if let Some(Countdown {
         started_elapsed,
         total_secs,

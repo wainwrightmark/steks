@@ -20,26 +20,37 @@ pub fn spawn_and_update_shapes(
     mut recently_finished: Local<bool>,
 
     mut check_win: EventWriter<CheckForWinEvent>,
-    settings: Res<GameSettings>
+    settings: Res<GameSettings>,
 ) {
     creation_queue.extend(creations.iter());
     update_queue.extend(updates.iter());
 
+    let mut created = false;
     let mut changed = false;
 
     'creation: while !creation_queue.is_empty() || !update_queue.is_empty() {
-        if changed {
+        if created {
             if let Some(next) = creation_queue.first() {
                 if next.location.is_none() {
                     break 'creation; //we need to wait before creating this shape
                 }
+            }
+            else if !update_queue.is_empty(){
+                break 'creation; //we need to wait before doing the update
             }
         }
 
         if let Some(creation) = creation_queue.pop() {
             let mut rng = rand::thread_rng();
 
-            place_and_create_shape(&mut commands, creation, &rapier_context, &mut rng, &settings);
+            place_and_create_shape(
+                &mut commands,
+                creation,
+                &rapier_context,
+                &mut rng,
+                &settings,
+            );
+            created = true;
             changed = true;
         } else if let Some(update) = update_queue.pop_front() {
             if let Some((existing_entity, _, shape_component, shape_index, transform)) =
@@ -52,7 +63,7 @@ pub fn spawn_and_update_shapes(
                     prev,
                     shape_component,
                     transform,
-                    &settings
+                    &settings,
                 );
                 changed = true;
             } else {
@@ -78,7 +89,8 @@ pub fn place_and_create_shape<RNG: rand::Rng>(
     commands: &mut Commands,
     mut shape_with_data: ShapeCreationData,
     rapier_context: &Res<RapierContext>,
-    rng: &mut RNG, settings: &GameSettings
+    rng: &mut RNG,
+    settings: &GameSettings,
 ) {
     let location: Location = if let Some(l) = shape_with_data.location {
         bevy::log::debug!(
@@ -157,7 +169,11 @@ pub struct ShapeWithId {
     pub id: u32,
 }
 
-pub fn create_shape(commands: &mut Commands, shape_with_data: ShapeCreationData, settings: &GameSettings) {
+pub fn create_shape(
+    commands: &mut Commands,
+    shape_with_data: ShapeCreationData,
+    settings: &GameSettings,
+) {
     debug!(
         "Creating {} in state {:?} {:?}",
         shape_with_data.shape, shape_with_data.state, shape_with_data.id

@@ -16,7 +16,6 @@ impl Plugin for LevelPlugin {
             .add_systems(Update, skip_tutorial_completion)
             .add_systems(Update, adjust_gravity)
             .add_plugins(TrackedResourcePlugin::<CurrentLevel>::default())
-            .add_plugins(TrackedResourcePlugin::<SavedData>::default())
             .add_plugins(AsyncEventPlugin::<ChangeLevelEvent>::default());
     }
 }
@@ -157,14 +156,6 @@ fn choose_level_on_game_load(
     }
 }
 
-#[derive(Debug, Default, Resource, PartialEq, Serialize, Deserialize)]
-pub struct SavedData {
-    data: Vec<u8>,
-}
-
-impl TrackableResource for SavedData {
-    const KEY: &'static str = "SavedData";
-}
 
 #[derive(Default, Resource, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CurrentLevel {

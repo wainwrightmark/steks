@@ -65,13 +65,14 @@ fn manage_level_shapes(
     mut previous: Local<CurrentLevel>,
 ) {
     if current_level.is_changed() {
+        //info!("Current level changed");
         let previous_level = previous.clone();
         *previous = current_level.clone();
 
         let current_stage = current_level.get_current_stage();
         let previous_stage = previous_level.get_current_stage();
 
-        if previous_level.level == current_level.level && previous_stage == current_stage {
+        if previous_level.level == current_level.level && previous_stage == current_stage && !current_level.eq(&CurrentLevel::default()) {
             return;
         }
 

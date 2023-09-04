@@ -28,7 +28,7 @@ impl MavericNode for LevelTextPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_node_and_context(|args, context, commands| {
+        commands.ordered_children_with_node_and_context(|args, context, commands| {
             let level = &args.level;
             let stage = args.stage;
             let initial_color = level.text_color();

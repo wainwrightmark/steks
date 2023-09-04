@@ -60,7 +60,7 @@ impl MavericNode for LevelTextPanel {
                 );
             }
 
-            if let Some(title_text) = level.get_title() {
+            if let Some(title_text) = level.get_title(stage) {
                 commands.add_child(
                     "title",
                     TextNode {

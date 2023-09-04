@@ -716,9 +716,8 @@
     - shape: W5
     - shape: F5
     - shape: N5
-    - shape: S4
-    - shape: Z4
     - shape: T4
+    - shape: U5
     - shape: U5
     - shape: X5
     - shape: J4
@@ -894,7 +893,7 @@
           state: void
       fireworks:
         intensity: 10
-    - text: "This isn't even my final form!"
+    - text: "That wasn't even my final form!"
       gravity:
         - 0.0
         - 1000.0 # Reverse Gravity

@@ -138,9 +138,7 @@ fn handle_change_level_events(
     }
 }
 
-fn choose_level_on_game_load(
-    mut _change_level_events: EventWriter<ChangeLevelEvent>,
-) {
+fn choose_level_on_game_load(mut _change_level_events: EventWriter<ChangeLevelEvent>) {
     #[cfg(target_arch = "wasm32")]
     {
         match crate::wasm::get_game_from_location() {
@@ -155,7 +153,6 @@ fn choose_level_on_game_load(
         }
     }
 }
-
 
 #[derive(Default, Resource, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CurrentLevel {
@@ -280,9 +277,15 @@ impl GameLevel {
         }
     }
 
-    pub fn get_title(&self) -> Option<String> {
+    pub fn get_title(&self, stage: usize) -> Option<String> {
         match &self {
-            GameLevel::Designed { meta, .. } => meta.get_level().title.clone(),
+            GameLevel::Designed { meta, .. } => {
+                if stage > 0 {
+                    None
+                } else {
+                    meta.get_level().title.clone()
+                }
+            }
             GameLevel::Infinite { .. } => None,
             GameLevel::Challenge { .. } => Some("Daily Challenge".to_string()),
             GameLevel::Loaded { .. } => None,
@@ -292,13 +295,19 @@ impl GameLevel {
 
     pub fn get_level_number_text(&self, centred: bool, stage: usize) -> Option<String> {
         match &self {
-            GameLevel::Designed { meta, .. } => match meta {
-                DesignedLevelMeta::Tutorial { .. } => None,
-                DesignedLevelMeta::Campaign { index } => {
-                    Some(format_campaign_level_number(index, centred))
+            GameLevel::Designed { meta, .. } => {
+                if stage > 0 {
+                    None
+                } else {
+                    match meta {
+                        DesignedLevelMeta::Tutorial { .. } => None,
+                        DesignedLevelMeta::Campaign { index } => {
+                            Some(format_campaign_level_number(index, centred))
+                        }
+                        DesignedLevelMeta::Custom { .. } | DesignedLevelMeta::Credits => None,
+                    }
                 }
-                DesignedLevelMeta::Custom { .. } | DesignedLevelMeta::Credits => None,
-            },
+            }
             GameLevel::Infinite { .. } => {
                 if stage == 0 {
                     None
@@ -769,29 +778,29 @@ impl ChangeLevelEvent {
 
 const INFINITE_COMMENTS: &'static [&'static str] = &[
     "",
-    "just getting started", //1
+    "just getting started", //5
     "",
     "",
     "",
-    "hitting your stride", //5
-    "",
-    "",
-    "",
-    "",
-    "looking good",
+    "hitting your stride", //10
     "",
     "",
     "",
     "",
-    "nice!",
+    "looking good", //15
     "",
     "",
     "",
     "",
-    "very nice!",
+    "nice!", //20
     "",
     "",
     "",
     "",
-    "an overwhelming surplus of nice!",
+    "very nice!", //25
+    "",
+    "",
+    "",
+    "",
+    "an overwhelming surplus of nice!", //30
 ];

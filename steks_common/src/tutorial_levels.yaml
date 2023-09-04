@@ -34,7 +34,7 @@
       x: 0.0
       y: -300
   stages:
-    - text: "To complete your tower\n\nUse all shapes on the screen"
+    - text: "To complete your tower\n\nUse all shapes on the screen\n\nRotate and place them carefully"
       text_forever: true
       shapes:
         - shape: L4

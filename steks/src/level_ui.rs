@@ -195,9 +195,13 @@ impl MavericNode for MainPanel {
                         context,
                     );
 
+                    let text = match preview {
+                        PreviewImage::PB => "Challenge a friend to\nbeat your score!",
+                        PreviewImage::WR => "Can you do better?",
+                    };
                     commands.add_child(
                         "preview_message",
-                        panel_text_node("Challenge a friend to\nbeat your score!"),
+                        panel_text_node(text),
                         context,
                     );
 

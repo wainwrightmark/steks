@@ -39,6 +39,13 @@ impl GlobalUiState {
         }
     }
 
+    pub fn is_splash(&self) -> bool {
+        match self {
+            GlobalUiState::MenuClosed(GameUIState::Splash) => true,
+            _ => false,
+        }
+    }
+
     pub fn toggle_levels(&mut self, current_level: &CurrentLevel) {
         const LEVELS_PER_PAGE: u8 = 8;
 

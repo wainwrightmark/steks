@@ -65,7 +65,7 @@ fn manage_fireworks(
     *previous = current_level.clone();
     let previous = swap;
 
-    if !global_ui_state.is_minimized() ||  !settings.fireworks_enabled{
+    if !global_ui_state.is_splash() ||  !settings.fireworks_enabled{
         countdown.timer.pause();
         return;
     }

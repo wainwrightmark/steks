@@ -145,7 +145,7 @@ pub enum Achievement {
     Obsessed,
     Addict,
     IAmInevitable,
-    ItsATrap,
+    ItsATrap, //TODO
     LookTheresBleppo,
 
     CivilEngineer,
@@ -232,7 +232,7 @@ fn track_level_completion_achievements(
                     shapes.len()
                 );
 
-                if score_info.star.is_three_star(){
+                if score_info.star.is_some_and(|x|x.is_three_star()){
                     Achievements::unlock_if_locked(&mut achievements, CivilEngineer);
                 }
 

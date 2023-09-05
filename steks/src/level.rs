@@ -210,7 +210,7 @@ pub fn generate_score_info(
 
     let pb = old_height.map(|x| x.height).unwrap_or(0.0);
     let best = pb.max(height);
-    let star = level.get_star_type(best);
+    let star = level.get_level_stars().map(|x|x.get_star(best));
 
     ScoreInfo {
         hash,
@@ -345,27 +345,10 @@ impl GameLevel {
         meta: DesignedLevelMeta::Credits,
     };
 
-    pub fn get_star_type(&self, height: f32) -> StarType {
+    pub fn get_level_stars(&self) -> Option<LevelStars> {
         match self {
-            GameLevel::Designed { meta } => meta.get_level().get_star(height),
-            GameLevel::Infinite { .. } => StarType::Incomplete,
-            GameLevel::Challenge { .. } => StarType::guess(height, CHALLENGE_SHAPES),
-            GameLevel::Loaded { .. } => StarType::Incomplete,
-            GameLevel::Begging => StarType::Incomplete,
-        }
-    }
-
-    pub fn get_two_star_threshold(&self) -> Option<f32> {
-        match self {
-            GameLevel::Designed { meta } => Some(meta.get_level().get_silver_threshold()),
-            _ => None,
-        }
-    }
-
-    pub fn get_three_star_threshold(&self) -> Option<f32> {
-        match self {
-            GameLevel::Designed { meta } => Some(meta.get_level().get_gold_threshold()),
-            _ => None,
+            GameLevel::Designed { meta } => meta.get_level().stars,
+            _ => None
         }
     }
 }
@@ -723,6 +706,7 @@ impl ChangeLevelEvent {
                     end_text: None,
                     leaderboard_id: None,
                     end_fireworks: FireworksSettings::default(),
+                    stars: None
                 };
 
                 (

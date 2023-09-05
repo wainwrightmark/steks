@@ -20,7 +20,7 @@ pub struct ScoreInfo {
     pub height: f32,
     pub is_first_win: bool,
 
-    pub star: StarType,
+    pub star: Option<StarType>,
 
     pub wr: Option<f32>,
     pub pb: f32,

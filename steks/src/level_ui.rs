@@ -39,33 +39,35 @@ impl MavericNode for MainPanelWrapper {
 
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
-            commands.ignore_node().ignore_context().insert(NodeBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
+            commands
+                .ignore_node()
+                .ignore_context()
+                .insert(NodeBundle {
+                    style: Style {
+                        position_type: PositionType::Absolute,
 
-                    top: Val::Px(50.0),
-                    //width: Val::Px(350.0),
-                    left: Val::Percent(50.0),
-                    right: Val::Percent(50.0),
-                    bottom: Val::Auto,
-                    justify_content: JustifyContent::Center,
-                    flex_direction: FlexDirection::Column,
+                        top: Val::Px(50.0),
+                        //width: Val::Px(350.0),
+                        left: Val::Percent(50.0),
+                        right: Val::Percent(50.0),
+                        bottom: Val::Auto,
+                        justify_content: JustifyContent::Center,
+                        flex_direction: FlexDirection::Column,
+                        ..Default::default()
+                    },
+
+                    z_index: ZIndex::Global(15),
                     ..Default::default()
-                },
-
-                z_index: ZIndex::Global(15),
-                ..Default::default()
-            }).finish()
+                })
+                .finish()
         });
 
-        commands.ignore_context().advanced(|args, commands|{
-            if args.is_hot(){
+        commands.ignore_context().advanced(|args, commands| {
+            if args.is_hot() {
                 let top = match args.node.ui_state {
                     GameUIState::Splash | GameUIState::Preview(_) => Val::Px(50.0),
                     GameUIState::Minimized => Val::Px(0.0),
                 };
-
-
 
                 commands.transition_value::<StyleTopLens>(top, top, Some(ScalarSpeed::new(100.0)));
             }
@@ -199,11 +201,7 @@ impl MavericNode for MainPanel {
                         PreviewImage::PB => "Challenge a friend to\nbeat your score!",
                         PreviewImage::WR => "Can you do better?",
                     };
-                    commands.add_child(
-                        "preview_message",
-                        panel_text_node(text),
-                        context,
-                    );
+                    commands.add_child("preview_message", panel_text_node(text), context);
 
                     commands.add_child("buttons", ButtonPanel::Preview(preview), context);
                 }
@@ -298,25 +296,27 @@ impl MavericNode for MainPanel {
                         );
                     }
 
-                    if !args.score_info.star.is_incomplete() {
-                        commands.add_child(
-                            "stars",
-                            ImageNode {
-                                path: args.score_info.star.wide_stars_asset_path(),
-                                background_color: Color::WHITE,
-                                style: ThreeStarsImageStyle,
-                            },
-                            context,
-                        );
+                    if let Some(star_type) = args.score_info.star {
+                        if let Some(level_stars) = args.level.get_level_stars() {
+                            commands.add_child(
+                                "stars",
+                                ImageNode {
+                                    path: star_type.wide_stars_asset_path(),
+                                    background_color: Color::WHITE,
+                                    style: ThreeStarsImageStyle,
+                                },
+                                context,
+                            );
 
-                        commands.add_child(
-                            "star_heights",
-                            StarHeights {
-                                level: args.level.clone(),
-                                score_info: args.score_info.clone(),
-                            },
-                            context,
-                        );
+                            commands.add_child(
+                                "star_heights",
+                                StarHeights {
+                                    level_stars,
+                                    star_type
+                                },
+                                context,
+                            );
+                        }
                     }
 
                     commands.add_child("bottom_buttons", ButtonPanel::SplashBottom, context);
@@ -332,8 +332,8 @@ impl MavericNode for MainPanel {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct StarHeights {
-    level: GameLevel,
-    score_info: ScoreInfo,
+    level_stars: LevelStars,
+    star_type: StarType,
 }
 
 impl MavericNode for StarHeights {
@@ -349,13 +349,10 @@ impl MavericNode for StarHeights {
                 )],
                 width: Val::Px(THREE_STARS_IMAGE_WIDTH),
                 grid_auto_flow: GridAutoFlow::Column,
-                // flex_basis: Val::Px(THREE_STARS_IMAGE_WIDTH / 3.0),
-                // flex_grow: 200.0,
                 margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(-10.0), Val::Px(0.)),
                 justify_content: JustifyContent::SpaceEvenly,
                 ..Default::default()
             },
-            //background_color: BackgroundColor(Color::RED),
             ..Default::default()
         });
     }
@@ -365,21 +362,17 @@ impl MavericNode for StarHeights {
             let filler: &str = "    ";
             let empty = "        ";
 
-            let second_star: String = match args.score_info.star {
-                StarType::Incomplete | StarType::OneStar => args
-                    .level
-                    .get_two_star_threshold()
-                    .map(|x| format!("{filler}{x:3.0}m"))
-                    .unwrap_or_else(|| empty.to_string()),
+            let second_star: String = match args.star_type {
+                StarType::Incomplete | StarType::OneStar => {
+                    format!("{filler}{height:3.0}m", height = args.level_stars.two)
+                }
                 StarType::ThreeStar | StarType::TwoStar => empty.to_string(),
             };
 
-            let third_star: String = match args.score_info.star {
-                StarType::Incomplete | StarType::OneStar | StarType::TwoStar => args
-                    .level
-                    .get_three_star_threshold()
-                    .map(|x| format!("{filler}{x:3.0}m"))
-                    .unwrap_or_else(|| empty.to_string()),
+            let third_star: String = match args.star_type {
+                StarType::Incomplete | StarType::OneStar | StarType::TwoStar => {
+                    format!("{filler}{height:3.0}m", height = args.level_stars.three)
+                }
                 StarType::ThreeStar => empty.to_string(),
             };
 
@@ -398,7 +391,6 @@ impl MavericNode for StarHeights {
         });
     }
 }
-
 
 #[derive(Debug, Clone, PartialEq, EnumIs)]
 pub enum ButtonPanel {

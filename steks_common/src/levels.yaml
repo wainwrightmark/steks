@@ -7,6 +7,7 @@
   end_text: "Not bad for a beginner\nPress  for the next level"
   #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQGA'
+  stars: {two: 140, three: 150}
   shapes:
     - shape: U5
     - shape: U5
@@ -16,6 +17,7 @@
 - title: "Reach For The Sky"
   text: ""
   end_text: "Press  to try for a taller tower\nTaller towers earn more stars"
+  stars: {two: 140, three: 150}
   shapes:
     - shape: O4
       # color:
@@ -28,6 +30,7 @@
 #3
 - title: "Steks With An X"
   text: "rotating shapes from further away\nis often easier"
+  stars: {two: 180, three: 190}
   end_text: "Wow, that was quick"
   shapes:
     - shape: S5
@@ -48,6 +51,7 @@
 - title: Uneven Foundations
   text: white shapes cannot be unlocked
   end_text: "Just want to build cool towers?\nIgnore the stars, you're not Mario!"
+  stars: {two: 200, three: 215}
   shapes:
     - shape: U5
       x: 0.0
@@ -62,6 +66,7 @@
 #5
 - title: "The Pentomino Effect"
   end_text: "Now you're thinking with pentominos"
+  stars: {two: 250, three: 300}
   shapes:
     - shape: I5
     - shape: L5
@@ -74,6 +79,7 @@
 - title: "The Empire Steks Back"
   text: "that's no moon..."
   end_text: "Great shot, kid."
+  stars: {two: 240, three: 270}
   shapes:
     - shape: O4
     - shape: I5
@@ -92,6 +98,7 @@
 #7
 - title: "Tri Hard"
   end_text: "Welcome to the party, pal"
+  stars: {two: 270, three: 305}
   shapes:
     - shape: J4
     - shape: L4
@@ -104,6 +111,7 @@
 - title: Cubism
   text: wonky towers are encouraged
   end_text: "You're basically Picasso\nhit  to share your masterpiece"
+  stars: {two: 220, three: 240}
   shapes:
     - shape: P5
     - shape: F5
@@ -117,6 +125,7 @@
 - title: "At An Angle"
   text:
   end_text: "That's a cute tower"
+  stars: {two: 220, three: 275}
   shapes:
     - shape: I4
       x: 0.0
@@ -135,6 +144,7 @@
 #10
 - title: "Tri Hard II: Tri Harder"
   end_text: "Yippee-Ki-Yay!"
+  stars: {two: 330, three: 360}
   shapes:
     - shape: L4
     - shape: L4
@@ -148,6 +158,7 @@
 - title: "Avoid The Void"
   text: "build around or under it"
   end_text: "Void avoided"
+  stars: {two: 215, three: 225}
   shapes:
     - shape: I5
       x: 0.0
@@ -170,6 +181,7 @@
 #12
 - title: "Things Are Looking Up"
   end_text: "Is that the end of Dr. Gravity?"
+  stars: {two: 270, three: 290}
   shapes:
     - shape: L5
     - shape: W5
@@ -189,6 +201,7 @@
 #13
 - title: "The Empire Steks Building"
   end_text: "Think you've got the tallest tower?\nHit  to challenge a friend!"
+  stars: {two: 300, three: 360}
   shapes:
     - shape: I5
     - shape: L4
@@ -202,6 +215,7 @@
 #14
 - title: "The Steks Factor"
   end_text: "That was just the audition"
+  stars: {two: 275, three: 290}
   shapes:
     - shape: O4
     - shape: F5
@@ -215,6 +229,7 @@
 #15
 - title: "Excess"
   end_text: "You know you love me, XOXO"
+  stars: {two: 230, three: 240}
   shapes:
     - shape: X5
     - shape: X5
@@ -238,9 +253,11 @@
         - shape: Circle
           id: 2
 
+#16
 - title: "Black-ish Hole-ish Thing"
   text: ""
   end_text: "Good news, everyone!"
+  stars: {two: 180, three: 210}
   shapes:
     - shape: I5
       x: 0.0
@@ -259,9 +276,10 @@
     - shape: T4
     - shape: J4
 
-#16
+#17
 - title: "The Joy Of Steks"
   end_text: "Extremely satisfactory"
+  stars: {two: 270, three: 280}
   shapes:
     - shape: P5
     - shape: F5
@@ -272,10 +290,11 @@
     - shape: J4
     - shape: J4
 
-#17
+#18
 - title: Ice Ice Baby
   text: a brand new invention
   end_text: "Yo, you solved it!"
+  stars: {two: 240, three: 260}
   shapes:
     - shape: I5
       modifiers: Ice
@@ -293,9 +312,10 @@
       modifiers: Ice
 
 
-#18
+#19
 - title: "Double Trouble"
   end_text: "Two thumbs up!"
+  stars: {two: 260, three: 275}
   shapes:
     - shape: T5
     - shape: T5
@@ -305,10 +325,11 @@
     - shape: F5
     - shape: W5
     - shape: W5
-#19
+#20
 - title: "Galileo's Folly"
   text: "Dr. Gravity is making things harder"
   end_text: "Dr. Gravity has gone too far!"
+  stars: {two: 300, three: 315}
   shapes:
     - shape: Triangle
       x: 0.0
@@ -323,9 +344,10 @@
     - shape: S4
     - shape: J4
     - shape: T4
-#20
+#21
 - title: "Circular Logic"
   end_text: "You're a success 'cos you succeeded\nYou succeeded 'cos you're a success"
+  stars: {two: 235, three: 260}
   shapes:
     - shape: L4
     - shape: T4
@@ -335,9 +357,10 @@
     - shape: X5
     - shape: Circle
     - shape: Circle
-#21
+#22
 - title: "Tri Hard with A Vengeance"
   end_text: "Just a fly in the ointment, Hans\na monkey in the wrench"
+  stars: {two: 225, three: 250}
   shapes:
     - shape: Triangle
     - shape: Triangle
@@ -356,10 +379,11 @@
     shapes:
       - Triangle
 
-#22
+#23
 - title: "Antarctica"
   text: "Dr. Gravity's polar base\nis guarded by penguins"
   end_text: "Great Scott!"
+  stars: {two: 190, three: 245}
   gravity:
         - 0.0
         - 1000.0
@@ -379,10 +403,11 @@
     - shape: L5
       modifiers: Ice
 
-#23
+#24
 - title: "Marvin"
   text: "the paranoid and void"
   end_text: "So long and thanks\nfor all the shapes"
+  stars: {two: 230, three: 245}
   shapes:
     - shape: I5
       x: 0.0
@@ -402,9 +427,10 @@
     - shape: Z4
     - shape: T4
 
-#24
+#25
 - title: "Deus Steks Machina"
   end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
+  stars: {two: 280, three: 305}
   shapes:
     - shape: O4
     - shape: O4
@@ -419,10 +445,11 @@
         - shape: S5
         - shape: F5
 
-#25
+#26
 - title: "The Two Towers"
   text: ""
   end_text: "One does not simply... build a tower"
+  stars: {two: 280, three: 305}
   shapes:
     - shape: Z4
       x: 90.0
@@ -468,9 +495,10 @@
       x: 110.0
       y: 115.0
 
-#26
+#27
 - title: "The Steks Files"
   end_text: "The truth is out there"
+  stars: {two: 250, three: 270}
   shapes:
     - shape: P5
     - shape: F5
@@ -482,10 +510,11 @@
     - shape: Z4
     - shape: F5
 
-#27
+#28
 - title: "Steks Storm"
   text: ""
   end_text: "You weathered that ok"
+  stars: {two: 275, three: 290}
   rainfall:
     intensity: 2
   shapes:
@@ -497,10 +526,11 @@
     - shape: I5
     - shape: Z4
 
-#28
+#29
 - title: "Platform Game"
   text: ""
   end_text: "Built a crazy tower?\nTag us on social media!"
+  stars: {two: 290, three: 320}
   shapes:
     - shape: L4
       x: -75.0
@@ -533,10 +563,11 @@
     - shape: Z4
 
 
-#26
+#30
 - title: "This One Is Easy"
   text: "no surprises we promise"
   end_text: "Fine! You win this round"
+  stars: {two: 230, three: 255}
   shapes:
     - shape: L5
     - shape: W5
@@ -560,9 +591,11 @@
         - shape: S5
           modifiers: ice
 
+#31
 - title: "The Bridge of Khazad-dum"
   text: "you hear a rumbling overhead..."
   end_text: "Fly, you fools!"
+  stars: {two: 270, three: 300}
   shapes:
     - shape: U5
       x: -95.0
@@ -595,10 +628,11 @@
           vel_y: -450.0
 
 
-# 27
+# 32
 - title: "Newton's Mistake"
   text: "Dr. Gravity is testing you"
   end_text: "You've beaten Dr. Gravity, for now"
+  stars: {two: 260, three: 280}
   shapes:
     - shape: S5
       x: 0.0
@@ -614,9 +648,11 @@
     - shape: Z4
     - shape: J4
 
+#33
 - title: "Leaning Tower Of Steksa"
   text: ""
   end_text: "Steksa is the capital of Stekstopia\n this is now canon"
+  stars: {two: 300, three: 330}
   shapes:
     - shape: I4
       x: 90.0
@@ -643,10 +679,11 @@
     - shape: T5
     - shape: F5
 
-#28
+#34
 - title: "You Shall Go To The Ball"
   text: ""
   end_text: "You made it out before midnight!"
+  stars: {two: 255, three: 280}
   shapes:
     - shape: Circle
       x: 0.0
@@ -660,10 +697,11 @@
     - shape: T5
     - shape: J4
 
-#28
+#35
 - title: "This One Is Tricky"
   text: "but no surprises we promise"
   end_text: "Meta surprise!"
+  stars: {two: 270, three: 290}
   shapes:
     - shape: P5
     - shape: F5
@@ -676,9 +714,10 @@
     - shape: J4
     - shape: circle
 
-#29
+#36
 - title: "Bifröst"
   end_text: "Welcome to Asgard"
+  stars: {two: 215, three: 245}
   rainfall:
       intensity: 2
   shapes:
@@ -703,10 +742,11 @@
     - shape: J4
     - shape: J4
 
-#29
+#37
 - title: "Einstein's Regret"
   text: "Dr. Gravity blocks the way"
   end_text: "'tis but a flesh wound"
+  stars: {two: 220, three: 245}
   shapes:
     - shape: T5
       x: 0.0
@@ -722,9 +762,10 @@
     - shape: X5
     - shape: J4
 
-#30
+#38
 - title: "Shapes On A Plane"
   end_text: "I've had it with these\nmonkey-fighting shapes"
+  stars: {two: 170, three: 180}
   shapes:
     - shape: I4
       x: 0.0
@@ -746,10 +787,11 @@
     - shape: T4
     - shape: T4
 
-#31
+#39
 - title: "A Song Of Ice And Towers"
   text: "when you play the game of Steks\nYou win or you... don't?"
   end_text: "That was our season eight"
+  stars: {two: 175, three: 190}
   shapes:
     - shape: L5
       id: 1
@@ -791,11 +833,12 @@
         - shape: F5
           modifiers: Ice
 
-#32
+#40
 - title: "Dr. Gravity's Laboratory"
   alt_text_color: true
   text: "in Steks no one can hear you scream"
   end_text: "Now buy Steks 2"
+  stars: {two: 345, three: 400}
   shapes:
     - shape: Triangle # mouth
       x: 0.0

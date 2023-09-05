@@ -36,7 +36,6 @@ impl Plugin for LeaderboardPlugin {
             .add_plugins(TrackedResourcePlugin::<Streak>::default())
             .add_plugins(AsyncEventPlugin::<CheatEvent>::default())
             .init_resource::<WorldRecords>()
-
             .add_systems(PostStartup, check_for_cheat_on_game_load)
             .add_systems(Update, detect_cheat)
             .add_systems(Update, hydrate_leaderboard)
@@ -104,16 +103,14 @@ pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
 #[derive(Debug, Event)]
 pub struct CheatEvent;
 
-
-
 fn check_for_cheat_on_game_load(mut events: EventWriter<CheatEvent>) {
-    if is_cheat_in_path().is_some(){
+    if is_cheat_in_path().is_some() {
         events.send(CheatEvent);
     }
 }
 
-fn detect_cheat(mut events: EventReader<CheatEvent>, mut completion: ResMut<CampaignCompletion>){
-    for _ in events.into_iter(){
+fn detect_cheat(mut events: EventReader<CheatEvent>, mut completion: ResMut<CampaignCompletion>) {
+    for _ in events.into_iter() {
         info!("Detected cheat event");
         CampaignCompletion::fill_with_incomplete(&mut completion);
 
@@ -320,7 +317,7 @@ async fn update_wrs_async(hash: u64, height: f32, blob: String) -> Result<(), re
 fn update_campaign_completion(
     current_level: Res<CurrentLevel>,
     mut campaign_completion: ResMut<CampaignCompletion>,
-    mut achievements: ResMut<Achievements>
+    mut achievements: ResMut<Achievements>,
 ) {
     if !current_level.is_changed() {
         return;
@@ -341,26 +338,36 @@ fn update_campaign_completion(
         _ => return,
     };
 
+    let Some(stars) = score_info.star else {
+        return;
+    };
+
     CampaignCompletion::fill_with_incomplete(&mut campaign_completion);
 
-    let start_type = campaign_completion.stars[index as usize];
+    let previous_stars = campaign_completion.stars[index as usize];
 
-    if start_type < score_info.star {
-        if matches!(index + 1, 7 | 25 | 40) && start_type == StarType::Incomplete {
+    if previous_stars < stars {
+        campaign_completion.stars[index as usize] = stars;
+        if matches!(index + 1, 7 | 25 | 40) && previous_stars == StarType::Incomplete {
             #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
             {
                 bevy::tasks::IoTaskPool::get()
-                .spawn(async move { capacitor_bindings::rate::Rate::request_review().await }).detach();
+                    .spawn(async move { capacitor_bindings::rate::Rate::request_review().await })
+                    .detach();
             }
         }
 
-        campaign_completion.stars[index as usize] = score_info.star;
-
-        if start_type.is_three_star() && campaign_completion.stars.iter().all(|x|x.is_three_star()) {
+        if previous_stars.is_three_star()
+            && campaign_completion.stars.iter().all(|x| x.is_three_star())
+        {
             Achievements::unlock_if_locked(&mut achievements, Achievement::SuperMario);
             Achievements::unlock_if_locked(&mut achievements, Achievement::OkMario);
-        }
-        else if (start_type.is_two_star() || start_type.is_three_star())  && campaign_completion.stars.iter().all(|x|x.is_two_star() || x.is_three_star() ) {
+        } else if (previous_stars.is_two_star() || previous_stars.is_three_star())
+            && campaign_completion
+                .stars
+                .iter()
+                .all(|x| x.is_two_star() || x.is_three_star())
+        {
             Achievements::unlock_if_locked(&mut achievements, Achievement::OkMario);
         }
     }

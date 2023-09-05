@@ -72,6 +72,29 @@ pub struct DesignedLevel {
     #[serde(alias = "Leaderboard_id")]
     #[serde(default)]
     pub leaderboard_id: Option<String>,
+
+    #[serde(alias = "Stars")]
+    #[serde(default)]
+    pub stars: Option<LevelStars>,
+}
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub struct LevelStars {
+    #[serde(alias = "Two")]
+    pub two: f32,
+    #[serde(alias = "Three")]
+    pub three: f32,
+}
+
+impl LevelStars {
+    pub fn get_star(&self, height: f32) -> StarType {
+        if height >= self.three {
+            StarType::ThreeStar
+        } else if height >= self.two {
+            StarType::TwoStar
+        } else {
+            StarType::OneStar
+        }
+    }
 }
 
 impl DesignedLevel {
@@ -107,22 +130,6 @@ impl DesignedLevel {
 
     pub fn all_stages(&self) -> impl Iterator<Item = &LevelStage> + '_ {
         std::iter::once(&self.initial_stage).chain(self.stages.iter())
-    }
-
-    pub fn get_star(&self, height: f32) -> StarType {
-        let num_shapes = self.all_stages().map(|z| z.shapes.len()).sum(); //TODO handle void shapes
-
-        StarType::guess(height, num_shapes) //TODO specific values for each star
-    }
-
-    pub fn get_silver_threshold(&self)-> f32{
-        let num_shapes: usize = self.all_stages().map(|z| z.shapes.len()).sum(); //TODO handle void shapes
-        num_shapes as f32 * 35.
-    }
-
-    pub fn get_gold_threshold(&self)-> f32{
-        let num_shapes: usize = self.all_stages().map(|z| z.shapes.len()).sum(); //TODO handle void shapes
-        num_shapes as f32 * 40.
     }
 }
 
@@ -272,12 +279,22 @@ pub struct ShapeUpdate {
     pub color: Option<(u8, u8, u8)>,
 }
 
-
 #[cfg(test)]
 mod tests {
 
     use super::DesignedLevel;
     use crate::designed_level::*;
+
+    #[test]
+    pub fn test_level_stars(){
+        let list = &crate::designed_level::CAMPAIGN_LEVELS;
+
+        for (index, level) in list.iter().enumerate() {
+            let stars = level.stars.expect(format!("{index}: {title} should have stars", title = level.title.clone().unwrap_or_default()).as_str());
+
+            assert!(stars.three > stars.two, "Three stars should be more than two (level {index})")
+        }
+    }
 
     #[test]
     pub fn test_level_hashes() {

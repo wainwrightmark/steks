@@ -24,20 +24,6 @@ pub enum StarType {
 }
 
 impl StarType {
-    pub fn guess(height: f32, num_shapes: usize) -> Self {
-        //TODO use a better system
-
-        if height <= 0.0 {
-            StarType::Incomplete
-        } else if height < (num_shapes as f32) * 35. {
-            StarType::OneStar
-        } else if height < (num_shapes as f32) * 40. {
-            StarType::TwoStar
-        } else {
-            StarType::ThreeStar
-        }
-    }
-
     pub fn wide_stars_asset_path(&self) -> &'static str {
         match self {
             StarType::Incomplete => "images/stars/ThreeStarsBlack.png",

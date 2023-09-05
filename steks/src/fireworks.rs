@@ -55,7 +55,7 @@ fn manage_fireworks(
     global_ui_state: Res<GlobalUiState>,
     mut previous: Local<CurrentLevel>,
     mut countdown: ResMut<FireworksCountdown>,
-    settings: Res<GameSettings>
+    settings: Res<GameSettings>,
 ) {
     if !current_level.is_changed() && !global_ui_state.is_changed() && !settings.is_changed() {
         return;
@@ -65,7 +65,7 @@ fn manage_fireworks(
     *previous = current_level.clone();
     let previous = swap;
 
-    if !global_ui_state.is_splash() ||  !settings.fireworks_enabled{
+    if !global_ui_state.is_splash() || !settings.fireworks_enabled {
         countdown.timer.pause();
         return;
     }
@@ -200,31 +200,44 @@ fn get_new_fireworks(
         });
     }
 
-    if !previous_was_complete {
-        // First Win
-        if match info {
-            None => false,
-            Some(x) => x.is_first_win,
-        } {
-            return Some(FireworksCountdown {
-                timer: Timer::from_seconds(4.0, TimerMode::Once),
-                repeat_interval: Some(Duration::from_secs(4)),
-                intensity: 10,
-                shapes: settings.shapes,
-            });
-        }
+    match info {
+        Some(score_info) if score_info.is_pb() => {
+            let repeat_interval = match score_info.star {
+                Some(StarType::ThreeStar) => Some(Duration::from_secs_f32(1.5)),
+                Some(StarType::TwoStar) => Some(Duration::from_secs(3)),
+                Some(StarType::OneStar) => None,
+                Some(StarType::Incomplete) => None,
+                None => None,
+            };
 
+            if let Some(repeat_interval) = repeat_interval {
+                return Some(FireworksCountdown {
+                    timer: Timer::from_seconds(0.0, TimerMode::Once),
+                    repeat_interval: Some(repeat_interval),
+                    intensity: 20,
+                    shapes: settings.shapes,
+                });
+            }
+        }
+        _ => {}
+    }
+
+    if !previous_was_complete {
         // New pb
-        if match info {
-            None => false,
-            Some(x) => x.is_pb(),
-        } {
-            return Some(FireworksCountdown {
-                timer: Timer::from_seconds(0.0, TimerMode::Once),
-                repeat_interval: Some(Duration::from_secs(4)),
-                intensity: 20,
-                shapes: settings.shapes,
-            });
+
+
+
+        // First Win
+        match info {
+            Some(score_info) if score_info.is_first_win => {
+                return Some(FireworksCountdown {
+                    timer: Timer::from_seconds(4.0, TimerMode::Once),
+                    repeat_interval: Some(Duration::from_secs(4)),
+                    intensity: 10,
+                    shapes: settings.shapes,
+                });
+            }
+            _ => {}
         }
 
         // Level has fireworks

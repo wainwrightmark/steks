@@ -227,16 +227,17 @@ pub fn drag_move(
                             angle_to(event.new_position - transform.translation.truncate());
 
                         let previous_angle =
-                            angle_to(rotate.current - transform.translation.truncate());
+                            angle_to(rotate.previous - transform.translation.truncate());
                         let new_angle = closest_angle_representation(new_angle, previous_angle);
-                        let angle = (new_angle - previous_angle)
+                        let delta = (new_angle - previous_angle)
                             * settings.rotation_sensitivity.coefficient();
 
                         ev_rotate.send(RotateEvent {
-                            angle,
+                            delta,
                             snap_resolution: None,
                         });
-                        rotate.current = event.new_position;
+                        rotate.previous = event.new_position;
+                        rotate.total_radians +=delta;
                     }
 
                     return;
@@ -273,7 +274,7 @@ fn handle_rotate_events(
 ) {
     for ev in ev_rotate.iter() {
         for mut transform in dragged.iter_mut() {
-            transform.rotation *= Quat::from_rotation_z(ev.angle);
+            transform.rotation *= Quat::from_rotation_z(ev.delta);
             if let Some(multiple) = ev.snap_resolution {
                 transform.rotation = round_z(transform.rotation, multiple);
             }
@@ -308,7 +309,7 @@ fn draw_rotate_arrows(
     touch_rotate: Res<TouchRotateResource>,
     mut existing_arrows: Query<(Entity, &mut Path), With<RotateArrow>>,
     draggables: Query<(&ShapeComponent, &Transform), With<BeingDragged>>,
-    mut previous_angle: Local<f32>,
+    //mut previous_angle: Local<f32>,
     current_level: Res<CurrentLevel>,
     settings: Res<GameSettings>,
 ) {
@@ -320,7 +321,7 @@ fn draw_rotate_arrows(
             commands.entity(entity).despawn_recursive();
         }
 
-        *previous_angle = 0.0;
+        //*previous_angle = 0.0;
         return;
     }
 
@@ -329,7 +330,7 @@ fn draw_rotate_arrows(
             commands.entity(entity).despawn_recursive();
         }
 
-        *previous_angle = 0.0;
+        //*previous_angle = 0.0;
         return;
     };
 
@@ -346,10 +347,11 @@ fn draw_rotate_arrows(
     let radius = touch.radius;
 
     let start_angle = touch.start_angle;
-    let end_angle = angle_to(touch.current - centre);
+    //let end_angle = angle_to(touch.current - centre);
+    let sweep_angle = touch.total_radians;
 
-    let sweep_angle = closest_angle_representation(end_angle - start_angle, *previous_angle);
-    *previous_angle = sweep_angle;
+    //let sweep_angle = closest_angle_representation(end_angle - start_angle, *previous_angle);
+    //*previous_angle = sweep_angle;
 
     let path_start = centre + point_at_angle(radius, start_angle);
     let path_end = centre + point_at_angle(radius, start_angle + sweep_angle);
@@ -522,8 +524,9 @@ pub fn drag_start(
                 *touch_rotate = TouchRotateResource(Some(TouchRotate {
                     start_angle: angle_to(event.position - center.translation.truncate()),
                     radius: event.position.distance(center.translation.truncate()),
-                    current: event.position,
+                    previous: event.position,
                     touch_id,
+                    total_radians: 0.0
                 }));
             }
         }
@@ -624,11 +627,13 @@ pub struct TouchRotate {
 
     pub start_angle: f32,
     pub radius: f32,
-    pub current: Vec2,
+
+    pub total_radians: f32,
+    pub previous: Vec2,
 }
 #[derive(Debug, Event)]
 pub struct RotateEvent {
-    pub angle: f32,
+    pub delta: f32,
     pub snap_resolution: Option<f32>,
 }
 

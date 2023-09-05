@@ -141,7 +141,7 @@ pub fn keyboard_listener(
                 if let Some(angle) = angle {
                     //info!("Keyboard rotate {angle}");
                     rotate_evw.send(RotateEvent {
-                        angle,
+                        delta: angle,
                         snap_resolution: Some(SNAP_RESOLUTION),
                     });
                 }
@@ -157,7 +157,7 @@ pub fn mousewheel_listener(
     for ev in scroll_evr.iter() {
         let angle = (ev.x + ev.y).signum() * SNAP_RESOLUTION;
         let event = RotateEvent {
-            angle,
+            delta: angle,
             snap_resolution: Some(SNAP_RESOLUTION),
         };
         ev_rotate.send(event);

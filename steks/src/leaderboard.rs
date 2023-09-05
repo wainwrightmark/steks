@@ -135,7 +135,7 @@ fn is_cheat_in_path() -> Option<()> {
 }
 
 fn refresh_wr_data(hash: u64, writer: AsyncEventWriter<LeaderboardDataEvent>) {
-    info!("Refreshing Leaderboard");
+    debug!("Refreshing Leaderboard");
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
             let data_event = get_leaderboard_data(hash).await;
@@ -188,7 +188,7 @@ fn hydrate_leaderboard(
     };
     let updated = chrono::offset::Utc::now();
 
-    info!("Received wr {hash} {height} {image_blob}");
+    debug!("Received wr {hash} {height} {image_blob}");
 
     let image_blob = if image_blob == "0" {
         vec![]
@@ -226,7 +226,7 @@ fn hydrate_leaderboard(
                     return; // no change except to time updated
                 }
                 std::cmp::Ordering::Greater => {
-                    info!("Existing record is better than record from server");
+                    debug!("Existing record is better than record from server");
                     let existing_image_blob = base64::engine::general_purpose::URL_SAFE
                         .encode(existing.image_blob.as_slice());
                     update_wr(hash, existing.height, existing_image_blob);
@@ -238,7 +238,7 @@ fn hydrate_leaderboard(
     }
 
     // new record is better than previous
-    info!("Updating record in score_info");
+    debug!("Updating record in score_info");
     let LevelCompletion::Complete { score_info } = current_level.as_ref().completion else {
         warn!("Current level is not complete");
         return;
@@ -251,14 +251,14 @@ fn hydrate_leaderboard(
 
     if score_info.wr != Some(height) {
         if score_info.height > height {
-            info!("current wr is less than current score");
+            debug!("current wr is less than current score");
             update_wr(
                 hash,
                 score_info.height,
                 shapes_vec_from_query(shapes_query).make_base64_data(),
             );
         } else {
-            info!("Updating current level wr");
+            debug!("Updating current level wr");
             current_level.completion = LevelCompletion::Complete {
                 score_info: ScoreInfo {
                     wr: Some(height),
@@ -282,11 +282,11 @@ async fn get_leaderboard_data(hash: u64) -> LeaderboardDataEvent {
 }
 
 fn update_wr(hash: u64, height: f32, blob: String) {
-    log::info!("Updating wrs {hash} {height}");
+    log::debug!("Updating wrs {hash} {height}");
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
             match update_wrs_async(hash, height, blob).await {
-                Ok(_) => log::info!("Updated leaderboard {hash} {height}"),
+                Ok(_) => log::debug!("Updated leaderboard {hash} {height}"),
                 Err(_err) => {
                     #[cfg(target_arch = "wasm32")]
                     {

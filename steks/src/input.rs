@@ -139,7 +139,6 @@ pub fn keyboard_listener(
                     _ => None,
                 };
                 if let Some(angle) = angle {
-                    //info!("Keyboard rotate {angle}");
                     rotate_evw.send(RotateEvent {
                         delta: angle,
                         snap_resolution: Some(SNAP_RESOLUTION),

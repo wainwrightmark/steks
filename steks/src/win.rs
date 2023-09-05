@@ -139,6 +139,7 @@ pub fn check_for_tower(
         prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity)
     };
 
+
     let countdown_seconds = event.get_countdown_seconds(prediction_result);
 
     let Some(countdown_seconds) = countdown_seconds else {

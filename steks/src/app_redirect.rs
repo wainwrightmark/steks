@@ -35,7 +35,6 @@ fn subscribe_to_app_url_events(_change_level_writer: AsyncEventWriter<ChangeLeve
                         let Some(cle) = ChangeLevelEvent::try_from_path(path) else {
                             return;
                         };
-                        //info!("Loaded game from path");
                         writer.send_blocking(cle).unwrap();
                     })
                     .await

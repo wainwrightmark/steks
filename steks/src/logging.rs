@@ -213,7 +213,7 @@ impl LoggableEvent {
             severity,
         };
 
-        log::info!("logged {message:?}");
+        log::debug!("logged {message:?}");
         message.send_log_async().await;
     }
 

@@ -611,7 +611,7 @@ impl ChangeLevelEvent {
         streak_data: &Streak,
         completion: &CampaignCompletion,
     ) -> (GameLevel, usize) {
-        info!("Changing level {self:?} level {level:?}");
+        debug!("Changing level {self:?} level {level:?}");
 
         match self {
             ChangeLevelEvent::Next => match level {

@@ -49,7 +49,7 @@ async fn setup_notifications_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
 
     #[cfg(any(feature = "ios", feature = "android"))]
     {
-        bevy::log::info!("Registering Action Types");
+        bevy::log::debug!("Registering Action Types");
         crate::logging::do_or_report_error_async(|| {
             let action_type_options = RegisterActionTypesOptions {
                 types: vec![ActionType {
@@ -72,19 +72,19 @@ async fn schedule_notification<F: Fn(ActionPerformed) + 'static>(
     schedule_options: impl Into<ScheduleOptions>,
     on_action: F,
 ) {
-    bevy::log::info!("Scheduling local notification...");
+    bevy::log::debug!("Scheduling local notification...");
     let schedule_result = LocalNotifications::schedule(schedule_options).await;
 
     match schedule_result {
         Ok(sr) => {
-            bevy::log::info!("Notification Scheduled {:?}", sr.notifications);
+            bevy::log::debug!("Notification Scheduled {:?}", sr.notifications);
         }
         Err(err) => {
             LoggableEvent::try_log_error_message_async2(err.to_string()).await;
         }
     }
 
-    bevy::log::info!("Registering Action Listener");
+    bevy::log::debug!("Registering Action Listener");
     let listener_result = LocalNotifications::add_action_performed_listener(on_action).await;
     match listener_result {
         Ok(lr) => {
@@ -94,5 +94,5 @@ async fn schedule_notification<F: Fn(ActionPerformed) + 'static>(
             LoggableEvent::try_log_error_message_async2(err.to_string()).await;
         }
     }
-    bevy::log::info!("Action Listener Registered");
+    bevy::log::debug!("Action Listener Registered");
 }

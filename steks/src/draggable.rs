@@ -79,8 +79,6 @@ pub fn drag_end(
     fixed_shapes: Query<(), With<FixedShape>>,
 ) {
     for event in er_drag_end.iter() {
-        //info!("{:?}", event);
-
         let any_fixed = !fixed_shapes.is_empty();
 
         for (entity, mut shape_component) in draggables
@@ -204,8 +202,6 @@ fn apply_forces(
         };
 
         external_force.force = clamped_force;
-
-        //info!("Applied external force");
     }
 }
 
@@ -237,7 +233,7 @@ pub fn drag_move(
                             snap_resolution: None,
                         });
                         rotate.previous = event.new_position;
-                        rotate.total_radians +=delta;
+                        rotate.total_radians += delta;
                     }
 
                     return;
@@ -526,7 +522,7 @@ pub fn drag_start(
                     radius: event.position.distance(center.translation.truncate()),
                     previous: event.position,
                     touch_id,
-                    total_radians: 0.0
+                    total_radians: 0.0,
                 }));
             }
         }

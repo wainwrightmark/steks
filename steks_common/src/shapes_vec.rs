@@ -43,8 +43,6 @@ impl ShapesVec {
             code = code.wrapping_mul(29).wrapping_add(index);
             code = code.wrapping_mul(31).wrapping_add(state);
             code = code.wrapping_mul(37).wrapping_add(modifiers);
-            // println!("{state:?} {modifiers:?} {index} {code}");
-            // info!("{state:?} {modifiers:?} {index} {code}");
         }
 
         code

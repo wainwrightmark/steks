@@ -105,7 +105,7 @@ pub fn make_prediction(
             .load(std::sync::atomic::Ordering::Relaxed);
 
         if sensor_found {
-            info!("Sensor collision found after {i} substeps");
+            debug!("Sensor collision found after {i} substeps");
         }
 
         if i < prediction_settings.early_sensor_substeps {
@@ -113,13 +113,13 @@ pub fn make_prediction(
                 return PredictionResult::EarlyWall;
             }
         } else {
-            let total_collisions = event_handler
-                .total_collisions_found
-                .load(std::sync::atomic::Ordering::Relaxed);
-
             if sensor_found {
                 return PredictionResult::Wall;
             }
+
+            let total_collisions = event_handler
+                .total_collisions_found
+                .load(std::sync::atomic::Ordering::Relaxed);
 
             if total_collisions > prediction_settings.max_non_sensor_collisions {
                 return PredictionResult::ManyNonWall;
@@ -127,7 +127,7 @@ pub fn make_prediction(
         }
     }
 
-    info!(
+    debug!(
         "Minimum collisions found after {} substeps. {} collisions found",
         prediction_settings.max_substeps,
         event_handler

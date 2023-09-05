@@ -174,8 +174,7 @@ fn resizer(
                 width,
             });
 
-            //resize_canvas(width, height);
-            info!(
+            debug!(
                 "Resizing to {:?},{:?} with scale factor of {}",
                 width,
                 height,
@@ -203,7 +202,7 @@ fn remove_spinner() {
 
 fn update_insets(mut insets: ResMut<Insets>) {
     if let Some(new_insets) = get_insets() {
-        info!("{:?}", new_insets.clone());
+        debug!("{:?}", new_insets.clone());
         *insets = new_insets;
     }
 }

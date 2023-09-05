@@ -1,6 +1,6 @@
 use bevy::prelude::*;
+use enumset::{EnumSetType, EnumSet};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
 use strum::{Display, EnumCount, EnumIter};
 
 use crate::prelude::*;
@@ -52,18 +52,18 @@ pub fn show_achievements() {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Resource, Default)]
 pub struct Achievements {
-    pub completed: BTreeSet<Achievement>,
+    pub completed: EnumSet<Achievement>,
 }
 
 impl Achievements {
     pub fn resync(&self) {
         for achievement in self.completed.iter() {
-            Self::unlock_achievement(*achievement);
+            Self::unlock_achievement(achievement);
         }
     }
 
     pub fn unlock_if_locked(achievements: &mut ResMut<Self>, achievement: Achievement) {
-        if !achievements.completed.contains(&achievement) {
+        if !achievements.completed.contains(achievement) {
             achievements.completed.insert(achievement);
             Self::unlock_achievement(achievement);
         }
@@ -112,15 +112,16 @@ impl TrackableResource for Achievements {
     Debug,
     EnumCount,
     EnumIter,
-    Clone,
+
     Serialize,
     Deserialize,
     Ord,
-    PartialEq,
+
     PartialOrd,
-    Eq,
+
     Display,
-    Copy,
+
+    EnumSetType
 )] //TODO https://docs.rs/enumset/latest/enumset/
 pub enum Achievement {
     BusinessSecretsOfThePharaohs,

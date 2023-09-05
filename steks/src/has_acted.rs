@@ -48,7 +48,7 @@ fn check_for_its_a_trap(
         return;
     }
 
-    if achievements.completed.contains(&Achievement::ItsATrap) {
+    if achievements.completed.contains(Achievement::ItsATrap) {
         return;
     }
 

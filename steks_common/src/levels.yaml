@@ -65,7 +65,7 @@
 
 #5
 - title: "The Pentomino Effect"
-  end_text: "Now you're thinking with pentominos"
+  end_text: "Now you're thinking\nwith pentominos"
   stars: {two: 250, three: 300}
   shapes:
     - shape: I5

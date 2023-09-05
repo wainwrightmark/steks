@@ -29,6 +29,7 @@ steks_common = {path= "../steks_common"}
 bevy_screen_diagnostics = "0.3"
 maveric= {git= 'https://github.com/wainwrightmark/maveric', features = ["more_bevy"]}
 serde_repr = "0.1"
+enumset= {version="1", features = ["serde"]}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }

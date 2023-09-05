@@ -17,7 +17,6 @@ impl Plugin for FireworksPlugin {
             .add_systems(Update, manage_fireworks)
             .add_systems(Update, firework_physics)
             .init_resource::<FireworksCountdown>();
-        // .init_resource::<FireworksDespawnTimer>();
     }
 }
 
@@ -52,28 +51,26 @@ const DEFAULT_INTENSITY: u32 = 5;
 
 fn manage_fireworks(
     current_level: Res<CurrentLevel>,
-    global_ui_state: Res<GlobalUiState>,
-    mut previous: Local<CurrentLevel>,
+    has_acted: Res<HasActed>,
+    previous_level: Res<PreviousLevel>,
     mut countdown: ResMut<FireworksCountdown>,
     settings: Res<GameSettings>,
 ) {
-    if !current_level.is_changed() && !global_ui_state.is_changed() && !settings.is_changed() {
+    if !current_level.is_changed() && !has_acted.is_changed() && !settings.is_changed() {
         return;
     }
 
-    let swap = previous.clone();
-    *previous = current_level.clone();
-    let previous = swap;
-
-    if !global_ui_state.is_splash() || !settings.fireworks_enabled {
+    if has_acted.is_has_acted() || !settings.fireworks_enabled {
         countdown.timer.pause();
         return;
     }
 
+    let previous_was_same =
+        previous_level.compare(&current_level) == PreviousLevelType::SameLevelSameStage;
+
     match current_level.completion {
         LevelCompletion::Incomplete { .. } => {
-            if let Some(new_countdown) =
-                get_new_fireworks(&current_level, None, previous.completion.is_complete())
+            if let Some(new_countdown) = get_new_fireworks(&current_level, None, previous_was_same)
             {
                 *countdown = new_countdown;
             } else {
@@ -81,11 +78,9 @@ fn manage_fireworks(
             }
         }
         LevelCompletion::Complete { score_info } => {
-            if let Some(new_countdown) = get_new_fireworks(
-                &current_level,
-                Some(&score_info),
-                previous.completion.is_complete(),
-            ) {
+            if let Some(new_countdown) =
+                get_new_fireworks(&current_level, Some(&score_info), previous_was_same)
+            {
                 *countdown = new_countdown;
             }
         }
@@ -151,7 +146,7 @@ fn spawn_fireworks(
 fn get_new_fireworks(
     current_level: &CurrentLevel,
     info: Option<&ScoreInfo>,
-    previous_was_complete: bool,
+    previous_was_same: bool,
 ) -> Option<FireworksCountdown> {
     let settings = match &current_level.level {
         GameLevel::Designed { meta, .. } => {
@@ -222,14 +217,13 @@ fn get_new_fireworks(
         _ => {}
     }
 
-    if !previous_was_complete {
+    if !previous_was_same {
         // New pb
-
-
 
         // First Win
         match info {
             Some(score_info) if score_info.is_first_win => {
+                info!("First win fireworks");
                 return Some(FireworksCountdown {
                     timer: Timer::from_seconds(4.0, TimerMode::Once),
                     repeat_interval: Some(Duration::from_secs(4)),

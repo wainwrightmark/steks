@@ -14,15 +14,16 @@ pub struct PredictionSettings {
     max_non_sensor_collisions: i8,
 }
 
-impl From<&CheckForWinEvent> for PredictionSettings {
-    fn from(val: &CheckForWinEvent) -> Self {
+impl From<&HasActed> for PredictionSettings {
+    fn from(val: &HasActed) -> Self {
         match val {
-            CheckForWinEvent::OnDrop => PredictionSettings {
+            HasActed::HasActed => PredictionSettings {
                 max_substeps: 60 * 6,
                 early_sensor_substeps: 90,
                 max_non_sensor_collisions: 3,
             },
-            CheckForWinEvent::OnLastSpawn => PredictionSettings {
+
+            HasActed::HasNotActed => PredictionSettings {
                 max_substeps: 60 * 6,
                 early_sensor_substeps: 90,
                 max_non_sensor_collisions: 3,
@@ -37,6 +38,24 @@ pub enum PredictionResult {
     EarlyWall,
     Wall,
     ManyNonWall,
+}
+
+impl PredictionResult{
+    pub fn get_countdown_seconds(&self, has_acted: &HasActed) -> Option<f32> {
+        match (has_acted, self) {
+            (_, PredictionResult::EarlyWall) => None,
+            (_, PredictionResult::ManyNonWall) => Some(LONG_WIN_SECONDS),
+            (_, PredictionResult::Wall) => Some(LONG_WIN_SECONDS),
+
+            (HasActed::HasActed, PredictionResult::MinimalCollision) => {
+                Some(SHORT_WIN_SECONDS)
+            }
+
+            (HasActed::HasNotActed, PredictionResult::MinimalCollision) => {
+                Some(LONG_WIN_SECONDS)
+            }
+        }
+    }
 }
 
 pub fn make_prediction(

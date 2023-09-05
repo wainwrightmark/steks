@@ -24,12 +24,12 @@ pub fn check_for_win(
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
     mut global_ui: ResMut<GlobalUiState>,
-
+    has_acted: Res<HasActed>,
     score_store: Res<WorldRecords>,
     pbs: Res<PersonalBests>,
     mut achievements: ResMut<Achievements>,
 ) {
-    if current_level.is_changed(){
+    if current_level.is_changed() {
         *countdown = WinCountdown(None);
         return;
     }
@@ -37,7 +37,6 @@ pub fn check_for_win(
     if let Some(Countdown {
         started_elapsed,
         total_secs,
-        event,
     }) = countdown.as_ref().0
     {
         let time_used = time.elapsed().saturating_sub(started_elapsed);
@@ -45,7 +44,7 @@ pub fn check_for_win(
         if time_used.as_secs_f32() >= total_secs {
             countdown.0 = None;
 
-            if event == CheckForWinEvent::OnLastSpawn {
+            if has_acted.is_has_not_acted() {
                 match current_level.level {
                     GameLevel::Designed { .. }
                     | GameLevel::Infinite { .. }
@@ -89,7 +88,7 @@ pub fn check_for_win(
 }
 
 pub fn check_for_tower(
-    mut check_events: EventReader<CheckForWinEvent>,
+    mut check_events: EventReader<CheckForTowerEvent>,
     mut countdown: ResMut<WinCountdown>,
     draggable: Query<&ShapeComponent>,
     time: Res<Time>,
@@ -99,10 +98,12 @@ pub fn check_for_tower(
     wall_sensors: Query<Entity, With<WallSensor>>,
     walls: Query<Entity, With<WallPosition>>,
     level: Res<CurrentLevel>,
+    has_acted: Res<HasActed>,
 ) {
-    let Some(event) = check_events.iter().next() else {
+    if check_events.is_empty(){
         return;
-    };
+    }
+    check_events.clear();
 
     if countdown.0.is_some() {
         return; // no need to check, we're already winning
@@ -136,11 +137,10 @@ pub fn check_for_tower(
     let prediction_result: PredictionResult = if level.snowdrop_settings().is_some() {
         PredictionResult::ManyNonWall
     } else {
-        prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity)
+        prediction::make_prediction(&rapier_context, has_acted.as_ref().into() , rapier_config.gravity)
     };
 
-
-    let countdown_seconds = event.get_countdown_seconds(prediction_result);
+    let countdown_seconds = prediction_result.get_countdown_seconds(&has_acted);
 
     let Some(countdown_seconds) = countdown_seconds else {
         return;
@@ -149,7 +149,6 @@ pub fn check_for_tower(
     countdown.0 = Some(Countdown {
         started_elapsed: time.elapsed(),
         total_secs: countdown_seconds,
-        event: *event,
     });
 }
 

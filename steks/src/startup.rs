@@ -53,7 +53,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(LeaderboardPlugin)
         .add_plugins(SpiritPlugin)
         .add_plugins(LevelUiPlugin)
-        .add_plugins(LevelStatePlugin)
+        .add_plugins(HasActedPlugin)
 
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)

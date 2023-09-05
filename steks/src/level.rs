@@ -9,7 +9,9 @@ use strum::EnumIs;
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostStartup, choose_level_on_game_load)
+        app.init_resource::<PreviousLevel>()
+            .add_systems(PreUpdate, update_previous_level)
+            .add_systems(PostStartup, choose_level_on_game_load)
             .add_systems(First, handle_change_level_events)
             .add_systems(Last, track_level_completion)
             .add_systems(Update, manage_level_shapes)
@@ -60,29 +62,35 @@ fn manage_level_shapes(
     mut commands: Commands,
     draggables: Query<((Entity, &ShapeIndex), With<ShapeComponent>)>,
     current_level: Res<CurrentLevel>,
+    previous_level: Res<PreviousLevel>,
     mut shape_creation_events: EventWriter<ShapeCreationData>,
     mut shape_update_events: EventWriter<ShapeUpdateData>,
-    mut previous: Local<CurrentLevel>,
 ) {
     if current_level.is_changed() {
-        //info!("Current level changed");
-        let previous_level = previous.clone();
-        *previous = current_level.clone();
+        let previous_stage = match previous_level.compare(&current_level) {
+            PreviousLevelType::DifferentLevel => None,
+            PreviousLevelType::SameLevelSameStage => {
+                return;
+            }
+            PreviousLevelType::SameLevelEarlierStage(previous_stage) => {
+                if current_level.completion.is_complete() {
+                    return;
+                }
+                Some(previous_stage)
+            }
+        };
 
         let current_stage = current_level.get_current_stage();
-        let previous_stage = previous_level.get_current_stage();
 
-        if previous_level.level == current_level.level && previous_stage == current_stage && !current_level.eq(&CurrentLevel::default()) {
-            return;
-        }
-
-        if current_stage == 0 || previous_level.level != current_level.level {
+        if current_stage == 0 || previous_stage.is_none() {
             for ((e, _), _) in draggables.iter() {
                 commands.entity(e).despawn_recursive();
             }
             create_initial_shapes(&current_level.level, &mut shape_creation_events);
         }
+
         if current_stage > 0 {
+            let previous_stage = previous_stage.unwrap_or_default();
             match &current_level.as_ref().level {
                 GameLevel::Designed { meta, .. } => {
                     for stage in (previous_stage + 1)..=(current_stage) {
@@ -134,10 +142,7 @@ fn handle_change_level_events(
         }
         let completion = LevelCompletion::Incomplete { stage };
 
-        current_level.set_if_neq(CurrentLevel{
-            level,
-            completion
-        });
+        current_level.set_if_neq(CurrentLevel { level, completion });
 
         *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
     }
@@ -159,13 +164,67 @@ fn choose_level_on_game_load(mut _change_level_events: EventWriter<ChangeLevelEv
     }
 }
 
-
-
-
 #[derive(Default, Resource, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
+}
+
+#[derive(Default, Resource, Debug, PartialEq)]
+pub struct PreviousLevel(Option<CurrentLevel>);
+
+#[derive(Debug, EnumIs, Clone, Copy, PartialEq)]
+pub enum PreviousLevelType {
+    DifferentLevel,
+    SameLevelSameStage,
+    SameLevelEarlierStage(usize),
+}
+
+impl PreviousLevel {
+    pub fn compare(&self, current_level: &CurrentLevel) -> PreviousLevelType {
+        let Some(previous) = &self.0 else {
+            return PreviousLevelType::DifferentLevel;
+        };
+
+        if previous.level != current_level.level {
+            return PreviousLevelType::DifferentLevel;
+        }
+
+        match (previous.completion, current_level.completion) {
+            (
+                LevelCompletion::Incomplete { stage: prev_stage },
+                LevelCompletion::Incomplete {
+                    stage: current_stage,
+                },
+            ) => match prev_stage.cmp(&current_stage) {
+                std::cmp::Ordering::Less => PreviousLevelType::SameLevelEarlierStage(prev_stage),
+                std::cmp::Ordering::Equal => PreviousLevelType::SameLevelSameStage,
+                std::cmp::Ordering::Greater => PreviousLevelType::DifferentLevel,
+            },
+            (LevelCompletion::Incomplete { stage }, LevelCompletion::Complete { .. }) => {
+                PreviousLevelType::SameLevelEarlierStage(stage)
+            }
+            (LevelCompletion::Complete { .. }, LevelCompletion::Incomplete { .. }) => {
+                PreviousLevelType::DifferentLevel
+            }
+            (LevelCompletion::Complete { .. }, LevelCompletion::Complete { .. }) => {
+                PreviousLevelType::SameLevelSameStage
+            }
+        }
+    }
+}
+
+fn update_previous_level(
+    current_level: Res<CurrentLevel>,
+    mut current_local: Local<Option<CurrentLevel>>,
+    mut previous_level: ResMut<PreviousLevel>,
+) {
+    if !current_level.is_changed() {
+        return;
+    }
+
+    *previous_level = PreviousLevel(current_local.clone());
+    *current_local = Some(current_level.clone());
 }
 
 impl TrackableResource for CurrentLevel {
@@ -213,7 +272,7 @@ pub fn generate_score_info(
 
     let pb = old_height.map(|x| x.height).unwrap_or(0.0);
     let best = pb.max(height);
-    let star = level.get_level_stars().map(|x|x.get_star(best));
+    let star = level.get_level_stars().map(|x| x.get_star(best));
 
     ScoreInfo {
         hash,
@@ -351,7 +410,7 @@ impl GameLevel {
     pub fn get_level_stars(&self) -> Option<LevelStars> {
         match self {
             GameLevel::Designed { meta } => meta.get_level().stars,
-            _ => None
+            _ => None,
         }
     }
 }
@@ -709,7 +768,7 @@ impl ChangeLevelEvent {
                     end_text: None,
                     leaderboard_id: None,
                     end_fireworks: FireworksSettings::default(),
-                    stars: None
+                    stars: None,
                 };
 
                 (

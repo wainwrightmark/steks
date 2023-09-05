@@ -1,7 +1,6 @@
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
 use steks_common::constants;
-use strum::EnumIs;
 
 use crate::input;
 use crate::prelude::*;
@@ -53,7 +52,7 @@ impl Plugin for DragPlugin {
             .add_event::<DragStartEvent>()
             .add_event::<DragMoveEvent>()
             .add_event::<DragEndingEvent>()
-            .add_event::<CheckForWinEvent>();
+            .add_event::<CheckForTowerEvent>();
     }
 }
 
@@ -73,7 +72,7 @@ pub fn drag_end(
     padlock_resource: Res<PadlockResource>,
     mut draggables: Query<(Entity, &mut ShapeComponent)>,
     mut touch_rotate: ResMut<TouchRotateResource>,
-    mut ew_end_drag: EventWriter<CheckForWinEvent>,
+    mut ew_end_drag: EventWriter<CheckForTowerEvent>,
     rapier_context: ResMut<RapierContext>,
     walls: Query<Entity, With<WallSensor>>,
     fixed_shapes: Query<(), With<FixedShape>>,
@@ -102,7 +101,7 @@ pub fn drag_end(
                 } else {
                     ShapeComponent::Free
                 };
-                ew_end_drag.send(CheckForWinEvent::OnDrop);
+                ew_end_drag.send(CheckForTowerEvent);
             }
         }
 
@@ -651,28 +650,12 @@ pub struct DragEndingEvent {
 }
 
 /// Event to indicate that we should check for a win
-#[derive(Debug, Event, Copy, Clone, EnumIs, PartialEq, Eq)]
-pub enum CheckForWinEvent {
-    OnDrop,
-    OnLastSpawn,
-}
+#[derive(Debug, Event, Copy, Clone,  PartialEq, Eq)]
+pub struct  CheckForTowerEvent;
 
-impl CheckForWinEvent {
-    pub fn get_countdown_seconds(&self, prediction: PredictionResult) -> Option<f32> {
-        match (self, prediction) {
-            (_, PredictionResult::EarlyWall) => None,
-            (_, PredictionResult::ManyNonWall) => Some(LONG_WIN_SECONDS),
-            (_, PredictionResult::Wall) => Some(LONG_WIN_SECONDS),
+// impl CheckForTowerEvent {
 
-            (CheckForWinEvent::OnDrop, PredictionResult::MinimalCollision) => {
-                Some(SHORT_WIN_SECONDS)
-            }
-            (CheckForWinEvent::OnLastSpawn, PredictionResult::MinimalCollision) => {
-                Some(LONG_WIN_SECONDS)
-            }
-        }
-    }
-}
+// }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum DragSource {

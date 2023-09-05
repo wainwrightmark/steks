@@ -39,7 +39,7 @@ pub mod walls;
 pub mod win;
 pub mod win_timer_state;
 pub mod level_text_panel;
-pub mod level_state;
+pub mod has_acted;
 pub mod logging;
 #[cfg(target_arch = "wasm32")]
 pub mod notifications;
@@ -79,7 +79,7 @@ pub mod prelude {
     pub use crate::snow::*;
     pub use crate::settings::*;
     pub use crate::tracked_resource::*;
-    pub use crate::level_state::*;
+    pub use crate::has_acted::*;
     pub use crate::global_ui::*;
 
 

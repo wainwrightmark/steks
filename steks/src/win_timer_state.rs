@@ -22,8 +22,7 @@ pub struct WinCountdown(pub Option<Countdown>);
 #[derive(Debug)]
 pub struct Countdown {
     pub started_elapsed: Duration,
-    pub total_secs: f32,
-    pub event: CheckForWinEvent,
+    pub total_secs: f32
 }
 
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;

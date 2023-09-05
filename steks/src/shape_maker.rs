@@ -19,7 +19,7 @@ pub fn spawn_and_update_shapes(
     )>,
     mut recently_finished: Local<bool>,
 
-    mut check_win: EventWriter<CheckForWinEvent>,
+    mut check_win: EventWriter<CheckForTowerEvent>,
     settings: Res<GameSettings>,
 ) {
     creation_queue.extend(creations.iter());
@@ -79,7 +79,7 @@ pub fn spawn_and_update_shapes(
     } else {
         if *recently_finished {
             //send this event one frame after spawning shapes
-            check_win.send(CheckForWinEvent::OnLastSpawn);
+            check_win.send(CheckForTowerEvent);
         }
         *recently_finished = false;
     }

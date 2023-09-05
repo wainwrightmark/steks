@@ -127,16 +127,11 @@ fn spawn_snowdrops(
 
 fn manage_snowdrops(
     current_level: Res<CurrentLevel>,
-    mut previous: Local<CurrentLevel>,
     mut countdown: ResMut<SnowdropCountdown>,
 ) {
     if !current_level.is_changed() {
         return;
     }
-    let swap = previous.clone();
-    *previous = current_level.clone();
-    let _previous = swap;
-
     let settings = current_level.snowdrop_settings();
 
     match settings {

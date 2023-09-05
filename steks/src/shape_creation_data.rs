@@ -11,6 +11,7 @@ pub struct ShapeCreationData {
     pub modifiers: ShapeModifiers,
     pub id: Option<u32>,
     pub color: Option<Color>,
+    pub stage: ShapeStage,
 }
 
 pub fn add_components(state: &ShapeState, ec: &mut EntityCommands) {
@@ -97,10 +98,12 @@ impl ShapeCreationData {
 
     pub fn stroke(&self, high_contrast: bool) -> Stroke {
         self.state.stroke().unwrap_or_else(|| {
-            self.modifiers.stroke(high_contrast).unwrap_or_else(|| Stroke {
-                color: color::Color::NONE,
-                options: StrokeOptions::DEFAULT.with_line_width(0.0),
-            })
+            self.modifiers
+                .stroke(high_contrast)
+                .unwrap_or_else(|| Stroke {
+                    color: color::Color::NONE,
+                    options: StrokeOptions::DEFAULT.with_line_width(0.0),
+                })
         })
     }
 
@@ -109,8 +112,8 @@ impl ShapeCreationData {
     }
 }
 
-impl From<EncodableShape> for ShapeCreationData {
-    fn from(value: EncodableShape) -> Self {
+impl ShapeCreationData {
+    pub fn from_encodable(value: EncodableShape, stage: ShapeStage) -> Self {
         let EncodableShape {
             shape,
             location,
@@ -126,21 +129,68 @@ impl From<EncodableShape> for ShapeCreationData {
             modifiers,
             id: None,
             color: None,
+            stage,
         }
     }
-}
 
-impl ShapeCreationData {
-    pub fn by_name(s: &str) -> Option<Self> {
-        GameShape::by_name(s).map(|shape| Self {
-            shape,
+    pub fn from_shape_creation(shape_creation: ShapeCreation, stage: ShapeStage) -> Self {
+        let mut fixed_location: Location = Default::default();
+        let mut fl_set = false;
+        if let Some(x) = shape_creation.x {
+            fixed_location.position.x = x;
+            fl_set = true;
+        }
+        if let Some(y) = shape_creation.y {
+            fixed_location.position.y = y;
+            fl_set = true;
+        }
+        if let Some(r) = shape_creation.r {
+            fixed_location.angle = r * std::f32::consts::TAU;
+            fl_set = true;
+        }
+
+        let fixed_location = fl_set.then_some(fixed_location);
+
+        let velocity = match shape_creation.state {
+            ShapeState::Locked | ShapeState::Fixed | ShapeState::Void => Some(Default::default()),
+            ShapeState::Normal => {
+                if shape_creation.vel_x.is_some() || shape_creation.vel_y.is_some() {
+                    Some(Velocity {
+                        linvel: Vec2 {
+                            x: shape_creation.vel_x.unwrap_or_default(),
+                            y: shape_creation.vel_y.unwrap_or_default(),
+                        },
+                        angvel: Default::default(),
+                    })
+                } else {
+                    None
+                }
+            }
+        };
+
+        ShapeCreationData {
+            shape: shape_creation.shape.into(),
+            location: fixed_location,
+            state: shape_creation.state,
+            velocity,
+            modifiers: shape_creation.modifiers,
+            id: shape_creation.id,
+            color: shape_creation.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
+            stage,
+        }
+    }
+
+    pub fn from_shape_index(shape_index: ShapeIndex, stage: ShapeStage) -> Self {
+        Self {
+            shape: shape_index.into(),
             location: None,
             state: ShapeState::Normal,
             velocity: Some(Default::default()),
             modifiers: ShapeModifiers::Normal,
             id: None,
             color: None,
-        })
+            stage,
+        }
     }
 
     pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {
@@ -161,67 +211,5 @@ impl ShapeCreationData {
     pub fn with_random_velocity(mut self) -> Self {
         self.velocity = None;
         self
-    }
-}
-
-impl From<ShapeIndex> for ShapeCreationData {
-    fn from(value: ShapeIndex) -> Self {
-        Self {
-            shape: value.into(),
-            location: None,
-            state: ShapeState::Normal,
-            velocity: Some(Default::default()),
-            modifiers: ShapeModifiers::Normal,
-            id: None,
-            color: None,
-        }
-    }
-}
-
-impl From<ShapeCreation> for ShapeCreationData {
-    fn from(val: ShapeCreation) -> Self {
-        let mut fixed_location: Location = Default::default();
-        let mut fl_set = false;
-        if let Some(x) = val.x {
-            fixed_location.position.x = x;
-            fl_set = true;
-        }
-        if let Some(y) = val.y {
-            fixed_location.position.y = y;
-            fl_set = true;
-        }
-        if let Some(r) = val.r {
-            fixed_location.angle = r * std::f32::consts::TAU;
-            fl_set = true;
-        }
-
-        let fixed_location = fl_set.then_some(fixed_location);
-
-        let velocity = match val.state {
-            ShapeState::Locked | ShapeState::Fixed | ShapeState::Void => Some(Default::default()),
-            ShapeState::Normal => {
-                if val.vel_x.is_some() || val.vel_y.is_some() {
-                    Some(Velocity {
-                        linvel: Vec2 {
-                            x: val.vel_x.unwrap_or_default(),
-                            y: val.vel_y.unwrap_or_default(),
-                        },
-                        angvel: Default::default(),
-                    })
-                } else {
-                    None
-                }
-            }
-        };
-
-        ShapeCreationData {
-            shape: val.shape.into(),
-            location: fixed_location,
-            state: val.state,
-            velocity,
-            modifiers: val.modifiers,
-            id: val.id,
-            color: val.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
-        }
     }
 }

@@ -169,6 +169,14 @@ pub struct ShapeWithId {
     pub id: u32,
 }
 
+#[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
+pub struct ShapeStage(pub usize);
+impl ShapeStage{
+    pub fn increment(&mut self){
+        self.0 += 1;
+    }
+}
+
 pub fn create_shape(
     commands: &mut Commands,
     shape_with_data: ShapeCreationData,
@@ -214,6 +222,7 @@ pub fn create_shape(
         .insert(ExternalForce::default())
         .insert(Sleeping::disabled())
         .insert(shape_component.collider_mass_properties())
+        .insert(shape_with_data.stage)
         .insert(CollisionGroups {
             memberships: shape_component.collision_group(),
             filters: shape_component.collision_group_filters(),

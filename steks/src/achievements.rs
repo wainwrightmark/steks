@@ -121,7 +121,7 @@ impl TrackableResource for Achievements {
     Eq,
     Display,
     Copy,
-)]
+)] //TODO https://docs.rs/enumset/latest/enumset/
 pub enum Achievement {
     BusinessSecretsOfThePharaohs,
     LiveFromNewYork,

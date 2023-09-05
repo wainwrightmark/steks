@@ -25,12 +25,12 @@ impl Plugin for LevelPlugin {
 fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<ShapeCreationData>) {
     let mut shapes: Vec<ShapeCreationData> = match level {
         GameLevel::Designed { meta, .. } => match meta.get_level().get_stage(&0) {
-            Some(stage) => stage.shapes.iter().map(|&x| x.into()).collect_vec(),
+            Some(stage) => stage.shapes.iter().map(|&shape_creation| ShapeCreationData::from_shape_creation(shape_creation, ShapeStage(0))).collect_vec(),
             None => vec![],
         },
         GameLevel::Loaded { bytes } => decode_shapes(bytes)
             .into_iter()
-            .map(ShapeCreationData::from)
+            .map(|encodable_shape| ShapeCreationData::from_encodable(encodable_shape, ShapeStage(0)))
             .collect_vec(),
         GameLevel::Challenge { date, .. } => {
             //let today = get_today_date();
@@ -38,7 +38,7 @@ fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<Shape
                 ((date.year().unsigned_abs() * 2000) + (date.month() * 100) + date.day()) as u64;
             (0..CHALLENGE_SHAPES)
                 .map(|i| {
-                    ShapeCreationData::from(ShapeIndex::from_seed_no_circle(seed + i as u64))
+                    ShapeCreationData::from_shape_index(ShapeIndex::from_seed_no_circle(seed + i as u64), ShapeStage(0))
                         .with_random_velocity()
                 })
                 .collect_vec()
@@ -94,12 +94,12 @@ fn manage_level_shapes(
             match &current_level.as_ref().level {
                 GameLevel::Designed { meta, .. } => {
                     for stage in (previous_stage + 1)..=(current_stage) {
-                        if let Some(stage) = meta.get_level().get_stage(&stage) {
-                            for creation in stage.shapes.iter() {
-                                shape_creation_events.send((*creation).into())
+                        if let Some(level_stage) = meta.get_level().get_stage(&stage) {
+                            for creation in level_stage.shapes.iter() {
+                                shape_creation_events.send(ShapeCreationData::from_shape_creation(*creation, ShapeStage(stage)))
                             }
 
-                            for update in stage.updates.iter() {
+                            for update in level_stage.updates.iter() {
                                 shape_update_events.send((*update).into())
                             }
                         }

@@ -277,7 +277,7 @@ impl GameLevel {
                 .get_stage(&stage)
                 .map(|x| !x.text_forever)
                 .unwrap_or(true),
-            GameLevel::Infinite { .. } | GameLevel::Begging => false,
+            GameLevel::Infinite { .. } | GameLevel::Begging => true,
             GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => true,
         }
     }

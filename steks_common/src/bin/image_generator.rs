@@ -32,8 +32,8 @@ pub fn main() {
             record.image_blob.as_slice(),
             &OverlayChooser::no_overlay(),
             Dimensions {
-                width: 1024,
-                height: 1024,
+                width: 512,
+                height: 512,
             },
         )
         .unwrap();

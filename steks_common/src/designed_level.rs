@@ -282,6 +282,8 @@ pub struct ShapeUpdate {
 #[cfg(test)]
 mod tests {
 
+    use bevy::utils::HashSet;
+
     use super::DesignedLevel;
     use crate::designed_level::*;
 
@@ -293,6 +295,18 @@ mod tests {
             let stars = level.stars.expect(format!("{index}: {title} should have stars", title = level.title.clone().unwrap_or_default()).as_str());
 
             assert!(stars.three > stars.two, "Three stars should be more than two (level {index})")
+        }
+    }
+
+    #[test]
+    pub fn test_level_leaderboards(){
+        let list = &crate::designed_level::CAMPAIGN_LEVELS;
+
+        let mut set: HashSet<String> = Default::default();
+        for (index, level) in list.iter().enumerate() {
+            let id = level.leaderboard_id.clone().expect(format!("{index}: {title} should have leaderboard_id", title = level.title.clone().unwrap_or_default()).as_str());
+
+            assert!(set.insert(id.clone()), "leaderboard id {id} should be unique")
         }
     }
 

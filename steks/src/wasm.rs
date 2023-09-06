@@ -105,6 +105,26 @@ async fn get_url_search_params() -> Option<UrlSearchParams> {
     }
 }
 
+pub fn open_link(url: &str){
+    use web_sys::window;
+
+    let window = match window(){
+        Some(window)=> window,
+        None=>{
+            error!("Could not get window to open link");
+            return;
+        }
+    };
+
+    match window.open_with_url_and_target(url, "_blank"){
+        Ok(_)=>{},
+        Err(err)=> {
+            error!("{err:?}")
+        }
+    }
+}
+
+
 async fn share_game_async(game: String) {
     let device_id = capacitor_bindings::device::Device::get_id()
         .await

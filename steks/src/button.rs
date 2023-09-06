@@ -306,7 +306,20 @@ fn icon_button_system(
 
                 PreviousLevelsPage => global_ui_state.as_mut().previous_levels_page(),
 
-                Steam | GooglePlay | Apple | None => {}
+                GooglePlay => {
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        crate::wasm::open_link("https://play.google.com/store/apps/details?id=com.steksgame.app");
+                    }
+                }
+                Apple => {
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        crate::wasm::open_link("https://apps.apple.com/us/app/steks/id6461480511");
+                    }
+                }
+
+                Steam  | None => {}
 
                 ViewPB => {
                     *global_ui_state =

@@ -6,7 +6,7 @@ use maveric::prelude::*;
 pub struct LevelTextPanel{
     pub level: GameLevel,
     pub stage: usize,
-    pub is_touch: bool
+    pub touch_enabled: bool
 }
 
 impl MavericNode for LevelTextPanel {
@@ -81,7 +81,7 @@ impl MavericNode for LevelTextPanel {
                 );
             }
 
-            if let Some(message) = level.get_level_text(stage, args.is_touch) {
+            if let Some(message) = level.get_level_text(stage, args.touch_enabled) {
                 //info!("Message {initial_color:?} {destination_color:?}");
                 commands.add_child(
                     stage as u32,

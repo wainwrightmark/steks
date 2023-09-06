@@ -100,10 +100,11 @@ impl GlobalUiState {
 pub struct GlobalUiRoot;
 
 impl MavericRootChildren for GlobalUiRoot {
-    type Context = NC3<
+    type Context = NC4<
         GlobalUiState,
         CurrentLevel,
         NC4<GameSettings, CampaignCompletion, Insets, AssetServer>,
+        InputSettings
     >;
 
     fn set_children(
@@ -166,10 +167,11 @@ impl MavericRootChildren for GlobalUiRoot {
                         if current_level.level.is_begging() {
                             commands.add_child("begging", BeggingPanel, asset_server);
                         } else {
+                            let is_touch = context.3.touch_enabled;
                             commands.add_child(
                                 "text",
                                 LevelTextPanel {
-                                    is_touch: true,
+                                    touch_enabled: is_touch,
                                     level: current_level.level.clone(),
                                     stage,
                                 },

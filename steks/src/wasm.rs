@@ -160,6 +160,8 @@ async fn share_game_async(game: String) {
     }
 }
 
+
+
 #[derive(Resource)]
 struct LastSize {
     pub width: f32,
@@ -258,6 +260,21 @@ fn get_insets() -> Option<Insets> {
     Some(insets)
 }
 
+
+fn check_touch(mut input_settings: ResMut<InputSettings>){
+    fn has_touch() -> bool {
+        let window = web_sys::window().unwrap();
+        let navigator = window.navigator();
+        navigator.max_touch_points() > 0
+    }
+
+    if has_touch(){
+        input_settings.touch_enabled = true;
+    }
+}
+
+
+
 pub struct WASMPlugin;
 
 impl Plugin for WASMPlugin {
@@ -271,5 +288,6 @@ impl Plugin for WASMPlugin {
         app.add_systems(PostStartup, remove_spinner);
 
         app.add_systems(PostStartup, update_insets);
+        app.add_systems(PostStartup, check_touch);
     }
 }

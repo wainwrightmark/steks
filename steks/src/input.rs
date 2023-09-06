@@ -9,11 +9,19 @@ use crate::prelude::*;
 pub struct InputPlugin;
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, touch_listener)
+        app
+
+        .init_resource::<InputSettings>()
+        .add_systems(Update, touch_listener)
             .add_systems(Update, keyboard_listener)
             .add_systems(Update, mousewheel_listener)
             .add_systems(Update, mousebutton_listener.after(touch_listener));
     }
+}
+
+#[derive(Debug, Default, Resource, PartialEq)]
+pub struct InputSettings{
+    pub touch_enabled: bool
 }
 
 pub fn mousebutton_listener(

@@ -31,6 +31,7 @@
 #3
 - title: "Steks With An X"
   text: "rotating shapes from further away\nis often easier"
+  mouse_text: ""
   stars: {two: 180, three: 190}
   leaderboard_id: 'CgkItNbalLwcEAIQHQ'
   end_text: "Wow, that was quick"

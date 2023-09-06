@@ -169,6 +169,7 @@ impl MavericRootChildren for GlobalUiRoot {
                             commands.add_child(
                                 "text",
                                 LevelTextPanel {
+                                    is_touch: true,
                                     level: current_level.level.clone(),
                                     stage,
                                 },

@@ -297,12 +297,12 @@ pub enum GameLevel {
 }
 
 impl GameLevel {
-    pub fn get_level_text(&self, stage: usize) -> Option<String> {
+    pub fn get_level_text(&self, stage: usize, is_touch: bool) -> Option<String> {
         match &self {
             GameLevel::Designed { meta, .. } => meta
                 .get_level()
                 .get_stage(&stage)
-                .and_then(|x| x.text.clone()),
+                .and_then(|x| if is_touch {x.text.clone()} else {x.mouse_text.clone()} ),
             GameLevel::Infinite { .. } => {
                 if stage == 0 {
                     None

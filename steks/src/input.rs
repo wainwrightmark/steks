@@ -123,42 +123,95 @@ pub fn touch_listener(
     }
 }
 
-const SNAP_RESOLUTION: f32 = std::f32::consts::TAU / 16.0;
+//const SNAP_RESOLUTION: f32 = std::f32::consts::TAU / 16.0;
 
 pub fn keyboard_listener(
-    mut key_evr: EventReader<KeyboardInput>,
-    mut rotate_evw: EventWriter<RotateEvent>,
+    mut keyboard_events: EventReader<KeyboardInput>,
+    mut rotate_events: EventWriter<RotateEvent>,
+
+    time: Res<Time>,
+    mut recent: Local<DiscreetRotate>,
 ) {
     //Note keyboard doesn't work during mobile emulation in browser dev tools I think
-    for ev in key_evr.iter() {
+    'events: for ev in keyboard_events.iter() {
         if let Some(code) = ev.key_code {
             if let bevy::input::ButtonState::Pressed = ev.state {
-                let angle = match code {
-                    KeyCode::E => Some(-SNAP_RESOLUTION),
-                    KeyCode::Q => Some(SNAP_RESOLUTION),
-                    _ => None,
+                let positive = match code {
+                    KeyCode::E => false,
+                    KeyCode::Q => true,
+                    _ => continue 'events,
                 };
-                if let Some(angle) = angle {
-                    rotate_evw.send(RotateEvent {
-                        delta: angle,
-                        snap_resolution: Some(SNAP_RESOLUTION),
-                    });
-                }
+
+                recent.update(time.elapsed(), positive);
+                let delta = recent.angle();
+
+                rotate_events.send(RotateEvent {
+                    delta,
+                    snap_resolution: Some(ONE_THIRTY_SECOND),
+                });
             }
         }
     }
 }
 
 pub fn mousewheel_listener(
-    mut scroll_evr: EventReader<MouseWheel>,
-    mut ev_rotate: EventWriter<RotateEvent>,
+    mut scroll_events: EventReader<MouseWheel>,
+    mut rotate_events: EventWriter<RotateEvent>,
+
+    time: Res<Time>,
+    mut recent: Local<DiscreetRotate>,
 ) {
-    for ev in scroll_evr.iter() {
-        let angle = (ev.x + ev.y).signum() * SNAP_RESOLUTION;
-        let event = RotateEvent {
-            delta: angle,
-            snap_resolution: Some(SNAP_RESOLUTION),
+    for ev in scroll_events.iter() {
+        let positive = (ev.x + ev.y) >= 0.0;
+
+        recent.update(time.elapsed(), positive);
+        let delta = recent.angle();
+
+        rotate_events.send(RotateEvent {
+            delta,
+            snap_resolution: Some(ONE_THIRTY_SECOND),
+        });
+    }
+}
+
+const ONE_THIRTY_SECOND: f32 = std::f32::consts::TAU / 32.0;
+
+#[derive(Debug, Default)]
+pub struct DiscreetRotate {
+    streak: usize,
+    elapsed: Duration,
+    positive: bool,
+}
+
+impl DiscreetRotate {
+    pub fn update(&mut self, new_elapsed: Duration, positive: bool) {
+        const INTERVAL: Duration = Duration::from_millis(500);
+
+        let diff = new_elapsed - self.elapsed;
+        self.streak = if diff < INTERVAL && positive == self.positive {
+            self.streak + 1
+        } else {
+            1
         };
-        ev_rotate.send(event);
+
+        self.positive = positive;
+        self.elapsed = new_elapsed;
+    }
+
+    pub fn angle(&self) -> f32 {
+        const ONE_SIXTEENTH: f32 = std::f32::consts::TAU / 16.0;
+        const ONE_EIGHTH: f32 = std::f32::consts::TAU / 8.0;
+        //const ONE_QUARTER: f32 = std::f32::consts::TAU / 4.0;
+
+        let signum = if self.positive { 1.0 } else { -1.0 };
+
+        let amount = match self.streak {
+            0 | 1 | 2 => ONE_THIRTY_SECOND,
+            3 => ONE_SIXTEENTH,
+            _ => ONE_EIGHTH,
+            //_ => ONE_QUARTER
+        };
+
+        amount * signum
     }
 }

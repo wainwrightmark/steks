@@ -1,4 +1,5 @@
 - text: "Welcome to Steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with your thumb\n\nPlace it above the triangle"
+  mouse_text: "Welcome to Steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with the mouse\n\nPlace it above the triangle"
   text_forever: true
   show_rotate: true
   shapes:
@@ -22,6 +23,7 @@
         - shape: X5
 
 - text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other thumb\n\nLock it again and finish your tower\n\n\nTowers cannot touch the ground"
+  mouse_text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with Q and E keys\n\nLock it again and finish your tower\n\n\nTowers cannot touch the ground"
   text_forever: true
   show_rotate: true
   shapes:
@@ -39,6 +41,7 @@
       shapes:
         - shape: L4
     - text: "Finger blocking your tower?\n\nUse the black outlines to guide you"
+      mouse_text: "steks can also be played\n\non a phone or touch screen"
       text_forever: true
       shapes:
         - shape: L4

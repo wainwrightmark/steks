@@ -398,6 +398,13 @@ mod tests {
                 LEVEL_STAGE_TEXT_MAX_CHARS,
                 errors,
             );
+
+            check_string(
+                &stage.mouse_text,
+                format!("Level {index:2} Stage  {stage_index} (mouse text)"),
+                LEVEL_STAGE_TEXT_MAX_CHARS,
+                errors,
+            );
         }
     }
 

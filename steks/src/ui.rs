@@ -92,7 +92,7 @@ impl IntoBundle for IconButtonStyle {
             },
             IconButtonStyle::Big => Style {
                 width: Val::Px(ICON_BUTTON_WIDTH),
-                height: Val::Px(ICON_BUTTON_WIDTH  * 2.0),
+                height: Val::Px(ICON_BUTTON_HEIGHT * 1.5),
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,

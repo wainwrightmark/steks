@@ -271,8 +271,7 @@ pub fn generate_score_info(
     let old_height = pbs.map.get(&hash);
 
     let pb = old_height.map(|x| x.height).unwrap_or(0.0);
-    let best = pb.max(height);
-    let star = level.get_level_stars().map(|x| x.get_star(best));
+    let star = level.get_level_stars().map(|x| x.get_star(height));
 
     ScoreInfo {
         hash,

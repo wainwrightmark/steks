@@ -362,7 +362,7 @@ impl MavericNode for StarHeights {
                 )],
                 width: Val::Px(THREE_STARS_IMAGE_WIDTH),
                 grid_auto_flow: GridAutoFlow::Column,
-                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(-10.0), Val::Px(30.)),
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(-10.0), Val::Px(25.)),
                 justify_content: JustifyContent::SpaceEvenly,
                 ..Default::default()
             },

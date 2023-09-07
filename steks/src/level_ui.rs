@@ -383,7 +383,8 @@ impl MavericNode for MainPanel {
                         context,
                     );
 
-                    if IS_DEMO {
+                    #[cfg(feature = "web")]
+                    {
                         commands.add_child("store", StoreButtonPanel, context);
                     }
                 }

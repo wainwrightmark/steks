@@ -448,7 +448,7 @@ impl DesignedLevelMeta {
             DesignedLevelMeta::Campaign { index } => {
                 let index = index + 1;
                 if CAMPAIGN_LEVELS.get(index as usize).is_some() {
-                    if IS_DEMO && index > MAX_DEMO_LEVEL {
+                    if index >= MAX_DEMO_LEVEL && !*IS_FULL_GAME  {
                         None
                     } else {
                         Some(Self::Campaign { index })
@@ -692,7 +692,7 @@ impl ChangeLevelEvent {
                         return (GameLevel::Designed { meta }, 0);
                     }
 
-                    if IS_DEMO {
+                    if !*IS_FULL_GAME {
                         (GameLevel::Begging, 0)
                     } else if meta.is_credits() {
                         (GameLevel::new_infinite(), 0)

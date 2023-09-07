@@ -1,7 +1,7 @@
-use std::sync::Arc;
+
 
 use crate::prelude::*;
-use maveric::{prelude::*, transition::speed::{LinearSpeed, ScalarSpeed}};
+use maveric::{prelude::*};
 
 pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
     text: T,

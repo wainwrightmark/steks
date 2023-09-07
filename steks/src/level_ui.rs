@@ -230,71 +230,16 @@ impl MavericNode for MainPanel {
 
                     commands.add_child(
                         "height_data",
-                        TextPlusIcon {
-                            text: format!("Height    {height:6.2}m",),
-                            icon: IconButtonAction::Share,
+                        TextNode {
+                            text: format!("{height:6.2}m",),
+                            font_size: LEVEL_HEIGHT_FONT_SIZE,
+                            color: LEVEL_TEXT_COLOR,
+                            font: LEVEL_TEXT_FONT_PATH,
+                            alignment: TextAlignment::Center,
+                            linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                         },
                         context,
                     );
-
-                    if args.score_info.is_pb() {
-                        commands.add_child(
-                            "new_best",
-                            TextPlusIcon {
-                                text: "New Personal Best".to_string(),
-                                icon: IconButtonAction::ViewPB,
-                            },
-                            context,
-                        );
-                    } else {
-                        let pb = args.score_info.pb;
-
-                        commands.add_child(
-                            "your_best",
-                            TextPlusIcon {
-                                text: format!("Your Best {pb:6.2}m"),
-                                icon: IconButtonAction::ViewPB,
-                            },
-                            context,
-                        );
-                    };
-
-                    if args.score_info.is_wr() {
-                        commands.add_child(
-                            "wr",
-                            TextPlusIcon {
-                                text: "New World Record ".to_string(),
-                                icon: IconButtonAction::ViewRecord,
-                            },
-                            context,
-                        );
-                    } else if let Some(record) = args.score_info.wr {
-                        commands.add_child(
-                            "wr",
-                            TextPlusIcon {
-                                text: format!("Record    {:6.2}m", record),
-                                icon: IconButtonAction::ViewRecord,
-                            },
-                            context,
-                        );
-                    } else {
-                        commands.add_child(
-                            "wr",
-                            TextPlusIcon {
-                                text: "Loading  Record ".to_string(),
-                                icon: IconButtonAction::None,
-                            },
-                            context,
-                        );
-                    }
-
-                    if let GameLevel::Challenge { streak, .. } = args.level {
-                        commands.add_child(
-                            "streak",
-                            panel_text_node(format!("Streak    {streak:.2}",)),
-                            context,
-                        );
-                    }
 
                     if let Some(star_type) = args.score_info.star {
                         if let Some(level_stars) = args.level.get_level_stars() {
@@ -312,11 +257,79 @@ impl MavericNode for MainPanel {
                                 "star_heights",
                                 StarHeights {
                                     level_stars,
-                                    star_type
+                                    star_type,
                                 },
                                 context,
                             );
                         }
+                    }
+
+                    if args.score_info.is_pb() {
+                        commands.add_child(
+                            "new_best",
+                            TextPlusIcons {
+                                text: "New Personal Best".to_string(),
+                                icons: [IconButtonAction::ViewPB],
+                                font_size: LEVEL_TEXT_FONT_SIZE,
+                            },
+                            context,
+                        );
+                    } else {
+                        let pb = args.score_info.pb;
+
+                        commands.add_child(
+                            "your_best",
+                            TextPlusIcons {
+                                text: format!("Your Best {pb:6.2}m"),
+                                icons: [IconButtonAction::ViewPB],
+                                font_size: LEVEL_TEXT_FONT_SIZE,
+                            },
+                            context,
+                        );
+                    };
+
+                    if args.score_info.is_wr() {
+                        commands.add_child(
+                            "wr",
+                            TextPlusIcons {
+                                text: "New World Record ".to_string(),
+                                icons: [
+                                    IconButtonAction::ViewRecord,
+                                ],
+                                font_size: LEVEL_TEXT_FONT_SIZE,
+                            },
+                            context,
+                        );
+                    } else if let Some(record) = args.score_info.wr {
+                        commands.add_child(
+                            "wr",
+                            TextPlusIcons {
+                                text: format!("Record    {:6.2}m", record),
+                                icons: [
+                                    IconButtonAction::ViewRecord,
+                                ],
+                                font_size: LEVEL_TEXT_FONT_SIZE,
+                            },
+                            context,
+                        );
+                    } else {
+                        commands.add_child(
+                            "wr",
+                            TextPlusIcons {
+                                text: "Loading  Record ".to_string(),
+                                icons: [IconButtonAction::None],
+                                font_size: LEVEL_TEXT_FONT_SIZE,
+                            },
+                            context,
+                        );
+                    }
+
+                    if let GameLevel::Challenge { streak, .. } = args.level {
+                        commands.add_child(
+                            "streak",
+                            panel_text_node(format!("Streak    {streak:.2}",)),
+                            context,
+                        );
                     }
 
                     commands.add_child("bottom_buttons", ButtonPanel::SplashBottom, context);
@@ -349,7 +362,7 @@ impl MavericNode for StarHeights {
                 )],
                 width: Val::Px(THREE_STARS_IMAGE_WIDTH),
                 grid_auto_flow: GridAutoFlow::Column,
-                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(-10.0), Val::Px(0.)),
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(-10.0), Val::Px(30.)),
                 justify_content: JustifyContent::SpaceEvenly,
                 ..Default::default()
             },
@@ -432,11 +445,16 @@ impl MavericNode for ButtonPanel {
                 ButtonPanel::SplashBottom => {
                     if cfg!(any(feature = "android", feature = "ios")) {
                         &[
-                            IconButtonAction::ShowLeaderboard,
+                            // IconButtonAction::ShowLeaderboard,
+                            IconButtonAction::Share,
                             IconButtonAction::NextLevel,
                         ]
                     } else {
-                        &[IconButtonAction::NextLevel]
+                        &[
+                            IconButtonAction::ShowLeaderboard,
+                            IconButtonAction::Share,
+                            IconButtonAction::NextLevel,
+                        ]
                     }
                 }
                 ButtonPanel::SplashTop => {
@@ -450,7 +468,7 @@ impl MavericNode for ButtonPanel {
 
             let style = match args {
                 ButtonPanel::SplashTop => IconButtonStyle::HeightPadded,
-                _ => IconButtonStyle::HeightPadded,
+                _ => IconButtonStyle::Big,
             };
 
             for (key, action) in actions.iter().enumerate() {
@@ -588,12 +606,13 @@ impl MavericNode for BeggingPanel {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct TextPlusIcon {
+pub struct TextPlusIcons<const ICONS: usize> {
     text: String,
-    icon: IconButtonAction,
+    icons: [IconButtonAction; ICONS],
+    font_size: f32,
 }
 
-impl MavericNode for TextPlusIcon {
+impl<const ICONS: usize> MavericNode for TextPlusIcons<ICONS> {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
@@ -610,12 +629,26 @@ impl MavericNode for TextPlusIcon {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_node_and_context(|args, context, commands| {
-            commands.add_child(0, panel_text_node(args.text.clone()), context);
             commands.add_child(
-                1,
-                icon_button_node(args.icon, IconButtonStyle::Compact),
+                "text",
+                TextNode {
+                    text: args.text.clone(),
+                    font_size: args.font_size,
+                    color: LEVEL_TEXT_COLOR,
+                    font: LEVEL_TEXT_FONT_PATH,
+                    alignment: TextAlignment::Center,
+                    linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+                },
                 context,
             );
+
+            for (index, action) in args.icons.into_iter().enumerate() {
+                commands.add_child(
+                    index as u32,
+                    icon_button_node(action, IconButtonStyle::Compact),
+                    context,
+                );
+            }
         });
     }
 }

@@ -16,7 +16,6 @@ pub mod infinity;
 pub mod input;
 pub mod insets;
 pub mod leaderboard;
-pub mod lens;
 pub mod level;
 pub mod level_ui;
 pub mod global_ui;
@@ -70,7 +69,6 @@ pub mod prelude {
     pub use crate::insets::*;
     pub use crate::leaderboard::*;
     pub use crate::level_text_panel::*;
-    pub use crate::lens::*;
     pub use crate::level::*;
     pub use crate::level_ui::*;
     pub use crate::menu::*;

@@ -21,6 +21,8 @@ pub(crate) fn icon_button_node(
     button_action: IconButtonAction,
     style: IconButtonStyle,
 ) -> impl MavericNode<Context = AssetServer> {
+
+    let font_size = style.icon_font_size();
     ButtonNode {
         background_color: Color::NONE,
         visibility: Visibility::Visible,
@@ -33,7 +35,7 @@ pub(crate) fn icon_button_node(
         style,
         children: (TextNode {
             text: button_action.icon(),
-            font_size: ICON_FONT_SIZE,
+            font_size,
             color: BUTTON_TEXT_COLOR,
             font: ICON_FONT_PATH,
             alignment: TextAlignment::Left,
@@ -48,10 +50,23 @@ pub enum IconButtonStyle {
     Compact,
     Menu,
     Snow,
+    Big
+}
+
+impl IconButtonStyle{
+    pub fn icon_font_size(&self)-> f32{
+        match self{
+
+            IconButtonStyle::Big => ICON_FONT_SIZE * 2.0,
+            _=> ICON_FONT_SIZE
+        }
+    }
 }
 
 impl IntoBundle for IconButtonStyle {
     type B = Style;
+
+
 
     fn into_bundle(self) -> Self::B {
         match self {
@@ -68,6 +83,16 @@ impl IntoBundle for IconButtonStyle {
             IconButtonStyle::Compact => Style {
                 width: Val::Px(ICON_BUTTON_WIDTH),
                 height: Val::Px(COMPACT_ICON_BUTTON_HEIGHT),
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                ..Default::default()
+            },
+            IconButtonStyle::Big => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_WIDTH  * 2.0),
                 margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,

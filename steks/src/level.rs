@@ -467,7 +467,7 @@ impl DesignedLevelMeta {
             DesignedLevelMeta::Campaign { index } => {
                 let index = index + 1;
                 if CAMPAIGN_LEVELS.get(index as usize).is_some() {
-                    if index >= MAX_DEMO_LEVEL && !*IS_FULL_GAME  {
+                    if index >= *MAX_DEMO_LEVEL && !*IS_FULL_GAME  {
                         None
                     } else {
                         Some(Self::Campaign { index })

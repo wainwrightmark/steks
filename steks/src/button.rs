@@ -311,7 +311,7 @@ fn icon_button_system(
                     #[cfg(target_arch = "wasm32")]
                     {
                         let level = current_level.level.get_log_name();
-                        crate::logging::LoggableEvent::GoAppStore { store: "Google".to_string(), level  }.try_log1();
+                        crate::logging::LoggableEvent::GoAppStore { store: "Google".to_string(), level, max_demo_level: *MAX_DEMO_LEVEL  }.try_log1();
                         crate::wasm::open_link("https://play.google.com/store/apps/details?id=com.steksgame.app");
                     }
                 }
@@ -319,7 +319,7 @@ fn icon_button_system(
                     #[cfg(target_arch = "wasm32")]
                     {
                         let level = current_level.level.get_log_name();
-                        crate::logging::LoggableEvent::GoAppStore { store: "Apple".to_string(), level  }.try_log1();
+                        crate::logging::LoggableEvent::GoAppStore { store: "Apple".to_string(), level, max_demo_level: *MAX_DEMO_LEVEL  }.try_log1();
                         crate::wasm::open_link("https://apps.apple.com/us/app/steks/id6461480511");
                     }
                 }

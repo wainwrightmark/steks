@@ -1,6 +1,8 @@
 pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
+use capacitor_bindings::device::DeviceId;
+use lazy_static::lazy_static;
 
 pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
@@ -106,6 +108,8 @@ pub fn setup_app(app: &mut App) {
     if !cfg!(debug_assertions) {
         app.add_systems(PostStartup, log_start);
     }
+
+    app.add_systems(PostStartup, set_device_id);
 }
 
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
@@ -121,6 +125,14 @@ pub fn get_today_date() -> chrono::NaiveDate {
     today.date_naive()
 }
 
+fn set_device_id(){
+    bevy::tasks::IoTaskPool::get()
+        .spawn(async move {
+
+            set_device_id_async().await;})
+        .detach();
+}
+
 pub fn log_start(mut pkv: ResMut<bevy_pkv::PkvStore>) {
     const KEY: &str = "UserExists";
 
@@ -131,7 +143,10 @@ pub fn log_start(mut pkv: ResMut<bevy_pkv::PkvStore>) {
     }
 
     bevy::tasks::IoTaskPool::get()
-        .spawn(async move { log_start_async(user_exists).await })
+        .spawn(async move {
+
+            set_device_id_async().await;
+            log_start_async(user_exists).await })
         .detach();
 }
 
@@ -217,6 +232,32 @@ async fn log_start_async<'a>(_user_exists: bool) {
         application_start.try_log_async1(device_id).await;
     }
 }
+
+async fn set_device_id_async(){
+    #[cfg(target_arch = "wasm32")]
+    {
+        //info!("Setting device id");
+        let device_id = match capacitor_bindings::device::Device::get_id().await {
+            Ok(device_id) => device_id,
+            Err(err) => {
+                crate::logging::try_log_error_message(format!("{err:?}"));
+                return;
+            }
+        };
+
+        match DEVICE_ID.set(device_id.clone()){
+            Ok(())=>{info!("Device id set {device_id:?}");}
+            Err(err)=> {error!("Error setting device id {err:?}")}
+        }
+    }
+
+
+}
+
+lazy_static!(
+
+    pub static ref DEVICE_ID : std::sync::OnceLock<DeviceId> =  Default::default();
+);
 
 #[cfg(test)]
 pub mod test {

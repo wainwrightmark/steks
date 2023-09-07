@@ -44,7 +44,8 @@ pub enum LoggableEvent {
 
     GoAppStore{
         store: String,
-        level: String
+        level: String,
+        max_demo_level: u8
     },
 
     NotificationClick,

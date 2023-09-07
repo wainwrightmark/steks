@@ -203,11 +203,38 @@ impl MavericNode for MainPanel {
                     };
                     commands.add_child("preview_message", panel_text_node(text), context);
 
-                    commands.add_child("buttons", ButtonPanel::Preview(preview), context);
+                    match preview {
+                        PreviewImage::PB => commands.add_child(
+                            "pb_buttons",
+                            ButtonPanel {
+                                icons: [IconButtonAction::Share, IconButtonAction::RestoreSplash],
+                                align_self: AlignSelf::Center,
+                                style: IconButtonStyle::Big,
+                            },
+                            context,
+                        ),
+                        PreviewImage::WR => commands.add_child(
+                            "wr_buttons",
+                            ButtonPanel {
+                                icons: [IconButtonAction::RestoreSplash],
+                                align_self: AlignSelf::Center,
+                                style: IconButtonStyle::Big,
+                            },
+                            context,
+                        ),
+                    };
                 }
 
                 GameUIState::Splash => {
-                    commands.add_child("top_buttons", ButtonPanel::SplashTop, context);
+                    commands.add_child(
+                        "top_buttons",
+                        ButtonPanel {
+                            align_self: AlignSelf::Stretch,
+                            icons: [IconButtonAction::OpenMenu, IconButtonAction::MinimizeSplash],
+                            style: IconButtonStyle::HeightPadded,
+                        },
+                        context,
+                    );
 
                     let message = match &args.level {
                         GameLevel::Designed { meta, .. } => meta
@@ -293,9 +320,7 @@ impl MavericNode for MainPanel {
                             "wr",
                             TextPlusIcons {
                                 text: "New World Record ".to_string(),
-                                icons: [
-                                    IconButtonAction::ViewRecord,
-                                ],
+                                icons: [IconButtonAction::ViewRecord],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
                             context,
@@ -305,9 +330,7 @@ impl MavericNode for MainPanel {
                             "wr",
                             TextPlusIcons {
                                 text: format!("Record    {:6.2}m", record),
-                                icons: [
-                                    IconButtonAction::ViewRecord,
-                                ],
+                                icons: [IconButtonAction::ViewRecord],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
                             context,
@@ -332,7 +355,29 @@ impl MavericNode for MainPanel {
                         );
                     }
 
-                    commands.add_child("bottom_buttons", ButtonPanel::SplashBottom, context);
+                    let bottom_icons = if cfg!(any(feature = "android", feature = "ios")) {
+                        [
+                            IconButtonAction::ShowLeaderboard,
+                            IconButtonAction::Share,
+                            IconButtonAction::NextLevel,
+                        ]
+                    } else {
+                        [
+                            IconButtonAction::Share,
+                            IconButtonAction::None,
+                            IconButtonAction::NextLevel,
+                        ]
+                    };
+
+                    commands.add_child(
+                        "bottom_buttons",
+                        ButtonPanel {
+                            align_self: AlignSelf::Center,
+                            icons: bottom_icons,
+                            style: IconButtonStyle::Big,
+                        },
+                        context,
+                    );
 
                     if IS_DEMO {
                         commands.add_child("store", StoreButtonPanel, context);
@@ -405,14 +450,14 @@ impl MavericNode for StarHeights {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, EnumIs)]
-pub enum ButtonPanel {
-    SplashTop,
-    SplashBottom,
-    Preview(PreviewImage),
+#[derive(Debug, Clone, PartialEq)]
+pub struct ButtonPanel<const ICONS: usize> {
+    icons: [IconButtonAction; ICONS],
+    align_self: AlignSelf,
+    style: IconButtonStyle,
 }
 
-impl MavericNode for ButtonPanel {
+impl<const ICONS: usize> MavericNode for ButtonPanel<ICONS> {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
@@ -425,11 +470,7 @@ impl MavericNode for ButtonPanel {
                     flex_direction: FlexDirection::Row,
                     margin: UiRect::new(Val::Px(0.), Val::Px(0.), Val::Px(0.), Val::Px(0.)),
 
-                    align_self: if node.is_splash_top() {
-                        AlignSelf::Stretch
-                    } else {
-                        AlignSelf::Center
-                    },
+                    align_self: node.align_self,
                     width: Val::Auto,
                     height: Val::Auto,
 
@@ -440,39 +481,13 @@ impl MavericNode for ButtonPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_node_and_context(|args, context, commands| {
-            let actions: &[IconButtonAction] = match args {
-                ButtonPanel::SplashBottom => {
-                    if cfg!(any(feature = "android", feature = "ios")) {
-                        &[
-                            // IconButtonAction::ShowLeaderboard,
-                            IconButtonAction::Share,
-                            IconButtonAction::NextLevel,
-                        ]
-                    } else {
-                        &[
-                            IconButtonAction::ShowLeaderboard,
-                            IconButtonAction::Share,
-                            IconButtonAction::NextLevel,
-                        ]
-                    }
-                }
-                ButtonPanel::SplashTop => {
-                    &[IconButtonAction::OpenMenu, IconButtonAction::MinimizeSplash]
-                }
-                ButtonPanel::Preview(PreviewImage::PB) => {
-                    &[IconButtonAction::SharePB, IconButtonAction::RestoreSplash]
-                }
-                ButtonPanel::Preview(PreviewImage::WR) => &[IconButtonAction::RestoreSplash],
-            };
-
-            let style = match args {
-                ButtonPanel::SplashTop => IconButtonStyle::HeightPadded,
-                _ => IconButtonStyle::Big,
-            };
-
-            for (key, action) in actions.iter().enumerate() {
-                commands.add_child(key as u32, icon_button_node(action.clone(), style), context);
+        commands.unordered_children_with_node_and_context(|node, context, commands| {
+            for (key, action) in node.icons.iter().enumerate() {
+                commands.add_child(
+                    key as u32,
+                    icon_button_node(action.clone(), node.style),
+                    context,
+                );
             }
         });
     }

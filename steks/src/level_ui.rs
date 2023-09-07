@@ -210,6 +210,7 @@ impl MavericNode for MainPanel {
                                 icons: [IconButtonAction::Share, IconButtonAction::RestoreSplash],
                                 align_self: AlignSelf::Center,
                                 style: IconButtonStyle::Big,
+                                flashing_icon: None
                             },
                             context,
                         ),
@@ -219,6 +220,7 @@ impl MavericNode for MainPanel {
                                 icons: [IconButtonAction::RestoreSplash],
                                 align_self: AlignSelf::Center,
                                 style: IconButtonStyle::Big,
+                                flashing_icon: None
                             },
                             context,
                         ),
@@ -232,6 +234,7 @@ impl MavericNode for MainPanel {
                             align_self: AlignSelf::Stretch,
                             icons: [IconButtonAction::OpenMenu, IconButtonAction::MinimizeSplash],
                             style: IconButtonStyle::HeightPadded,
+                            flashing_icon: None
                         },
                         context,
                     );
@@ -375,6 +378,7 @@ impl MavericNode for MainPanel {
                             align_self: AlignSelf::Center,
                             icons: bottom_icons,
                             style: IconButtonStyle::Big,
+                            flashing_icon: Some(IconButtonAction::NextLevel)
                         },
                         context,
                     );
@@ -453,6 +457,7 @@ impl MavericNode for StarHeights {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ButtonPanel<const ICONS: usize> {
     icons: [IconButtonAction; ICONS],
+    flashing_icon: Option<IconButtonAction>,
     align_self: AlignSelf,
     style: IconButtonStyle,
 }
@@ -482,12 +487,23 @@ impl<const ICONS: usize> MavericNode for ButtonPanel<ICONS> {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_node_and_context(|node, context, commands| {
-            for (key, action) in node.icons.iter().enumerate() {
-                commands.add_child(
-                    key as u32,
-                    icon_button_node(action.clone(), node.style),
-                    context,
-                );
+            for (key, icon) in node.icons.into_iter() .enumerate() {
+
+                if node.flashing_icon == Some(icon){
+                    commands.add_child(
+                        key as u32,
+                        icon_button_node(icon, node.style), //todo flashing
+                        context,
+                    );
+                }else{
+                    commands.add_child(
+                        key as u32,
+                        icon_button_node(icon, node.style),
+                        context,
+                    );
+                }
+
+
             }
         });
     }

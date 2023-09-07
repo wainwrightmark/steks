@@ -1,5 +1,7 @@
+use std::sync::Arc;
+
 use crate::prelude::*;
-use maveric::prelude::*;
+use maveric::{prelude::*, transition::speed::{LinearSpeed, ScalarSpeed}};
 
 pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
     text: T,
@@ -13,9 +15,6 @@ pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync 
         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
     }
 }
-
-#[derive(Debug, Clone, PartialEq)]
-struct OpenMenuButtonStyle;
 
 pub(crate) fn icon_button_node(
     button_action: IconButtonAction,
@@ -43,6 +42,40 @@ pub(crate) fn icon_button_node(
         },),
     }
 }
+
+// pub(crate) fn flashing_icon_button_node(
+//     button_action: IconButtonAction,
+//     style: IconButtonStyle,
+// ) -> impl MavericNode<Context = AssetServer> {
+//     let font_size = style.icon_font_size();
+
+//     let transition: Arc<TransitionStep<TextColorLens<0>>> =  TransitionStep::new_arc(BUTTON_TEXT_COLOR.with_a(0.5), Some(ScalarSpeed::new(0.5)), None);
+
+//     let node = TextNode {
+//         text: button_action.icon(),
+//         font_size,
+//         color: BUTTON_TEXT_COLOR,
+//         font: ICON_FONT_PATH,
+//         alignment: TextAlignment::Left,
+//         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+//     };
+
+//     let node_with_transition = node.with_transition(BUTTON_TEXT_COLOR, transition, ());
+
+
+//     ButtonNode {
+//         background_color: Color::NONE,
+//         visibility: Visibility::Visible,
+//         border_color: Color::NONE,
+//         marker: IconButtonComponent {
+//             disabled: false,
+//             button_action,
+//             button_type: ButtonType::Icon,
+//         },
+//         style,
+//         children: (node,),
+//     }
+// }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum IconButtonStyle {

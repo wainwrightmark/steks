@@ -1,7 +1,9 @@
 
 
+use std::sync::Arc;
+
 use crate::prelude::*;
-use maveric::{prelude::*};
+use maveric::{prelude::*, transition::speed::LinearSpeed};
 
 pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
     text: T,
@@ -17,7 +19,7 @@ pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync 
 }
 
 pub(crate) fn icon_button_node(
-    button_action: IconButtonAction,
+    button_action: IconButton,
     style: IconButtonStyle,
 ) -> impl MavericNode<Context = AssetServer> {
 
@@ -43,39 +45,45 @@ pub(crate) fn icon_button_node(
     }
 }
 
-// pub(crate) fn flashing_icon_button_node(
-//     button_action: IconButtonAction,
-//     style: IconButtonStyle,
-// ) -> impl MavericNode<Context = AssetServer> {
-//     let font_size = style.icon_font_size();
+pub(crate) fn flashing_icon_button_node(
+    button_action: IconButton,
+    style: IconButtonStyle,
+) -> impl MavericNode<Context = AssetServer> {
+    let font_size = style.icon_font_size();
 
-//     let transition: Arc<TransitionStep<TextColorLens<0>>> =  TransitionStep::new_arc(BUTTON_TEXT_COLOR.with_a(0.5), Some(ScalarSpeed::new(0.5)), None);
+    // let transition: Arc<TransitionStep<TextColorLens<0>>> =  TransitionStep::new_cycle(
+    //     [(BUTTON_TEXT_COLOR.with_a(0.75), ScalarSpeed::new(0.5)), (BUTTON_TEXT_COLOR.with_a(1.0), ScalarSpeed::new(0.75))].into_iter()
+    // );
 
-//     let node = TextNode {
-//         text: button_action.icon(),
-//         font_size,
-//         color: BUTTON_TEXT_COLOR,
-//         font: ICON_FONT_PATH,
-//         alignment: TextAlignment::Left,
-//         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-//     };
+    let transition: Arc<TransitionStep<TransformScaleLens>> =  TransitionStep::new_cycle(
+        [(Vec3::ONE * 1.2, LinearSpeed::new(0.5)), (Vec3::ONE, LinearSpeed::new(0.5))].into_iter()
+    );
 
-//     let node_with_transition = node.with_transition(BUTTON_TEXT_COLOR, transition, ());
+    let node = TextNode {
+        text: button_action.icon(),
+        font_size,
+        color: BUTTON_TEXT_COLOR,
+        font: ICON_FONT_PATH,
+        alignment: TextAlignment::Left,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+    };
+
+    let node_with_transition = node.with_transition(Vec3::ONE, transition, ());
 
 
-//     ButtonNode {
-//         background_color: Color::NONE,
-//         visibility: Visibility::Visible,
-//         border_color: Color::NONE,
-//         marker: IconButtonComponent {
-//             disabled: false,
-//             button_action,
-//             button_type: ButtonType::Icon,
-//         },
-//         style,
-//         children: (node,),
-//     }
-// }
+    ButtonNode {
+        background_color: Color::NONE,
+        visibility: Visibility::Visible,
+        border_color: Color::NONE,
+        marker: IconButtonComponent {
+            disabled: false,
+            button_action,
+            button_type: ButtonType::Icon,
+        },
+        style,
+        children: (node_with_transition,),
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum IconButtonStyle {
@@ -164,7 +172,7 @@ impl IntoBundle for IconButtonStyle {
 }
 
 pub(crate) fn image_button_node(
-    button_action: IconButtonAction,
+    button_action: IconButton,
     image_path: &'static str,
     button_node_style: impl IntoBundle<B = Style>,
     image_style: impl IntoBundle<B = Style>,
@@ -189,7 +197,7 @@ pub(crate) fn image_button_node(
 }
 
 pub(crate) fn text_button_node(
-    button_action: TextButtonAction,
+    button_action: TextButton,
     centred: bool,
     disabled: bool,
 ) -> impl MavericNode<Context = AssetServer> {
@@ -197,7 +205,7 @@ pub(crate) fn text_button_node(
 }
 
 pub(crate) fn text_button_node_with_text(
-    button_action: TextButtonAction,
+    button_action: TextButton,
     text: String,
     centred: bool,
     disabled: bool,
@@ -274,7 +282,7 @@ impl IntoBundle for TextButtonStyle {
 }
 
 pub(crate) fn text_button_node_with_text_and_image(
-    button_action: TextButtonAction,
+    button_action: TextButton,
     centred: bool,
     disabled: bool,
     image_path: &'static str,

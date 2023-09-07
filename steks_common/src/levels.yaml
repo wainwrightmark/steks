@@ -5,6 +5,7 @@
 - title: "Steks Marks The Spot"
   text: "towers may not touch\nthe ground or the sides"
   end_text: "Not bad for a beginner\nPress  for the next level"
+  flashing_button: NextLevel
   #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQNQ'
   stars: {two: 140, three: 150}
@@ -17,7 +18,9 @@
 - title: "Reach For The Sky"
   text: ""
   end_text: "Press  to try for a taller tower\nTaller towers earn more stars"
+  flashing_button: MinimizeSplash
   stars: {two: 140, three: 150}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQHA'
   shapes:
     - shape: O4
@@ -33,6 +36,7 @@
   text: "rotating shapes from further away\nis often easier"
   mouse_text: ""
   stars: {two: 180, three: 190}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQHQ'
   end_text: "Wow, that was quick"
   shapes:
@@ -55,6 +59,7 @@
   text: white shapes cannot be unlocked
   end_text: "Just want to build cool towers?\nIgnore the stars, you're not Mario!"
   stars: {two: 200, three: 215}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQHg'
   shapes:
     - shape: U5
@@ -71,6 +76,7 @@
 - title: "The Pentomino Effect"
   end_text: "Now you're thinking\nwith pentominos"
   stars: {two: 250, three: 300}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQHw'
   shapes:
     - shape: I5
@@ -85,6 +91,7 @@
   text: "that's no moon..."
   end_text: "Great shot, kid."
   stars: {two: 240, three: 270}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQIA'
   shapes:
     - shape: O4
@@ -105,6 +112,7 @@
 - title: "Tri Hard"
   end_text: "Welcome to the party, pal"
   stars: {two: 270, three: 305}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQIQ'
   shapes:
     - shape: J4
@@ -117,8 +125,10 @@
 #8
 - title: Cubism
   text: wonky towers are encouraged
+  flashing_button: Share
   end_text: "You're basically Picasso\nhit  to share your masterpiece"
   stars: {two: 220, three: 240}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQIg'
   shapes:
     - shape: P5
@@ -134,6 +144,7 @@
   text:
   end_text: "That's a cute tower"
   stars: {two: 220, three: 275}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQIw'
   shapes:
     - shape: I4
@@ -154,6 +165,7 @@
 - title: "Tri Hard II: Tri Harder"
   end_text: "Yippee-Ki-Yay!"
   stars: {two: 330, three: 360}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQJA'
   shapes:
     - shape: L4
@@ -169,6 +181,7 @@
   text: "build around or under it"
   end_text: "Void avoided"
   stars: {two: 215, three: 225}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQJQ'
   shapes:
     - shape: I5
@@ -193,6 +206,7 @@
 - title: "Things Are Looking Up"
   end_text: "Is that the end of Dr. Gravity?"
   stars: {two: 270, three: 290}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQJg'
   shapes:
     - shape: L5
@@ -213,7 +227,9 @@
 #13
 - title: "The Empire Steks Building"
   end_text: "Think you've got the tallest tower?\nHit  to challenge a friend!"
+  flashing_button: Share
   stars: {two: 300, three: 360}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQJw'
   shapes:
     - shape: I5
@@ -229,6 +245,7 @@
 - title: "The Steks Factor"
   end_text: "That was just the audition"
   stars: {two: 275, three: 290}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQKA'
   shapes:
     - shape: O4
@@ -244,6 +261,7 @@
 - title: "Excess"
   end_text: "You know you love me, XOXO"
   stars: {two: 230, three: 240}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQKQ'
   shapes:
     - shape: X5
@@ -273,6 +291,7 @@
   text: ""
   end_text: "Good news, everyone!"
   stars: {two: 180, three: 210}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQKg'
   shapes:
     - shape: I5
@@ -296,6 +315,7 @@
 - title: "The Joy Of Steks"
   end_text: "Extremely satisfactory"
   stars: {two: 270, three: 280}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQKw'
   shapes:
     - shape: P5
@@ -312,6 +332,7 @@
   text: a brand new invention
   end_text: "Yo, you solved it!"
   stars: {two: 240, three: 260}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQLA'
   shapes:
     - shape: I5
@@ -334,6 +355,7 @@
 - title: "Double Trouble"
   end_text: "Two thumbs up!"
   stars: {two: 260, three: 275}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQLQ'
   shapes:
     - shape: T5
@@ -349,6 +371,7 @@
   text: "Dr. Gravity is making things harder"
   end_text: "Dr. Gravity has gone too far!"
   stars: {two: 300, three: 315}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQLg'
   shapes:
     - shape: Triangle
@@ -368,6 +391,7 @@
 - title: "Circular Logic"
   end_text: "You're a success 'cos you succeeded\nYou succeeded 'cos you're a success"
   stars: {two: 235, three: 260}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQLw'
   shapes:
     - shape: L4
@@ -382,6 +406,7 @@
 - title: "Tri Hard with A Vengeance"
   end_text: "Just a fly in the ointment, Hans\na monkey in the wrench"
   stars: {two: 225, three: 250}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQMA'
   shapes:
     - shape: Triangle
@@ -406,6 +431,7 @@
   text: "Dr. Gravity's polar base\nis guarded by penguins"
   end_text: "Great Scott!"
   stars: {two: 190, three: 245}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQMQ'
   gravity:
         - 0.0
@@ -431,6 +457,7 @@
   text: "the paranoid and void"
   end_text: "So long and thanks\nfor all the shapes"
   stars: {two: 230, three: 245}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQMg'
   shapes:
     - shape: I5
@@ -455,6 +482,7 @@
 - title: "Deus Steks Machina"
   end_text: "I would have gotten away with it\nif it weren't for you meddling kids!"
   stars: {two: 280, three: 305}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQMw'
   shapes:
     - shape: O4
@@ -475,6 +503,7 @@
   text: ""
   end_text: "One does not simply... build a tower"
   stars: {two: 280, three: 305}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQNA'
   shapes:
     - shape: Z4
@@ -525,6 +554,7 @@
 - title: "The Steks Files"
   end_text: "The truth is out there"
   stars: {two: 250, three: 270}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQNg'
   shapes:
     - shape: P5
@@ -542,6 +572,7 @@
   text: ""
   end_text: "You weathered that ok"
   stars: {two: 275, three: 290}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQNw'
   rainfall:
     intensity: 2
@@ -559,6 +590,7 @@
   text: ""
   end_text: "Built a crazy tower?\nTag us on social media!"
   stars: {two: 290, three: 320}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQOA'
   shapes:
     - shape: L4
@@ -597,6 +629,7 @@
   text: "no surprises we promise"
   end_text: "Fine! You win this round"
   stars: {two: 230, three: 255}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQOQ'
   shapes:
     - shape: L5
@@ -626,6 +659,7 @@
   text: "you hear a rumbling overhead..."
   end_text: "Fly, you fools!"
   stars: {two: 270, three: 300}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQOg'
   shapes:
     - shape: U5
@@ -664,6 +698,7 @@
   text: "Dr. Gravity is testing you"
   end_text: "You've beaten Dr. Gravity, for now"
   stars: {two: 260, three: 280}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQOw'
   shapes:
     - shape: S5
@@ -685,6 +720,7 @@
   text: ""
   end_text: "Steksa is the capital of Stekstopia\n this is now canon"
   stars: {two: 300, three: 330}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQPA'
   shapes:
     - shape: I4
@@ -717,6 +753,7 @@
   text: ""
   end_text: "You made it out before midnight!"
   stars: {two: 255, three: 280}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQPQ'
   shapes:
     - shape: Circle
@@ -736,6 +773,7 @@
   text: "but no surprises we promise"
   end_text: "Meta surprise!"
   stars: {two: 270, three: 290}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQPg'
   shapes:
     - shape: P5
@@ -753,6 +791,7 @@
 - title: "Bifröst"
   end_text: "Welcome to Asgard"
   stars: {two: 215, three: 245}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQPw'
   rainfall:
       intensity: 2
@@ -783,6 +822,7 @@
   text: "Dr. Gravity blocks the way"
   end_text: "'tis but a flesh wound"
   stars: {two: 220, three: 245}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQQA'
   shapes:
     - shape: T5
@@ -803,6 +843,7 @@
 - title: "Shapes On A Plane"
   end_text: "I've had it with these\nmonkey-fighting shapes"
   stars: {two: 170, three: 180}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQQQ'
   shapes:
     - shape: I4
@@ -830,6 +871,7 @@
   text: "when you play the game of Steks\nYou win or you... don't?"
   end_text: "That was our season eight"
   stars: {two: 175, three: 190}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQQg'
   shapes:
     - shape: L5
@@ -878,6 +920,7 @@
   text: "in Steks no one can hear you scream"
   end_text: "Now buy Steks 2"
   stars: {two: 345, three: 400}
+  #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQQw'
   shapes:
     - shape: Triangle # mouth

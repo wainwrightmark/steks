@@ -116,13 +116,13 @@ impl MavericNode for Padlock {
                 Some(*FILL_SPEED)
             };
 
-            commands.insert(Transition::<TransformTranslationLens> {
-                step: TransitionStep::new_arc(transform.translation, transform_speed , None),
-            });
+            commands.insert(Transition::<TransformTranslationLens>::new(
+                TransitionStep::new_arc(transform.translation, transform_speed , NextStep::None)
+            ));
 
-            commands.insert(Transition::<FillColorLens>{
-                step: TransitionStep::new_arc(fill.color, fill_speed, None)
-            });
+            commands.insert(Transition::<FillColorLens>::new(
+                TransitionStep::new_arc(fill.color, fill_speed, NextStep::None)
+            ));
 
             commands.insert((path, visibility));
         });

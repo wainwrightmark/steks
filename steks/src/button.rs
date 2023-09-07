@@ -33,14 +33,14 @@ impl Plugin for ButtonPlugin {
 #[derive(Debug, Clone, Copy, Component, PartialEq)]
 pub struct IconButtonComponent {
     pub disabled: bool,
-    pub button_action: IconButtonAction,
+    pub button_action: IconButton,
     pub button_type: ButtonType,
 }
 
 #[derive(Debug, Clone, Copy, Component, PartialEq)]
 pub struct TextButtonComponent {
     pub disabled: bool,
-    pub button_action: TextButtonAction,
+    pub button_action: TextButton,
     pub button_type: ButtonType,
 }
 
@@ -81,58 +81,11 @@ impl ButtonType {
     }
 }
 
-#[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
-pub enum IconButtonAction {
-    OpenMenu,
-    Share,
-    SharePB,
 
-    EnableSnow,
 
-    NextLevel,
-    MinimizeSplash,
-    RestoreSplash,
-    ShowLeaderboard,
-
-    NextLevelsPage,
-    PreviousLevelsPage,
-
-    GooglePlay,
-    Apple,
-    Steam,
-
-    ViewPB,
-    ViewRecord,
-
-    None,
-}
-
-impl IconButtonAction {
-    pub fn icon(&self) -> &'static str {
-        use IconButtonAction::*;
-        match self {
-            OpenMenu => "\u{f0c9}",
-            Share => "\u{f1e0}",
-            SharePB => "\u{f1e0}",
-            NextLevel => "\u{e808}",
-            PreviousLevelsPage => "\u{e81b}",
-            NextLevelsPage => "\u{e81a}",
-            RestoreSplash => "\u{f149}",
-            MinimizeSplash => "\u{e814}",
-            GooglePlay => "\u{f1a0}",
-            Apple => "\u{f179}",
-            Steam => "\u{f1b6}",
-            ShowLeaderboard => "\u{e803}",
-            ViewPB => "\u{e81c}",
-            ViewRecord => "\u{e81c}",
-            EnableSnow => "\u{f2dc}",
-            None => "",
-        }
-    }
-}
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
-pub enum TextButtonAction {
+pub enum TextButton {
     Resume,
     GoFullscreen,
     Tutorial,
@@ -162,52 +115,52 @@ pub enum TextButtonAction {
     ShowAchievements,
 }
 
-impl TextButtonAction {
+impl TextButton {
     pub fn emphasize(&self) -> bool {
         match self {
-            TextButtonAction::Resume | TextButtonAction::BackToMenu => true,
+            TextButton::Resume | TextButton::BackToMenu => true,
             _ => false,
         }
     }
 
     pub fn closes_menu(&self) -> bool {
         match self {
-            TextButtonAction::Resume => true,
-            TextButtonAction::GoFullscreen => true,
-            TextButtonAction::Tutorial => true,
-            TextButtonAction::Infinite => true,
-            TextButtonAction::DailyChallenge => true,
-            TextButtonAction::Share => true,
-            TextButtonAction::BackToMenu => false,
-            TextButtonAction::ChooseLevel => false,
-            TextButtonAction::ClipboardImport => true,
-            TextButtonAction::GotoLevel { .. } => true,
-            TextButtonAction::MinimizeApp => true,
-            TextButtonAction::OpenSettings => false,
-            TextButtonAction::OpenAccessibility => false,
-            TextButtonAction::SetArrows(_) => false,
-            TextButtonAction::SetTouchOutlines(_) => false,
-            TextButtonAction::SetHighContrast(_) => false,
-            TextButtonAction::SetFireworks(_) => false,
-            TextButtonAction::SetSnow(_) => false,
-            TextButtonAction::SetRotationSensitivity(_) => false,
-            TextButtonAction::Credits => true,
-            TextButtonAction::SyncAchievements => false,
-            TextButtonAction::ShowAchievements => false,
+            TextButton::Resume => true,
+            TextButton::GoFullscreen => true,
+            TextButton::Tutorial => true,
+            TextButton::Infinite => true,
+            TextButton::DailyChallenge => true,
+            TextButton::Share => true,
+            TextButton::BackToMenu => false,
+            TextButton::ChooseLevel => false,
+            TextButton::ClipboardImport => true,
+            TextButton::GotoLevel { .. } => true,
+            TextButton::MinimizeApp => true,
+            TextButton::OpenSettings => false,
+            TextButton::OpenAccessibility => false,
+            TextButton::SetArrows(_) => false,
+            TextButton::SetTouchOutlines(_) => false,
+            TextButton::SetHighContrast(_) => false,
+            TextButton::SetFireworks(_) => false,
+            TextButton::SetSnow(_) => false,
+            TextButton::SetRotationSensitivity(_) => false,
+            TextButton::Credits => true,
+            TextButton::SyncAchievements => false,
+            TextButton::ShowAchievements => false,
         }
     }
 
     pub fn text(&self) -> String {
         match self {
-            TextButtonAction::Resume => "Resume".to_string(),
-            TextButtonAction::GoFullscreen => "Fullscreen".to_string(),
-            TextButtonAction::Tutorial => "Tutorial".to_string(),
-            TextButtonAction::Infinite => "Infinite Mode".to_string(),
-            TextButtonAction::DailyChallenge => "Daily Challenge".to_string(),
-            TextButtonAction::Share => "Share".to_string(),
-            TextButtonAction::ChooseLevel => "Choose Level".to_string(),
-            TextButtonAction::ClipboardImport => "Import Level".to_string(),
-            TextButtonAction::GotoLevel { level } => {
+            TextButton::Resume => "Resume".to_string(),
+            TextButton::GoFullscreen => "Fullscreen".to_string(),
+            TextButton::Tutorial => "Tutorial".to_string(),
+            TextButton::Infinite => "Infinite Mode".to_string(),
+            TextButton::DailyChallenge => "Daily Challenge".to_string(),
+            TextButton::Share => "Share".to_string(),
+            TextButton::ChooseLevel => "Choose Level".to_string(),
+            TextButton::ClipboardImport => "Import Level".to_string(),
+            TextButton::GotoLevel { level } => {
                 let level_number = format_campaign_level_number(level, false);
                 if let Some(set_level) = steks_common::designed_level::get_campaign_level(*level) {
                     if let Some(title) = &set_level.title {
@@ -219,29 +172,29 @@ impl TextButtonAction {
                     level_number
                 }
             }
-            TextButtonAction::MinimizeApp => "Quit".to_string(),
-            TextButtonAction::Credits => "Credits".to_string(),
-            TextButtonAction::OpenSettings => "Settings".to_string(),
-            TextButtonAction::OpenAccessibility => "Accessibility".to_string(),
-            TextButtonAction::SetArrows(true) => "Rotation Arrows  ".to_string(),
-            TextButtonAction::SetArrows(false) => "Rotation Arrows  ".to_string(),
+            TextButton::MinimizeApp => "Quit".to_string(),
+            TextButton::Credits => "Credits".to_string(),
+            TextButton::OpenSettings => "Settings".to_string(),
+            TextButton::OpenAccessibility => "Accessibility".to_string(),
+            TextButton::SetArrows(true) => "Rotation Arrows  ".to_string(),
+            TextButton::SetArrows(false) => "Rotation Arrows  ".to_string(),
 
-            TextButtonAction::SetFireworks(true) => "Fireworks               ".to_string(),
-            TextButtonAction::SetFireworks(false) => "Fireworks               ".to_string(),
+            TextButton::SetFireworks(true) => "Fireworks               ".to_string(),
+            TextButton::SetFireworks(false) => "Fireworks               ".to_string(),
 
-            TextButtonAction::SetSnow(true) => "Snow (affects gameplay) ".to_string(),
-            TextButtonAction::SetSnow(false) => "Snow (affects gameplay) ".to_string(),
+            TextButton::SetSnow(true) => "Snow (affects gameplay) ".to_string(),
+            TextButton::SetSnow(false) => "Snow (affects gameplay) ".to_string(),
 
-            TextButtonAction::SetTouchOutlines(true) => "Touch Outlines   ".to_string(),
-            TextButtonAction::SetTouchOutlines(false) => "Touch Outlines   ".to_string(),
+            TextButton::SetTouchOutlines(true) => "Touch Outlines   ".to_string(),
+            TextButton::SetTouchOutlines(false) => "Touch Outlines   ".to_string(),
 
-            TextButtonAction::SetHighContrast(true) => "Default           Colours".to_string(),
-            TextButtonAction::SetHighContrast(false) => "High Contrast     Colours".to_string(),
+            TextButton::SetHighContrast(true) => "Default           Colours".to_string(),
+            TextButton::SetHighContrast(false) => "High Contrast     Colours".to_string(),
 
-            TextButtonAction::SyncAchievements => "Sync Achievements".to_string(),
-            TextButtonAction::ShowAchievements => "Show Achievements".to_string(),
-            TextButtonAction::SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
-            TextButtonAction::BackToMenu => "Back".to_string(),
+            TextButton::SyncAchievements => "Sync Achievements".to_string(),
+            TextButton::ShowAchievements => "Show Achievements".to_string(),
+            TextButton::SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
+            TextButton::BackToMenu => "Back".to_string(),
         }
     }
 }
@@ -281,11 +234,11 @@ fn icon_button_system(
     }
 
     for (interaction, mut bg_color, button) in interaction_query.iter_mut() {
-        if button.disabled || button.button_action == IconButtonAction::None {
+        if button.disabled || button.button_action == IconButton::None {
             continue;
         }
 
-        use IconButtonAction::*;
+        use IconButton::*;
         *bg_color = button
             .button_type
             .background_color(interaction, button.disabled);
@@ -377,56 +330,56 @@ fn text_button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                TextButtonAction::Resume => *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized),
-                TextButtonAction::GoFullscreen => {
+                TextButton::Resume => *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized),
+                TextButton::GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
                     {
                         crate::wasm::request_fullscreen();
                     }
                 }
-                TextButtonAction::ClipboardImport => import_events.send(ImportEvent),
-                TextButtonAction::Tutorial => change_level_events
+                TextButton::ClipboardImport => import_events.send(ImportEvent),
+                TextButton::Tutorial => change_level_events
                     .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
-                TextButtonAction::Infinite => {
+                TextButton::Infinite => {
                     change_level_events.send(ChangeLevelEvent::StartInfinite)
                 }
-                TextButtonAction::DailyChallenge => {
+                TextButton::DailyChallenge => {
                     change_level_events.send(ChangeLevelEvent::StartChallenge)
                 }
 
-                TextButtonAction::Share => share_events.send(ShareEvent::CurrentShapes),
-                TextButtonAction::GotoLevel { level } => {
+                TextButton::Share => share_events.send(ShareEvent::CurrentShapes),
+                TextButton::GotoLevel { level } => {
                     change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
                         index: level,
                         stage: 0,
                     })
                 }
-                TextButtonAction::ChooseLevel => {
+                TextButton::ChooseLevel => {
                     global_ui_state.as_mut().toggle_levels(current_level.as_ref())
                 }
-                TextButtonAction::MinimizeApp => {
+                TextButton::MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })
                         .detach();
                 }
-                TextButtonAction::Credits => change_level_events.send(ChangeLevelEvent::Credits),
-                TextButtonAction::OpenSettings => global_ui_state.as_mut().open_settings(),
-                TextButtonAction::OpenAccessibility => global_ui_state.as_mut().open_accessibility(),
-                TextButtonAction::BackToMenu => global_ui_state.as_mut().open_menu(),
-                TextButtonAction::SetArrows(arrows) => settings.show_arrows = arrows,
-                TextButtonAction::SetTouchOutlines(outlines) => {
+                TextButton::Credits => change_level_events.send(ChangeLevelEvent::Credits),
+                TextButton::OpenSettings => global_ui_state.as_mut().open_settings(),
+                TextButton::OpenAccessibility => global_ui_state.as_mut().open_accessibility(),
+                TextButton::BackToMenu => global_ui_state.as_mut().open_menu(),
+                TextButton::SetArrows(arrows) => settings.show_arrows = arrows,
+                TextButton::SetTouchOutlines(outlines) => {
                     settings.show_touch_outlines = outlines
                 }
-                TextButtonAction::SetRotationSensitivity(rs) => settings.rotation_sensitivity = rs,
-                TextButtonAction::SetHighContrast(high_contrast) => {
+                TextButton::SetRotationSensitivity(rs) => settings.rotation_sensitivity = rs,
+                TextButton::SetHighContrast(high_contrast) => {
                     settings.high_contrast = high_contrast
                 }
 
-                TextButtonAction::SyncAchievements => achievements.resync(),
-                TextButtonAction::ShowAchievements => show_achievements(),
+                TextButton::SyncAchievements => achievements.resync(),
+                TextButton::ShowAchievements => show_achievements(),
 
-                TextButtonAction::SetFireworks(fireworks) => settings.fireworks_enabled = fireworks,
-                TextButtonAction::SetSnow(snow) => settings.snow_enabled = snow,
+                TextButton::SetFireworks(fireworks) => settings.fireworks_enabled = fireworks,
+                TextButton::SetSnow(snow) => settings.snow_enabled = snow,
             }
 
             if button.button_action.closes_menu() {

@@ -12,6 +12,7 @@ impl Plugin for GlobalUiPlugin {
         app.register_transition::<StyleLeftLens>();
         app.register_transition::<StyleTopLens>();
         app.register_transition::<BackgroundColorLens>();
+        app.register_transition::<TransformScaleLens>();
         app.register_transition::<TextColorLens<0>>();
         app.register_transition::<BorderColorLens>();
 
@@ -148,7 +149,7 @@ impl MavericRootChildren for GlobalUiRoot {
                     LevelCompletion::Incomplete { stage } => {
                         commands.add_child(
                             "open_icon",
-                            icon_button_node(IconButtonAction::OpenMenu, IconButtonStyle::Menu),
+                            icon_button_node(IconButton::OpenMenu, IconButtonStyle::Menu),
                             asset_server,
                         );
 
@@ -157,7 +158,7 @@ impl MavericRootChildren for GlobalUiRoot {
                             commands.add_child(
                                 "snow_icon",
                                 icon_button_node(
-                                    IconButtonAction::EnableSnow,
+                                    IconButton::EnableSnow,
                                     IconButtonStyle::Snow,
                                 ),
                                 asset_server,

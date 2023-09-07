@@ -76,6 +76,8 @@ pub struct DesignedLevel {
     #[serde(alias = "Stars")]
     #[serde(default)]
     pub stars: Option<LevelStars>,
+    #[serde(default)]
+    pub flashing_button: Option<IconButton>
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct LevelStars {

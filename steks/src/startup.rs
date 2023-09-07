@@ -144,8 +144,6 @@ pub fn log_start(mut pkv: ResMut<bevy_pkv::PkvStore>) {
 
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
-
-            set_device_id_async().await;
             log_start_async(user_exists).await })
         .detach();
 }

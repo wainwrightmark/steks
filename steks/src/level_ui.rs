@@ -158,16 +158,13 @@ impl MavericNode for MainPanel {
                 GameUIState::Minimized => {
                     commands.add_child(
                         "menu",
-                        icon_button_node(IconButtonAction::OpenMenu, IconButtonStyle::HeightPadded),
+                        icon_button_node(IconButton::OpenMenu, IconButtonStyle::HeightPadded),
                         context,
                     );
 
                     commands.add_child(
                         "splash",
-                        icon_button_node(
-                            IconButtonAction::RestoreSplash,
-                            IconButtonStyle::HeightPadded,
-                        ),
+                        icon_button_node(IconButton::RestoreSplash, IconButtonStyle::HeightPadded),
                         context,
                     );
 
@@ -179,10 +176,7 @@ impl MavericNode for MainPanel {
 
                     commands.add_child(
                         "next",
-                        icon_button_node(
-                            IconButtonAction::NextLevel,
-                            IconButtonStyle::HeightPadded,
-                        ),
+                        icon_button_node(IconButton::NextLevel, IconButtonStyle::HeightPadded),
                         context,
                     );
                 }
@@ -207,20 +201,20 @@ impl MavericNode for MainPanel {
                         PreviewImage::PB => commands.add_child(
                             "pb_buttons",
                             ButtonPanel {
-                                icons: [IconButtonAction::Share, IconButtonAction::RestoreSplash],
+                                icons: [IconButton::Share, IconButton::RestoreSplash],
                                 align_self: AlignSelf::Center,
                                 style: IconButtonStyle::Big,
-                                flashing_icon: None
+                                flashing_button: args.level.flashing_button(),
                             },
                             context,
                         ),
                         PreviewImage::WR => commands.add_child(
                             "wr_buttons",
                             ButtonPanel {
-                                icons: [IconButtonAction::RestoreSplash],
+                                icons: [IconButton::RestoreSplash],
                                 align_self: AlignSelf::Center,
                                 style: IconButtonStyle::Big,
-                                flashing_icon: None
+                                flashing_button: args.level.flashing_button(),
                             },
                             context,
                         ),
@@ -232,9 +226,9 @@ impl MavericNode for MainPanel {
                         "top_buttons",
                         ButtonPanel {
                             align_self: AlignSelf::Stretch,
-                            icons: [IconButtonAction::OpenMenu, IconButtonAction::MinimizeSplash],
+                            icons: [IconButton::OpenMenu, IconButton::MinimizeSplash],
                             style: IconButtonStyle::HeightPadded,
-                            flashing_icon: None
+                            flashing_button: args.level.flashing_button(),
                         },
                         context,
                     );
@@ -299,7 +293,7 @@ impl MavericNode for MainPanel {
                             "new_best",
                             TextPlusIcons {
                                 text: "New Personal Best".to_string(),
-                                icons: [IconButtonAction::ViewPB],
+                                icons: [IconButton::ViewPB],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
                             context,
@@ -311,7 +305,7 @@ impl MavericNode for MainPanel {
                             "your_best",
                             TextPlusIcons {
                                 text: format!("Your Best {pb:6.2}m"),
-                                icons: [IconButtonAction::ViewPB],
+                                icons: [IconButton::ViewPB],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
                             context,
@@ -323,7 +317,7 @@ impl MavericNode for MainPanel {
                             "wr",
                             TextPlusIcons {
                                 text: "New World Record ".to_string(),
-                                icons: [IconButtonAction::ViewRecord],
+                                icons: [IconButton::ViewRecord],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
                             context,
@@ -333,7 +327,7 @@ impl MavericNode for MainPanel {
                             "wr",
                             TextPlusIcons {
                                 text: format!("Record    {:6.2}m", record),
-                                icons: [IconButtonAction::ViewRecord],
+                                icons: [IconButton::ViewRecord],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
                             context,
@@ -343,7 +337,7 @@ impl MavericNode for MainPanel {
                             "wr",
                             TextPlusIcons {
                                 text: "Loading  Record ".to_string(),
-                                icons: [IconButtonAction::None],
+                                icons: [IconButton::None],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
                             context,
@@ -360,16 +354,12 @@ impl MavericNode for MainPanel {
 
                     let bottom_icons = if cfg!(any(feature = "android", feature = "ios")) {
                         [
-                            IconButtonAction::ShowLeaderboard,
-                            IconButtonAction::Share,
-                            IconButtonAction::NextLevel,
+                            IconButton::ShowLeaderboard,
+                            IconButton::Share,
+                            IconButton::NextLevel,
                         ]
                     } else {
-                        [
-                            IconButtonAction::Share,
-                            IconButtonAction::None,
-                            IconButtonAction::NextLevel,
-                        ]
+                        [IconButton::Share, IconButton::None, IconButton::NextLevel]
                     };
 
                     commands.add_child(
@@ -378,7 +368,7 @@ impl MavericNode for MainPanel {
                             align_self: AlignSelf::Center,
                             icons: bottom_icons,
                             style: IconButtonStyle::Big,
-                            flashing_icon: Some(IconButtonAction::NextLevel)
+                            flashing_button: args.level.flashing_button(),
                         },
                         context,
                     );
@@ -457,8 +447,8 @@ impl MavericNode for StarHeights {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ButtonPanel<const ICONS: usize> {
-    icons: [IconButtonAction; ICONS],
-    flashing_icon: Option<IconButtonAction>,
+    icons: [IconButton; ICONS],
+    flashing_button: Option<IconButton>,
     align_self: AlignSelf,
     style: IconButtonStyle,
 }
@@ -488,23 +478,16 @@ impl<const ICONS: usize> MavericNode for ButtonPanel<ICONS> {
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.unordered_children_with_node_and_context(|node, context, commands| {
-            for (key, icon) in node.icons.into_iter() .enumerate() {
-
-                if node.flashing_icon == Some(icon){
+            for (key, icon) in node.icons.into_iter().enumerate() {
+                if node.flashing_button == Some(icon) {
                     commands.add_child(
                         key as u32,
-                        icon_button_node(icon, node.style), //todo flashing
+                        flashing_icon_button_node(icon, node.style),
                         context,
                     );
-                }else{
-                    commands.add_child(
-                        key as u32,
-                        icon_button_node(icon, node.style),
-                        context,
-                    );
+                } else {
+                    commands.add_child(key as u32, icon_button_node(icon, node.style), context);
                 }
-
-
             }
         });
     }
@@ -540,7 +523,7 @@ impl MavericNode for StoreButtonPanel {
                 commands.add_child(
                     4,
                     image_button_node(
-                        IconButtonAction::GooglePlay,
+                        IconButton::GooglePlay,
                         "images/google-play-badge.png",
                         BadgeButtonStyle,
                         BadgeImageStyle,
@@ -550,7 +533,7 @@ impl MavericNode for StoreButtonPanel {
                 commands.add_child(
                     5,
                     image_button_node(
-                        IconButtonAction::Apple,
+                        IconButton::Apple,
                         "images/apple-store-badge.png",
                         BadgeButtonStyle,
                         BadgeImageStyle,
@@ -640,7 +623,7 @@ impl MavericNode for BeggingPanel {
 #[derive(Debug, Clone, PartialEq)]
 pub struct TextPlusIcons<const ICONS: usize> {
     text: String,
-    icons: [IconButtonAction; ICONS],
+    icons: [IconButton; ICONS],
     font_size: f32,
 }
 

@@ -25,12 +25,20 @@ impl Plugin for LevelPlugin {
 fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<ShapeCreationData>) {
     let mut shapes: Vec<ShapeCreationData> = match level {
         GameLevel::Designed { meta, .. } => match meta.get_level().get_stage(&0) {
-            Some(stage) => stage.shapes.iter().map(|&shape_creation| ShapeCreationData::from_shape_creation(shape_creation, ShapeStage(0))).collect_vec(),
+            Some(stage) => stage
+                .shapes
+                .iter()
+                .map(|&shape_creation| {
+                    ShapeCreationData::from_shape_creation(shape_creation, ShapeStage(0))
+                })
+                .collect_vec(),
             None => vec![],
         },
         GameLevel::Loaded { bytes } => decode_shapes(bytes)
             .into_iter()
-            .map(|encodable_shape| ShapeCreationData::from_encodable(encodable_shape, ShapeStage(0)))
+            .map(|encodable_shape| {
+                ShapeCreationData::from_encodable(encodable_shape, ShapeStage(0))
+            })
             .collect_vec(),
         GameLevel::Challenge { date, .. } => {
             //let today = get_today_date();
@@ -38,8 +46,11 @@ fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<Shape
                 ((date.year().unsigned_abs() * 2000) + (date.month() * 100) + date.day()) as u64;
             (0..CHALLENGE_SHAPES)
                 .map(|i| {
-                    ShapeCreationData::from_shape_index(ShapeIndex::from_seed_no_circle(seed + i as u64), ShapeStage(0))
-                        .with_random_velocity()
+                    ShapeCreationData::from_shape_index(
+                        ShapeIndex::from_seed_no_circle(seed + i as u64),
+                        ShapeStage(0),
+                    )
+                    .with_random_velocity()
                 })
                 .collect_vec()
         }
@@ -96,7 +107,10 @@ fn manage_level_shapes(
                     for stage in (previous_stage + 1)..=(current_stage) {
                         if let Some(level_stage) = meta.get_level().get_stage(&stage) {
                             for creation in level_stage.shapes.iter() {
-                                shape_creation_events.send(ShapeCreationData::from_shape_creation(*creation, ShapeStage(stage)))
+                                shape_creation_events.send(ShapeCreationData::from_shape_creation(
+                                    *creation,
+                                    ShapeStage(stage),
+                                ))
                             }
 
                             for update in level_stage.updates.iter() {
@@ -232,7 +246,6 @@ impl TrackableResource for CurrentLevel {
 }
 
 impl CurrentLevel {
-
     pub fn get_current_stage(&self) -> usize {
         match self.completion {
             LevelCompletion::Incomplete { stage } => stage,
@@ -297,16 +310,23 @@ pub enum GameLevel {
 }
 
 impl GameLevel {
+    pub fn flashing_button(&self) -> Option<IconButton> {
+        match self {
+            GameLevel::Designed { meta } => meta.get_level().flashing_button,
+            GameLevel::Infinite { .. } => None,
+            GameLevel::Challenge { .. } => None,
+            GameLevel::Loaded { .. } => None,
+            GameLevel::Begging => None,
+        }
+    }
 
-    pub fn get_log_name(&self)-> String{
-        match self{
-            GameLevel::Designed { meta } => {
-                match meta{
-                    DesignedLevelMeta::Credits => "Credits".to_string(),
-                    DesignedLevelMeta::Tutorial { index } => format!("Tutorial {index}"),
-                    DesignedLevelMeta::Campaign { index } => format!("Campaign {index}"),
-                    DesignedLevelMeta::Custom { .. } => "Custom Level".to_string(),
-                }
+    pub fn get_log_name(&self) -> String {
+        match self {
+            GameLevel::Designed { meta } => match meta {
+                DesignedLevelMeta::Credits => "Credits".to_string(),
+                DesignedLevelMeta::Tutorial { index } => format!("Tutorial {index}"),
+                DesignedLevelMeta::Campaign { index } => format!("Campaign {index}"),
+                DesignedLevelMeta::Custom { .. } => "Custom Level".to_string(),
             },
             GameLevel::Infinite { .. } => "Infinite".to_string(),
             GameLevel::Challenge { .. } => "Challenge".to_string(),
@@ -317,21 +337,15 @@ impl GameLevel {
 
     pub fn get_level_text(&self, stage: usize, touch_enabled: bool) -> Option<String> {
         match &self {
-            GameLevel::Designed { meta, .. } => meta
-                .get_level()
-                .get_stage(&stage)
-                .and_then(|level_stage|
-                    {
-                        if !touch_enabled && level_stage.mouse_text.is_some(){
-                            level_stage.mouse_text.clone()
-                        }else{
-                            level_stage.text.clone()
-                        }
-
+            GameLevel::Designed { meta, .. } => {
+                meta.get_level().get_stage(&stage).and_then(|level_stage| {
+                    if !touch_enabled && level_stage.mouse_text.is_some() {
+                        level_stage.mouse_text.clone()
+                    } else {
+                        level_stage.text.clone()
                     }
-
-
-                      ),
+                })
+            }
             GameLevel::Infinite { .. } => {
                 if stage == 0 {
                     None
@@ -467,7 +481,7 @@ impl DesignedLevelMeta {
             DesignedLevelMeta::Campaign { index } => {
                 let index = index + 1;
                 if CAMPAIGN_LEVELS.get(index as usize).is_some() {
-                    if index >= *MAX_DEMO_LEVEL && !*IS_FULL_GAME  {
+                    if index >= *MAX_DEMO_LEVEL && !*IS_FULL_GAME {
                         None
                     } else {
                         Some(Self::Campaign { index })
@@ -798,6 +812,7 @@ impl ChangeLevelEvent {
                     leaderboard_id: None,
                     end_fireworks: FireworksSettings::default(),
                     stars: None,
+                    flashing_button: None,
                 };
 
                 (

@@ -11,6 +11,7 @@ pub mod shapes_vec;
 pub mod designed_level;
 pub mod star_type;
 pub mod level_completion;
+pub mod icon_button;
 
 pub mod prelude {
     pub use crate::color::*;
@@ -25,4 +26,5 @@ pub mod prelude {
     pub use crate::designed_level::*;
     pub use crate::star_type::*;
     pub use crate::level_completion::*;
+    pub use crate::icon_button::*;
 }

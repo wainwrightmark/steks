@@ -232,6 +232,7 @@ impl TrackableResource for CurrentLevel {
 }
 
 impl CurrentLevel {
+
     pub fn get_current_stage(&self) -> usize {
         match self.completion {
             LevelCompletion::Incomplete { stage } => stage,
@@ -296,6 +297,24 @@ pub enum GameLevel {
 }
 
 impl GameLevel {
+
+    pub fn get_log_name(&self)-> String{
+        match self{
+            GameLevel::Designed { meta } => {
+                match meta{
+                    DesignedLevelMeta::Credits => "Credits".to_string(),
+                    DesignedLevelMeta::Tutorial { index } => format!("Tutorial {index}"),
+                    DesignedLevelMeta::Campaign { index } => format!("Campaign {index}"),
+                    DesignedLevelMeta::Custom { .. } => "Custom Level".to_string(),
+                }
+            },
+            GameLevel::Infinite { .. } => "Infinite".to_string(),
+            GameLevel::Challenge { .. } => "Challenge".to_string(),
+            GameLevel::Loaded { .. } => "Loaded Level".to_string(),
+            GameLevel::Begging => "Begging".to_string(),
+        }
+    }
+
     pub fn get_level_text(&self, stage: usize, touch_enabled: bool) -> Option<String> {
         match &self {
             GameLevel::Designed { meta, .. } => meta

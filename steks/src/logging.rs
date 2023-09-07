@@ -42,6 +42,11 @@ pub enum LoggableEvent {
         message: String,
     },
 
+    GoAppStore{
+        store: String,
+        level: String
+    },
+
     NotificationClick,
 }
 
@@ -193,6 +198,13 @@ pub fn try_log_error_message(message: String) {
 
 impl LoggableEvent {
     pub async fn try_log_error_message_async2(message: String) {
+
+        const MESSAGES_TO_IGNORE: &[&str] = &["Js Exception: Notifications not enabled on this device", "Js Exception: Notifications not supported in this browser."];
+
+        if MESSAGES_TO_IGNORE.contains(&message.as_str()) {
+            return ;
+        }
+
         Self::try_get_device_id_and_log_async(Self::Error { message }).await
     }
 

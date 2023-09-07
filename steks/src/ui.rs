@@ -51,12 +51,8 @@ pub(crate) fn flashing_icon_button_node(
 ) -> impl MavericNode<Context = AssetServer> {
     let font_size = style.icon_font_size();
 
-    // let transition: Arc<TransitionStep<TextColorLens<0>>> =  TransitionStep::new_cycle(
-    //     [(BUTTON_TEXT_COLOR.with_a(0.75), ScalarSpeed::new(0.5)), (BUTTON_TEXT_COLOR.with_a(1.0), ScalarSpeed::new(0.75))].into_iter()
-    // );
-
     let transition: Arc<TransitionStep<TransformScaleLens>> =  TransitionStep::new_cycle(
-        [(Vec3::ONE * 1.2, LinearSpeed::new(0.5)), (Vec3::ONE, LinearSpeed::new(0.5))].into_iter()
+        [(Vec3::ONE * 1.4, LinearSpeed::new(0.4)), (Vec3::ONE * 1.0, LinearSpeed::new(0.4))].into_iter()
     );
 
     let node = TextNode {

@@ -1,7 +1,9 @@
+use std::sync::Arc;
+
 use crate::prelude::*;
 use bevy::render::texture::CompressedImageFormats;
 use itertools::Itertools;
-use maveric::{prelude::*, transition::speed::ScalarSpeed};
+use maveric::{prelude::*, transition::speed::{ScalarSpeed, LinearSpeed}};
 use steks_common::images::prelude::{Dimensions, OverlayChooser};
 use strum::EnumIs;
 pub struct LevelUiPlugin;
@@ -375,7 +377,7 @@ impl MavericNode for MainPanel {
 
                     #[cfg(feature = "web")]
                     {
-                        commands.add_child("store", StoreButtonPanel, context);
+                        commands.add_child("store", StoreButtonPanel::<false>, context);
                     }
                 }
             }
@@ -494,9 +496,9 @@ impl<const ICONS: usize> MavericNode for ButtonPanel<ICONS> {
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct StoreButtonPanel;
+pub struct StoreButtonPanel<const FLASHING: bool>;
 
-impl MavericNode for StoreButtonPanel {
+impl<const FLASHING: bool> MavericNode for StoreButtonPanel<FLASHING> {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
@@ -520,26 +522,33 @@ impl MavericNode for StoreButtonPanel {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.ignore_node().unordered_children_with_context(
             |context: &Res<'_, AssetServer>, commands| {
-                commands.add_child(
-                    4,
-                    image_button_node(
-                        IconButton::GooglePlay,
-                        "images/google-play-badge.png",
-                        BadgeButtonStyle,
-                        BadgeImageStyle,
-                    ),
-                    context,
+                let google = image_button_node(
+                    IconButton::GooglePlay,
+                    "images/google-play-badge.png",
+                    BadgeButtonStyle,
+                    BadgeImageStyle,
                 );
-                commands.add_child(
-                    5,
-                    image_button_node(
-                        IconButton::Apple,
-                        "images/apple-store-badge.png",
-                        BadgeButtonStyle,
-                        BadgeImageStyle,
-                    ),
-                    context,
+                let apple = image_button_node(
+                    IconButton::Apple,
+                    "images/apple-store-badge.png",
+                    BadgeButtonStyle,
+                    BadgeImageStyle,
                 );
+
+                if FLASHING{
+
+                    let transition: Arc<TransitionStep<TransformScaleLens>> =  TransitionStep::new_cycle(
+                        [(Vec3::ONE * 1.1, LinearSpeed::new(0.1)), (Vec3::ONE, LinearSpeed::new(0.1))].into_iter()
+                    );
+                    commands.add_child(0, google.with_transition(Vec3::ONE, transition.clone(), ()), context);
+                    commands.add_child(1, apple.with_transition(Vec3::ONE, transition, ()), context);
+                }
+                else{
+                    commands.add_child(0, google, context);
+                    commands.add_child(1, apple, context);
+                }
+
+
             },
         );
     }
@@ -603,7 +612,7 @@ impl MavericNode for BeggingPanel {
                 And...\n\
                 Defeat Dr. Gravity!\n\
                 \n\
-                Get steks now\n\
+                Get steks now\n\n\n\
                 "
                         .to_string(),
                         font_size: LEVEL_TEXT_FONT_SIZE,
@@ -615,7 +624,7 @@ impl MavericNode for BeggingPanel {
                     context,
                 );
 
-                commands.add_child(2, StoreButtonPanel, context);
+                commands.add_child(2, StoreButtonPanel::<true>, context);
             });
     }
 }

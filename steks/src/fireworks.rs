@@ -164,7 +164,7 @@ fn get_new_fireworks(
         GameLevel::Infinite { .. } => match current_level.completion {
             LevelCompletion::Incomplete { stage } => {
                 let shapes = stage + INFINITE_MODE_STARTING_SHAPES;
-                if shapes % 5 == 0 {
+                if (shapes + 1) % 5 == 0 {
                     FireworksSettings {
                         intensity: Some(shapes as u32),
                         interval: None,

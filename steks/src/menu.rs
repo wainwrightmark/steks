@@ -48,11 +48,16 @@ impl MavericNode for MenuPage {
                 let buttons = [
                     Resume,
                     ChooseLevel,
+                    #[cfg(feature = "web")]
+                    Begging,
+
                     DailyChallenge,
+                    #[cfg(all(feature = "android", target_arch = "wasm32"))]
                     Infinite,
                     Tutorial,
                     Share,
                     OpenSettings,
+
                     // #[cfg(feature = "web")]
                     // ClipboardImport,
                     #[cfg(all(feature = "web", target_arch = "wasm32"))]

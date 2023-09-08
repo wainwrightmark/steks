@@ -40,6 +40,7 @@ pub mod win_timer_state;
 pub mod level_text_panel;
 pub mod has_acted;
 pub mod logging;
+pub mod text_button;
 #[cfg(target_arch = "wasm32")]
 pub mod notifications;
 #[cfg(target_arch = "wasm32")]
@@ -89,6 +90,8 @@ pub mod prelude {
     pub use crate::shapes_vec::*;
     pub use crate::share::*;
     pub use crate::spirit::*;
+    pub use crate::text_button::*;
+
     pub(crate) use crate::ui::*;
     pub use crate::walls::*;
     pub use crate::win::*;

@@ -41,6 +41,8 @@ pub mod level_text_panel;
 pub mod has_acted;
 pub mod logging;
 pub mod text_button;
+pub mod news;
+pub mod preview_images;
 #[cfg(target_arch = "wasm32")]
 pub mod notifications;
 #[cfg(target_arch = "wasm32")]
@@ -80,6 +82,8 @@ pub mod prelude {
     pub use crate::tracked_resource::*;
     pub use crate::has_acted::*;
     pub use crate::global_ui::*;
+    pub use crate::news::*;
+    pub use crate::preview_images::*;
 
 
     pub use crate::prediction::*;

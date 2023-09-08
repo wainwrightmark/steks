@@ -33,6 +33,8 @@ pub enum TextButton {
 
     SyncAchievements,
     ShowAchievements,
+
+    News
 }
 
 impl TextButton {
@@ -68,6 +70,7 @@ impl TextButton {
             TextButton::Credits => true,
             TextButton::SyncAchievements => false,
             TextButton::ShowAchievements => false,
+            TextButton::News => false, //automatically closes menu
         }
     }
 
@@ -75,6 +78,7 @@ impl TextButton {
         match self {
             TextButton::Resume => "Resume".to_string(),
             TextButton::Begging => "Full Game".to_string(),
+            TextButton::News => "News".to_string(),
             TextButton::GoFullscreen => "Fullscreen".to_string(),
             TextButton::Tutorial => "Tutorial".to_string(),
             TextButton::Infinite => "Infinite Mode".to_string(),

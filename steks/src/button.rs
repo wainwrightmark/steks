@@ -216,6 +216,7 @@ fn text_button_system(
         if interaction == &Interaction::Pressed {
             match button.button_action {
                 TextButton::Resume => *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized),
+                TextButton::News => *global_ui_state = GlobalUiState::News,
                 TextButton::GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
                     {

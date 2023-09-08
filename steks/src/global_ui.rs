@@ -24,6 +24,7 @@ impl Plugin for GlobalUiPlugin {
 pub enum GlobalUiState {
     MenuClosed(GameUIState),
     MenuOpen(MenuPage),
+    News,
 }
 
 impl Default for GlobalUiState {
@@ -105,14 +106,18 @@ impl MavericRootChildren for GlobalUiRoot {
         GlobalUiState,
         CurrentLevel,
         NC4<GameSettings, CampaignCompletion, Insets, AssetServer>,
-        InputSettings
+        InputSettings,
     >;
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
+        //info!("{:?}", context.0.as_ref());
+
         match context.0.as_ref() {
+            GlobalUiState::News => commands.add_child("news", NewsNode, &context.2 .3),
+
             GlobalUiState::MenuOpen(menu_state) => {
                 const TRANSITION_DURATION_SECS: f32 = 0.2;
                 let transition_duration: Duration =
@@ -157,10 +162,7 @@ impl MavericRootChildren for GlobalUiRoot {
                         {
                             commands.add_child(
                                 "snow_icon",
-                                icon_button_node(
-                                    IconButton::EnableSnow,
-                                    IconButtonStyle::Snow,
-                                ),
+                                icon_button_node(IconButton::EnableSnow, IconButtonStyle::Snow),
                                 asset_server,
                             );
                         }
@@ -194,7 +196,6 @@ impl MavericRootChildren for GlobalUiRoot {
                         }
                     }
                 };
-                return;
             }
         }
     }

@@ -1,33 +1,14 @@
 use crate::prelude::*;
-use bevy::render::texture::CompressedImageFormats;
 use itertools::Itertools;
-use maveric::{
-    prelude::*,
-    transition::speed::ScalarSpeed,
-};
-use steks_common::images::prelude::{Dimensions, OverlayChooser};
+use maveric::{prelude::*, transition::speed::ScalarSpeed};
 use strum::EnumIs;
-pub struct LevelUiPlugin;
 
-impl Plugin for LevelUiPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, set_up_preview_image)
-            .add_systems(Update, update_preview_images);
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, EnumIs)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, EnumIs)]
 pub enum GameUIState {
     #[default]
     Minimized,
     Splash,
     Preview(PreviewImage),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIs)]
-pub enum PreviewImage {
-    PB,
-    WR,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -82,7 +63,7 @@ impl MavericNode for MainPanelWrapper {
             commands.add_child(
                 0,
                 MainPanel {
-                    ui_state: args.ui_state,
+                    ui_state: args.ui_state.clone(),
                     level: args.level.clone(),
                     score_info: args.score_info,
                 },
@@ -108,7 +89,7 @@ impl MavericNode for MainPanel {
                 return;
             }
 
-            let (background, border) = match args.node.ui_state {
+            let (background, border) = match &args.node.ui_state {
                 GameUIState::Splash | GameUIState::Preview(_) => (Color::WHITE, Color::BLACK),
                 GameUIState::Minimized => (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0)),
             };
@@ -157,7 +138,7 @@ impl MavericNode for MainPanel {
         commands.ordered_children_with_node_and_context(|args, context, commands| {
             let height = args.score_info.height;
 
-            match args.ui_state {
+            match &args.ui_state {
                 GameUIState::Minimized => {
                     commands.add_child(
                         "menu",
@@ -183,6 +164,7 @@ impl MavericNode for MainPanel {
                         context,
                     );
                 }
+
                 GameUIState::Preview(preview) => {
                     commands.add_child(
                         "image",
@@ -535,7 +517,6 @@ impl MavericNode for StoreButtonPanel {
                     BadgeButtonStyle,
                     BadgeImageStyle,
                 );
-
                 commands.add_child(0, google, context);
                 commands.add_child(1, apple, context);
             },
@@ -663,113 +644,5 @@ impl<const ICONS: usize> MavericNode for TextPlusIcons<ICONS> {
                 );
             }
         });
-    }
-}
-
-fn set_up_preview_image(asset_server: Res<AssetServer>) {
-    let handle: Handle<Image> = asset_server.load(PREVIEW_IMAGE_ASSET_PATH);
-    std::mem::forget(handle);
-}
-
-fn update_preview_images(
-    mut images: ResMut<Assets<Image>>,
-    ui_state: Res<GlobalUiState>,
-    pbs: Res<PersonalBests>,
-    wrs: Res<WorldRecords>,
-    current_level: Res<CurrentLevel>,
-) {
-    if !ui_state.is_changed() && !current_level.is_changed() {
-        return;
-    }
-
-    let GlobalUiState::MenuClosed(GameUIState::Preview(preview)) = ui_state.as_ref() else {
-        return;
-    };
-
-    let LevelCompletion::Complete { score_info } = current_level.completion else {
-        return;
-    };
-
-    let handle = images.get_handle(PREVIEW_IMAGE_ASSET_PATH);
-
-    let Some(im) = images.get_mut(&handle) else {
-        return;
-    };
-
-    let mut clear = false;
-
-    match preview {
-        PreviewImage::PB => {
-            if let Some(pb) = pbs.map.get(&score_info.hash) {
-                match game_to_image(pb.image_blob.as_slice()) {
-                    Ok(image) => {
-                        *im = image;
-                    }
-                    Err(err) => error!("{err}"),
-                }
-            } else {
-                clear = true;
-            }
-        }
-        PreviewImage::WR => {
-            if let Some(wr) = wrs.map.get(&score_info.hash) {
-                match game_to_image(wr.image_blob.as_slice()) {
-                    Ok(image) => {
-                        *im = image;
-                    }
-                    Err(err) => error!("{err}"),
-                }
-            } else {
-                clear = true;
-            }
-        }
-    }
-
-    if clear {
-        for pixel in im.data.chunks_exact_mut(4) {
-            pixel[0] = 200;
-            pixel[1] = 200;
-            pixel[2] = 200;
-            pixel[3] = 255;
-        }
-    }
-}
-
-fn game_to_image(data: &[u8]) -> Result<Image, anyhow::Error> {
-    let image_bytes = steks_common::images::drawing::try_draw_image(
-        data,
-        &OverlayChooser::no_overlay(),
-        Dimensions {
-            width: PREVIEW_IMAGE_SIZE_U32,
-            height: PREVIEW_IMAGE_SIZE_U32,
-        },
-    )?;
-
-    Ok(Image::from_buffer(
-        &image_bytes,
-        bevy::render::texture::ImageType::Extension("png"),
-        CompressedImageFormats::empty(),
-        true,
-    )?)
-}
-
-#[derive(Debug, Clone, PartialEq)]
-struct PreviewImageStyle;
-
-const PREVIEW_IMAGE_SIZE_U32: u32 = 256;
-const PREVIEW_IMAGE_SIZE_F32: f32 = PREVIEW_IMAGE_SIZE_U32 as f32;
-const PREVIEW_IMAGE_ASSET_PATH: &str = "images/preview.png";
-
-impl IntoBundle for PreviewImageStyle {
-    type B = Style;
-
-    fn into_bundle(self) -> Self::B {
-        Style {
-            width: Val::Px(PREVIEW_IMAGE_SIZE_F32 - 1.0),
-            height: Val::Px(PREVIEW_IMAGE_SIZE_F32 - 1.0),
-            margin: UiRect::all(Val::Auto),
-
-            ..Default::default()
-        }
     }
 }

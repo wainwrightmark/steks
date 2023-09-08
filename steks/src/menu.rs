@@ -57,6 +57,7 @@ impl MavericNode for MenuPage {
                     Tutorial,
                     Share,
                     OpenSettings,
+                    News,
 
                     // #[cfg(feature = "web")]
                     // ClipboardImport,

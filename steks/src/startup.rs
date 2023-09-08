@@ -54,13 +54,14 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(CameraPlugin)
         .add_plugins(LeaderboardPlugin)
         .add_plugins(SpiritPlugin)
-        .add_plugins(LevelUiPlugin)
+        .add_plugins(PreviewImagePlugin)
         .add_plugins(HasActedPlugin)
 
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)
         .add_plugins(SnowPlugin)
         .add_plugins(ImportPlugin)
+        .add_plugins(NewsPlugin)
 
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,

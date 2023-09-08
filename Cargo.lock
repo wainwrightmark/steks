@@ -3833,6 +3833,7 @@ dependencies = [
  "maveric",
  "rand",
  "reqwest",
+ "resvg",
  "serde",
  "serde_repr",
  "serde_with",

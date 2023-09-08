@@ -1,9 +1,10 @@
-use std::sync::Arc;
-
 use crate::prelude::*;
 use bevy::render::texture::CompressedImageFormats;
 use itertools::Itertools;
-use maveric::{prelude::*, transition::speed::{ScalarSpeed, LinearSpeed}};
+use maveric::{
+    prelude::*,
+    transition::speed::ScalarSpeed,
+};
 use steks_common::images::prelude::{Dimensions, OverlayChooser};
 use strum::EnumIs;
 pub struct LevelUiPlugin;
@@ -377,7 +378,7 @@ impl MavericNode for MainPanel {
 
                     #[cfg(feature = "web")]
                     {
-                        commands.add_child("store", StoreButtonPanel::<false>, context);
+                        commands.add_child("store", StoreButtonPanel, context);
                     }
                 }
             }
@@ -496,9 +497,9 @@ impl<const ICONS: usize> MavericNode for ButtonPanel<ICONS> {
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct StoreButtonPanel<const FLASHING: bool>;
+pub struct StoreButtonPanel;
 
-impl<const FLASHING: bool> MavericNode for StoreButtonPanel<FLASHING> {
+impl MavericNode for StoreButtonPanel {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
@@ -535,20 +536,8 @@ impl<const FLASHING: bool> MavericNode for StoreButtonPanel<FLASHING> {
                     BadgeImageStyle,
                 );
 
-                if FLASHING{
-
-                    let transition: Arc<TransitionStep<TransformScaleLens>> =  TransitionStep::new_cycle(
-                        [(Vec3::ONE * 1.1, LinearSpeed::new(0.1)), (Vec3::ONE, LinearSpeed::new(0.1))].into_iter()
-                    );
-                    commands.add_child(0, google.with_transition(Vec3::ONE, transition.clone(), ()), context);
-                    commands.add_child(1, apple.with_transition(Vec3::ONE, transition, ()), context);
-                }
-                else{
-                    commands.add_child(0, google, context);
-                    commands.add_child(1, apple, context);
-                }
-
-
+                commands.add_child(0, google, context);
+                commands.add_child(1, apple, context);
             },
         );
     }
@@ -624,7 +613,7 @@ impl MavericNode for BeggingPanel {
                     context,
                 );
 
-                commands.add_child(2, StoreButtonPanel::<true>, context);
+                commands.add_child(2, StoreButtonPanel, context);
             });
     }
 }

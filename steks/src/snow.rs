@@ -26,7 +26,6 @@ struct SnowdropCountdown {
     settings: SnowdropSettings,
 }
 
-
 pub const SNOWDROP_INTERVAL_SECONDS: f32 = 0.50;
 
 impl Default for SnowdropCountdown {
@@ -125,10 +124,7 @@ fn spawn_snowdrops(
     }
 }
 
-fn manage_snowdrops(
-    current_level: Res<CurrentLevel>,
-    mut countdown: ResMut<SnowdropCountdown>,
-) {
+fn manage_snowdrops(current_level: Res<CurrentLevel>, mut countdown: ResMut<SnowdropCountdown>) {
     if !current_level.is_changed() {
         return;
     }

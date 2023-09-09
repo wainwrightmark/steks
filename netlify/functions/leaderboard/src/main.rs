@@ -102,7 +102,11 @@ pub(crate) async fn my_handler(
                 }
                 Err(err) => {
                     if err.to_string().contains("No results found") {
-                        let row = FullRow{shapes_hash, max_height: 0.0, image_blob: "0".to_string()};
+                        let row = FullRow {
+                            shapes_hash,
+                            max_height: 0.0,
+                            image_blob: "0".to_string(),
+                        };
                         let resp = ApiGatewayProxyResponse {
                             status_code: 200,
                             headers,

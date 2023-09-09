@@ -148,7 +148,6 @@ fn icon_button_system(
 
                 FollowNewsLink => match news.latest.as_ref() {
                     Some(_news_item) => {
-
                         #[cfg(target_arch = "wasm32")]
                         {
                             let link = match Platform::CURRENT {
@@ -254,7 +253,7 @@ fn text_button_system(
                 TextButton::News => {
                     news.is_read = true;
                     *global_ui_state = GlobalUiState::News;
-                },
+                }
                 TextButton::GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
                     {

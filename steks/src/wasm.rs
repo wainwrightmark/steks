@@ -105,25 +105,24 @@ async fn get_url_search_params() -> Option<UrlSearchParams> {
     }
 }
 
-pub fn open_link(url: &str){
+pub fn open_link(url: &str) {
     use web_sys::window;
 
-    let window = match window(){
-        Some(window)=> window,
-        None=>{
+    let window = match window() {
+        Some(window) => window,
+        None => {
             error!("Could not get window to open link");
             return;
         }
     };
 
-    match window.open_with_url_and_target(url, "_blank"){
-        Ok(_)=>{},
-        Err(err)=> {
+    match window.open_with_url_and_target(url, "_blank") {
+        Ok(_) => {}
+        Err(err) => {
             error!("{err:?}")
         }
     }
 }
-
 
 async fn share_game_async(game: String) {
     let device_id = capacitor_bindings::device::Device::get_id()
@@ -159,8 +158,6 @@ async fn share_game_async(game: String) {
         Err(_) => info!("Share failed: {url}"),
     }
 }
-
-
 
 #[derive(Resource)]
 struct LastSize {
@@ -260,20 +257,17 @@ fn get_insets() -> Option<Insets> {
     Some(insets)
 }
 
-
-fn check_touch(mut input_settings: ResMut<InputSettings>){
+fn check_touch(mut input_settings: ResMut<InputSettings>) {
     fn has_touch() -> bool {
         let window = web_sys::window().unwrap();
         let navigator = window.navigator();
         navigator.max_touch_points() > 0
     }
 
-    if has_touch(){
+    if has_touch() {
         input_settings.touch_enabled = true;
     }
 }
-
-
 
 pub struct WASMPlugin;
 

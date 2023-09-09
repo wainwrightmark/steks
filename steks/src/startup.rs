@@ -56,13 +56,11 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(SpiritPlugin)
         .add_plugins(PreviewImagePlugin)
         .add_plugins(HasActedPlugin)
-
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)
         .add_plugins(SnowPlugin)
         .add_plugins(ImportPlugin)
         .add_plugins(NewsPlugin)
-
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
         ))
@@ -74,7 +72,6 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
         .insert_resource(Insets::default())
-
         .insert_resource(bevy_pkv::PkvStore::new("bleppo", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
@@ -126,11 +123,11 @@ pub fn get_today_date() -> chrono::NaiveDate {
     today.date_naive()
 }
 
-fn set_device_id(){
+fn set_device_id() {
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
-
-            set_device_id_async().await;})
+            set_device_id_async().await;
+        })
         .detach();
 }
 
@@ -144,8 +141,7 @@ pub fn log_start(mut pkv: ResMut<bevy_pkv::PkvStore>) {
     }
 
     bevy::tasks::IoTaskPool::get()
-        .spawn(async move {
-            log_start_async(user_exists).await })
+        .spawn(async move { log_start_async(user_exists).await })
         .detach();
 }
 
@@ -232,7 +228,7 @@ async fn log_start_async<'a>(_user_exists: bool) {
     }
 }
 
-async fn set_device_id_async(){
+async fn set_device_id_async() {
     #[cfg(target_arch = "wasm32")]
     {
         //info!("Setting device id");
@@ -244,19 +240,20 @@ async fn set_device_id_async(){
             }
         };
 
-        match DEVICE_ID.set(device_id.clone()){
-            Ok(())=>{info!("Device id set {device_id:?}");}
-            Err(err)=> {error!("Error setting device id {err:?}")}
+        match DEVICE_ID.set(device_id.clone()) {
+            Ok(()) => {
+                info!("Device id set {device_id:?}");
+            }
+            Err(err) => {
+                error!("Error setting device id {err:?}")
+            }
         }
     }
-
-
 }
 
-lazy_static!(
-
-    pub static ref DEVICE_ID : std::sync::OnceLock<DeviceId> =  Default::default();
-);
+lazy_static! {
+    pub static ref DEVICE_ID: std::sync::OnceLock<DeviceId> = Default::default();
+};
 
 #[cfg(test)]
 pub mod test {

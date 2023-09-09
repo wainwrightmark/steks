@@ -9,10 +9,8 @@ use crate::prelude::*;
 pub struct InputPlugin;
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app
-
-        .init_resource::<InputSettings>()
-        .add_systems(Update, touch_listener)
+        app.init_resource::<InputSettings>()
+            .add_systems(Update, touch_listener)
             .add_systems(Update, keyboard_listener)
             .add_systems(Update, mousewheel_listener)
             .add_systems(Update, mousebutton_listener.after(touch_listener));
@@ -20,8 +18,8 @@ impl Plugin for InputPlugin {
 }
 
 #[derive(Debug, Default, Resource, PartialEq)]
-pub struct InputSettings{
-    pub touch_enabled: bool
+pub struct InputSettings {
+    pub touch_enabled: bool,
 }
 
 pub fn mousebutton_listener(
@@ -214,7 +212,7 @@ impl DiscreetRotate {
         let signum = if self.positive { 1.0 } else { -1.0 };
 
         let amount = match self.streak {
-            0 | 1 | 2 => ONE_THIRTY_SECOND,
+            0..=2 => ONE_THIRTY_SECOND,
             3 => ONE_SIXTEENTH,
             _ => ONE_EIGHTH,
             //_ => ONE_QUARTER

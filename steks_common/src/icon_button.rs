@@ -1,5 +1,5 @@
-use strum::Display;
 use serde::{Deserialize, Serialize};
+use strum::Display;
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq, Serialize, Deserialize)]
 pub enum IconButton {

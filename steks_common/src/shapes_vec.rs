@@ -1,12 +1,12 @@
 use std::ops::Deref;
 
-use base64::Engine;
 use crate::prelude::*;
+use base64::Engine;
 
 #[derive(Debug)]
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
-impl Deref for ShapesVec{
+impl Deref for ShapesVec {
     type Target = Vec<EncodableShape>;
 
     fn deref(&self) -> &Self::Target {
@@ -91,8 +91,6 @@ impl ShapesVec {
         base64::engine::general_purpose::URL_SAFE.encode(self.make_bytes())
     }
 }
-
-
 
 impl From<&DesignedLevel> for ShapesVec {
     fn from(level: &DesignedLevel) -> Self {

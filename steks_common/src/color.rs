@@ -36,14 +36,14 @@ pub fn choose_color(index: usize, high_contrast: bool) -> Color {
     let lightness: f32;
     let saturation: f32;
 
-    lightness = if high_contrast{
+    lightness = if high_contrast {
         0.28
-    } else{
+    } else {
         LIGHTNESSES[index % LIGHTNESSES.len()]
-    } ;
-    saturation = if high_contrast{
+    };
+    saturation = if high_contrast {
         0.28
-    }else{
+    } else {
         SATURATIONS[(index % (LIGHTNESSES.len() * SATURATIONS.len())) / SATURATIONS.len()]
     };
 

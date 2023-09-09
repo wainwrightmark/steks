@@ -100,7 +100,7 @@ pub fn check_for_tower(
     level: Res<CurrentLevel>,
     has_acted: Res<HasActed>,
 ) {
-    if check_events.is_empty(){
+    if check_events.is_empty() {
         return;
     }
     check_events.clear();
@@ -137,7 +137,11 @@ pub fn check_for_tower(
     let prediction_result: PredictionResult = if level.snowdrop_settings().is_some() {
         PredictionResult::ManyNonWall
     } else {
-        prediction::make_prediction(&rapier_context, has_acted.as_ref().into() , rapier_config.gravity)
+        prediction::make_prediction(
+            &rapier_context,
+            has_acted.as_ref().into(),
+            rapier_config.gravity,
+        )
     };
 
     let countdown_seconds = prediction_result.get_countdown_seconds(&has_acted);

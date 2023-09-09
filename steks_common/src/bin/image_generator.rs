@@ -38,7 +38,6 @@ pub fn main() {
         )
         .unwrap();
 
-
         std::fs::write(path, image_data.as_slice()).unwrap();
     }
 }

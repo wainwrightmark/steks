@@ -3,10 +3,10 @@ use crate::prelude::*;
 use maveric::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct LevelTextPanel{
+pub struct LevelTextPanel {
     pub level: GameLevel,
     pub stage: usize,
-    pub touch_enabled: bool
+    pub touch_enabled: bool,
 }
 
 impl MavericNode for LevelTextPanel {
@@ -38,7 +38,6 @@ impl MavericNode for LevelTextPanel {
             } else {
                 initial_color
             };
-
 
             const FADE_SECS: f32 = 20.;
             if let Some(level_number_text) = level.get_level_number_text(true, stage) {

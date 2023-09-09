@@ -796,8 +796,8 @@ impl ChangeLevelEvent {
                     text: None,
                     mouse_text: None,
                     text_forever: false,
-                    shapes: shapes,
-                    updates: vec![].into(),
+                    shapes,
+                    updates: vec![],
                     gravity: None,
                     rainfall: None,
                     fireworks: FireworksSettings::default(),
@@ -871,7 +871,7 @@ impl ChangeLevelEvent {
     }
 }
 
-const INFINITE_COMMENTS: &'static [&'static str] = &[
+const INFINITE_COMMENTS: &[&str] = &[
     "",
     "just getting started", //5
     "",

@@ -52,7 +52,10 @@ fn check_for_its_a_trap(
         return;
     }
 
-    if !previous_level.compare(current_level.as_ref()).is_same_level_earlier_stage(){
+    if !previous_level
+        .compare(current_level.as_ref())
+        .is_same_level_earlier_stage()
+    {
         return;
     }
 
@@ -63,22 +66,22 @@ fn check_for_its_a_trap(
             CollisionEvent::Stopped(e1, e2, _) => (e1, e2),
         };
 
-        for pair in [(e1, e2), (e2, e1)]{
-            if walls.contains(pair.0){
-                if let Ok(shape_stage) = draggables.get(pair.1){
-
-                    match current_level.completion{
+        for pair in [(e1, e2), (e2, e1)] {
+            if walls.contains(pair.0) {
+                if let Ok(shape_stage) = draggables.get(pair.1) {
+                    match current_level.completion {
                         LevelCompletion::Incomplete { stage } => {
-                            if shape_stage.0 != stage{
-                                Achievements::unlock_if_locked(&mut achievements, Achievement::ItsATrap);
+                            if shape_stage.0 != stage {
+                                Achievements::unlock_if_locked(
+                                    &mut achievements,
+                                    Achievement::ItsATrap,
+                                );
                             }
-                        },
+                        }
                         LevelCompletion::Complete { .. } => {
                             return; //give up
-                        },
+                        }
                     }
-
-
                 }
             }
         }

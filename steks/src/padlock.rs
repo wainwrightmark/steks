@@ -6,9 +6,9 @@ use bevy_prototype_lyon::prelude::*;
 use crate::prelude::*;
 use lazy_static::lazy_static;
 use maveric::{
+    define_lens,
     prelude::*,
-    transition::speed::{calculate_speed, LinearSpeed, ScalarSpeed}, define_lens,
-
+    transition::speed::{calculate_speed, LinearSpeed, ScalarSpeed},
 };
 use strum::EnumIs;
 
@@ -94,35 +94,35 @@ impl MavericNode for Padlock {
                     &OPEN_PADLOCK_OFFSET,
                     Duration::from_secs_f32(1.0),
                 );
-
-                static ref FILL_SPEED: ScalarSpeed = calculate_speed(
-                    &Color::BLACK,
-                    &Color::WHITE,
-                    Duration::from_secs_f32(1.0),
-                );
+                static ref FILL_SPEED: ScalarSpeed =
+                    calculate_speed(&Color::BLACK, &Color::WHITE, Duration::from_secs_f32(1.0),);
             };
 
-
-
-            let transform_speed = if padlock_resource.is_invisible() || args.previous.is_some_and(|p|p.0.is_invisible()){
+            let transform_speed = if padlock_resource.is_invisible()
+                || args.previous.is_some_and(|p| p.0.is_invisible())
+            {
                 None
-            } else{
+            } else {
                 Some(*TRANSFORM_SPEED)
             };
 
-            let fill_speed = if padlock_resource.is_invisible() || args.previous.is_some_and(|p|p.0.is_invisible()){
+            let fill_speed = if padlock_resource.is_invisible()
+                || args.previous.is_some_and(|p| p.0.is_invisible())
+            {
                 None
-            } else{
+            } else {
                 Some(*FILL_SPEED)
             };
 
             commands.insert(Transition::<TransformTranslationLens>::new(
-                TransitionStep::new_arc(transform.translation, transform_speed , NextStep::None)
+                TransitionStep::new_arc(transform.translation, transform_speed, NextStep::None),
             ));
 
-            commands.insert(Transition::<FillColorLens>::new(
-                TransitionStep::new_arc(fill.color, fill_speed, NextStep::None)
-            ));
+            commands.insert(Transition::<FillColorLens>::new(TransitionStep::new_arc(
+                fill.color,
+                fill_speed,
+                NextStep::None,
+            )));
 
             commands.insert((path, visibility));
         });
@@ -164,9 +164,8 @@ define_lens!(FillColorLens, Fill, Color, color);
 
 impl PadlockStatus {
     pub fn fill(&self, settings: &GameSettings) -> Fill {
-        if  settings.high_contrast {
-
-            let color = match self{
+        if settings.high_contrast {
+            let color = match self {
                 PadlockStatus::Invisible { .. } | PadlockStatus::Visible { .. } => Color::BLACK,
                 PadlockStatus::Locked { .. } => Color::WHITE,
             };

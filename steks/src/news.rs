@@ -42,7 +42,7 @@ fn check_loaded_news(
         info!("Loaded news is expired");
         news.latest = None;
     } else {
-        match create_image_bytes(&item, asset_server.as_ref(), &mut images) {
+        match create_image_bytes(item, asset_server.as_ref(), &mut images) {
             Ok(()) => {
                 info!("Created image bytes for loaded news");
             }
@@ -63,7 +63,7 @@ fn get_latest_news(writer: AsyncEventWriter<NewsItem>) {
 
 async fn get_latest_news_async(writer: AsyncEventWriter<NewsItem>) {
     let client = reqwest::Client::new();
-    let url = format!("https://steks.net/news.yaml");
+    let url = "https://steks.net/news.yaml".to_string();
 
     let res = client.get(url).send().await;
     let text = match res {
@@ -126,17 +126,14 @@ fn update_news_items(
 ) {
     'events: for item in events.into_iter() {
         info!("Checking news item");
-        match &news.as_ref().latest {
-            Some(previous) => {
-                if previous.date >= item.date {
-                    info!("Latest news is no newer than stored news");
-                    continue 'events;
-                } else if item.expired() {
-                    info!("Latest news is expired");
-                    continue 'events;
-                }
+        if let Some(previous) = &news.as_ref().latest {
+            if previous.date >= item.date {
+                info!("Latest news is no newer than stored news");
+                continue 'events;
+            } else if item.expired() {
+                info!("Latest news is expired");
+                continue 'events;
             }
-            _ => {}
         }
 
         match create_image_bytes(item, asset_server.as_ref(), &mut images) {
@@ -167,15 +164,15 @@ fn create_image_bytes(
 
     let handle: Handle<Image> = asset_server.get_handle(NEWS_IMAGE_HANDLE);
 
-    let im = images.get_or_insert_with(handle, || Image::default());
+    let im = images.get_or_insert_with(handle, Image::default);
     *im = image;
-    return Ok(());
+    Ok(())
 }
 
 pub fn try_draw_image(svg: &str) -> Result<Vec<u8>, anyhow::Error> {
     let opt: resvg::usvg::Options = Default::default();
 
-    let mut tree = Tree::from_data(&svg.as_bytes(), &opt)?;
+    let mut tree = Tree::from_data(svg.as_bytes(), &opt)?;
     let width = tree.size.width();
     let height = tree.size.height();
 

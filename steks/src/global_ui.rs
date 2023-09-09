@@ -35,17 +35,11 @@ impl Default for GlobalUiState {
 
 impl GlobalUiState {
     pub fn is_minimized(&self) -> bool {
-        match self {
-            GlobalUiState::MenuClosed(GameUIState::Minimized) => true,
-            _ => false,
-        }
+        matches!(self, GlobalUiState::MenuClosed(GameUIState::Minimized))
     }
 
     pub fn is_splash(&self) -> bool {
-        match self {
-            GlobalUiState::MenuClosed(GameUIState::Splash) => true,
-            _ => false,
-        }
+        matches!(self, GlobalUiState::MenuClosed(GameUIState::Splash))
     }
 
     pub fn toggle_levels(&mut self, current_level: &CurrentLevel) {
@@ -105,9 +99,8 @@ impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
         CurrentLevel,
-        NC5<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource,>,
+        NC5<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource>,
         InputSettings,
-
     >;
 
     fn set_children(
@@ -159,10 +152,12 @@ impl MavericRootChildren for GlobalUiRoot {
                             asset_server,
                         );
 
-                        if context.2.4 .latest.is_some() && !context.2.4.is_read {
-                            commands.add_child("news_icon",
-                            icon_button_node(IconButton::OpenNews, IconButtonStyle::News),
-                             asset_server);
+                        if context.2 .4.latest.is_some() && !context.2 .4.is_read {
+                            commands.add_child(
+                                "news_icon",
+                                icon_button_node(IconButton::OpenNews, IconButtonStyle::News),
+                                asset_server,
+                            );
                         }
 
                         if !context.2 .0.snow_enabled && current_level.snowdrop_settings().is_some()
@@ -173,8 +168,6 @@ impl MavericRootChildren for GlobalUiRoot {
                                 asset_server,
                             );
                         }
-
-
 
                         if current_level.level.is_begging() {
                             commands.add_child("begging", BeggingPanel, asset_server);

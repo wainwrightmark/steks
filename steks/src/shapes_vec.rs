@@ -6,8 +6,6 @@ use itertools::Itertools;
 
 use crate::prelude::*;
 
-
-
 pub fn shapes_vec_from_query<F: ReadOnlyWorldQuery>(
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), F>,
 ) -> ShapesVec {

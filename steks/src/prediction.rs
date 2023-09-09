@@ -40,20 +40,16 @@ pub enum PredictionResult {
     ManyNonWall,
 }
 
-impl PredictionResult{
+impl PredictionResult {
     pub fn get_countdown_seconds(&self, has_acted: &HasActed) -> Option<f32> {
         match (has_acted, self) {
             (_, PredictionResult::EarlyWall) => None,
             (_, PredictionResult::ManyNonWall) => Some(LONG_WIN_SECONDS),
             (_, PredictionResult::Wall) => Some(LONG_WIN_SECONDS),
 
-            (HasActed::HasActed, PredictionResult::MinimalCollision) => {
-                Some(SHORT_WIN_SECONDS)
-            }
+            (HasActed::HasActed, PredictionResult::MinimalCollision) => Some(SHORT_WIN_SECONDS),
 
-            (HasActed::HasNotActed, PredictionResult::MinimalCollision) => {
-                Some(LONG_WIN_SECONDS)
-            }
+            (HasActed::HasNotActed, PredictionResult::MinimalCollision) => Some(LONG_WIN_SECONDS),
         }
     }
 }

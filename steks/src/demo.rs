@@ -56,6 +56,6 @@ fn check_is_full_game() -> Option<()> {
     #[cfg(not(feature = "web"))]
     {
         //info!("Game is not demo");
-        return Some(());
+        Some(())
     }
 }

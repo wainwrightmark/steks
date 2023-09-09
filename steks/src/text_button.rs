@@ -34,15 +34,12 @@ pub enum TextButton {
     SyncAchievements,
     ShowAchievements,
 
-    News
+    News,
 }
 
 impl TextButton {
     pub fn emphasize(&self) -> bool {
-        match self {
-            TextButton::Resume | TextButton::BackToMenu => true,
-            _ => false,
-        }
+        matches!(self, TextButton::Resume | TextButton::BackToMenu)
     }
 
     pub fn closes_menu(&self) -> bool {

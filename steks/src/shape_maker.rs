@@ -34,8 +34,7 @@ pub fn spawn_and_update_shapes(
                 if next.location.is_none() {
                     break 'creation; //we need to wait before creating this shape
                 }
-            }
-            else if !update_queue.is_empty(){
+            } else if !update_queue.is_empty() {
                 break 'creation; //we need to wait before doing the update
             }
         }
@@ -171,8 +170,8 @@ pub struct ShapeWithId {
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub struct ShapeStage(pub usize);
-impl ShapeStage{
-    pub fn increment(&mut self){
+impl ShapeStage {
+    pub fn increment(&mut self) {
         self.0 += 1;
     }
 }

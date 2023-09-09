@@ -29,10 +29,12 @@ impl ShapeUpdateData {
 
     pub fn stroke(&self, high_contrast: bool) -> Stroke {
         self.state.and_then(|x| x.stroke()).unwrap_or_else(|| {
-            self.modifiers.stroke(high_contrast).unwrap_or_else(|| Stroke {
-                color: color::Color::NONE,
-                options: StrokeOptions::DEFAULT.with_line_width(0.0),
-            })
+            self.modifiers
+                .stroke(high_contrast)
+                .unwrap_or_else(|| Stroke {
+                    color: color::Color::NONE,
+                    options: StrokeOptions::DEFAULT.with_line_width(0.0),
+                })
         })
     }
 
@@ -43,7 +45,7 @@ impl ShapeUpdateData {
         previous_shape: &'static GameShape,
         previous_state_component: &ShapeComponent,
         previous_transform: &Transform,
-        settings: &GameSettings
+        settings: &GameSettings,
     ) {
         debug!(
             "Creating {:?} in state {:?} {:?}",
@@ -90,7 +92,10 @@ impl ShapeUpdateData {
                 .insert(shape_component);
         }
 
-        ec.insert(self.fill(settings.high_contrast).unwrap_or_else(|| previous_shape.fill(settings.high_contrast)));
+        ec.insert(
+            self.fill(settings.high_contrast)
+                .unwrap_or_else(|| previous_shape.fill(settings.high_contrast)),
+        );
         ec.insert(self.stroke(settings.high_contrast));
 
         ec.insert(transform);

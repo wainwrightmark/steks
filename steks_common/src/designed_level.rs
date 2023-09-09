@@ -77,7 +77,7 @@ pub struct DesignedLevel {
     #[serde(default)]
     pub stars: Option<LevelStars>,
     #[serde(default)]
-    pub flashing_button: Option<IconButton>
+    pub flashing_button: Option<IconButton>,
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct LevelStars {
@@ -290,25 +290,43 @@ mod tests {
     use crate::designed_level::*;
 
     #[test]
-    pub fn test_level_stars(){
+    pub fn test_level_stars() {
         let list = &crate::designed_level::CAMPAIGN_LEVELS;
 
         for (index, level) in list.iter().enumerate() {
-            let stars = level.stars.expect(format!("{index}: {title} should have stars", title = level.title.clone().unwrap_or_default()).as_str());
+            let stars = level.stars.expect(
+                format!(
+                    "{index}: {title} should have stars",
+                    title = level.title.clone().unwrap_or_default()
+                )
+                .as_str(),
+            );
 
-            assert!(stars.three > stars.two, "Three stars should be more than two (level {index})")
+            assert!(
+                stars.three > stars.two,
+                "Three stars should be more than two (level {index})"
+            )
         }
     }
 
     #[test]
-    pub fn test_level_leaderboards(){
+    pub fn test_level_leaderboards() {
         let list = &crate::designed_level::CAMPAIGN_LEVELS;
 
         let mut set: HashSet<String> = Default::default();
         for (index, level) in list.iter().enumerate() {
-            let id = level.leaderboard_id.clone().expect(format!("{index}: {title} should have leaderboard_id", title = level.title.clone().unwrap_or_default()).as_str());
+            let id = level.leaderboard_id.clone().expect(
+                format!(
+                    "{index}: {title} should have leaderboard_id",
+                    title = level.title.clone().unwrap_or_default()
+                )
+                .as_str(),
+            );
 
-            assert!(set.insert(id.clone()), "leaderboard id {id} should be unique")
+            assert!(
+                set.insert(id.clone()),
+                "leaderboard id {id} should be unique"
+            )
         }
     }
 

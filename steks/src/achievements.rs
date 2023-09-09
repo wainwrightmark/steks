@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use enumset::{EnumSetType, EnumSet};
+use enumset::{EnumSet, EnumSetType};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumCount, EnumIter};
 
@@ -109,19 +109,7 @@ impl TrackableResource for Achievements {
 }
 
 #[derive(
-    Debug,
-    EnumCount,
-    EnumIter,
-
-    Serialize,
-    Deserialize,
-    Ord,
-
-    PartialOrd,
-
-    Display,
-
-    EnumSetType
+    Debug, EnumCount, EnumIter, Serialize, Deserialize, Ord, PartialOrd, Display, EnumSetType,
 )] //TODO https://docs.rs/enumset/latest/enumset/
 pub enum Achievement {
     BusinessSecretsOfThePharaohs,
@@ -234,7 +222,7 @@ fn track_level_completion_achievements(
                 shapes.len()
             );
 
-            if score_info.star.is_some_and(|x|x.is_three_star()){
+            if score_info.star.is_some_and(|x| x.is_three_star()) {
                 Achievements::unlock_if_locked(&mut achievements, CivilEngineer);
             }
 

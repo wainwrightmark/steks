@@ -17,10 +17,7 @@ pub enum MenuPage {
     Level(u8),
 }
 
-fn filter_button(
-    button: TextButton,
-    context: &NewsResource,
-) -> bool {
+fn filter_button(button: TextButton, context: &NewsResource) -> bool {
     match button {
         TextButton::News => context.latest.is_some(),
         _ => true,
@@ -76,7 +73,11 @@ impl MavericNode for MenuPage {
                     MinimizeApp,
                 ];
 
-                for (key, action) in buttons.iter().enumerate().filter(|(_, button)| filter_button(**button, context.4.as_ref())) {
+                for (key, action) in buttons
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, button)| filter_button(**button, context.4.as_ref()))
+                {
                     let button = text_button_node(*action, true, false);
 
                     commands.add_child(key as u32, button, &context.3)

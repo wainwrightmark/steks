@@ -22,7 +22,7 @@ pub struct WinCountdown(pub Option<Countdown>);
 #[derive(Debug)]
 pub struct Countdown {
     pub started_elapsed: Duration,
-    pub total_secs: f32
+    pub total_secs: f32,
 }
 
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
@@ -77,13 +77,13 @@ struct TimerStateRoot;
 impl_maveric_root!(TimerStateRoot);
 
 impl MavericRootChildren for TimerStateRoot {
-    type Context = NC2<WinCountdown, GameSettings> ;
+    type Context = NC2<WinCountdown, GameSettings>;
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
         commands: &mut impl ChildCommands,
     ) {
-        if context.0.0.is_some() {
+        if context.0 .0.is_some() {
             commands.add_child(1, CircleArc, &context.1);
             commands.add_child(2, CircleMarker, &context.1);
         }
@@ -103,10 +103,10 @@ pub struct CircleArc;
 #[derive(Debug, Clone, PartialEq)]
 pub struct CircleMarker;
 
-fn get_color(settings: &GameSettings)-> Color{
-    if settings.high_contrast{
+fn get_color(settings: &GameSettings) -> Color {
+    if settings.high_contrast {
         Color::DARK_GRAY
-    }else{
+    } else {
         Color::WHITE
     }
 }
@@ -115,18 +115,19 @@ impl MavericNode for CircleArc {
     type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_node().insert_with_context(|context|(
-
-            ShapeBundle {
-                transform: Transform {
-                    translation: Vec3::new(00.0, POSITION_Y, 1.0),
+        commands.ignore_node().insert_with_context(|context| {
+            (
+                ShapeBundle {
+                    transform: Transform {
+                        translation: Vec3::new(00.0, POSITION_Y, 1.0),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 },
-                ..Default::default()
-            },
-            Stroke::new(get_color(&context), ARC_STROKE),
-            CircleArcComponent,
-        ));
+                Stroke::new(get_color(context), ARC_STROKE),
+                CircleArcComponent,
+            )
+        });
     }
 
     fn set_children<R: MavericRoot>(_commands: SetChildrenCommands<Self, Self::Context, R>) {}
@@ -136,22 +137,24 @@ impl MavericNode for CircleMarker {
     type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_node().insert_with_context(|context|(
-            ShapeBundle {
-                path: GeometryBuilder::build_as(&bevy_prototype_lyon::shapes::Circle {
-                    center: Vec2::ZERO,
-                    radius: ARC_STROKE,
-                }),
-                transform: Transform {
-                    translation: Vec3::new(00.0, POSITION_Y + RADIUS, 1.0),
+        commands.ignore_node().insert_with_context(|context| {
+            (
+                ShapeBundle {
+                    path: GeometryBuilder::build_as(&bevy_prototype_lyon::shapes::Circle {
+                        center: Vec2::ZERO,
+                        radius: ARC_STROKE,
+                    }),
+                    transform: Transform {
+                        translation: Vec3::new(00.0, POSITION_Y + RADIUS, 1.0),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 },
-                ..Default::default()
-            },
-            Fill::color(get_color(context)),
-            Stroke::new(get_color(context), ARC_STROKE),
-            CircleMarkerComponent,
-        ));
+                Fill::color(get_color(context)),
+                Stroke::new(get_color(context), ARC_STROKE),
+                CircleMarkerComponent,
+            )
+        });
     }
 
     fn set_children<R: MavericRoot>(_commands: SetChildrenCommands<Self, Self::Context, R>) {}

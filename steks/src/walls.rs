@@ -105,8 +105,13 @@ impl MavericNode for WallNode {
         commands.insert_with_node_and_context(|node, context| {
             let (window_size, insets, settings, rapier) = context;
             let wall = node.0;
-            let point = wall.get_position(window_size.height, window_size.width, rapier.gravity, insets);
-            let color = wall.color(&settings);
+            let point = wall.get_position(
+                window_size.height,
+                window_size.width,
+                rapier.gravity,
+                insets,
+            );
+            let color = wall.color(settings);
 
             (Fill::color(color), Transform::from_translation(point))
         });
@@ -153,8 +158,7 @@ impl MavericNode for WallSensorNode {
                 origin: RectangleOrigin::Center,
             };
 
-            let collider_shape = Collider::cuboid(shape.extents.x / 2.0, shape.extents.y / 2.0);
-            collider_shape
+            Collider::cuboid(shape.extents.x / 2.0, shape.extents.y / 2.0)
         });
     }
 

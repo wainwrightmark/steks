@@ -650,8 +650,8 @@ pub struct DragEndingEvent {
 }
 
 /// Event to indicate that we should check for a win
-#[derive(Debug, Event, Copy, Clone,  PartialEq, Eq)]
-pub struct  CheckForTowerEvent;
+#[derive(Debug, Event, Copy, Clone, PartialEq, Eq)]
+pub struct CheckForTowerEvent;
 
 // impl CheckForTowerEvent {
 

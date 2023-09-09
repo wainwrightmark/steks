@@ -76,7 +76,11 @@ impl ShapeModifiers {
         match self {
             ShapeModifiers::Normal => None,
             ShapeModifiers::Ice => Some(Stroke {
-                color: if high_contrast{ICE_SHAPE_STROKE_HIGH_CONTRAST} else {ICE_SHAPE_STROKE} ,
+                color: if high_contrast {
+                    ICE_SHAPE_STROKE_HIGH_CONTRAST
+                } else {
+                    ICE_SHAPE_STROKE
+                },
                 options: StrokeOptions::default().with_line_width(ICE_STROKE_WIDTH),
             }),
         }

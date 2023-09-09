@@ -1,5 +1,3 @@
-
-
 use std::sync::Arc;
 
 use crate::prelude::*;
@@ -22,7 +20,6 @@ pub(crate) fn icon_button_node(
     button_action: IconButton,
     style: IconButtonStyle,
 ) -> impl MavericNode<Context = AssetServer> {
-
     let font_size = style.icon_font_size();
     ButtonNode {
         background_color: Color::NONE,
@@ -51,8 +48,12 @@ pub(crate) fn flashing_icon_button_node(
 ) -> impl MavericNode<Context = AssetServer> {
     let font_size = style.icon_font_size();
 
-    let transition: Arc<TransitionStep<TransformScaleLens>> =  TransitionStep::new_cycle(
-        [(Vec3::ONE * 1.4, LinearSpeed::new(0.4)), (Vec3::ONE * 1.0, LinearSpeed::new(0.4))].into_iter()
+    let transition: Arc<TransitionStep<TransformScaleLens>> = TransitionStep::new_cycle(
+        [
+            (Vec3::ONE * 1.4, LinearSpeed::new(0.4)),
+            (Vec3::ONE * 1.0, LinearSpeed::new(0.4)),
+        ]
+        .into_iter(),
     );
 
     let node = TextNode {
@@ -65,7 +66,6 @@ pub(crate) fn flashing_icon_button_node(
     };
 
     let node_with_transition = node.with_transition(Vec3::ONE, transition, ());
-
 
     ButtonNode {
         background_color: Color::NONE,
@@ -88,23 +88,20 @@ pub enum IconButtonStyle {
     Menu,
     News,
     Snow,
-    Big
+    Big,
 }
 
-impl IconButtonStyle{
-    pub fn icon_font_size(&self)-> f32{
-        match self{
-
+impl IconButtonStyle {
+    pub fn icon_font_size(&self) -> f32 {
+        match self {
             IconButtonStyle::Big => ICON_FONT_SIZE * 2.0,
-            _=> ICON_FONT_SIZE
+            _ => ICON_FONT_SIZE,
         }
     }
 }
 
 impl IntoBundle for IconButtonStyle {
     type B = Style;
-
-
 
     fn into_bundle(self) -> Self::B {
         match self {

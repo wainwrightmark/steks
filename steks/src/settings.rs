@@ -36,16 +36,16 @@ impl Default for GameSettings {
             rotation_sensitivity: RotationSensitivity::Medium,
             high_contrast: false,
             fireworks_enabled: true,
-            snow_enabled: true
+            snow_enabled: true,
         }
     }
 }
 
-impl GameSettings{
-    pub fn background_color(&self)-> Color{
-        if self.high_contrast{
+impl GameSettings {
+    pub fn background_color(&self) -> Color {
+        if self.high_contrast {
             Color::WHITE
-        }else{
+        } else {
             color::BACKGROUND_COLOR
         }
     }
@@ -106,12 +106,14 @@ fn track_settings_changes(
         for (shape_index, shape_component, mut fill, mut stroke) in shapes.iter_mut() {
             let state: ShapeState = shape_component.into();
             let game_shape: &'static GameShape = (*shape_index).into();
-            *fill = state.fill().unwrap_or_else(|| game_shape.fill(settings.high_contrast));
+            *fill = state
+                .fill()
+                .unwrap_or_else(|| game_shape.fill(settings.high_contrast));
             *stroke = state.stroke().unwrap_or_else(|| Stroke::color(Color::NONE));
         }
 
         *clear_color = ClearColor(settings.background_color());
     }
 
-    *previous = settings.clone();
+    *previous = *settings;
 }

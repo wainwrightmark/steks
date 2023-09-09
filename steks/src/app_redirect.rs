@@ -12,7 +12,10 @@ impl bevy::prelude::Plugin for AppUrlPlugin {
     }
 }
 
-fn subscribe_to_app_url_events(_change_level_writer: AsyncEventWriter<ChangeLevelEvent>, _cheat_event_writer: AsyncEventWriter<CheatEvent>) {
+fn subscribe_to_app_url_events(
+    _change_level_writer: AsyncEventWriter<ChangeLevelEvent>,
+    _cheat_event_writer: AsyncEventWriter<CheatEvent>,
+) {
     #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
     {
         bevy::tasks::IoTaskPool::get()
@@ -28,7 +31,7 @@ fn subscribe_to_app_url_events(_change_level_writer: AsyncEventWriter<ChangeLeve
                         let index = index + 9;
                         let path = url[index..].to_string();
 
-                        if path.to_ascii_lowercase().starts_with("/cheat"){
+                        if path.to_ascii_lowercase().starts_with("/cheat") {
                             _cheat_event_writer.send_blocking(CheatEvent).unwrap();
                         }
 

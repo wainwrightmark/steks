@@ -50,8 +50,8 @@ impl IconButton {
             ViewRecord => "\u{e81c}",
             EnableSnow => "\u{f2dc}",
 
-            OpenNews => "\u{f2dc}",
-            FollowNewsLink => "\u{f2dc}",
+            OpenNews => "\u{e824}",
+            FollowNewsLink => "\u{e824}",
 
             None => "",
         }

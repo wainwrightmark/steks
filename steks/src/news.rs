@@ -54,7 +54,7 @@ fn get_latest_news(
 
 
 
-    info!("{}", serde_yaml::to_string(&item).unwrap());
+    //info!("{}", serde_yaml::to_string(&item).unwrap());
 
     let image_bytes = match try_draw_image(&item.svg) {
         Ok(bytes) => bytes,

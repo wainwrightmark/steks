@@ -180,7 +180,7 @@ pub fn try_draw_image(svg: &str) -> Result<Vec<u8>, anyhow::Error> {
     let height = tree.size.height();
 
     let mut font_database: fontdb::Database = fontdb::Database::new();
-    let font_data = include_bytes!(r#"..\..\fonts\FiraMono-Medium.ttf"#).to_vec();
+    let font_data = include_bytes!(r#"../../fonts/FiraMono-Medium.ttf"#).to_vec();
 
     font_database.load_font_data(font_data);
 

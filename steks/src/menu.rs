@@ -2,7 +2,6 @@ use crate::prelude::*;
 use maveric::prelude::*;
 use strum::EnumIs;
 
-
 const LEVELS_PER_PAGE: u8 = 8;
 
 pub fn max_page_exclusive() -> u8 {
@@ -18,8 +17,18 @@ pub enum MenuPage {
     Level(u8),
 }
 
+fn filter_button(
+    button: TextButton,
+    context: &NewsResource,
+) -> bool {
+    match button {
+        TextButton::News => context.latest.is_some(),
+        _ => true,
+    }
+}
+
 impl MavericNode for MenuPage {
-    type Context = NC4<GameSettings, CampaignCompletion, Insets, AssetServer>;
+    type Context = NC5<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource>;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -45,12 +54,12 @@ impl MavericNode for MenuPage {
         commands.unordered_children_with_node_and_context(|args, context, commands| match args {
             MenuPage::Main => {
                 use TextButton::*;
+
                 let buttons = [
                     Resume,
                     ChooseLevel,
                     #[cfg(feature = "web")]
                     Begging,
-
                     DailyChallenge,
                     #[cfg(all(feature = "android", target_arch = "wasm32"))]
                     Infinite,
@@ -58,7 +67,6 @@ impl MavericNode for MenuPage {
                     Share,
                     OpenSettings,
                     News,
-
                     // #[cfg(feature = "web")]
                     // ClipboardImport,
                     #[cfg(all(feature = "web", target_arch = "wasm32"))]
@@ -68,7 +76,7 @@ impl MavericNode for MenuPage {
                     MinimizeApp,
                 ];
 
-                for (key, action) in buttons.iter().enumerate() {
+                for (key, action) in buttons.iter().enumerate().filter(|(_, button)| filter_button(**button, context.4.as_ref())) {
                     let button = text_button_node(*action, true, false);
 
                     commands.add_child(key as u32, button, &context.3)
@@ -76,7 +84,6 @@ impl MavericNode for MenuPage {
             }
             MenuPage::Accessibility => {
                 let settings = context.0.as_ref();
-
 
                 commands.add_child(
                     "contrast",
@@ -100,14 +107,9 @@ impl MavericNode for MenuPage {
 
                 commands.add_child(
                     "snow",
-                    text_button_node(
-                        TextButton::SetSnow(!settings.snow_enabled),
-                        true,
-                        false,
-                    ),
+                    text_button_node(TextButton::SetSnow(!settings.snow_enabled), true, false),
                     &context.3,
                 );
-
 
                 commands.add_child(
                     "back",
@@ -116,16 +118,11 @@ impl MavericNode for MenuPage {
                 );
             }
 
-
             MenuPage::Settings => {
                 let settings = context.0.as_ref();
                 commands.add_child(
                     "arrows",
-                    text_button_node(
-                        TextButton::SetArrows(!settings.show_arrows),
-                        true,
-                        false,
-                    ),
+                    text_button_node(TextButton::SetArrows(!settings.show_arrows), true, false),
                     &context.3,
                 );
 
@@ -290,10 +287,7 @@ impl MavericNode for LevelMenuArrows {
             if args.0 < 4 {
                 commands.add_child(
                     "right",
-                    icon_button_node(
-                        IconButton::NextLevelsPage,
-                        IconButtonStyle::HeightPadded,
-                    ),
+                    icon_button_node(IconButton::NextLevelsPage, IconButtonStyle::HeightPadded),
                     context,
                 )
             } else {

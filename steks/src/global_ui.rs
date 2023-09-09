@@ -102,12 +102,12 @@ impl GlobalUiState {
 pub struct GlobalUiRoot;
 
 impl MavericRootChildren for GlobalUiRoot {
-    type Context = NC5<
+    type Context = NC4<
         GlobalUiState,
         CurrentLevel,
-        NC4<GameSettings, CampaignCompletion, Insets, AssetServer>,
+        NC5<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource,>,
         InputSettings,
-        NewsResource,
+
     >;
 
     fn set_children(
@@ -159,7 +159,7 @@ impl MavericRootChildren for GlobalUiRoot {
                             asset_server,
                         );
 
-                        if context.4.latest.is_some() && !context.4.is_read {
+                        if context.2.4 .latest.is_some() && !context.2.4.is_read {
                             commands.add_child("news_icon",
                             icon_button_node(IconButton::OpenNews, IconButtonStyle::News),
                              asset_server);

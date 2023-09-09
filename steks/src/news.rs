@@ -2,7 +2,7 @@ pub use crate::prelude::*;
 
 use bevy::render::texture::CompressedImageFormats;
 use chrono::NaiveDate;
-use resvg::usvg::{Tree, TreeParsing, fontdb, TreeTextToPath};
+use resvg::usvg::{fontdb, Tree, TreeParsing, TreeTextToPath};
 use serde::{Deserialize, Serialize};
 
 pub struct NewsPlugin;
@@ -10,7 +10,11 @@ pub struct NewsPlugin;
 impl Plugin for NewsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(TrackedResourcePlugin::<NewsResource>::default())
-            .add_systems(Startup, get_latest_news);
+            .add_systems(PostStartup, check_loaded_news)
+            .add_systems(PostStartup, get_latest_news.after(check_loaded_news))
+            .add_systems(Update, update_news_items);
+
+        app.add_plugins(AsyncEventPlugin::<NewsItem>::default());
     }
 }
 
@@ -24,7 +28,79 @@ impl TrackableResource for NewsResource {
     const KEY: &'static str = "news";
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+fn check_loaded_news(
+    mut news: ResMut<NewsResource>,
+    asset_server: Res<AssetServer>,
+    mut images: ResMut<Assets<Image>>,
+) {
+    let Some(item) = &news.latest else {
+        info!("No news loaded");
+        return;
+    };
+
+    if item.expired() {
+        info!("Loaded news is expired");
+        news.latest = None;
+    } else {
+        match create_image_bytes(&item, asset_server.as_ref(), &mut images) {
+            Ok(()) => {
+                info!("Created image bytes for loaded news");
+            }
+            Err(err) => {
+                error!("{err}");
+                news.latest = None;
+            }
+        }
+    }
+}
+
+fn get_latest_news(writer: AsyncEventWriter<NewsItem>) {
+    info!("Getting latest news");
+    bevy::tasks::IoTaskPool::get()
+        .spawn(async move { get_latest_news_async(writer).await })
+        .detach();
+}
+
+async fn get_latest_news_async(writer: AsyncEventWriter<NewsItem>) {
+    let client = reqwest::Client::new();
+    let url = format!("https://steks.net/news.yaml");
+
+    let res = client.get(url).send().await;
+    let text = match res {
+        Ok(response) => response.text().await,
+        Err(err) => {
+            error!("{err}");
+            return;
+        }
+    };
+
+    let text = match text {
+        Ok(text) => text,
+        Err(err) => {
+            error!("{err}");
+            return;
+        }
+    };
+
+    let item: Result<NewsItem, serde_yaml::Error> = serde_yaml::from_str(&text);
+
+    let item = match item {
+        Ok(item) => item,
+        Err(err) => {
+            error!("{err}");
+            return;
+        }
+    };
+
+    match writer.send_async(item).await {
+        Ok(()) => {
+            info!("Latest news sent");
+        }
+        Err(err) => error!("{err}"),
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Event, Clone)]
 pub struct NewsItem {
     pub title: String,
     pub svg: String,
@@ -32,57 +108,68 @@ pub struct NewsItem {
     pub ios_link: String,
     pub default_link: String,
     pub date: NaiveDate,
+    pub expiry_date: NaiveDate,
 }
 
-fn get_latest_news(
+impl NewsItem {
+    pub fn expired(&self) -> bool {
+        let today = chrono::offset::Utc::now().date_naive();
+        today > self.expiry_date
+    }
+}
+
+fn update_news_items(
+    mut events: EventReader<NewsItem>,
     mut news: ResMut<NewsResource>,
     asset_server: Res<AssetServer>,
     mut images: ResMut<Assets<Image>>,
 ) {
-    const NEWS_EXAMPLE: &str = include_str!(r#"./../news.yaml"#);
-
-    let item: Result<NewsItem, serde_yaml::Error> = serde_yaml::from_str(NEWS_EXAMPLE);
-
-    let item = match item {
-        Ok(item) => item,
-        Err(err) => {
-            error!("{err}");
-            return;
-        },
-    };
-    //todo get from the internet
-
-
-
-    //info!("{}", serde_yaml::to_string(&item).unwrap());
-
-    let image_bytes = match try_draw_image(&item.svg) {
-        Ok(bytes) => bytes,
-        Err(err) => {
-            error!("{err}");
-            return;
+    'events: for item in events.into_iter() {
+        info!("Checking news item");
+        match &news.as_ref().latest {
+            Some(previous) => {
+                if previous.date >= item.date {
+                    info!("Latest news is no newer than stored news");
+                    continue 'events;
+                } else if item.expired() {
+                    info!("Latest news is expired");
+                    continue 'events;
+                }
+            }
+            _ => {}
         }
-    };
 
-    let image = match Image::from_buffer(
+        match create_image_bytes(item, asset_server.as_ref(), &mut images) {
+            Ok(()) => {
+                news.latest = Some(item.clone());
+                news.is_read = false;
+            }
+            Err(err) => {
+                error!("{err}");
+            }
+        }
+    }
+}
+
+fn create_image_bytes(
+    item: &NewsItem,
+    asset_server: &AssetServer,
+    images: &mut ResMut<Assets<Image>>,
+) -> Result<(), anyhow::Error> {
+    let image_bytes = try_draw_image(&item.svg)?;
+
+    let image = Image::from_buffer(
         &image_bytes,
         bevy::render::texture::ImageType::Extension("png"),
         CompressedImageFormats::empty(),
         true,
-    ) {
-        Ok(img) => img,
-        Err(err) => {
-            error!("{err}");
-            return;
-        }
-    };
+    )?;
+
     let handle: Handle<Image> = asset_server.get_handle(NEWS_IMAGE_HANDLE);
 
     let im = images.get_or_insert_with(handle, || Image::default());
     *im = image;
-
-    news.latest = Some(item);
-    news.is_read = false;
+    return Ok(());
 }
 
 pub fn try_draw_image(svg: &str) -> Result<Vec<u8>, anyhow::Error> {
@@ -103,12 +190,11 @@ pub fn try_draw_image(svg: &str) -> Result<Vec<u8>, anyhow::Error> {
     font_database.set_monospace_family("Oswald");
     font_database.set_sans_serif_family("Oswald");
 
-
     tree.convert_text(&font_database);
 
     let scale = NEWS_IMAGE_WIDTH_F32 / width;
 
-    info!("bbox {width} {height} scale {scale}");
+    //info!("bbox {width} {height} scale {scale}");
     let mut pixmap = resvg::tiny_skia::Pixmap::new(
         (width * scale).floor() as u32,
         (height * scale).floor() as u32,
@@ -210,4 +296,17 @@ impl IntoBundle for NewsButtonStyle {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::shape_component::{try_draw_image, NewsItem};
 
+    #[test]
+    pub fn go() {
+        const NEWS_EXAMPLE: &str = include_str!(r#"./../news.yaml"#);
+        let item: Result<NewsItem, serde_yaml::Error> = serde_yaml::from_str(NEWS_EXAMPLE);
+
+        let item: NewsItem = item.expect("Should be able to deserialize latest news");
+
+        let _: Vec<u8> = try_draw_image(&item.svg).expect("Should be able to draw image");
+    }
+}

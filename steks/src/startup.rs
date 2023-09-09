@@ -253,7 +253,7 @@ async fn set_device_id_async() {
 
 lazy_static! {
     pub static ref DEVICE_ID: std::sync::OnceLock<DeviceId> = Default::default();
-};
+}
 
 #[cfg(test)]
 pub mod test {

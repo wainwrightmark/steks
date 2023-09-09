@@ -24,6 +24,9 @@ pub enum IconButton {
     ViewPB,
     ViewRecord,
 
+    OpenNews,
+    FollowNewsLink,
+
     None,
 }
 
@@ -46,6 +49,10 @@ impl IconButton {
             ViewPB => "\u{e81c}",
             ViewRecord => "\u{e81c}",
             EnableSnow => "\u{f2dc}",
+
+            OpenNews => "\u{f2dc}",
+            FollowNewsLink => "\u{f2dc}",
+
             None => "",
         }
     }

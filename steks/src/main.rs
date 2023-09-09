@@ -43,6 +43,7 @@ pub mod logging;
 pub mod text_button;
 pub mod news;
 pub mod preview_images;
+pub mod platform;
 #[cfg(target_arch = "wasm32")]
 pub mod notifications;
 #[cfg(target_arch = "wasm32")]
@@ -84,6 +85,7 @@ pub mod prelude {
     pub use crate::global_ui::*;
     pub use crate::news::*;
     pub use crate::preview_images::*;
+    pub use crate::platform::*;
 
 
     pub use crate::prediction::*;
@@ -116,3 +118,5 @@ pub fn main() {
 
     app.run();
 }
+
+

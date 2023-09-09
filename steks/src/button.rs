@@ -81,9 +81,6 @@ impl ButtonType {
     }
 }
 
-
-
-
 pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
     ButtonBundle {
         style: Style {
@@ -113,6 +110,7 @@ fn icon_button_system(
     mut settings: ResMut<GameSettings>,
     current_level: Res<CurrentLevel>,
     dragged: Query<(), With<BeingDragged>>,
+    mut news: ResMut<NewsResource>,
 ) {
     if !dragged.is_empty() {
         return;
@@ -134,6 +132,10 @@ fn icon_button_system(
                 Share => share_events.send(ShareEvent::CurrentShapes),
                 SharePB => share_events.send(ShareEvent::PersonalBest),
                 NextLevel => change_level_events.send(ChangeLevelEvent::Next),
+                OpenNews => {
+                    news.is_read = true;
+                    *global_ui_state = GlobalUiState::News;
+                }
                 MinimizeSplash => {
                     *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
                 }
@@ -144,25 +146,55 @@ fn icon_button_system(
 
                 PreviousLevelsPage => global_ui_state.as_mut().previous_levels_page(),
 
-                GooglePlay => {
+                FollowNewsLink => match news.latest.as_ref() {
+                    Some(_news_item) => {
 
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            let link = match Platform::CURRENT {
+                                Platform::IOS => _news_item.ios_link.as_str(),
+                                Platform::Android => _news_item.android_link.as_str(),
+                                Platform::Other => _news_item.default_link.as_str(),
+                            };
+                            crate::logging::LoggableEvent::FollowNewsLink.try_log1();
+                            crate::wasm::open_link(link);
+                        }
+                    }
+                    Option::None => {
+                        warn!("There is no news");
+                    }
+                },
+
+                GooglePlay => {
                     #[cfg(target_arch = "wasm32")]
                     {
                         let level = current_level.level.get_log_name();
-                        crate::logging::LoggableEvent::GoAppStore { store: "Google".to_string(), level, max_demo_level: *MAX_DEMO_LEVEL  }.try_log1();
-                        crate::wasm::open_link("https://play.google.com/store/apps/details?id=com.steksgame.app");
+                        crate::logging::LoggableEvent::GoAppStore {
+                            store: "Google".to_string(),
+                            level,
+                            max_demo_level: *MAX_DEMO_LEVEL,
+                        }
+                        .try_log1();
+                        crate::wasm::open_link(
+                            "https://play.google.com/store/apps/details?id=com.steksgame.app",
+                        );
                     }
                 }
                 Apple => {
                     #[cfg(target_arch = "wasm32")]
                     {
                         let level = current_level.level.get_log_name();
-                        crate::logging::LoggableEvent::GoAppStore { store: "Apple".to_string(), level, max_demo_level: *MAX_DEMO_LEVEL  }.try_log1();
+                        crate::logging::LoggableEvent::GoAppStore {
+                            store: "Apple".to_string(),
+                            level,
+                            max_demo_level: *MAX_DEMO_LEVEL,
+                        }
+                        .try_log1();
                         crate::wasm::open_link("https://apps.apple.com/us/app/steks/id6461480511");
                     }
                 }
 
-                Steam  | None => {}
+                Steam | None => {}
 
                 ViewPB => {
                     *global_ui_state =
@@ -193,6 +225,7 @@ fn text_button_system(
 
     mut global_ui_state: ResMut<GlobalUiState>,
     mut settings: ResMut<GameSettings>,
+    mut news: ResMut<NewsResource>,
 
     current_level: Res<CurrentLevel>,
     achievements: Res<Achievements>,
@@ -215,8 +248,13 @@ fn text_button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                TextButton::Resume => *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized),
-                TextButton::News => *global_ui_state = GlobalUiState::News,
+                TextButton::Resume => {
+                    *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized)
+                }
+                TextButton::News => {
+                    news.is_read = true;
+                    *global_ui_state = GlobalUiState::News;
+                },
                 TextButton::GoFullscreen => {
                     #[cfg(target_arch = "wasm32")]
                     {
@@ -226,12 +264,8 @@ fn text_button_system(
                 TextButton::ClipboardImport => import_events.send(ImportEvent),
                 TextButton::Tutorial => change_level_events
                     .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
-                TextButton::Infinite => {
-                    change_level_events.send(ChangeLevelEvent::StartInfinite)
-                }
-                TextButton::Begging => {
-                    change_level_events.send(ChangeLevelEvent::Begging)
-                }
+                TextButton::Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
+                TextButton::Begging => change_level_events.send(ChangeLevelEvent::Begging),
                 TextButton::DailyChallenge => {
                     change_level_events.send(ChangeLevelEvent::StartChallenge)
                 }
@@ -243,9 +277,9 @@ fn text_button_system(
                         stage: 0,
                     })
                 }
-                TextButton::ChooseLevel => {
-                    global_ui_state.as_mut().toggle_levels(current_level.as_ref())
-                }
+                TextButton::ChooseLevel => global_ui_state
+                    .as_mut()
+                    .toggle_levels(current_level.as_ref()),
                 TextButton::MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })
@@ -256,9 +290,7 @@ fn text_button_system(
                 TextButton::OpenAccessibility => global_ui_state.as_mut().open_accessibility(),
                 TextButton::BackToMenu => global_ui_state.as_mut().open_menu(),
                 TextButton::SetArrows(arrows) => settings.show_arrows = arrows,
-                TextButton::SetTouchOutlines(outlines) => {
-                    settings.show_touch_outlines = outlines
-                }
+                TextButton::SetTouchOutlines(outlines) => settings.show_touch_outlines = outlines,
                 TextButton::SetRotationSensitivity(rs) => settings.rotation_sensitivity = rs,
                 TextButton::SetHighContrast(high_contrast) => {
                     settings.high_contrast = high_contrast

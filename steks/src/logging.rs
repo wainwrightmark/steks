@@ -48,6 +48,8 @@ pub enum LoggableEvent {
         max_demo_level: u8
     },
 
+    FollowNewsLink,
+
     NotificationClick,
 }
 

@@ -86,6 +86,7 @@ pub enum IconButtonStyle {
     HeightPadded,
     Compact,
     Menu,
+    News,
     Snow,
     Big
 }
@@ -146,6 +147,19 @@ impl IntoBundle for IconButtonStyle {
                 flex_grow: 0.0,
                 flex_shrink: 0.0,
                 left: Val::Percent(0.0),
+                top: Val::Percent(0.0),
+
+                ..Default::default()
+            },
+            IconButtonStyle::News => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT),
+                margin: UiRect::DEFAULT,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                left: Val::Auto,
                 top: Val::Percent(0.0),
 
                 ..Default::default()

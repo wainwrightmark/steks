@@ -30,7 +30,7 @@ bevy_screen_diagnostics = "0.3"
 maveric= {git= 'https://github.com/wainwrightmark/maveric', features = ["more_bevy"]}
 serde_repr = "0.1"
 enumset= {version="1", features = ["serde"]}
-resvg = { version = "0.35", default-features = false }
+resvg = { version = "0.35", default-features = false, features=["text"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }

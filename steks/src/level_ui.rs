@@ -176,6 +176,44 @@ impl MavericNode for MainPanel {
                         context,
                     );
 
+                    if preview.is_pb() {
+                        let pb_height = args.score_info.pb.max(args.score_info.height);
+                        commands.add_child(
+                            "height_data",
+                            TextNode {
+                                text: format!("{pb_height:6.2}m",),
+                                font_size: LEVEL_HEIGHT_FONT_SIZE,
+                                color: LEVEL_TEXT_COLOR,
+                                font: LEVEL_TEXT_FONT_PATH,
+                                alignment: TextAlignment::Center,
+                                linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+                            },
+                            context,
+                        );
+
+                        if let Some(level_stars) = args.level.get_level_stars() {
+                            let star_type = level_stars.get_star(pb_height);
+                            commands.add_child(
+                                "pb_stars",
+                                ImageNode {
+                                    path: star_type.wide_stars_asset_path(),
+                                    background_color: Color::WHITE,
+                                    style: ThreeStarsImageStyle,
+                                },
+                                context,
+                            );
+
+                            commands.add_child(
+                                "pb_star_heights",
+                                StarHeights {
+                                    level_stars,
+                                    star_type,
+                                },
+                                context,
+                            );
+                        }
+                    }
+
                     let text = match preview {
                         PreviewImage::PB => "Challenge a friend to\nbeat your score!",
                         PreviewImage::WR => "Can you do better?",

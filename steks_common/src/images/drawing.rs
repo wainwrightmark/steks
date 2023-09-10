@@ -37,14 +37,15 @@ pub fn try_draw_image(
     let w = ratio * (dimensions.width as f32);
     let h = ratio * (dimensions.height as f32);
 
+    let rect = NonZeroRect::from_xywh(
+        bbox.x() - ((w - bbox.width()) * 0.5),
+        bbox.y() - ((h - bbox.height()) * 0.5),
+        w,
+        h,
+    ).ok_or(anyhow::anyhow!("Could not create image rect"))?;
+
     game_tree.view_box = ViewBox {
-        rect: NonZeroRect::from_xywh(
-            bbox.x() - ((w - bbox.width()) * 0.5),
-            bbox.y() - ((h - bbox.height()) * 0.5),
-            w,
-            h,
-        )
-        .unwrap(),
+        rect,
         aspect: AspectRatio {
             defer: false,
             slice: true,

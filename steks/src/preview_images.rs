@@ -119,8 +119,8 @@ impl IntoBundle for PreviewImageStyle {
 
     fn into_bundle(self) -> Self::B {
         Style {
-            width: Val::Px(PREVIEW_IMAGE_SIZE_F32 - 1.0),
-            height: Val::Px(PREVIEW_IMAGE_SIZE_F32 - 1.0),
+            width: Val::Px(PREVIEW_IMAGE_SIZE_F32),
+            height: Val::Px(PREVIEW_IMAGE_SIZE_F32),
             margin: UiRect::all(Val::Auto),
 
             ..Default::default()

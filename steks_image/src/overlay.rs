@@ -1,9 +1,11 @@
 use resvg::tiny_skia::{Pixmap, Transform};
 use resvg::usvg::{Options, Tree, TreeParsing};
 
-use crate::images::prelude::*;
 
-pub struct OverlayChooser<Arg : 'static> {
+
+use crate::prelude::*;
+
+pub struct OverlayChooser<Arg: 'static> {
     pub options: Vec<Overlay<Arg>>,
 }
 
@@ -13,7 +15,11 @@ impl<Arg> OverlayChooser<Arg> {
         Self { options: vec![] }
     }
 
-    pub fn choose_scale_and_overlay(&self, h_scale: f32, v_scale: f32) -> (f32, Option<&Overlay<Arg>>) {
+    pub fn choose_scale_and_overlay(
+        &self,
+        h_scale: f32,
+        v_scale: f32,
+    ) -> (f32, Option<&Overlay<Arg>>) {
         //println!("h: {h_scale} v: {v_scale}");
         if self.options.is_empty() {
             return (h_scale.max(v_scale) * DEFAULT_SCALE_MULTIPLIER, None);
@@ -41,14 +47,14 @@ impl<Arg> OverlayChooser<Arg> {
 }
 
 //#[derive( Clone)]
-pub struct Overlay<Arg : 'static> {
+pub struct Overlay<Arg: 'static> {
     pub h_placement: HorizontalPlacement,
     pub v_placement: VerticalPlacement,
 
     pub ratio: Ratio,
 
     pub bytes: &'static [u8],
-    pub modify_svg: &'static dyn Fn(Tree, Arg)-> Tree
+    pub modify_svg: &'static dyn Fn(Tree, Arg) -> Tree,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -63,7 +69,7 @@ impl<Arg> Overlay<Arg> {
         pixmap: &mut Pixmap,
         opt: &Options,
         dimensions: Dimensions,
-        arg: Arg
+        arg: Arg,
     ) -> Result<(), anyhow::Error> {
         let tree = Tree::from_data(self.bytes, &opt)?;
 

@@ -1,6 +1,7 @@
 use std::format;
 
-use crate::images::prelude::*;
+use crate::prelude::*;
+use steks_common::prelude::*;
 
 const SHAPE_SIZE: f32 = 50.0;
 

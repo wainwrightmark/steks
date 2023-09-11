@@ -26,6 +26,7 @@ lazy_static = "1.4"
 serde_yaml = "0.9"
 async-channel = "1.8"
 steks_common = {path= "../steks_common"}
+steks_image = {path= "../steks_image"}
 bevy_screen_diagnostics = "0.3"
 maveric= {git= 'https://github.com/wainwrightmark/maveric', features = ["more_bevy"]}
 serde_repr = "0.1"

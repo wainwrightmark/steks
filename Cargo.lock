@@ -2140,6 +2140,7 @@ dependencies = [
  "lambda_runtime",
  "resvg",
  "steks_common",
+ "steks_image",
  "test-case",
  "tokio",
 ]
@@ -3895,6 +3896,7 @@ dependencies = [
  "serde_with",
  "serde_yaml",
  "steks_common",
+ "steks_image",
  "strum",
  "test-case",
  "wasm-bindgen",
@@ -3916,10 +3918,31 @@ dependencies = [
  "num_enum 0.7.0",
  "once_cell",
  "rand",
+ "serde",
+ "serde_repr",
+ "serde_yaml",
+ "strum",
+]
+
+[[package]]
+name = "steks_image"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64",
+ "bevy",
+ "bevy_prototype_lyon",
+ "bevy_rapier2d",
+ "geometrid",
+ "lazy_static",
+ "num_enum 0.7.0",
+ "once_cell",
+ "rand",
  "resvg",
  "serde",
  "serde_repr",
  "serde_yaml",
+ "steks_common",
  "strum",
 ]
 

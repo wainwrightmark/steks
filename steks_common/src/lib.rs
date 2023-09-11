@@ -4,7 +4,6 @@ pub mod designed_level;
 pub mod encodable_shape;
 pub mod game_shape;
 pub mod icon_button;
-pub mod images;
 pub mod level_completion;
 pub mod level_shape_form;
 pub mod location;

@@ -2,7 +2,7 @@ use crate::prelude::*;
 use bevy::render::texture::CompressedImageFormats;
 
 use maveric::prelude::*;
-use steks_common::images::prelude::{Dimensions, OverlayChooser};
+use steks_image::prelude::{Dimensions, OverlayChooser};
 use strum::EnumIs;
 
 pub struct PreviewImagePlugin;
@@ -94,7 +94,7 @@ fn update_preview_images(
 }
 
 fn game_to_image(data: &[u8]) -> Result<Image, anyhow::Error> {
-    let image_bytes = steks_common::images::drawing::try_draw_image(
+    let image_bytes = steks_image::drawing::try_draw_image(
         data,
         &OverlayChooser::no_overlay(),
         Dimensions {

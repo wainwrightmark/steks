@@ -11,6 +11,7 @@ aws_lambda_events = {version= "0.11", default-features=false, features=["apigw"]
 http = {version= "*", default-features=false}
 lambda_runtime = {version= "*", default-features=false}
 steks_common = {path="../../../steks_common"}
+steks_image = {path="../../../steks_image"}
 base64 = "0.21"
 tokio = {version= "*", default-features=false}
 resvg = { version = "0.35", default-features = false, features=["text"] }

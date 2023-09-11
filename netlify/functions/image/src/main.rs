@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use aws_lambda_events::query_map::QueryMap;
 use base64::Engine;
-pub use steks_common::images::prelude::*;
+
 pub use steks_common::prelude::*;
 
 use aws_lambda_events::encodings::Body;
@@ -12,6 +12,7 @@ use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 
 use resvg::usvg::{fontdb, NodeKind, Tree, TreeTextToPath};
+use steks_image::prelude::*;
 
 include!(concat!(env!("OUT_DIR"), "/level_stars.rs"));
 

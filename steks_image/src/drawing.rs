@@ -1,4 +1,4 @@
-use crate::images::prelude::*;
+use steks_common::prelude::*;
 pub use crate::prelude::*;
 use resvg::tiny_skia::Transform;
 use resvg::usvg::{AspectRatio, NodeExt, NonZeroRect, Tree, TreeParsing, ViewBox};
@@ -28,7 +28,7 @@ pub fn try_draw_image<Arg>(
     let mut pixmap = resvg::tiny_skia::Pixmap::new(dimensions.width, dimensions.height)
         .ok_or(anyhow::anyhow!("Could not create pixmap"))?;
 
-    let [r, g, b, a] = crate::color::BACKGROUND_COLOR.as_rgba_u32().to_le_bytes();
+    let [r, g, b, a] = BACKGROUND_COLOR.as_rgba_u32().to_le_bytes();
     pixmap.fill(resvg::tiny_skia::Color::from_rgba8(r, g, b, a));
 
     let h_scale = bbox.width() / dimensions.width as f32;

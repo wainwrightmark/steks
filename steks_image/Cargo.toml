@@ -1,5 +1,5 @@
 [package]
-name = "steks_common"
+name = "steks_image"
 version = "0.1.0"
 edition = "2021"
 
@@ -16,11 +16,12 @@ serde = "1"
 num_enum = "0.7"
 strum = { version = "0.25", features = ["derive"] }
 rand = "0.8.5"
+resvg = { version = "0.35", default-features = false }
 anyhow = "1"
 lazy_static = "1.4.0"
 serde_yaml = "0.9"
 serde_repr = "0.1"
-
+steks_common = {path= "../steks_common"}
 
 # # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 # [profile.dev.package."*"]

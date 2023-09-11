@@ -1,6 +1,6 @@
 use base64::Engine;
 use bevy::utils::HashMap;
-use steks_common::images::prelude::{Dimensions, OverlayChooser};
+use steks_image::prelude::{Dimensions, OverlayChooser};
 pub use steks_common::prelude::*;
 
 pub fn main() {
@@ -28,7 +28,7 @@ pub fn main() {
 
         println!("{title} {} {}", record.hash, record.height);
 
-        let image_data = steks_common::images::drawing::try_draw_image(
+        let image_data = steks_image::drawing::try_draw_image(
             record.image_blob.as_slice(),
             &OverlayChooser::no_overlay(),
             Dimensions {

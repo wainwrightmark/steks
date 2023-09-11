@@ -103,7 +103,7 @@ impl MavericNode for WallNode {
         });
 
         commands.insert_with_node_and_context(|node, context| {
-            let (window_size, insets, settings, rapier) = context;
+            let (window_size, insets, _, rapier) = context;
             let wall = node.0;
             let point = wall.get_position(
                 window_size.height,
@@ -111,7 +111,7 @@ impl MavericNode for WallNode {
                 rapier.gravity,
                 insets,
             );
-            let color = wall.color(settings);
+            let color = wall.color();
 
             (Fill::color(color), Transform::from_translation(point))
         });
@@ -179,14 +179,12 @@ pub enum WallPosition {
     Bottom,
     Left,
     Right,
-    TopLeft,
 }
 
 #[derive(Debug, Component)]
 pub struct WallSensor;
 
 const WALL_Z: f32 = 2.0;
-const TOP_LEFT_Z: f32 = 1.0;
 
 const TOP_BOTTOM_OFFSET: f32 = 10.0;
 
@@ -211,23 +209,11 @@ impl WallPosition {
             Bottom => Vec3::new(0.0, -height / 2.0 - OFFSET + bottom_offset, WALL_Z),
             Left => Vec3::new(-width / 2.0 - OFFSET, 0.0, WALL_Z),
             Right => Vec3::new(width / 2.0 + OFFSET, 0.0, WALL_Z),
-            TopLeft => Vec3 {
-                x: (-width / 2.0) + (TOP_LEFT_SQUARE_SIZE / 2.0),
-                y: (height / 2.0) - (TOP_LEFT_SQUARE_SIZE / 2.0),
-                z: TOP_LEFT_Z,
-            },
         }
     }
 
-    pub fn show_marker(&self, current_level: &CurrentLevel) -> bool {
-        if !self.is_bottom() {
-            return true;
-        }
-
-        match &current_level.level {
-            GameLevel::Designed { meta } => meta.is_tutorial(),
-            _ => false,
-        }
+    pub fn show_marker(&self) -> bool {
+        true
     }
 
     pub fn get_extents(&self) -> Vec2 {
@@ -243,10 +229,6 @@ impl WallPosition {
                 x: WALL_WIDTH,
                 y: MAX_WINDOW_HEIGHT,
             },
-            TopLeft => Vec2 {
-                x: TOP_LEFT_SQUARE_SIZE,
-                y: TOP_LEFT_SQUARE_SIZE,
-            },
         }
     }
 
@@ -255,20 +237,17 @@ impl WallPosition {
         match self {
             Top | Bottom => MarkerType::Horizontal,
             Left | Right => MarkerType::Vertical,
-            TopLeft => MarkerType::Horizontal,
         }
     }
 
-    pub fn color(&self, settings: &GameSettings) -> Color {
+    pub fn color(&self) -> Color {
         use WallPosition::*;
         match self {
             Top | Bottom | Left | Right => ACCENT_COLOR,
-            TopLeft => settings.background_color(),
         }
     }
 }
 
-const TOP_LEFT_SQUARE_SIZE: f32 = 60.0;
 
 fn handle_window_resized(
     mut window_resized_events: EventReader<WindowResized>,

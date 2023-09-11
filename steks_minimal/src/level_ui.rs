@@ -1,4 +1,4 @@
-use crate::{prelude::*, text_button};
+use crate::prelude::*;
 use itertools::Itertools;
 use maveric::{prelude::*, transition::speed::ScalarSpeed};
 use strum::EnumIs;
@@ -465,7 +465,7 @@ impl MavericNode for GetTheGamePanel {
                 //     BadgeImageStyle,
                 // );
                 commands.add_child(0,
-                    text_button_node_with_text(TextButton::GetTheGame, "Get The Game".to_string(), true, false)
+                    text_button_node(TextButton::GetTheGame, true, false)
                     , context);
                 //commands.add_child(1, apple, context);
             },
@@ -530,8 +530,7 @@ impl MavericNode for BeggingPanel {
                 \n\
                 And...\n\
                 Defeat Dr. Gravity!\n\
-                \n\
-                Get steks now\n\n\n\
+                \n\n\n\
                 "
                         .to_string(),
                         font_size: LEVEL_TEXT_FONT_SIZE,

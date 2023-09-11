@@ -178,30 +178,30 @@ impl IntoBundle for IconButtonStyle {
     }
 }
 
-pub(crate) fn image_button_node(
-    button_action: IconButton,
-    image_path: &'static str,
-    button_node_style: impl IntoBundle<B = Style>,
-    image_style: impl IntoBundle<B = Style>,
-) -> impl MavericNode<Context = AssetServer> {
-    ButtonNode {
-        style: button_node_style,
-        visibility: Visibility::Visible,
-        border_color: Color::NONE,
-        background_color: Color::NONE,
-        //button_node_style,
-        marker: IconButtonComponent {
-            disabled: false,
-            button_action,
-            button_type: ButtonType::Image,
-        },
-        children: (ImageNode {
-            style: image_style,
-            path: image_path,
-            background_color: Color::WHITE,
-        },),
-    }
-}
+// pub(crate) fn image_button_node(
+//     button_action: IconButton,
+//     image_path: &'static str,
+//     button_node_style: impl IntoBundle<B = Style>,
+//     image_style: impl IntoBundle<B = Style>,
+// ) -> impl MavericNode<Context = AssetServer> {
+//     ButtonNode {
+//         style: button_node_style,
+//         visibility: Visibility::Visible,
+//         border_color: Color::NONE,
+//         background_color: Color::NONE,
+//         //button_node_style,
+//         marker: IconButtonComponent {
+//             disabled: false,
+//             button_action,
+//             button_type: ButtonType::Image,
+//         },
+//         children: (ImageNode {
+//             style: image_style,
+//             path: image_path,
+//             background_color: Color::WHITE,
+//         },),
+//     }
+// }
 
 pub(crate) fn text_button_node(
     button_action: TextButton,

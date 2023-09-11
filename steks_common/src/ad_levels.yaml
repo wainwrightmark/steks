@@ -1,5 +1,5 @@
-- text: "Welcome to Steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with your thumb\n\nPlace it above the triangle"
-  mouse_text: "Welcome to Steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with the mouse\n\nPlace it above the triangle"
+- text: "This is an ad for steks\n\nThe game where you build towers\n\nBuild a tower with these four shapes"
+
   text_forever: true
   show_rotate: true
   shapes:
@@ -9,8 +9,17 @@
       r: 0.125
       state: fixed
     - shape: O4
+      x: -150
+      y: -300
+      vel_x: 0.0
+      vel_y: 0.0
+    - shape: X5
+      x: 150
+      y: -300
+      vel_x: 0.0
+      vel_y: 0.0
+    - shape: U5
       x: 0
       y: -300
-    - shape: X5
-      x: 0
-      y: 300
+      vel_x: 0.0
+      vel_y: 0.0

@@ -150,9 +150,7 @@ fn get_new_fireworks(
 ) -> Option<FireworksCountdown> {
     let settings = match &current_level.level {
         GameLevel::Designed { meta, .. } => {
-            if meta.is_tutorial() {
-                return None;
-            }
+
 
             match current_level.completion {
                 LevelCompletion::Incomplete { stage } => {

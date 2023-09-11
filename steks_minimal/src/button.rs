@@ -156,7 +156,6 @@ fn text_button_system(
     mut settings: ResMut<GameSettings>,
 
     //current_level: Res<CurrentLevel>,
-
     dragged: Query<(), With<BeingDragged>>,
 ) {
     if !dragged.is_empty() {
@@ -179,20 +178,7 @@ fn text_button_system(
                     *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized)
                 }
 
-                TextButton::Tutorial => change_level_events
-                    .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
-
                 TextButton::Begging => change_level_events.send(ChangeLevelEvent::Begging),
-
-                TextButton::GotoLevel { level } => {
-                    change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
-                        index: level,
-                        stage: 0,
-                    })
-                }
-
-
-
 
                 TextButton::SetArrows(arrows) => settings.show_arrows = arrows,
                 TextButton::SetTouchOutlines(outlines) => settings.show_touch_outlines = outlines,
@@ -212,7 +198,7 @@ fn text_button_system(
                     }
                 }
 
-                _=>{}
+                _ => {}
             }
 
             if button.button_action.closes_menu() {

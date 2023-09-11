@@ -64,13 +64,12 @@ fn display_collision_markers(
     rapier_context: Res<RapierContext>,
     walls: Query<(Entity, &Transform, &WallPosition), Without<CollisionMarker>>,
     mut markers: Query<(Entity, &mut Transform, &CollisionMarker), Without<WallPosition>>,
-    current_level: Res<CurrentLevel>,
 ) {
     let mut markers_map = HashMap::from_iter(markers.iter_mut().map(|x| (x.2, (x.0, x.1))));
 
     for (sensor_entity, wall_transform, wall) in walls
         .iter()
-        .filter(|x| x.2.show_marker(current_level.as_ref()))
+        .filter(|x| x.2.show_marker())
     {
         for contact in rapier_context
             .contacts_with(sensor_entity)

@@ -114,7 +114,6 @@ fn handle_change_level_events(
     }
 }
 
-
 #[derive(Default, Resource, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CurrentLevel {
     pub level: GameLevel,
@@ -197,10 +196,7 @@ impl CurrentLevel {
     }
 
     pub fn show_rotate_arrow(&self) -> bool {
-        match &self.level {
-            GameLevel::Designed { meta } => meta.is_tutorial(),
-            _ => false,
-        }
+        true
     }
 }
 
@@ -231,16 +227,6 @@ impl GameLevel {
         match self {
             GameLevel::Designed { meta } => meta.get_level().flashing_button,
             GameLevel::Begging => None,
-        }
-    }
-
-    pub fn get_log_name(&self) -> String {
-        match self {
-            GameLevel::Designed { meta } => match meta {
-                DesignedLevelMeta::Tutorial { index } => format!("Tutorial {index}"),
-                DesignedLevelMeta::Campaign { index } => format!("Campaign {index}"),
-            },
-            GameLevel::Begging => "Begging".to_string(),
         }
     }
 
@@ -296,17 +282,14 @@ impl GameLevel {
         }
     }
 
-    pub fn get_level_number_text(&self, centred: bool, stage: usize) -> Option<String> {
+    pub fn get_level_number_text(&self, _: bool, stage: usize) -> Option<String> {
         match &self {
             GameLevel::Designed { meta, .. } => {
                 if stage > 0 {
                     None
                 } else {
                     match meta {
-                        DesignedLevelMeta::Tutorial { .. } => None,
-                        DesignedLevelMeta::Campaign { index } => {
-                            Some(format_campaign_level_number(index, centred))
-                        }
+                        DesignedLevelMeta::Ad { .. } => None,
                     }
                 }
             }
@@ -332,26 +315,17 @@ impl GameLevel {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, EnumIs)]
 pub enum DesignedLevelMeta {
-    Tutorial { index: u8 },
-    Campaign { index: u8 },
+    Ad { index: u8 },
 }
 
 impl DesignedLevelMeta {
     pub fn next_level(&self) -> Option<Self> {
         //info!("Next Level {self:?}");
         match self {
-            DesignedLevelMeta::Tutorial { index } => {
+            DesignedLevelMeta::Ad { index } => {
                 let index = index + 1;
-                if TUTORIAL_LEVELS.get(index as usize).is_some() {
-                    Some(Self::Tutorial { index })
-                } else {
-                    Some(Self::Campaign { index: 0 })
-                }
-            }
-            DesignedLevelMeta::Campaign { index } => {
-                let index = index + 1;
-                if CAMPAIGN_LEVELS.get(index as usize).is_some() {
-                    Some(Self::Campaign { index })
+                if AD_LEVELS.get(index as usize).is_some() {
+                    Some(Self::Ad { index })
                 } else {
                     None
                 }
@@ -361,19 +335,15 @@ impl DesignedLevelMeta {
 
     pub fn try_get_level(&self) -> Option<&DesignedLevel> {
         match self {
-            DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS.get(*index as usize),
-            DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS.get(*index as usize),
+            DesignedLevelMeta::Ad { index } => AD_LEVELS.get(*index as usize),
         }
     }
 
     pub fn get_level(&self) -> &DesignedLevel {
         match self {
-            DesignedLevelMeta::Tutorial { index } => TUTORIAL_LEVELS
+            DesignedLevelMeta::Ad { index } => AD_LEVELS
                 .get(*index as usize)
-                .expect("Could not get tutorial level"),
-            DesignedLevelMeta::Campaign { index } => CAMPAIGN_LEVELS
-                .get(*index as usize)
-                .expect("Could not get campaign level"),
+                .expect("Could not get ad level"),
         }
     }
 }
@@ -394,50 +364,15 @@ impl GameLevel {
     }
 
     pub fn skip_completion(&self) -> bool {
-        matches!(
-            self,
-            GameLevel::Designed {
-                meta: DesignedLevelMeta::Tutorial { .. },
-            }
-        )
+        true
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub enum LevelLogData {
-    TutorialLevel { index: u8 },
-    CampaignLevel { index: u8 },
-
-    Infinite,
-    Challenge,
-    Custom,
-    Loaded,
-    Credits,
-    Begging,
-}
-
-impl Default for LevelLogData {
-    fn default() -> Self {
-        Self::TutorialLevel { index: 0 }
-    }
-}
-
-impl From<GameLevel> for LevelLogData {
-    fn from(value: GameLevel) -> Self {
-        match value {
-            GameLevel::Designed { meta, .. } => match meta {
-                DesignedLevelMeta::Tutorial { index } => Self::TutorialLevel { index },
-                DesignedLevelMeta::Campaign { index } => Self::CampaignLevel { index },
-            },
-            GameLevel::Begging => Self::Begging,
-        }
-    }
-}
 
 impl Default for GameLevel {
     fn default() -> Self {
         Self::Designed {
-            meta: DesignedLevelMeta::Tutorial { index: 0 },
+            meta: DesignedLevelMeta::Ad { index: 0 },
         }
     }
 }
@@ -445,8 +380,6 @@ impl Default for GameLevel {
 #[derive(Debug, Clone, Event)]
 pub enum ChangeLevelEvent {
     Next,
-    ChooseCampaignLevel { index: u8, stage: usize },
-    ChooseTutorialLevel { index: u8, stage: usize },
     ResetLevel,
     Begging,
 }
@@ -509,25 +442,6 @@ impl ChangeLevelEvent {
                 GameLevel::Begging => (GameLevel::Begging, 0),
             },
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
-
-            ChangeLevelEvent::ChooseCampaignLevel { index, stage } => {
-                let index = *index;
-                (
-                    GameLevel::Designed {
-                        meta: DesignedLevelMeta::Campaign { index },
-                    },
-                    *stage,
-                )
-            }
-            ChangeLevelEvent::ChooseTutorialLevel { index, stage } => {
-                let index = *index;
-                (
-                    GameLevel::Designed {
-                        meta: DesignedLevelMeta::Tutorial { index },
-                    },
-                    *stage,
-                )
-            }
             ChangeLevelEvent::Begging => (GameLevel::Begging, 0),
         }
     }

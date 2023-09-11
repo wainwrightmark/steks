@@ -60,7 +60,7 @@ fn manage_fireworks(
         return;
     }
 
-    if has_acted.is_has_acted() || !settings.fireworks_enabled {
+    if has_acted.is_has_acted() || !settings.fireworks_enabled || previous_level.0.is_none() {
         countdown.timer.pause();
         return;
     }

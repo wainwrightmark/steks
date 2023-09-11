@@ -185,7 +185,7 @@ pub struct CurrentLevel {
 }
 
 #[derive(Default, Resource, Debug, PartialEq)]
-pub struct PreviousLevel(Option<CurrentLevel>);
+pub struct PreviousLevel(pub Option<CurrentLevel>);
 
 #[derive(Debug, EnumIs, Clone, Copy, PartialEq)]
 pub enum PreviousLevelType {

@@ -101,6 +101,7 @@ fn game_to_image(data: &[u8]) -> Result<Image, anyhow::Error> {
             width: PREVIEW_IMAGE_SIZE_U32,
             height: PREVIEW_IMAGE_SIZE_U32,
         },
+        ()
     )?;
 
     Ok(Image::from_buffer(

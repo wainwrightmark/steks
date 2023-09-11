@@ -35,6 +35,7 @@ pub fn main() {
                 width: 512,
                 height: 512,
             },
+            ()
         )
         .unwrap();
 

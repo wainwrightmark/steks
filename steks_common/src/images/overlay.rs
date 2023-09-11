@@ -3,17 +3,17 @@ use resvg::usvg::{Options, Tree, TreeParsing};
 
 use crate::images::prelude::*;
 
-pub struct OverlayChooser {
-    pub options: Vec<Overlay>,
+pub struct OverlayChooser<Arg : 'static> {
+    pub options: Vec<Overlay<Arg>>,
 }
 
 pub const DEFAULT_SCALE_MULTIPLIER: f32 = 1.1;
-impl OverlayChooser {
+impl<Arg> OverlayChooser<Arg> {
     pub fn no_overlay() -> Self {
         Self { options: vec![] }
     }
 
-    pub fn choose_scale_and_overlay(&self, h_scale: f32, v_scale: f32) -> (f32, Option<&Overlay>) {
+    pub fn choose_scale_and_overlay(&self, h_scale: f32, v_scale: f32) -> (f32, Option<&Overlay<Arg>>) {
         //println!("h: {h_scale} v: {v_scale}");
         if self.options.is_empty() {
             return (h_scale.max(v_scale) * DEFAULT_SCALE_MULTIPLIER, None);
@@ -40,14 +40,15 @@ impl OverlayChooser {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Overlay {
+//#[derive( Clone)]
+pub struct Overlay<Arg : 'static> {
     pub h_placement: HorizontalPlacement,
     pub v_placement: VerticalPlacement,
 
     pub ratio: Ratio,
 
     pub bytes: &'static [u8],
+    pub modify_svg: &'static dyn Fn(Tree, Arg)-> Tree
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -56,14 +57,17 @@ pub enum Ratio {
     TallerThanWide(f32),
 }
 
-impl Overlay {
+impl<Arg> Overlay<Arg> {
     pub fn try_include(
         &self,
         pixmap: &mut Pixmap,
         opt: &Options,
         dimensions: Dimensions,
+        arg: Arg
     ) -> Result<(), anyhow::Error> {
-        let logo_tree = Tree::from_data(self.bytes, &opt)?;
+        let tree = Tree::from_data(self.bytes, &opt)?;
+
+        let logo_tree = (self.modify_svg)(tree, arg);
 
         let logo_scale = (dimensions.width as f32 / logo_tree.size.width() as f32)
             .min(dimensions.height as f32 / logo_tree.size.height() as f32);

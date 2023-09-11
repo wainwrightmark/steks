@@ -9,10 +9,11 @@ pub fn make_svg_from_bytes(bytes: &[u8], dimensions: Dimensions) -> String {
     svg
 }
 
-pub fn try_draw_image(
+pub fn try_draw_image<Arg>(
     bytes: &[u8],
-    overlay_chooser: &OverlayChooser,
+    overlay_chooser: &OverlayChooser<Arg>,
     dimensions: Dimensions,
+    arg: Arg
 ) -> Result<Vec<u8>, anyhow::Error> {
     let opt: resvg::usvg::Options = Default::default();
     let svg_data = make_svg_from_bytes(bytes, dimensions);
@@ -63,7 +64,7 @@ pub fn try_draw_image(
     );
 
     if let Some(overlay) = overlay {
-        overlay.try_include(&mut pixmap, &opt, dimensions)?;
+        overlay.try_include(&mut pixmap, &opt, dimensions, arg)?;
     }
 
     Ok(pixmap.encode_png()?)

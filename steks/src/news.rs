@@ -181,12 +181,6 @@ pub fn try_draw_image(svg: &str) -> Result<Vec<u8>, anyhow::Error> {
 
     font_database.load_font_data(font_data);
 
-    font_database.set_serif_family("Oswald");
-    font_database.set_cursive_family("Oswald");
-    font_database.set_fantasy_family("Oswald");
-    font_database.set_monospace_family("Oswald");
-    font_database.set_sans_serif_family("Oswald");
-
     tree.convert_text(&font_database);
 
     let scale = NEWS_IMAGE_WIDTH_F32 / width;

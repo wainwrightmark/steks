@@ -11,6 +11,8 @@ use http::header::HeaderMap;
 use http::HeaderValue;
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 
+use resvg::usvg::{fontdb, NodeKind, Tree, TreeTextToPath};
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let func = service_fn(my_handler);
@@ -108,15 +110,22 @@ impl Command {
 
     pub fn get_response_body(&self, game: &str, dimensions: Dimensions) -> Body {
         let bytes = convert_game_to_bytes(game);
+        let height_and_stars = HeightAndStars::from_bytes(bytes.as_slice());
 
         match self {
             Command::Default => {
-                let data = try_draw_image(&bytes, &text_overlay(), dimensions).unwrap();
+                let data =
+                    try_draw_image(&bytes, &text_overlay(), dimensions, height_and_stars).unwrap();
                 Body::Binary(data)
             }
             Command::NoOverlay => {
-                let data =
-                    try_draw_image(&bytes, &OverlayChooser::no_overlay(), dimensions).unwrap();
+                let data = try_draw_image(
+                    &bytes,
+                    &OverlayChooser::no_overlay(),
+                    dimensions,
+                    height_and_stars,
+                )
+                .unwrap();
                 Body::Binary(data)
             }
             Command::SVG => {
@@ -149,25 +158,95 @@ pub fn dimensions_from_query_map(query_map: &aws_lambda_events::query_map::Query
     Dimensions { width, height }
 }
 
-pub fn text_overlay() -> OverlayChooser {
+fn text_overlay() -> OverlayChooser<HeightAndStars> {
     OverlayChooser {
         options: vec![TEXT_RIGHT_OVERLAY, TEXT_BOTTOM_OVERLAY],
     }
 }
 
-pub const TEXT_BOTTOM_OVERLAY: Overlay = Overlay {
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct HeightAndStars {
+    height: f32,
+    stars: Option<StarType>,
+}
+
+impl HeightAndStars {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        let shapes = decode_shapes(&bytes);
+        let shapes_vec = ShapesVec(shapes);
+        let height = shapes_vec.calculate_tower_height();
+        let hash = shapes_vec.hash();
+
+        let stars = CAMPAIGN_LEVELS.iter().filter(|level| {
+            let level_hash = ShapesVec::from(*level).hash();
+            level_hash == hash
+        }).flat_map(|x|x.stars).map(|x|x.get_star(height)).next();
+
+
+
+        HeightAndStars {
+            height,
+            stars,
+        }
+    }
+}
+
+const TEXT_BOTTOM_OVERLAY: Overlay<HeightAndStars> = Overlay {
     h_placement: HorizontalPlacement::Centre,
     v_placement: VerticalPlacement::Bottom,
     ratio: Ratio::TallerThanWide(1.2),
     bytes: include_bytes!("text_bottom.svg"),
+    modify_svg: &modify_svg, //modify_svg: Box<Fn(Tree)-> Tree>
 };
 
-pub const TEXT_RIGHT_OVERLAY: Overlay = Overlay {
+const TEXT_RIGHT_OVERLAY: Overlay<HeightAndStars> = Overlay {
     h_placement: HorizontalPlacement::Right,
     v_placement: VerticalPlacement::Centre,
     ratio: Ratio::WiderThanTall(1.4),
     bytes: include_bytes!("text_right.svg"),
+    modify_svg: &modify_svg,
 };
+
+fn modify_svg(mut tree: Tree, h: HeightAndStars) -> Tree {
+    let HeightAndStars { height, stars } = h;
+    if let Some(height_text_node) = tree.node_by_id("HeightText") {
+        if let NodeKind::Text(ref mut text) = *height_text_node.borrow_mut() {
+            text.chunks[0].text = format!("{height:.2}m");
+        } else {
+            println!("Height text node was not a text node");
+        };
+    } else {
+        println!("Could not get height text node");
+    }
+
+    const STAR_IDS: [&str; 6] = ["GoldStar1", "GoldStar2", "GoldStar3", "BlackStar1", "BlackStar2", "BlackStar3"];
+
+    let stars_to_remove : [bool; 6] = match stars{
+        None=> [true, true, true,true,true,true],
+        Some(StarType::Incomplete) => [true, true, true, false, false, false],
+        Some(StarType::OneStar) => [false, true, true, true, false, false],
+        Some(StarType::TwoStar) => [false, false,true, true, true, false],
+        Some(StarType::ThreeStar) => [false, false,false,true, true, true],
+    };
+
+    for star in stars_to_remove.into_iter().zip(STAR_IDS.into_iter()).filter(|(remove, _)|*remove).map(|(_, star)|star){
+        if let Some(star_node) = tree.node_by_id(star){
+            star_node.detach();
+        }
+        else{
+            println!("Could not get node: '{star}'");
+        }
+    }
+
+    let mut font_database: fontdb::Database = fontdb::Database::new();
+    let font_data = include_bytes!(r#"../../../../fonts/FiraMono-Medium.ttf"#).to_vec();
+
+    font_database.load_font_data(font_data);
+
+    tree.convert_text(&font_database);
+
+    tree
+}
 
 pub fn convert_game_to_bytes(data: &str) -> Vec<u8> {
     base64::engine::general_purpose::URL_SAFE
@@ -204,6 +283,7 @@ mod tests {
         );
 
         let bytes = convert_game_to_bytes(data);
+        let height_and_stars = HeightAndStars::from_bytes(bytes.as_slice());
 
         let hash: u64 = match command {
             Command::SVG => {
@@ -218,7 +298,8 @@ mod tests {
                 } else {
                     OverlayChooser::no_overlay()
                 };
-                let data = try_draw_image(&bytes, &overlay_chooser, dimensions).unwrap();
+                let data =
+                    try_draw_image(&bytes, &overlay_chooser, dimensions, height_and_stars).unwrap();
                 let len = data.len();
                 std::fs::write(name.clone(), data.as_slice()).unwrap();
 

@@ -1,6 +1,8 @@
 use crate::prelude::*;
+
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use steks_common::color;
 use strum::EnumIs;
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
@@ -99,17 +101,18 @@ fn manage_level_shapes(
 fn handle_change_level_events(
     mut change_level_events: EventReader<ChangeLevelEvent>,
     mut current_level: ResMut<CurrentLevel>,
+    mut global_ui_state: ResMut<GlobalUiState>,
 ) {
     if let Some(event) = change_level_events.iter().next() {
         let (level, stage) = event.get_new_level(&current_level.level);
 
-
         let completion = LevelCompletion::Incomplete { stage };
 
         current_level.set_if_neq(CurrentLevel { level, completion });
+
+        *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
     }
 }
-
 
 
 #[derive(Default, Resource, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -224,6 +227,101 @@ pub enum GameLevel {
 }
 
 impl GameLevel {
+    pub fn flashing_button(&self) -> Option<IconButton> {
+        match self {
+            GameLevel::Designed { meta } => meta.get_level().flashing_button,
+            GameLevel::Begging => None,
+        }
+    }
+
+    pub fn get_log_name(&self) -> String {
+        match self {
+            GameLevel::Designed { meta } => match meta {
+                DesignedLevelMeta::Tutorial { index } => format!("Tutorial {index}"),
+                DesignedLevelMeta::Campaign { index } => format!("Campaign {index}"),
+            },
+            GameLevel::Begging => "Begging".to_string(),
+        }
+    }
+
+    pub fn get_level_text(&self, stage: usize, touch_enabled: bool) -> Option<String> {
+        match &self {
+            GameLevel::Designed { meta, .. } => {
+                meta.get_level().get_stage(&stage).and_then(|level_stage| {
+                    if !touch_enabled && level_stage.mouse_text.is_some() {
+                        level_stage.mouse_text.clone()
+                    } else {
+                        level_stage.text.clone()
+                    }
+                })
+            }
+            GameLevel::Begging => None,
+        }
+    }
+
+    pub fn text_color(&self) -> Color {
+        let alt = match &self {
+            GameLevel::Designed { meta } => meta.get_level().alt_text_color,
+            _ => false,
+        };
+
+        if alt {
+            color::LEVEL_TEXT_ALT_COLOR
+        } else {
+            color::LEVEL_TEXT_COLOR
+        }
+    }
+
+    pub fn text_fade(&self, stage: usize) -> bool {
+        match &self {
+            GameLevel::Designed { meta, .. } => meta
+                .get_level()
+                .get_stage(&stage)
+                .map(|x| !x.text_forever)
+                .unwrap_or(true),
+            GameLevel::Begging => true,
+        }
+    }
+
+    pub fn get_title(&self, stage: usize) -> Option<String> {
+        match &self {
+            GameLevel::Designed { meta, .. } => {
+                if stage > 0 {
+                    None
+                } else {
+                    meta.get_level().title.clone()
+                }
+            }
+            GameLevel::Begging { .. } => Some("Please buy the game!".to_string()), //users should not see this
+        }
+    }
+
+    pub fn get_level_number_text(&self, centred: bool, stage: usize) -> Option<String> {
+        match &self {
+            GameLevel::Designed { meta, .. } => {
+                if stage > 0 {
+                    None
+                } else {
+                    match meta {
+                        DesignedLevelMeta::Tutorial { .. } => None,
+                        DesignedLevelMeta::Campaign { index } => {
+                            Some(format_campaign_level_number(index, centred))
+                        }
+                    }
+                }
+            }
+            GameLevel::Begging => None,
+        }
+    }
+
+    pub fn leaderboard_id(&self) -> Option<String> {
+        if let GameLevel::Designed { meta, .. } = &self {
+            meta.get_level().leaderboard_id.clone()
+        } else {
+            None
+        }
+    }
+
     pub fn get_level_stars(&self) -> Option<LevelStars> {
         match self {
             GameLevel::Designed { meta } => meta.get_level().stars,
@@ -253,9 +351,7 @@ impl DesignedLevelMeta {
             DesignedLevelMeta::Campaign { index } => {
                 let index = index + 1;
                 if CAMPAIGN_LEVELS.get(index as usize).is_some() {
-                    {
-                        Some(Self::Campaign { index })
-                    }
+                    Some(Self::Campaign { index })
                 } else {
                     None
                 }
@@ -351,10 +447,7 @@ pub enum ChangeLevelEvent {
     Next,
     ChooseCampaignLevel { index: u8, stage: usize },
     ChooseTutorialLevel { index: u8, stage: usize },
-
-    // Previous,
     ResetLevel,
-    //StartTutorial,
     Begging,
 }
 
@@ -412,6 +505,7 @@ impl ChangeLevelEvent {
 
                     (GameLevel::Begging, 0)
                 }
+
                 GameLevel::Begging => (GameLevel::Begging, 0),
             },
             ChangeLevelEvent::ResetLevel => (level.clone(), 0),
@@ -438,4 +532,3 @@ impl ChangeLevelEvent {
         }
     }
 }
-

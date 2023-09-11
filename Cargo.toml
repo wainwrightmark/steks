@@ -20,4 +20,4 @@ opt-level = 'z'
 codegen-units = 1
 lto = 'thin'
 strip = "debuginfo"
-panic = 'abort'
+#panic = 'abort'

@@ -7,41 +7,37 @@ edition = "2021"
 [dependencies]
 rand = "0.8.5"
 itertools = "0.11"
-bevy_prototype_lyon = { version = "0.9" }
-bevy_rapier2d = { version = "0.22" }
+bevy_prototype_lyon = {version="0.9"}
+bevy_rapier2d = {version = "0.22"}
 
 strum = { version = "0.25", features = ["derive"] }
-#chrono = {version="0.4", features = ["serde", "wasmbind"]}
-#bevy_pkv = "0.8"
 
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
 base64 = "0.21"
-geometrid = { version = "0.3", features = ["glam"] }
-#serde_with = "3"
-#reqwest = { version = "0.11",default-features = false, features = ["json"] }
-#bevy_embedded_assets = "0.8"
+geometrid = {version = "0.3", features= ["glam"]}
+
+bevy_embedded_assets = "0.8"
 lazy_static = "1.4"
 serde_yaml = "0.9"
-#async-channel = "1.8"
-steks_common = { path = "../steks_common" }
-#steks_image = { path = "../steks_image" }
-
-maveric = { git = 'https://github.com/wainwrightmark/maveric', features = ["bevy_render"]}
+steks_common = {path= "../steks_common"}
+bevy_screen_diagnostics = "0.3"
+maveric= {git= 'https://github.com/wainwrightmark/maveric', features = ["widgets"]}
 serde_repr = "0.1"
-#enumset = { version = "1", features = ["serde"] }
-#resvg = { version = "0.35", default-features = false, features=["text"] }
 
-# [target.'cfg(target_arch = "wasm32")'.dependencies]
-# js-sys = { version = "0.3" }
-# wasm-bindgen = "0.2"
-# web-sys = {version = "0.3", features = ['Url', 'Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location', 'UrlSearchParams', 'CssStyleDeclaration']}
-# console_error_panic_hook = "0.1"
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = { version = "0.3" }
+wasm-bindgen = "0.2"
+web-sys = {version = "0.3", features = ['Window', 'Element', 'HtmlElement', 'HtmlCollection', 'Location',  'CssStyleDeclaration']}
+console_error_panic_hook = "0.1"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+winit = { version = "0.28", features=["x11"]}
 
 [dev-dependencies]
 insta = "1"
 test-case = "3"
+
 
 # debug=true
 
@@ -53,6 +49,7 @@ test-case = "3"
 version = "0.11"
 
 
+
 # Disable the default features if there are any that you do not want
 default-features = false
 features = [
@@ -60,50 +57,50 @@ features = [
   # (keep whichever you like)
 
   # Bevy functionality:
-  #   "bevy_gilrs",         # Gamepad input support
-  #   "bevy_audio",         # Builtin audio
-  #   "filesystem_watcher", # Asset hot-reloading
-  "bevy_winit", # Window management
-  #  "x11",                # Linux: Support X11 windowing system
-  #   "render",             # Graphics Rendering
+#   "bevy_gilrs",         # Gamepad input support
+#   "bevy_audio",         # Builtin audio
+#   "filesystem_watcher", # Asset hot-reloading
+  "bevy_winit",         # Window management
+#  "x11",                # Linux: Support X11 windowing system
+#   "render",             # Graphics Rendering
 
   ## "render" actually just includes:
   ## (feel free to use just a subset of these, instead of "render")
   "bevy_render",        # Rendering framework core
   "bevy_core_pipeline", # Higher-level rendering abstractions
   "bevy_sprite",        # 2D (sprites) rendering
-  #   "bevy_pbr",           # 3D (physically-based) rendering
-  #   "bevy_gltf",          # GLTF 3D assets format support
-  #  "bevy_text",          # Text/font rendering
-  #  "bevy_ui",            # UI toolkit
+#   "bevy_pbr",           # 3D (physically-based) rendering
+#   "bevy_gltf",          # GLTF 3D assets format support
+  "bevy_text",          # Text/font rendering
+  "bevy_ui",            # UI toolkit
   "webgl2",
 
   # File formats:
-  #"png"
-  #   "hdr",
-  #   "vorbis",
+    "png"
+#   "hdr",
+#   "vorbis",
 
   # These are other features that may be of interest:
   # (add any of these that you need)
 
   # Bevy functionality:
-  #   "wayland",              # Linux: Support Wayland windowing system
-  #   "subpixel_glyph_atlas", # Subpixel antialiasing for text/fonts
-  #   "serialize",            # Support for `serde` Serialize/Deserialize
+#   "wayland",              # Linux: Support Wayland windowing system
+#   "subpixel_glyph_atlas", # Subpixel antialiasing for text/fonts
+#   "serialize",            # Support for `serde` Serialize/Deserialize
 
   # File formats:
-  #   "bmp",
-  #   "tga",
-  #   "dds",
-  #   "jpeg",
-  #   "wav",
-  #   "flac",
-  #   "mp3",
+#   "bmp",
+#   "tga",
+#   "dds",
+#   "jpeg",
+#   "wav",
+#   "flac",
+#   "mp3",
 
   # Development/Debug features:
-  #   "dynamic",      # Dynamic linking for faster compile-times
-  #   "trace",        # Enable tracing for performance measurement
-  #   "trace_tracy",  # Tracing using `tracy`
-  #   "trace_chrome", # Tracing using the Chrome format
-  #   "wgpu_trace",   # WGPU/rendering tracing
+#   "dynamic",      # Dynamic linking for faster compile-times
+#   "trace",        # Enable tracing for performance measurement
+#   "trace_tracy",  # Tracing using `tracy`
+#   "trace_chrome", # Tracing using the Chrome format
+#   "wgpu_trace",   # WGPU/rendering tracing
 ]

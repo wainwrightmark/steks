@@ -37,7 +37,7 @@ impl FromWorld for WindowSize {
 struct WallsRoot;
 
 impl MavericRootChildren for WallsRoot {
-    type Context = NC4<WindowSize, NoContext, GameSettings, RapierConfiguration>;
+    type Context = NC4<WindowSize, Insets, GameSettings, RapierConfiguration>;
 
     fn set_children(
         context: &<Self::Context as maveric::prelude::NodeContext>::Wrapper<'_>,
@@ -55,7 +55,7 @@ impl_maveric_root!(WallsRoot);
 struct WallNode(WallPosition);
 
 impl MavericNode for WallNode {
-    type Context = NC4<WindowSize, NoContext, GameSettings, RapierConfiguration>;
+    type Context = NC4<WindowSize, Insets, GameSettings, RapierConfiguration>;
 
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
@@ -103,12 +103,13 @@ impl MavericNode for WallNode {
         });
 
         commands.insert_with_node_and_context(|node, context| {
-            let (window_size, _, settings, rapier) = context;
+            let (window_size, insets, settings, rapier) = context;
             let wall = node.0;
             let point = wall.get_position(
                 window_size.height,
                 window_size.width,
                 rapier.gravity,
+                insets,
             );
             let color = wall.color(settings);
 
@@ -190,12 +191,12 @@ const TOP_LEFT_Z: f32 = 1.0;
 const TOP_BOTTOM_OFFSET: f32 = 10.0;
 
 impl WallPosition {
-    pub fn get_position(&self, height: f32, width: f32, gravity: Vec2) -> Vec3 {
+    pub fn get_position(&self, height: f32, width: f32, gravity: Vec2, insets: &Insets) -> Vec3 {
         use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;
 
         let top_offset = if gravity.y > 0.0 {
-            (TOP_BOTTOM_OFFSET) * -1.0
+            (TOP_BOTTOM_OFFSET).max(insets.top) * -1.0
         } else {
             0.0
         };

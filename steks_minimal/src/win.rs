@@ -23,6 +23,7 @@ pub fn check_for_win(
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
+    mut global_ui: ResMut<GlobalUiState>,
 ) {
     if current_level.is_changed() {
         *countdown = WinCountdown(None);
@@ -39,8 +40,6 @@ pub fn check_for_win(
         if time_used.as_secs_f32() >= total_secs {
             countdown.0 = None;
 
-
-
             let shapes = shapes_vec_from_query(shapes_query);
 
             match current_level.completion {
@@ -52,7 +51,7 @@ pub fn check_for_win(
                         let score_info =
                             generate_score_info(&current_level.level, &shapes);
                         current_level.completion = LevelCompletion::Complete { score_info };
-
+                        global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
                     }
                 }
 
@@ -60,6 +59,7 @@ pub fn check_for_win(
                     let score_info =
                         generate_score_info(&current_level.level, &shapes);
                     if score_info.is_pb() | score_info.is_wr() {
+                        global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
                     }
 
                     current_level.completion = LevelCompletion::Complete { score_info }

@@ -1,0 +1,16 @@
+- text: "Welcome to Steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with your thumb\n\nPlace it above the triangle"
+  mouse_text: "Welcome to Steks\n\nThe game where you build towers\n\nLet's build your first tower\n\n\nGrab the square with the mouse\n\nPlace it above the triangle"
+  text_forever: true
+  show_rotate: true
+  shapes:
+    - shape: Triangle
+      x: 0.0
+      y: -150.0
+      r: 0.125
+      state: fixed
+    - shape: O4
+      x: 0
+      y: -300
+    - shape: X5
+      x: 0
+      y: 300

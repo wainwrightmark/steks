@@ -3,6 +3,10 @@ use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
 
 pub fn setup_app(app: &mut App) {
+    // When building for WASM, print panics to the browser console
+    #[cfg(target_arch = "wasm32")]
+    console_error_panic_hook::set_once();
+
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
             title: "steks".to_string(),
@@ -29,15 +33,32 @@ pub fn setup_app(app: &mut App) {
 
     app.insert_resource(Msaa::Sample4)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
-        .add_plugins(DefaultPlugins.set(window_plugin).set(log_plugin).build())
+        .add_plugins(
+            DefaultPlugins
+                .set(window_plugin)
+                .set(log_plugin)
+                .build()
+                .add_before::<bevy::asset::AssetPlugin, _>(
+                    bevy_embedded_assets::EmbeddedAssetPlugin,
+                ),
+        )
+
         .add_plugins(WallsPlugin)
+        .add_plugins(GlobalUiPlugin)
+        .add_plugins(ButtonPlugin)
         .add_plugins(SettingsPlugin)
         .add_plugins(bevy_prototype_lyon::prelude::ShapePlugin)
         .add_plugins(InputPlugin)
         .add_plugins(CameraPlugin)
+
         .add_plugins(SpiritPlugin)
+
         .add_plugins(HasActedPlugin)
         .add_plugins(FireworksPlugin)
+
+        .add_plugins(SnowPlugin)
+
+
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
         ))
@@ -45,9 +66,11 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(DragPlugin)
         .add_plugins(WinPlugin)
         .add_plugins(LevelPlugin)
+
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
-        //.insert_resource(Insets::default())
+        .insert_resource(Insets::default())
+
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,
@@ -56,14 +79,21 @@ pub fn setup_app(app: &mut App) {
             },
         });
 
+    #[cfg(target_arch = "wasm32")]
+    {
+        app.add_plugins(WASMPlugin);
+    }
+
     #[cfg(debug_assertions)]
     {
-        //use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
-        // app.add_plugins(ScreenDiagnosticsPlugin::default());
-        // app.add_plugins(ScreenFrameDiagnosticsPlugin);
+        use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
+        app.add_plugins(ScreenDiagnosticsPlugin::default());
+        app.add_plugins(ScreenFrameDiagnosticsPlugin);
 
         //app.add_plugins(RapierDebugRenderPlugin::default());
     }
+
+
 }
 
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
@@ -73,6 +103,7 @@ pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
         substeps: 1,
     }
 }
+
 
 #[cfg(test)]
 pub mod test {

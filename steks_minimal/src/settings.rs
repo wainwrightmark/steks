@@ -24,6 +24,7 @@ pub struct GameSettings {
     pub snow_enabled: bool,
 }
 
+
 impl Default for GameSettings {
     fn default() -> Self {
         Self {

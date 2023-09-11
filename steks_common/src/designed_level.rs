@@ -29,8 +29,22 @@ lazy_static::lazy_static! {
     };
 }
 
+
+lazy_static::lazy_static! {
+    pub static ref AD_LEVELS: Vec<DesignedLevel> ={
+        let s = include_str!("ad_levels.yaml");
+        let list: Vec<DesignedLevel> = serde_yaml::from_str(s).expect("Could not deserialize list of levels");
+
+        list
+    };
+}
+
 pub fn get_campaign_level(index: u8) -> Option<&'static DesignedLevel> {
     CAMPAIGN_LEVELS.get(index as usize)
+}
+
+pub fn get_ad_level(index: u8) -> Option<&'static DesignedLevel> {
+    AD_LEVELS.get(index as usize)
 }
 
 pub fn get_tutorial_level(index: u8) -> Option<&'static DesignedLevel> {
@@ -377,11 +391,20 @@ mod tests {
     }
 
     #[test]
+    pub fn test_ad_levels_deserialize() {
+        let list = &crate::designed_level::AD_LEVELS;
+        assert_eq!(list.len(), 1)
+    }
+
+    #[test]
     pub fn test_set_levels_string_lengths() {
         let levels = crate::designed_level::CAMPAIGN_LEVELS
             .iter()
             .chain(crate::designed_level::TUTORIAL_LEVELS.iter())
-            .chain(crate::designed_level::CREDITS_LEVELS.iter());
+            .chain(crate::designed_level::CREDITS_LEVELS.iter())
+            .chain(crate::designed_level::AD_LEVELS.iter())
+
+            ;
         let mut errors: Vec<String> = vec![];
         for (index, level) in levels.enumerate() {
             check_level(level, index, &mut errors);

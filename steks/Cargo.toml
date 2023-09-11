@@ -68,7 +68,7 @@ features = [
 #   "bevy_audio",         # Builtin audio
 #   "filesystem_watcher", # Asset hot-reloading
   "bevy_winit",         # Window management
-  "x11",                # Linux: Support X11 windowing system
+#  "x11",                # Linux: Support X11 windowing system
 #   "render",             # Graphics Rendering
 
   ## "render" actually just includes:

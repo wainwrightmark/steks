@@ -2,7 +2,7 @@
 members = [
 "steks",
 "steks_common",
-"steks_minimal",
+"steks_ad",
 "steks_image",
 "netlify/functions/image",
 "netlify/functions/leaderboard",

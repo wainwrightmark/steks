@@ -3905,6 +3905,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "steks_ad"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64",
+ "bevy",
+ "bevy_embedded_assets",
+ "bevy_prototype_lyon",
+ "bevy_rapier2d",
+ "bevy_screen_diagnostics",
+ "console_error_panic_hook",
+ "geometrid",
+ "insta",
+ "itertools",
+ "js-sys",
+ "lazy_static",
+ "maveric",
+ "rand",
+ "serde",
+ "serde_repr",
+ "serde_yaml",
+ "steks_common",
+ "strum",
+ "test-case",
+ "wasm-bindgen",
+ "web-sys",
+ "winit",
+]
+
+[[package]]
 name = "steks_common"
 version = "0.1.0"
 dependencies = [
@@ -3944,36 +3974,6 @@ dependencies = [
  "serde_yaml",
  "steks_common",
  "strum",
-]
-
-[[package]]
-name = "steks_minimal"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64",
- "bevy",
- "bevy_embedded_assets",
- "bevy_prototype_lyon",
- "bevy_rapier2d",
- "bevy_screen_diagnostics",
- "console_error_panic_hook",
- "geometrid",
- "insta",
- "itertools",
- "js-sys",
- "lazy_static",
- "maveric",
- "rand",
- "serde",
- "serde_repr",
- "serde_yaml",
- "steks_common",
- "strum",
- "test-case",
- "wasm-bindgen",
- "web-sys",
- "winit",
 ]
 
 [[package]]

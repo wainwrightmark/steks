@@ -13,6 +13,9 @@ use lambda_runtime::{service_fn, Error, LambdaEvent};
 
 use resvg::usvg::{fontdb, NodeKind, Tree, TreeTextToPath};
 
+include!(concat!(env!("OUT_DIR"), "/level_stars.rs"));
+
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let func = service_fn(my_handler);
@@ -177,11 +180,7 @@ impl HeightAndStars {
         let height = shapes_vec.calculate_tower_height();
         let hash = shapes_vec.hash();
 
-        let stars = CAMPAIGN_LEVELS.iter().filter(|level| {
-            let level_hash = ShapesVec::from(*level).hash();
-            level_hash == hash
-        }).flat_map(|x|x.stars).map(|x|x.get_star(height)).next();
-
+        let stars = get_level_stars(hash).map(|x|x.get_star(height));
 
 
         HeightAndStars {

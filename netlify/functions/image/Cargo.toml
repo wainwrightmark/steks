@@ -18,3 +18,7 @@ resvg = { version = "0.35", default-features = false, features=["text"] }
 [dev-dependencies]
 insta = "1.31"
 test-case = "3.1.0"
+
+
+[build-dependencies]
+steks_common = {path="../../../steks_common"}

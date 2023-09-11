@@ -2,6 +2,7 @@
 members = [
 "steks",
 "steks_common",
+"steks_minimal",
 "steks_image",
 "netlify/functions/image",
 "netlify/functions/leaderboard",
@@ -14,5 +15,9 @@ resolver = "2" # Important! wgpu/Bevy needs this!
 #opt-level = 1
 
 [profile.release]
+debug = false
 opt-level = 'z'
+codegen-units = 1
 lto = 'thin'
+strip = "debuginfo"
+panic = 'abort'

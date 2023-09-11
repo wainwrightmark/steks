@@ -2457,7 +2457,7 @@ dependencies = [
 [[package]]
 name = "maveric"
 version = "0.1.0"
-source = "git+https://github.com/wainwrightmark/maveric#1653c45d4b2354940e73630bdf42a9ccfb04e8f4"
+source = "git+https://github.com/wainwrightmark/maveric#a4012999133cfb5aeb540df225d2e2c8643d0b6a"
 dependencies = [
  "bevy",
 ]
@@ -3944,6 +3944,29 @@ dependencies = [
  "serde_yaml",
  "steks_common",
  "strum",
+]
+
+[[package]]
+name = "steks_minimal"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64",
+ "bevy",
+ "bevy_prototype_lyon",
+ "bevy_rapier2d",
+ "geometrid",
+ "insta",
+ "itertools",
+ "lazy_static",
+ "maveric",
+ "rand",
+ "serde",
+ "serde_repr",
+ "serde_yaml",
+ "steks_common",
+ "strum",
+ "test-case",
 ]
 
 [[package]]

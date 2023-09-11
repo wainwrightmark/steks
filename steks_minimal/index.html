@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta charset="utf-8" />
+    <title>Steks</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Steks" />
+    <meta property="og:url" content="www.steks.net" />
+    <meta property="og:site_name" content="Steks" />
+    <meta
+      property="og:description"
+      content="The Ultimate Tower Building Puzzle Game"
+    />
+
+    <link data-trunk rel="inline" href="styles.css" />
+  </head>
+
+  <body>
+    <div id="spinner" class="lds-roller spinner">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <link
+      rel="rust"
+      data-trunk
+      href="Cargo.toml"
+      data-bin="steks_minimal"
+      data-wasm-opt="z"
+    />
+
+    <canvas id="game"> </canvas>
+  </body>
+</html>

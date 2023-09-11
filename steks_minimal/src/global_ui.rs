@@ -36,10 +36,6 @@ impl GlobalUiState {
         matches!(self, GlobalUiState::MenuClosed(GameUIState::Minimized))
     }
 
-    pub fn is_splash(&self) -> bool {
-        matches!(self, GlobalUiState::MenuClosed(GameUIState::Splash))
-    }
-
     pub fn minimize(&mut self) {
         *self = GlobalUiState::MenuClosed(GameUIState::Minimized)
     }
@@ -93,17 +89,7 @@ impl MavericRootChildren for GlobalUiRoot {
                         }
                     }
                     LevelCompletion::Complete { score_info } => {
-                        if !current_level.level.skip_completion() {
-                            commands.add_child(
-                                "panel",
-                                MainPanelWrapper {
-                                    score_info,
-                                    ui_state: ui_state.clone(),
-                                    level: current_level.level.clone(),
-                                },
-                                asset_server,
-                            )
-                        }
+
                     }
                 };
             }

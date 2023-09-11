@@ -131,9 +131,6 @@ fn icon_button_system(
                 MinimizeSplash => {
                     *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
                 }
-                RestoreSplash => {
-                    *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Splash);
-                }
 
                 GooglePlay | Apple | Steam | None => {}
 

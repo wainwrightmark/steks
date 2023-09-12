@@ -375,7 +375,9 @@ impl MavericNode for MainPanel {
                         );
                     }
 
-                    let bottom_icons = if cfg!(any(feature = "android", feature = "ios")) {
+                    let bottom_icons = if cfg!(any(feature = "android", feature = "ios"))
+                        && args.level.leaderboard_id().is_some()
+                    {
                         [
                             IconButton::ShowLeaderboard,
                             IconButton::Share,

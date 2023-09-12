@@ -58,7 +58,7 @@ impl MavericNode for MenuPage {
                     #[cfg(feature = "web")]
                     Begging,
                     DailyChallenge,
-                    #[cfg(all(feature = "android", target_arch = "wasm32"))]
+                    #[cfg(any(feature = "android", feature = "ios"))]
                     Infinite,
                     Tutorial,
                     Share,

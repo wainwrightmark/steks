@@ -258,7 +258,7 @@ fn update_leaderboard_on_completion(
                 if let Some(leaderboard_id) = current_level.leaderboard_id() {
                     use capacitor_bindings::game_connect::*;
                     let options = SubmitScoreOptions {
-                        total_score_amount: height.floor(), //This amount needs to be an integer grrr
+                        total_score_amount: (height * 100.0).floor(), //scaled to two decimal places
                         leaderboard_id,
                     };
 

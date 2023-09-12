@@ -29,7 +29,6 @@ lazy_static::lazy_static! {
     };
 }
 
-
 lazy_static::lazy_static! {
     pub static ref AD_LEVELS: Vec<DesignedLevel> ={
         let s = include_str!("ad_levels.yaml");
@@ -236,6 +235,8 @@ pub struct ShapeCreation {
     pub color: Option<(u8, u8, u8)>,
 }
 
+
+
 impl From<EncodableShape> for ShapeCreation {
     fn from(value: EncodableShape) -> Self {
         Self {
@@ -402,9 +403,7 @@ mod tests {
             .iter()
             .chain(crate::designed_level::TUTORIAL_LEVELS.iter())
             .chain(crate::designed_level::CREDITS_LEVELS.iter())
-            .chain(crate::designed_level::AD_LEVELS.iter())
-
-            ;
+            .chain(crate::designed_level::AD_LEVELS.iter());
         let mut errors: Vec<String> = vec![];
         for (index, level) in levels.enumerate() {
             check_level(level, index, &mut errors);

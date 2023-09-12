@@ -88,6 +88,11 @@ impl ShapeModifiers {
 }
 
 impl ShapeState {
+
+    pub fn fuzzy_match(&self, other: &Self)-> bool{
+        self == other || ((self.is_normal() || self.is_locked()  ) && (other.is_normal() || other.is_locked()))
+    }
+
     pub fn fill(&self) -> Option<Fill> {
         if *self == ShapeState::Fixed {
             Some(Fill {

@@ -60,6 +60,12 @@ pub fn check_for_win(
 
             let shapes = shapes_vec_from_query(shapes_query);
 
+            // for shape in shapes.iter(){
+            //     info!("{shape:?}");
+            // }
+
+            let saved_data = shapes.make_bytes();
+            current_level.saved_data = Some(saved_data);
             match current_level.completion {
                 LevelCompletion::Incomplete { stage } => {
                     let next_stage = stage + 1;

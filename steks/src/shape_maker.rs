@@ -17,7 +17,7 @@ pub fn spawn_and_update_shapes(
         &ShapeIndex,
         &Transform,
     )>,
-    mut recently_finished: Local<bool>,
+    mut queue_spawn_event: Local<bool>,
 
     mut check_win: EventWriter<CheckForTowerEvent>,
     settings: Res<GameSettings>,
@@ -27,6 +27,7 @@ pub fn spawn_and_update_shapes(
 
     let mut created = false;
     let mut changed = false;
+    let mut should_spawn_event = false;
 
     'creation: while !creation_queue.is_empty() || !update_queue.is_empty() {
         if created {
@@ -41,7 +42,7 @@ pub fn spawn_and_update_shapes(
 
         if let Some(creation) = creation_queue.pop() {
             let mut rng = rand::thread_rng();
-
+            should_spawn_event = !creation.from_saved_game;
             place_and_create_shape(
                 &mut commands,
                 creation,
@@ -65,6 +66,7 @@ pub fn spawn_and_update_shapes(
                     &settings,
                 );
                 changed = true;
+                should_spawn_event = true;
             } else {
                 error!("Could not find shape with id {}", update.id);
             }
@@ -74,13 +76,14 @@ pub fn spawn_and_update_shapes(
     //info!("Spawn and update shapes {} {}", creation_queue.len(), update_queue.len());
 
     if changed {
-        *recently_finished = true;
+        *queue_spawn_event = should_spawn_event;
     } else {
-        if *recently_finished {
+        if *queue_spawn_event {
             //send this event one frame after spawning shapes
+            info!("Sending check for tower event");
             check_win.send(CheckForTowerEvent);
         }
-        *recently_finished = false;
+        *queue_spawn_event = false;
     }
 }
 
@@ -95,7 +98,8 @@ pub fn place_and_create_shape<RNG: rand::Rng>(
         bevy::log::debug!(
             "Placed shape {} at {}",
             shape_with_data.shape.name,
-            l.position
+            l.position,
+
         );
         l
     } else {
@@ -182,8 +186,9 @@ pub fn create_shape(
     settings: &GameSettings,
 ) {
     debug!(
-        "Creating {} in state {:?} {:?}",
-        shape_with_data.shape, shape_with_data.state, shape_with_data.id
+        "Creating {} in state {:?} {:?} {}",
+        shape_with_data.shape, shape_with_data.state, shape_with_data.id,
+        if shape_with_data.from_saved_game{"(from saved)"} else{""}
     );
 
     let collider_shape = shape_with_data.shape.body.to_collider_shape(SHAPE_SIZE);

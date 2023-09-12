@@ -12,6 +12,7 @@ pub struct ShapeCreationData {
     pub id: Option<u32>,
     pub color: Option<Color>,
     pub stage: ShapeStage,
+    pub from_saved_game: bool
 }
 
 pub fn add_components(state: &ShapeState, ec: &mut EntityCommands) {
@@ -110,6 +111,27 @@ impl ShapeCreationData {
     pub fn velocity_component(&self) -> Velocity {
         self.velocity.unwrap_or_default()
     }
+
+    pub fn apply_update(&mut self, update: &ShapeUpdateData){
+        Self::update_if_some(&mut self.shape, update.shape);
+        Self::update_option_if_some(&mut self.location, update.location);
+        Self::update_if_some(&mut self.state, update.state);
+        Self::update_option_if_some(&mut self.velocity, update.velocity);
+        self.modifiers = update.modifiers;
+        Self::update_option_if_some(&mut self.color, update.color);
+    }
+
+    fn update_if_some<T>(base: &mut T, option: Option<T>){
+        if let Some(new_value) = option{
+            *base = new_value;
+        }
+    }
+
+    fn update_option_if_some<T>(base: &mut Option<T>, option: Option<T>){
+        if let Some(new_value) = option{
+            *base = Some(new_value);
+        }
+    }
 }
 
 impl ShapeCreationData {
@@ -130,6 +152,7 @@ impl ShapeCreationData {
             id: None,
             color: None,
             stage,
+            from_saved_game: false
         }
     }
 
@@ -177,6 +200,7 @@ impl ShapeCreationData {
             id: shape_creation.id,
             color: shape_creation.color.map(|(r, g, b)| Color::rgb_u8(r, g, b)),
             stage,
+            from_saved_game: false
         }
     }
 
@@ -190,7 +214,15 @@ impl ShapeCreationData {
             id: None,
             color: None,
             stage,
+            from_saved_game: false
         }
+    }
+
+    pub fn fuzzy_match(&self, encodable: &EncodableShape) -> bool {
+        let matched = self.shape.index == encodable.shape.index
+            && self.modifiers == encodable.modifiers
+            && self.state.fuzzy_match(&encodable.state);
+            matched
     }
 
     pub fn with_location(mut self, position: Vec2, angle: f32) -> Self {

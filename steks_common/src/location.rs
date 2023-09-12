@@ -3,6 +3,7 @@ use bevy::prelude::{Quat, Transform, Vec2, Vec3};
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Location {
     pub position: Vec2,
+    /// angle in radians
     pub angle: f32,
 }
 

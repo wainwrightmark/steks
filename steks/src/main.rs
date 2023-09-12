@@ -8,6 +8,7 @@ pub mod async_event_writer;
 pub mod button;
 pub mod camera;
 pub mod collision;
+pub mod constants;
 pub mod demo;
 pub mod draggable;
 pub mod fireworks;
@@ -20,11 +21,11 @@ pub mod insets;
 pub mod leaderboard;
 pub mod level;
 pub mod level_text_panel;
+pub mod level_transition;
 pub mod level_ui;
 pub mod logging;
 pub mod menu;
 pub mod news;
-pub mod constants;
 #[cfg(target_arch = "wasm32")]
 pub mod notifications;
 pub mod padlock;
@@ -59,13 +60,13 @@ pub mod prelude {
     pub use std::time::Duration;
     pub use steks_common::prelude::*;
 
-    pub use crate::constants::*;
     pub use crate::achievements::*;
     pub use crate::app_redirect::*;
     pub use crate::async_event_writer::*;
     pub use crate::button::*;
     pub use crate::camera::*;
     pub use crate::collision::*;
+    pub use crate::constants::*;
     pub use crate::demo::*;
     pub use crate::draggable::*;
     pub use crate::fireworks::*;
@@ -78,6 +79,7 @@ pub mod prelude {
     pub use crate::leaderboard::*;
     pub use crate::level::*;
     pub use crate::level_text_panel::*;
+    pub use crate::level_transition::*;
     pub use crate::level_ui::*;
     pub use crate::menu::*;
     pub use crate::news::*;

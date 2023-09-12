@@ -22,53 +22,6 @@ impl Plugin for LevelPlugin {
     }
 }
 
-fn create_initial_shapes(level: &GameLevel, event_writer: &mut EventWriter<ShapeCreationData>) {
-    let mut shapes: Vec<ShapeCreationData> = match level {
-        GameLevel::Designed { meta, .. } => match meta.get_level().get_stage(&0) {
-            Some(stage) => stage
-                .shapes
-                .iter()
-                .map(|&shape_creation| {
-                    ShapeCreationData::from_shape_creation(shape_creation, ShapeStage(0))
-                })
-                .collect_vec(),
-            None => vec![],
-        },
-        GameLevel::Loaded { bytes } => decode_shapes(bytes)
-            .into_iter()
-            .map(|encodable_shape| {
-                ShapeCreationData::from_encodable(encodable_shape, ShapeStage(0))
-            })
-            .collect_vec(),
-        GameLevel::Challenge { date, .. } => {
-            //let today = get_today_date();
-            let seed =
-                ((date.year().unsigned_abs() * 2000) + (date.month() * 100) + date.day()) as u64;
-            (0..CHALLENGE_SHAPES)
-                .map(|i| {
-                    ShapeCreationData::from_shape_index(
-                        ShapeIndex::from_seed_no_circle(seed + i as u64),
-                        ShapeStage(0),
-                    )
-                    .with_random_velocity()
-                })
-                .collect_vec()
-        }
-
-        GameLevel::Infinite { seed } => {
-            infinity::get_all_shapes(*seed, INFINITE_MODE_STARTING_SHAPES)
-        }
-
-        GameLevel::Begging => {
-            vec![]
-        }
-    };
-
-    shapes.sort_by_key(|x| (x.state.is_locked(), x.location.is_some()));
-
-    event_writer.send_batch(shapes);
-}
-
 fn manage_level_shapes(
     mut commands: Commands,
     draggables: Query<((Entity, &ShapeIndex), With<ShapeComponent>)>,
@@ -77,64 +30,28 @@ fn manage_level_shapes(
     mut shape_creation_events: EventWriter<ShapeCreationData>,
     mut shape_update_events: EventWriter<ShapeUpdateData>,
 ) {
-    if current_level.is_changed() {
-        let previous_stage = match previous_level.compare(&current_level) {
-            PreviousLevelType::DifferentLevel => None,
-            PreviousLevelType::SameLevelSameStage => {
-                return;
-            }
-            PreviousLevelType::SameLevelEarlierStage(previous_stage) => {
-                if current_level.completion.is_complete() {
-                    return;
-                }
-                Some(previous_stage)
-            }
-        };
+    if !current_level.is_changed() {
+        return;
+    }
 
-        let current_stage = current_level.get_current_stage();
+    let mut result = LevelTransitionResult::from_level(current_level.as_ref(), previous_level.as_ref());
 
-        if current_stage == 0 || previous_stage.is_none() {
-            for ((e, _), _) in draggables.iter() {
-                commands.entity(e).despawn_recursive();
-            }
-            create_initial_shapes(&current_level.level, &mut shape_creation_events);
-        }
-
-        if current_stage > 0 {
-            let previous_stage = previous_stage.unwrap_or_default();
-            match &current_level.as_ref().level {
-                GameLevel::Designed { meta, .. } => {
-                    for stage in (previous_stage + 1)..=(current_stage) {
-                        if let Some(level_stage) = meta.get_level().get_stage(&stage) {
-                            for creation in level_stage.shapes.iter() {
-                                shape_creation_events.send(ShapeCreationData::from_shape_creation(
-                                    *creation,
-                                    ShapeStage(stage),
-                                ))
-                            }
-
-                            for update in level_stage.updates.iter() {
-                                shape_update_events.send((*update).into())
-                            }
-                        }
-                    }
-                }
-                GameLevel::Infinite { seed } => {
-                    let next_shapes = infinity::get_all_shapes(
-                        *seed,
-                        current_stage + INFINITE_MODE_STARTING_SHAPES,
-                    );
-                    shape_creation_events.send_batch(
-                        next_shapes
-                            .into_iter()
-                            .skip(INFINITE_MODE_STARTING_SHAPES + previous_stage),
-                    );
-                }
-                GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => {}
-                GameLevel::Begging => {}
-            }
+    if result.despawn_existing{
+        for ((e, _), _) in draggables.iter() {
+            commands.entity(e).despawn_recursive();
         }
     }
+
+    if previous_level.0.is_none(){
+        if let Some(saved_data) = &current_level.saved_data{
+            let sv = ShapesVec(decode_shapes(&saved_data));
+
+            result.mogrify(sv);
+        }
+    }
+
+    shape_creation_events.send_batch(result.creations);
+    shape_update_events.send_batch(result.updates);
 }
 
 fn handle_change_level_events(
@@ -156,7 +73,11 @@ fn handle_change_level_events(
         }
         let completion = LevelCompletion::Incomplete { stage };
 
-        current_level.set_if_neq(CurrentLevel { level, completion });
+        current_level.set_if_neq(CurrentLevel {
+            level,
+            completion,
+            saved_data: None,
+        });
 
         *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
     }
@@ -182,6 +103,7 @@ fn choose_level_on_game_load(mut _change_level_events: EventWriter<ChangeLevelEv
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
+    pub saved_data: Option<Vec<u8>>,
 }
 
 #[derive(Default, Resource, Debug, PartialEq)]

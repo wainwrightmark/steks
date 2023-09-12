@@ -1,5 +1,5 @@
-use crate::{infinity, prelude::*, startup};
-use chrono::{Datelike, Days, NaiveDate};
+use crate::{prelude::*, startup};
+use chrono::{Days, NaiveDate};
 use itertools::Itertools;
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
@@ -34,16 +34,17 @@ fn manage_level_shapes(
         return;
     }
 
-    let mut result = LevelTransitionResult::from_level(current_level.as_ref(), previous_level.as_ref());
+    let mut result =
+        LevelTransitionResult::from_level(current_level.as_ref(), previous_level.as_ref());
 
-    if result.despawn_existing{
+    if result.despawn_existing {
         for ((e, _), _) in draggables.iter() {
             commands.entity(e).despawn_recursive();
         }
     }
 
-    if previous_level.0.is_none(){
-        if let Some(saved_data) = &current_level.saved_data{
+    if previous_level.0.is_none() {
+        if let Some(saved_data) = &current_level.saved_data {
             let sv = ShapesVec(decode_shapes(&saved_data));
 
             result.mogrify(sv);
@@ -566,7 +567,11 @@ impl ChangeLevelEvent {
             return Some(ChangeLevelEvent::make_custom(data.as_str()));
         }
 
-        bevy::log::warn!("Could not get game from path: {path}");
+        if path.to_ascii_lowercase().starts_with("/cheat") {
+        } else if path.to_ascii_lowercase().starts_with("/theft") {
+        } else {
+            bevy::log::warn!("Could not get game from path: {path}");
+        }
 
         None
     }

@@ -36,7 +36,6 @@ lazy_static! {
 }
 
 fn check_is_full_game() -> Option<()> {
-    info!("Checking demo");
     #[cfg(feature = "web")]
     {
         #[cfg(target_arch = "wasm32")]

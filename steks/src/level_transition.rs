@@ -168,7 +168,7 @@ impl LevelTransitionResult {
                 new_creations.push(creation);
             }
             else{
-                warn!("Could not load encodable shape");
+                debug!("Could not load encodable shape"); //This is probably because the shape has changed in an update
             }
 
             //else ignore this

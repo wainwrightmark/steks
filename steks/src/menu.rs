@@ -52,26 +52,48 @@ impl MavericNode for MenuPage {
             MenuPage::Main => {
                 use TextButton::*;
 
-                let buttons = [
-                    Resume,
-                    ChooseLevel,
-                    #[cfg(feature = "web")]
-                    Begging,
-                    DailyChallenge,
-                    #[cfg(any(feature = "android", feature = "ios"))]
-                    Infinite,
-                    Tutorial,
-                    Share,
-                    OpenSettings,
-                    News,
-                    // #[cfg(feature = "web")]
-                    // ClipboardImport,
-                    #[cfg(all(feature = "web", target_arch = "wasm32"))]
-                    GoFullscreen,
-                    Credits,
-                    #[cfg(all(feature = "android", target_arch = "wasm32"))]
-                    MinimizeApp,
-                ];
+                let buttons: &[TextButton] =
+                if *IS_FULL_GAME{
+                    &[
+                        Resume,
+                        ChooseLevel,
+                        #[cfg(feature = "web")]
+                        Begging,
+                        DailyChallenge,
+                        Infinite,
+                        Tutorial,
+                        Share,
+                        OpenSettings,
+                        News,
+                        // #[cfg(feature = "web")]
+                        // ClipboardImport,
+                        #[cfg(all(feature = "web", target_arch = "wasm32"))]
+                        GoFullscreen,
+                        Credits,
+                        #[cfg(all(feature = "android", target_arch = "wasm32"))]
+                        MinimizeApp,
+                    ]
+                }
+                else{
+                    &[
+                        Resume,
+                        ChooseLevel,
+                        #[cfg(feature = "web")]
+                        Begging,
+                        DailyChallenge,
+                        Tutorial,
+                        Share,
+                        OpenSettings,
+                        News,
+                        // #[cfg(feature = "web")]
+                        // ClipboardImport,
+                        #[cfg(all(feature = "web", target_arch = "wasm32"))]
+                        GoFullscreen,
+                        Credits,
+                        #[cfg(all(feature = "android", target_arch = "wasm32"))]
+                        MinimizeApp,
+                    ]
+                };
 
                 for (key, action) in buttons
                     .iter()

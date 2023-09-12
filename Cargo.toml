@@ -6,6 +6,7 @@ members = [
 "steks_image",
 "netlify/functions/image",
 "netlify/functions/leaderboard",
+"ad_postbuild"
 ]
 default-members = ["steks"]
 resolver = "2" # Important! wgpu/Bevy needs this!

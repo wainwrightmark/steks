@@ -16,7 +16,7 @@ impl MavericNode for LevelTextPanel {
         commands.ignore_node().ignore_context().insert(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
-                top: Val::Percent(30.0),
+                top: Val::Percent(10.0),
                 display: Display::Flex,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,

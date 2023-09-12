@@ -1,4 +1,5 @@
-- text: "This is an ad for steks\n\nThe game where you build towers\n\nBuild a tower with these four shapes"
+- title: "steks"
+  text: "Tower building puzzle game\n\nBuild a tower with the shapes"
 
   text_forever: true
   show_rotate: true
@@ -9,17 +10,17 @@
       r: 0.125
       state: fixed
     - shape: O4
-      x: -150
-      y: -300
+      x: -100
+      y: -100
       vel_x: 0.0
       vel_y: 0.0
     - shape: X5
-      x: 150
-      y: -300
+      x: 100
+      y: -100
       vel_x: 0.0
       vel_y: 0.0
     - shape: U5
       x: 0
-      y: -300
+      y: -100
       vel_x: 0.0
       vel_y: 0.0

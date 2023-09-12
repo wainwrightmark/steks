@@ -59,8 +59,8 @@ impl ShapesVec {
     }
 
     pub fn calculate_tower_height(&self) -> f32 {
-        let mut min = WINDOW_HEIGHT;
-        let mut max = -WINDOW_HEIGHT;
+        let mut min = MAX_WINDOW_HEIGHT;
+        let mut max = -MAX_WINDOW_HEIGHT;
 
         for EncodableShape {
             shape,

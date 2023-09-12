@@ -58,7 +58,7 @@ impl MavericRootChildren for GlobalUiRoot {
         //info!("{:?}", context.0.as_ref());
 
         match context.0.as_ref() {
-            GlobalUiState::MenuClosed(ui_state) => {
+            GlobalUiState::MenuClosed(..) => {
                 let current_level = context.1.as_ref();
                 let asset_server = &context.2 .3;
 
@@ -88,7 +88,7 @@ impl MavericRootChildren for GlobalUiRoot {
                             );
                         }
                     }
-                    LevelCompletion::Complete { score_info } => {
+                    LevelCompletion::Complete { .. } => {
 
                     }
                 };

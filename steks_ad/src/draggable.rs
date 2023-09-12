@@ -1,4 +1,3 @@
-use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
 use steks_common::constants;
 
@@ -449,47 +448,8 @@ pub fn drag_start(
     >,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
-
-    mut global_ui_state: ResMut<GlobalUiState>,
-    //current_level: Res<CurrentLevel>,
-    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<Button>>,
-    windows: Query<&Window, With<PrimaryWindow>>,
 ) {
-    'events: for event in er_drag_start.iter() {
-        match global_ui_state.as_ref() {
-            GlobalUiState::MenuClosed(GameUIState::Minimized) => {}
-            _ => {
-                if let Ok(window) = windows.get_single() {
-                    let event_ui_position = Vec2 {
-                        x: event.position.x + (window.width() * 0.5),
-                        y: (window.height() * 0.5) - event.position.y,
-                    };
-                    let mut captured = false;
-                    'capture: for (node, global_transform, _) in
-                        node_query.iter().filter(|x| x.2.is_visible())
-                    {
-                        let node_position = global_transform.translation().truncate();
-
-                        let half_size = 0.5 * node.size();
-                        let min = node_position - half_size;
-                        let max = node_position + half_size;
-
-                        if (min.x..max.x).contains(&event_ui_position.x)
-                            && (min.y..max.y).contains(&event_ui_position.y)
-                        {
-                            captured = true;
-                            break 'capture;
-                        }
-                    }
-
-                    if !captured {
-                        global_ui_state.minimize();
-                    }
-                }
-                continue 'events;
-            }
-        }
-
+    for event in er_drag_start.iter() {
         if draggables.iter().all(|x| !x.0.is_dragged()) {
             rapier_context.intersections_with_point(event.position, default(), |entity| {
                 if let Ok((mut draggable, transform)) = draggables.get_mut(entity) {

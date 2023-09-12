@@ -36,22 +36,9 @@ impl MavericNode for GetTheGamePanel {
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.ignore_node().unordered_children_with_context(
             |context: &Res<'_, AssetServer>, commands| {
-                // let google = image_button_node(
-                //     IconButton::GooglePlay,
-                //     "images/google-play-badge.png",
-                //     BadgeButtonStyle,
-                //     BadgeImageStyle,
-                // );
-                // let apple = image_button_node(
-                //     IconButton::Apple,
-                //     "images/apple-store-badge.png",
-                //     BadgeButtonStyle,
-                //     BadgeImageStyle,
-                // );
                 commands.add_child(0,
                     text_button_node(TextButton::GetTheGame, true, false)
                     , context);
-                //commands.add_child(1, apple, context);
             },
         );
     }

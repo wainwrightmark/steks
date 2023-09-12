@@ -23,7 +23,6 @@ pub fn check_for_win(
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
-    mut global_ui: ResMut<GlobalUiState>,
 ) {
     if current_level.is_changed() {
         *countdown = WinCountdown(None);

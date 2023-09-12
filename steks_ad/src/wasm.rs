@@ -3,10 +3,10 @@ use wasm_bindgen::prelude::*;
 
 use bevy::window::{PrimaryWindow, WindowResized};
 
-#[wasm_bindgen(inline_js = "export function google_ads_exit_app() { ExitApi.exit(); }")]
+#[wasm_bindgen]
 extern "C" {
 
-    #[wasm_bindgen(js_name = google_ads_exit_app)]
+    #[wasm_bindgen(js_name = exit, js_namespace= ["ExitApi"])]
     pub fn google_ads_exit_app();
 }
 

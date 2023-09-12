@@ -6,25 +6,28 @@ use bevy_prototype_lyon::{prelude::*, shapes::RoundedPolygon};
 use bevy_rapier2d::prelude::Collider;
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
-pub struct Triangle<const SQUARES: usize>(pub &'static [(isize, isize); 3]);
+pub struct Triangle(pub &'static [(isize, isize); 3]);
 
-impl<const S: usize> GameShapeBody for Triangle<S> {
+const ROOT_SQUARES: f32 = 2.0;
+
+impl GameShapeBody for Triangle {
     fn to_collider_shape(&self, shape_size: f32) -> Collider {
-        let u = (1.0 - (1.5 * SHAPE_RADIUS_RATIO)) * shape_size / (1.0 * f32::sqrt(S as f32));
+        let u = (1.0 - (SHAPE_RADIUS_RATIO / (1.0 - SHAPE_RADIUS_RATIO))) * shape_size
+            / (1.0 * ROOT_SQUARES);
         let shape_radius = shape_size * SHAPE_RADIUS_RATIO;
 
         let vertices = [
             Vec2 {
-                x: self.0[0].0 as f32 * u * 1.00,
-                y: self.0[0].1 as f32 * u * 1.00,
+                x: self.0[0].0 as f32 * u,
+                y: self.0[0].1 as f32 * u,
             },
             Vec2 {
-                x: self.0[1].0 as f32 * u * 1.05,
-                y: self.0[1].1 as f32 * u * 1.00,
+                x: self.0[1].0 as f32 * u * 1.00,
+                y: self.0[1].1 as f32 * u * 0.985, //The 0.985s are for if two triangles are sliding against each other
             },
             Vec2 {
-                x: self.0[2].0 as f32 * u * 1.00,
-                y: self.0[2].1 as f32 * u * 1.05,
+                x: self.0[2].0 as f32 * u * 0.985, //
+                y: self.0[2].1 as f32 * u * 1.00,
             },
         ];
 
@@ -36,11 +39,10 @@ impl<const S: usize> GameShapeBody for Triangle<S> {
             &start_indices,
             shape_radius * 0.5 / PHYSICS_SCALE,
         )
-        //Collider::convex_decomposition(&vertices, &start_indices)//,  shape_radius / PHYSICS_SCALE )
     }
 
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle {
-        let u = shape_size / (1.0 * f32::sqrt(S as f32));
+        let u = shape_size / (1.0 * ROOT_SQUARES);
 
         let shape = RoundedPolygon {
             points: self
@@ -80,7 +82,7 @@ impl<const S: usize> GameShapeBody for Triangle<S> {
     }
 
     fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String {
-        let u = size / (1.0 * f32::sqrt(S as f32));
+        let u = size / (1.0 * ROOT_SQUARES);
         let points = self
             .0
             .map(|(x, y)| Vec2::new((x as f32) * u, (y as f32) * u));

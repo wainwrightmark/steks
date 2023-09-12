@@ -1,217 +1,408 @@
 use std::sync::Arc;
 
-use lazy_static::lazy_static;
-use state_hierarchy::prelude::*;
-use steks_common::constants;
-
 use crate::prelude::*;
+use maveric::{prelude::*, transition::speed::LinearSpeed};
 
-pub(crate) fn menu_button_node() -> TextButtonNode<ButtonComponent> {
-    TextButtonNode {
-        text: ButtonAction::OpenMenu.icon(),
-        text_node_style: ICON_BUTTON_TEXT_STYLE.clone(),
-        button_node_style: OPEN_MENU_BUTTON_STYLE.clone(),
-        marker: ButtonComponent {
-            disabled: false,
-            button_action: ButtonAction::OpenMenu,
-            button_type: ButtonType::Icon,
-        },
+pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
+    text: T,
+) -> TextNode<T> {
+    TextNode {
+        text,
+        font_size: LEVEL_TEXT_FONT_SIZE,
+        color: LEVEL_TEXT_COLOR,
+        font: LEVEL_TEXT_FONT_PATH,
+        alignment: TextAlignment::Center,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
     }
 }
 
-pub(crate) fn icon_button_node(button_action: ButtonAction) -> TextButtonNode<ButtonComponent> {
-    TextButtonNode {
-        text: button_action.icon(),
-        text_node_style: ICON_BUTTON_TEXT_STYLE.clone(),
-        button_node_style: ICON_BUTTON_STYLE.clone(),
-        marker: ButtonComponent {
+pub(crate) fn icon_button_node(
+    button_action: IconButton,
+    style: IconButtonStyle,
+) -> impl MavericNode<Context = AssetServer> {
+    let font_size = style.icon_font_size();
+    ButtonNode {
+        background_color: Color::NONE,
+        visibility: Visibility::Visible,
+        border_color: Color::NONE,
+        marker: IconButtonComponent {
             disabled: false,
             button_action,
             button_type: ButtonType::Icon,
         },
+        style,
+        children: (TextNode {
+            text: button_action.icon(),
+            font_size,
+            color: BUTTON_TEXT_COLOR,
+            font: ICON_FONT_PATH,
+            alignment: TextAlignment::Left,
+            linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+        },),
     }
 }
 
+pub(crate) fn flashing_icon_button_node(
+    button_action: IconButton,
+    style: IconButtonStyle,
+) -> impl MavericNode<Context = AssetServer> {
+    let font_size = style.icon_font_size();
 
-pub(crate) fn image_button_node(button_action: ButtonAction, image_handle: &'static str) -> ImageButtonNode<ButtonComponent> {
-    ImageButtonNode {
-        image_handle,
-        button_node_style: IMAGE_BUTTON_STYLE.clone(),
-        marker: ButtonComponent {
+    let transition: Arc<TransitionStep<TransformScaleLens>> = TransitionStep::new_cycle(
+        [
+            (Vec3::ONE * 1.4, LinearSpeed::new(0.4)),
+            (Vec3::ONE * 1.0, LinearSpeed::new(0.4)),
+        ]
+        .into_iter(),
+    );
+
+    let node = TextNode {
+        text: button_action.icon(),
+        font_size,
+        color: BUTTON_TEXT_COLOR,
+        font: ICON_FONT_PATH,
+        alignment: TextAlignment::Left,
+        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+    };
+
+    let node_with_transition = node.with_transition(Vec3::ONE, transition, ());
+
+    ButtonNode {
+        background_color: Color::NONE,
+        visibility: Visibility::Visible,
+        border_color: Color::NONE,
+        marker: IconButtonComponent {
+            disabled: false,
+            button_action,
+            button_type: ButtonType::Icon,
+        },
+        style,
+        children: (node_with_transition,),
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum IconButtonStyle {
+    HeightPadded,
+    Compact,
+    Menu,
+    News,
+    Snow,
+    Big,
+}
+
+impl IconButtonStyle {
+    pub fn icon_font_size(&self) -> f32 {
+        match self {
+            IconButtonStyle::Big => ICON_FONT_SIZE * 2.0,
+            _ => ICON_FONT_SIZE,
+        }
+    }
+}
+
+impl IntoBundle for IconButtonStyle {
+    type B = Style;
+
+    fn into_bundle(self) -> Self::B {
+        match self {
+            IconButtonStyle::HeightPadded => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT),
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                ..Default::default()
+            },
+            IconButtonStyle::Compact => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(COMPACT_ICON_BUTTON_HEIGHT),
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                ..Default::default()
+            },
+            IconButtonStyle::Big => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT * 1.5),
+                margin: UiRect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                ..Default::default()
+            },
+            IconButtonStyle::Menu => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT),
+                margin: UiRect::DEFAULT,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                left: Val::Percent(0.0),
+                top: Val::Percent(0.0),
+
+                ..Default::default()
+            },
+            IconButtonStyle::News => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT),
+                margin: UiRect::DEFAULT,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                left: Val::Auto,
+                top: Val::Percent(0.0),
+
+                ..Default::default()
+            },
+            IconButtonStyle::Snow => Style {
+                width: Val::Px(ICON_BUTTON_WIDTH),
+                height: Val::Px(ICON_BUTTON_HEIGHT),
+                margin: UiRect::DEFAULT,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+                right: Val::Percent(0.0),
+                top: Val::Percent(0.0),
+
+                ..Default::default()
+            },
+        }
+    }
+}
+
+pub(crate) fn image_button_node(
+    button_action: IconButton,
+    image_path: &'static str,
+    button_node_style: impl IntoBundle<B = Style>,
+    image_style: impl IntoBundle<B = Style>,
+) -> impl MavericNode<Context = AssetServer> {
+    ButtonNode {
+        style: button_node_style,
+        visibility: Visibility::Visible,
+        border_color: Color::NONE,
+        background_color: Color::NONE,
+        //button_node_style,
+        marker: IconButtonComponent {
             disabled: false,
             button_action,
             button_type: ButtonType::Image,
         },
+        children: (ImageNode {
+            style: image_style,
+            path: image_path,
+            background_color: Color::WHITE,
+        },),
     }
 }
 
-pub(crate) fn text_button_node(button_action: ButtonAction, centred: bool) -> TextButtonNode<ButtonComponent> {
-    text_button_node_with_text(button_action, button_action.text(), centred)
+pub(crate) fn text_button_node(
+    button_action: TextButton,
+    centred: bool,
+    disabled: bool,
+) -> impl MavericNode<Context = AssetServer> {
+    text_button_node_with_text(button_action, button_action.text(), centred, disabled)
 }
 
 pub(crate) fn text_button_node_with_text(
-    button_action: ButtonAction,
+    button_action: TextButton,
     text: String,
-    centred:bool
-) -> TextButtonNode<ButtonComponent> {
+    centred: bool,
+    disabled: bool,
+) -> impl MavericNode<Context = AssetServer> {
+    let (background_color, color, border_color) =
+        (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
 
-    let button_node_style = if centred{
-        TEXT_BUTTON_STYLE_CENTRED.clone()
-    }else{
-        TEXT_BUTTON_STYLE_LEFT.clone()
+    let style = if button_action.emphasize() {
+        TextButtonStyle::Fat
+    } else {
+        TextButtonStyle::Normal
     };
-    TextButtonNode {
-        text,
-        text_node_style: TEXT_BUTTON_TEXT_STYLE.clone(),
-        button_node_style,
-        marker: ButtonComponent {
-            disabled: false,
+
+    ButtonNode {
+        style,
+        visibility: Visibility::Visible,
+        background_color,
+        border_color,
+        marker: TextButtonComponent {
+            disabled,
             button_action,
             button_type: ButtonType::Text,
         },
+        children: (TextNode {
+            text: text.clone(),
+            font_size: BUTTON_FONT_SIZE,
+            color,
+            font: MENU_TEXT_FONT_PATH,
+            alignment: if centred {
+                TextAlignment::Center
+            } else {
+                TextAlignment::Left
+            },
+            linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+        },),
     }
 }
 
-lazy_static! {
-    pub(crate) static ref ICON_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
-        style: Style {
-            width: Val::Px(ICON_BUTTON_WIDTH),
-            height: Val::Px(ICON_BUTTON_HEIGHT),
-            margin: UiRect::all(Val::Auto),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
+#[derive(Debug, PartialEq, Clone)]
+pub enum TextButtonStyle {
+    Normal,
+    Medium,
+    Fat,
+}
 
-            ..Default::default()
-        },
-        background_color: Color::NONE,
-        ..default()
-    });
+impl IntoBundle for TextButtonStyle {
+    type B = Style;
 
-    pub(crate) static ref IMAGE_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
-        style: Style {
-            width: Val::Px(IMAGE_BUTTON_WIDTH),
-            height: Val::Px(IMAGE_BUTTON_HEIGHT),
-            margin: UiRect::all(Val::Auto),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
+    fn into_bundle(self) -> Self::B {
+        let border = match self {
+            TextButtonStyle::Normal => UiRect::all(Val::Px(UI_BORDER_WIDTH)),
+            TextButtonStyle::Medium => UiRect::all(Val::Px(UI_BORDER_WIDTH_MEDIUM)),
+            TextButtonStyle::Fat => UiRect::all(Val::Px(UI_BORDER_WIDTH_FAT)),
+        };
 
-            ..Default::default()
-        },
-        background_color: Color::WHITE,
-        ..default()
-    });
-    pub(crate) static ref OPEN_MENU_BUTTON_STYLE: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
-        style: Style {
-            width: Val::Px(ICON_BUTTON_WIDTH),
-            height: Val::Px(ICON_BUTTON_HEIGHT),
-            margin: UiRect::DEFAULT,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
-            left: Val::Percent(0.0),
-            top: Val::Percent(0.0),// Val::Px(MENU_OFFSET),
-
-            ..Default::default()
-        },
-        background_color: Color::NONE,
-        ..default()
-    });
-    pub(crate) static ref TEXT_BUTTON_STYLE_LEFT: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
-        style: Style {
+        Style {
             width: Val::Px(TEXT_BUTTON_WIDTH),
             height: Val::Px(TEXT_BUTTON_HEIGHT),
             margin: UiRect {
                 left: Val::Auto,
                 right: Val::Auto,
-                top: Val::Px(5.0),
-                bottom: Val::Px(5.0),
-            },
-            justify_content: JustifyContent::Start,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
-            border: UiRect::all(UI_BORDER_WIDTH),
-
-            ..Default::default()
-        },
-        background_color: TEXT_BUTTON_BACKGROUND,
-        border_color: BUTTON_BORDER,
-        ..Default::default()
-    });
-
-    pub(crate) static ref TEXT_BUTTON_STYLE_CENTRED: Arc<ButtonNodeStyle> = Arc::new(ButtonNodeStyle {
-        style: Style {
-            width: Val::Px(TEXT_BUTTON_WIDTH),
-            height: Val::Px(TEXT_BUTTON_HEIGHT),
-            margin: UiRect {
-                left: Val::Auto,
-                right: Val::Auto,
-                top: Val::Px(5.0),
-                bottom: Val::Px(5.0),
+                top: Val::Px(MENU_TOP_BOTTOM_MARGIN),
+                bottom: Val::Px(MENU_TOP_BOTTOM_MARGIN),
             },
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             flex_grow: 0.0,
             flex_shrink: 0.0,
-            border: UiRect::all(UI_BORDER_WIDTH),
+            border,
 
             ..Default::default()
-        },
-        background_color: TEXT_BUTTON_BACKGROUND,
+        }
+    }
+}
+
+pub(crate) fn text_button_node_with_text_and_image(
+    button_action: TextButton,
+    centred: bool,
+    disabled: bool,
+    image_path: &'static str,
+    image_style: impl IntoBundle<B = Style>,
+    style: TextButtonStyle,
+) -> impl MavericNode<Context = AssetServer> {
+    let background_color = if disabled {
+        DISABLED_BUTTON_BACKGROUND
+    } else {
+        TEXT_BUTTON_BACKGROUND
+    };
+    ButtonNode {
+        style,
+        visibility: Visibility::Visible,
+        background_color,
         border_color: BUTTON_BORDER,
-        ..Default::default()
-    });
-    pub(crate) static ref TEXT_BUTTON_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
-        font_size: BUTTON_FONT_SIZE,
-        color: BUTTON_TEXT_COLOR,
-        font: constants::MENU_TEXT_FONT_PATH,
-        alignment: TextAlignment::Left,
-        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
-    });
-    pub(crate) static ref ICON_BUTTON_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
-        font_size: ICON_FONT_SIZE,
-        color: BUTTON_TEXT_COLOR,
-        font: constants::ICON_FONT_PATH,
-        alignment: TextAlignment::Left,
-        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
-    });
+        marker: TextButtonComponent {
+            disabled,
+            button_action,
+            button_type: ButtonType::Text,
+        },
+        children: (
+            TextNode {
+                text: button_action.text(),
+                font_size: BUTTON_FONT_SIZE,
+                color: BUTTON_TEXT_COLOR,
+                font: MENU_TEXT_FONT_PATH,
+                alignment: if centred {
+                    TextAlignment::Center
+                } else {
+                    TextAlignment::Left
+                },
+                linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+            },
+            ImageNode {
+                style: image_style,
+                path: image_path,
+                background_color,
+            },
+        ),
+    }
+}
 
-    pub(crate) static ref TITLE_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
-        font_size: LEVEL_TITLE_FONT_SIZE,
-        color: LEVEL_TEXT_COLOR,
-        font: constants::LEVEL_TITLE_FONT_PATH,
-        alignment: TextAlignment::Center,
-        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
-    });
+#[derive(Debug, PartialEq, Clone)]
+pub struct LevelStarsImageStyle;
 
-    pub(crate) static ref LEVEL_NUMBER_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
-        font_size: LEVEL_NUMBER_FONT_SIZE,
-        color: LEVEL_TEXT_COLOR,
-        font: constants::LEVEL_NUMBER_FONT_PATH,
-        alignment: TextAlignment::Center,
-        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
-    });
+impl IntoBundle for LevelStarsImageStyle {
+    type B = Style;
 
+    fn into_bundle(self) -> Self::B {
+        Style {
+            width: Val::Px(TEXT_BUTTON_HEIGHT - (2.0 * UI_BORDER_WIDTH_MEDIUM)),
+            height: Val::Px(TEXT_BUTTON_HEIGHT - (2.0 * UI_BORDER_WIDTH_MEDIUM)),
+            margin: UiRect {
+                left: Val::Auto,
+                right: Val::Px(5.0),
+                top: Val::Px(0.0),
+                bottom: Val::Px(0.0),
+            },
+            ..default()
+        }
+    }
+}
 
-    pub(crate) static ref LEVEL_MESSAGE_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
-        font_size: LEVEL_TEXT_FONT_SIZE,
-        color: LEVEL_TEXT_COLOR,
-        font: constants::LEVEL_TEXT_FONT_PATH,
-        alignment: TextAlignment::Center,
-        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
-    });
+#[derive(Debug, PartialEq, Clone)]
+pub struct ThreeStarsImageStyle;
 
+impl IntoBundle for ThreeStarsImageStyle {
+    type B = Style;
 
-    pub(crate) static ref BEGGING_MESSAGE_TEXT_STYLE: Arc<TextNodeStyle> = Arc::new(TextNodeStyle {
-        font_size: LEVEL_TEXT_FONT_SIZE,
-        color: LEVEL_TEXT_COLOR,
-        font: constants::LEVEL_TEXT_FONT_PATH,
-        alignment: TextAlignment::Center,
-        linebreak_behavior: bevy::text::BreakLineOn::NoWrap
-    });
+    fn into_bundle(self) -> Self::B {
+        Style {
+            width: Val::Px(THREE_STARS_IMAGE_WIDTH),
+            height: Val::Px(THREE_STARS_IMAGE_HEIGHT),
+            margin: UiRect {
+                left: Val::Auto,
+                right: Val::Auto,
+                top: Val::Px(10.0),
+                bottom: Val::Px(10.0),
+            },
+            ..Default::default()
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct BadgeImageStyle;
+
+impl IntoBundle for BadgeImageStyle {
+    type B = Style;
+
+    fn into_bundle(self) -> Self::B {
+        Style {
+            width: Val::Px(BADGE_BUTTON_WIDTH),
+            height: Val::Px(BADGE_BUTTON_HEIGHT),
+            margin: UiRect::all(Val::Auto),
+
+            ..Default::default()
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct BadgeButtonStyle;
+
+impl IntoBundle for BadgeButtonStyle {
+    type B = Style;
+
+    fn into_bundle(self) -> Self::B {
+        Style {
+            width: Val::Px(BADGE_BUTTON_WIDTH),
+            height: Val::Px(BADGE_BUTTON_HEIGHT),
+            ..Default::default()
+        }
+    }
 }

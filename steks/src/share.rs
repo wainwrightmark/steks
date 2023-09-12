@@ -1,9 +1,13 @@
+use base64::Engine;
 use bevy::prelude::*;
 
 use crate::prelude::*;
 
 #[derive(Debug, Clone, Copy, Event)]
-pub struct ShareEvent;
+pub enum ShareEvent {
+    CurrentShapes,
+    PersonalBest,
+}
 
 pub struct SharePlugin;
 
@@ -16,17 +20,28 @@ impl Plugin for SharePlugin {
 
 fn handle_shares(
     mut events: EventReader<ShareEvent>,
-    _shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
+    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
+    pbs: Res<PersonalBests>,
 ) {
-    if events.iter().next().is_some() {
-        bevy::log::debug!("Handling Share");
-        #[cfg(target_arch = "wasm32")]
-        {
-            bevy::log::debug!("Handling Share in wasm");
-            let shapes = ShapesVec::from_query(_shapes_query);
-            let data = shapes.make_base64_data();
-            bevy::log::debug!("Sharing game {data:?}");
-            crate::wasm::share_game(data);
+    let Some(ev) = events.iter().next() else {
+        return;
+    };
+    let shapes = shapes_vec_from_query(shapes_query);
+    let data: String = match ev {
+        ShareEvent::CurrentShapes => shapes.make_base64_data(),
+        ShareEvent::PersonalBest => {
+            let hash = shapes.hash();
+            let Some(pb) = pbs.map.get(&hash) else {
+                return;
+            };
+
+            base64::engine::general_purpose::URL_SAFE.encode(pb.image_blob.clone())
         }
+    };
+    bevy::log::debug!("Sharing game {data:?}");
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        crate::wasm::share_game(data);
     }
 }

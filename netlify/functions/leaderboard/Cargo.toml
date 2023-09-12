@@ -10,7 +10,7 @@ rust-version = "1.68.0"
 aws_lambda_events = {version= "0.10", default-features=false, features=["apigw"]}
 lambda_runtime = {version= "*", default-features=false}
 tokio = {version= "*", default-features=false}
-itertools = "0.10.5"
-planetscale-driver =  {version="0.4", default-features=false }
-reqwest= {version= "0.11.17", default-features=false, features=["rustls-tls"]}
-anyhow = "1.0.71"
+itertools = "0.11"
+planetscale-driver =  {version="0.5", default-features=false }
+reqwest= {version= "0.11", default-features=false, features=["rustls-tls"]}
+anyhow = "1"

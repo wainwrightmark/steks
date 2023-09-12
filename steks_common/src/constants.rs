@@ -3,10 +3,6 @@ use bevy_rapier2d::prelude::Group;
 
 pub const HEIGHT_MULTIPLIER: f32 = 0.72;
 
-pub const WINDOW_WIDTH: f32 = 360f32;
-
-pub const WINDOW_HEIGHT: f32 = 520f32;
-
 //Be aware that changing these will mess with the saved and shared data
 pub const MAX_WINDOW_WIDTH: f32 = 1920f32;
 pub const MAX_WINDOW_HEIGHT: f32 = 1080f32;
@@ -20,18 +16,16 @@ pub const SECONDS_PER_FRAME: f32 = 1. / 60.;
 pub const LONG_WIN_SECONDS: f32 = 5.0;
 pub const SHORT_WIN_SECONDS: f32 = 1.5;
 
-
-
 pub const SHAPE_COLLISION_GROUP: Group = Group::GROUP_1;
 pub const WALL_COLLISION_GROUP: Group = Group::GROUP_2;
-pub const RAIN_COLLISION_GROUP: Group = Group::GROUP_3;
+pub const SNOW_COLLISION_GROUP: Group = Group::GROUP_3;
 pub const VOID_COLLISION_GROUP: Group = Group::GROUP_4;
 //pub const FIREWORK_COLLISION_GROUP: Group = Group::NONE;
 
 pub const SHAPE_COLLISION_FILTERS: Group = SHAPE_COLLISION_GROUP
     .union(WALL_COLLISION_GROUP)
     .union(VOID_COLLISION_GROUP)
-    .union(RAIN_COLLISION_GROUP);
+    .union(SNOW_COLLISION_GROUP);
 
 pub const VOID_COLLISION_FILTERS: Group = SHAPE_COLLISION_GROUP;
 
@@ -40,13 +34,16 @@ pub const DRAGGED_SHAPE_COLLISION_FILTERS: Group = SHAPE_COLLISION_GROUP
     .union(VOID_COLLISION_GROUP);
 
 pub const WALL_COLLISION_FILTERS: Group = SHAPE_COLLISION_GROUP;
-pub const RAIN_COLLISION_FILTERS: Group = SHAPE_COLLISION_GROUP;
+pub const SNOW_COLLISION_FILTERS: Group = SHAPE_COLLISION_GROUP;
 pub const FIREWORK_COLLISION_FILTERS: Group = Group::NONE;
 
 pub const DRAGGED_DENSITY: f32 = 0.10;
 pub const DEFAULT_RESTITUTION: f32 = 0.3;
 
 pub const INFINITE_MODE_STARTING_SHAPES: usize = 3;
+
+pub const CHALLENGE_SHAPES: usize = 10;
+//pub const INFINITE_SHAPES: usize = 4;
 
 // About 400 is a good amount of wind
 pub const GRAVITY: Vec2 = Vec2::new(0.0, -1000.0);
@@ -71,17 +68,22 @@ pub const LEVEL_END_TEXT_MAX_CHARS: usize = "if it weren't for you meddling kids
 
 const FIRA_FONT_PATH: &str = "fonts/merged-font.ttf";
 
+const OSWALD_FONT_PATH: &str = "fonts/Oswald-Medium.ttf";
+
 pub const LEVEL_TEXT_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const LEVEL_TITLE_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const LEVEL_NUMBER_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const MENU_TEXT_FONT_PATH: &str = FIRA_FONT_PATH;
 pub const ICON_FONT_PATH: &str = "fonts/merged-font.ttf";
 
+pub const STAR_HEIGHT_FONT_PATH: &str = OSWALD_FONT_PATH;
+
 pub const ICON_FONT_SIZE: f32 = 30.0;
-pub const BUTTON_FONT_SIZE: f32 = 22.0;
+pub const BUTTON_FONT_SIZE: f32 = 20.0;
 
 pub const LEVEL_TITLE_FONT_SIZE: f32 = 30.0;
 pub const LEVEL_TEXT_FONT_SIZE: f32 = 20.0;
+pub const LEVEL_HEIGHT_FONT_SIZE: f32 = 40.0;
 pub const LEVEL_NUMBER_FONT_SIZE: f32 = 30.0;
 
 pub const ICE_STROKE_WIDTH: f32 = 1.0; //TODO make 2 and make the shapes smaller

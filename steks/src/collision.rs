@@ -118,7 +118,6 @@ fn display_collision_markers(
                     const MARKER_SIZE: f32 = 0.15;
 
                     if let Some((_, mut transform)) = markers_map.remove(&cm) {
-                        //  info!("dcm updated");
                         *transform = new_transform;
                     } else {
                         let path: Path = match cm.marker_type {

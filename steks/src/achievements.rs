@@ -1,6 +1,6 @@
 use bevy::prelude::*;
+use enumset::{EnumSet, EnumSetType};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
 use strum::{Display, EnumCount, EnumIter};
 
 use crate::prelude::*;
@@ -24,17 +24,14 @@ fn sign_in_user() {
             use capacitor_bindings::game_connect::*;
             bevy::tasks::IoTaskPool::get()
                 .spawn(async move {
-                    crate::logging::do_or_report_error_async(move || {
-                        GameConnect::sign_in()
-                    })
-                    .await;
+                    crate::logging::do_or_report_error_async(move || GameConnect::sign_in()).await;
                 })
                 .detach();
         }
     }
 }
 
-pub fn show_achievements(){
+pub fn show_achievements() {
     #[cfg(target_arch = "wasm32")]
     {
         #[cfg(any(feature = "android", feature = "ios"))]
@@ -55,18 +52,18 @@ pub fn show_achievements(){
 
 #[derive(Debug, Clone, Serialize, Deserialize, Resource, Default)]
 pub struct Achievements {
-    pub completed: BTreeSet<Achievement>,
+    pub completed: EnumSet<Achievement>,
 }
 
 impl Achievements {
     pub fn resync(&self) {
         for achievement in self.completed.iter() {
-            Self::unlock_achievement(*achievement);
+            Self::unlock_achievement(achievement);
         }
     }
 
     pub fn unlock_if_locked(achievements: &mut ResMut<Self>, achievement: Achievement) {
-        if !achievements.completed.contains(&achievement) {
+        if !achievements.completed.contains(achievement) {
             achievements.completed.insert(achievement);
             Self::unlock_achievement(achievement);
         }
@@ -94,7 +91,6 @@ impl Achievements {
 
             #[cfg(feature = "web")]
             {
-                info!("Showing Toast Achievement Unlocked: {achievement}");
                 bevy::tasks::IoTaskPool::get()
                     .spawn(async move {
                         let _ = capacitor_bindings::toast::Toast::show(format!(
@@ -113,19 +109,8 @@ impl TrackableResource for Achievements {
 }
 
 #[derive(
-    Debug,
-    EnumCount,
-    EnumIter,
-    Clone,
-    Serialize,
-    Deserialize,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    Eq,
-    Display,
-    Copy,
-)]
+    Debug, EnumCount, EnumIter, Serialize, Deserialize, Ord, PartialOrd, Display, EnumSetType,
+)] //TODO https://docs.rs/enumset/latest/enumset/
 pub enum Achievement {
     BusinessSecretsOfThePharaohs,
     LiveFromNewYork,
@@ -148,8 +133,12 @@ pub enum Achievement {
     Obsessed,
     Addict,
     IAmInevitable,
-    ItsATrap,
+    ItsATrap, //TODO
     LookTheresBleppo,
+
+    CivilEngineer,
+    OkMario,
+    SuperMario,
 }
 
 impl Achievement {
@@ -180,6 +169,9 @@ impl Achievement {
             IAmInevitable => "CgkItNbalLwcEAIQFQ",
             ItsATrap => "CgkItNbalLwcEAIQFg",
             LookTheresBleppo => "CgkItNbalLwcEAIQFw",
+            CivilEngineer => "CgkItNbalLwcEAIQGQ",
+            OkMario => "CgkItNbalLwcEAIQGg",
+            SuperMario => "CgkItNbalLwcEAIQGw",
         }
         //spell-checker: enable
     }
@@ -204,29 +196,36 @@ fn track_level_completion_achievements(
     use Achievement::*;
     use DesignedLevelMeta::*;
 
-    if current_level.is_changed() {
-        if let LevelCompletion::Incomplete { stage } = current_level.completion {
-            match current_level.level {
-                Infinite { .. } => {
-                    if let Some(achievement) = match stage + 2 {
-                        5 => Some(InfinityMinus5),
-                        10 => Some(AlephOmega),
-                        20 => Some(EverythingEverywhereAllAtOnce),
-                        _ => None,
-                    } {
-                        Achievements::unlock_if_locked(&mut achievements, achievement);
-                    }
+    if !current_level.is_changed() {
+        return;
+    }
+    match current_level.completion {
+        LevelCompletion::Incomplete { stage } => {
+            if let Infinite { .. } = current_level.level {
+                if let Some(achievement) = match stage + 2 {
+                    5 => Some(InfinityMinus5),
+                    10 => Some(AlephOmega),
+                    20 => Some(EverythingEverywhereAllAtOnce),
+                    _ => None,
+                } {
+                    Achievements::unlock_if_locked(&mut achievements, achievement);
                 }
-                _ => {}
             }
-        } else {
-            let shapes = ShapesVec::from_query(shapes_query);
-            let height = shapes.calculate_tower_height();
+        }
+        LevelCompletion::Complete { score_info } => {
+            // level complete
+            let shapes = shapes_vec_from_query(shapes_query);
+            let height = score_info.height;
 
-            info!(
+            debug!(
                 "Checking achievements {} shapes, height {height}",
                 shapes.len()
             );
+
+            if score_info.star.is_some_and(|x| x.is_three_star()) {
+                Achievements::unlock_if_locked(&mut achievements, CivilEngineer);
+            }
+
             for achievement in [
                 BusinessSecretsOfThePharaohs,
                 LiveFromNewYork,

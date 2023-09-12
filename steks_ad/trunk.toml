@@ -1,0 +1,4 @@
+[[hooks]]
+stage = "post_build"
+command = "cargo"
+command_arguments = [ "run", "-p", "ad_postbuild", "--target", "x86_64-pc-windows-msvc"]

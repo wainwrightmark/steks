@@ -21,13 +21,17 @@ geometrid = {version = "0.3", features= ["glam"]}
 serde_with = "3"
 reqwest = { version = "0.11",default-features = false, features = ["json"] }
 capacitor_bindings = {  features = ["web", "rate_plugin", "game_plugin"], git = "https://github.com/wainwrightmark/capacitor_bindings" }
-bevy_embedded_assets = "0.8.0"
-lazy_static = "1.4.0"
-serde_yaml = "0.9.21"
-async-channel = "1.8.0"
+bevy_embedded_assets = "0.8"
+lazy_static = "1.4"
+serde_yaml = "0.9"
+async-channel = "1.8"
 steks_common = {path= "../steks_common"}
-bevy_screen_diagnostics = "0.3.0"
-state_hierarchy= {git= 'https://github.com/wainwrightmark/state_hierarchy', features = ["more_bevy"]}
+steks_image = {path= "../steks_image"}
+bevy_screen_diagnostics = "0.3"
+maveric= {git= 'https://github.com/wainwrightmark/maveric', features = ["widgets"]}
+serde_repr = "0.1"
+enumset= {version="1", features = ["serde"]}
+resvg = { version = "0.35", default-features = false, features=["text"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }
@@ -65,7 +69,7 @@ features = [
 #   "bevy_audio",         # Builtin audio
 #   "filesystem_watcher", # Asset hot-reloading
   "bevy_winit",         # Window management
-  "x11",                # Linux: Support X11 windowing system
+#  "x11",                # Linux: Support X11 windowing system
 #   "render",             # Graphics Rendering
 
   ## "render" actually just includes:

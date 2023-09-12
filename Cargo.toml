@@ -2,8 +2,11 @@
 members = [
 "steks",
 "steks_common",
+"steks_ad",
+"steks_image",
 "netlify/functions/image",
 "netlify/functions/leaderboard",
+"ad_postbuild"
 ]
 default-members = ["steks"]
 resolver = "2" # Important! wgpu/Bevy needs this!
@@ -13,5 +16,9 @@ resolver = "2" # Important! wgpu/Bevy needs this!
 #opt-level = 1
 
 [profile.release]
+debug = false
 opt-level = 'z'
+codegen-units = 1
 lto = 'thin'
+strip = "debuginfo"
+#panic = 'abort'

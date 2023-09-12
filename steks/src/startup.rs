@@ -1,6 +1,8 @@
 pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
+use capacitor_bindings::device::DeviceId;
+use lazy_static::lazy_static;
 
 pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
@@ -9,7 +11,7 @@ pub fn setup_app(app: &mut App) {
 
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
-            title: "Steks".to_string(),
+            title: "steks".to_string(),
             canvas: Some("#game".to_string()),
             resolution: bevy::window::WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
             resize_constraints: WindowResizeConstraints {
@@ -44,7 +46,7 @@ pub fn setup_app(app: &mut App) {
         )
         .add_plugins(AchievementsPlugin)
         .add_plugins(WallsPlugin)
-        .add_plugins(MenuPlugin)
+        .add_plugins(GlobalUiPlugin)
         .add_plugins(ButtonPlugin)
         .add_plugins(SettingsPlugin)
         .add_plugins(bevy_prototype_lyon::prelude::ShapePlugin)
@@ -52,13 +54,13 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(CameraPlugin)
         .add_plugins(LeaderboardPlugin)
         .add_plugins(SpiritPlugin)
-        .add_plugins(LevelUiPlugin)
-        //.add_plugins(LensPlugin)
+        .add_plugins(PreviewImagePlugin)
+        .add_plugins(HasActedPlugin)
         .add_plugins(FireworksPlugin)
         .add_plugins(AppUrlPlugin)
-        .add_plugins(RainPlugin)
+        .add_plugins(SnowPlugin)
         .add_plugins(ImportPlugin)
-        //.add_plugins(MenuActionPlugin)
+        .add_plugins(NewsPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
         ))
@@ -70,8 +72,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(CollisionPlugin)
         .add_plugins(PadlockPlugin)
         .insert_resource(Insets::default())
-        //.add_plugins(RecordingPlugin)
-        .insert_resource(bevy_pkv::PkvStore::new("Wainwrong", "steks"))
+        .insert_resource(bevy_pkv::PkvStore::new("bleppo", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,
@@ -95,7 +96,7 @@ pub fn setup_app(app: &mut App) {
         app.add_plugins(ScreenDiagnosticsPlugin::default());
         app.add_plugins(ScreenFrameDiagnosticsPlugin);
 
-        //builder.add_plugins(RapierDebugRenderPlugin::default());
+        //app.add_plugins(RapierDebugRenderPlugin::default());
     }
 
     app.add_systems(Startup, disable_back);
@@ -105,6 +106,8 @@ pub fn setup_app(app: &mut App) {
     if !cfg!(debug_assertions) {
         app.add_systems(PostStartup, log_start);
     }
+
+    app.add_systems(PostStartup, set_device_id);
 }
 
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
@@ -118,6 +121,14 @@ pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
 pub fn get_today_date() -> chrono::NaiveDate {
     let today = chrono::offset::Utc::now();
     today.date_naive()
+}
+
+fn set_device_id() {
+    bevy::tasks::IoTaskPool::get()
+        .spawn(async move {
+            set_device_id_async().await;
+        })
+        .detach();
 }
 
 pub fn log_start(mut pkv: ResMut<bevy_pkv::PkvStore>) {
@@ -215,6 +226,33 @@ async fn log_start_async<'a>(_user_exists: bool) {
         let application_start = crate::wasm::application_start().await;
         application_start.try_log_async1(device_id).await;
     }
+}
+
+async fn set_device_id_async() {
+    #[cfg(target_arch = "wasm32")]
+    {
+        //info!("Setting device id");
+        let device_id = match capacitor_bindings::device::Device::get_id().await {
+            Ok(device_id) => device_id,
+            Err(err) => {
+                crate::logging::try_log_error_message(format!("{err:?}"));
+                return;
+            }
+        };
+
+        match DEVICE_ID.set(device_id.clone()) {
+            Ok(()) => {
+                info!("Device id set {device_id:?}");
+            }
+            Err(err) => {
+                error!("Error setting device id {err:?}")
+            }
+        }
+    }
+}
+
+lazy_static! {
+    pub static ref DEVICE_ID: std::sync::OnceLock<DeviceId> = Default::default();
 }
 
 #[cfg(test)]

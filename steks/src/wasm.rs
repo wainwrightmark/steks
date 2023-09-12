@@ -13,8 +13,6 @@ pub fn request_fullscreen() {
     let window = web_sys::window().expect("Could not get window");
     let document = window.document().expect("Could not get window document");
 
-
-
     let fs = document
         .fullscreen_element()
         .map(|x| !x.is_null())
@@ -107,6 +105,25 @@ async fn get_url_search_params() -> Option<UrlSearchParams> {
     }
 }
 
+pub fn open_link(url: &str) {
+    use web_sys::window;
+
+    let window = match window() {
+        Some(window) => window,
+        None => {
+            error!("Could not get window to open link");
+            return;
+        }
+    };
+
+    match window.open_with_url_and_target(url, "_blank") {
+        Ok(_) => {}
+        Err(err) => {
+            error!("{err:?}")
+        }
+    }
+}
+
 async fn share_game_async(game: String) {
     let device_id = capacitor_bindings::device::Device::get_id()
         .await
@@ -176,8 +193,7 @@ fn resizer(
                 width,
             });
 
-            //resize_canvas(width, height);
-            info!(
+            debug!(
                 "Resizing to {:?},{:?} with scale factor of {}",
                 width,
                 height,
@@ -186,9 +202,6 @@ fn resizer(
         }
     }
 }
-
-
-
 
 pub fn get_game_from_location() -> Option<ChangeLevelEvent> {
     let window = web_sys::window()?;
@@ -206,28 +219,54 @@ fn remove_spinner() {
     }
 }
 
-fn update_insets(mut insets: ResMut<Insets>){
-    if let Some(new_insets) = get_insets(){
-        info!("{:?}", new_insets.clone());
-        *insets= new_insets;
-
-
+fn update_insets(mut insets: ResMut<Insets>) {
+    if let Some(new_insets) = get_insets() {
+        debug!("{:?}", new_insets.clone());
+        *insets = new_insets;
     }
 }
 
-fn get_insets()-> Option<Insets>{
+fn get_insets() -> Option<Insets> {
     let window = web_sys::window()?;
     let document = window.document()?.document_element()?;
     let style = window.get_computed_style(&document).ok()??;
 
     let mut insets = Insets::default();
 
-    insets.top = style.get_property_value("--sat").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
-    insets.left = style.get_property_value("--sal").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
-    insets.right = style.get_property_value("--sar").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
-    insets.bottom = style.get_property_value("--sab").ok().and_then(|x| x.parse::<f32>().ok()).unwrap_or_default();
+    insets.top = style
+        .get_property_value("--sat")
+        .ok()
+        .and_then(|x| x.parse::<f32>().ok())
+        .unwrap_or_default();
+    insets.left = style
+        .get_property_value("--sal")
+        .ok()
+        .and_then(|x| x.parse::<f32>().ok())
+        .unwrap_or_default();
+    insets.right = style
+        .get_property_value("--sar")
+        .ok()
+        .and_then(|x| x.parse::<f32>().ok())
+        .unwrap_or_default();
+    insets.bottom = style
+        .get_property_value("--sab")
+        .ok()
+        .and_then(|x| x.parse::<f32>().ok())
+        .unwrap_or_default();
 
     Some(insets)
+}
+
+fn check_touch(mut input_settings: ResMut<InputSettings>) {
+    fn has_touch() -> bool {
+        let window = web_sys::window().unwrap();
+        let navigator = window.navigator();
+        navigator.max_touch_points() > 0
+    }
+
+    if has_touch() {
+        input_settings.touch_enabled = true;
+    }
 }
 
 pub struct WASMPlugin;
@@ -243,5 +282,6 @@ impl Plugin for WASMPlugin {
         app.add_systems(PostStartup, remove_spinner);
 
         app.add_systems(PostStartup, update_insets);
+        app.add_systems(PostStartup, check_touch);
     }
 }

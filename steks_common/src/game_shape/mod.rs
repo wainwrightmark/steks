@@ -54,23 +54,19 @@ impl PartialEq for GameShape {
 }
 
 impl GameShape {
-    pub fn default_fill_color(&self) -> Color {
+    pub fn default_fill_color(&self, high_contrast: bool) -> Color {
         let index = match self.index.0 {
             2 => 4,
             4 => 2,
             i => i,
         };
 
-        choose_color(index, false)
+        choose_color(index, high_contrast)
     }
 
-    pub fn fill(&self) -> Fill {
-        let color = self.default_fill_color();
+    pub fn fill(&self, high_contrast: bool) -> Fill {
+        let color = self.default_fill_color(high_contrast);
         Fill::color(color)
-    }
-
-    pub fn stroke(&self) -> Stroke {
-        Stroke::color(Color::BLACK)
     }
 
     pub fn from_index(index: &usize) -> &Self {
@@ -132,7 +128,7 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .collect()
 });
 
-const TRIANGLE: Triangle<4> = Triangle(&[(-1, -1), (-1, 2), (2, -1)]);
+const TRIANGLE: Triangle = Triangle(&[(-1, -1), (-1, 2), (2, -1)]);
 
 const STEKS_FREE_PENTOMINOS: [Polyomino<5>; 12] = [
     Polyomino::<5>::F_PENTOMINO,

@@ -23,16 +23,20 @@ pub fn check_for_win(
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     time: Res<Time>,
     mut current_level: ResMut<CurrentLevel>,
-    mut level_ui: ResMut<GameUIState>,
-
-    score_store: Res<Leaderboard>,
+    mut global_ui: ResMut<GlobalUiState>,
+    has_acted: Res<HasActed>,
+    score_store: Res<WorldRecords>,
     pbs: Res<PersonalBests>,
-    mut achievements: ResMut<Achievements>
+    mut achievements: ResMut<Achievements>,
 ) {
+    if current_level.is_changed() {
+        *countdown = WinCountdown(None);
+        return;
+    }
+
     if let Some(Countdown {
         started_elapsed,
         total_secs,
-        event
     }) = countdown.as_ref().0
     {
         let time_used = time.elapsed().saturating_sub(started_elapsed);
@@ -40,11 +44,21 @@ pub fn check_for_win(
         if time_used.as_secs_f32() >= total_secs {
             countdown.0 = None;
 
-            if event == CheckForWinEvent::OnLastSpawn{
-                Achievements::unlock_if_locked(&mut achievements, Achievement::ThatWasOneInAMillion);
+            if has_acted.is_has_not_acted() {
+                match current_level.level {
+                    GameLevel::Designed { .. }
+                    | GameLevel::Infinite { .. }
+                    | GameLevel::Challenge { .. } => {
+                        Achievements::unlock_if_locked(
+                            &mut achievements,
+                            Achievement::ThatWasOneInAMillion,
+                        );
+                    }
+                    _ => {}
+                }
             }
 
-            let shapes = ShapesVec::from_query(shapes_query);
+            let shapes = shapes_vec_from_query(shapes_query);
 
             match current_level.completion {
                 LevelCompletion::Incomplete { stage } => {
@@ -52,19 +66,18 @@ pub fn check_for_win(
                     if current_level.level.has_stage(&next_stage) {
                         current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
                     } else {
-                        let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
+                        let score_info =
+                            generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
                         current_level.completion = LevelCompletion::Complete { score_info };
-                        level_ui.set_if_neq(GameUIState::GameSplash);
+                        global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
                     }
                 }
 
                 LevelCompletion::Complete { .. } => {
-
-
-
-                    let score_info = ScoreInfo::generate(&shapes, &score_store, &pbs);
-                    if score_info.is_pb | score_info.is_wr {
-                        level_ui.set_if_neq(GameUIState::GameSplash);
+                    let score_info =
+                        generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
+                    if score_info.is_pb() | score_info.is_wr() {
+                        global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
                     }
 
                     current_level.completion = LevelCompletion::Complete { score_info }
@@ -75,7 +88,7 @@ pub fn check_for_win(
 }
 
 pub fn check_for_tower(
-    mut check_events: EventReader<CheckForWinEvent>,
+    mut check_events: EventReader<CheckForTowerEvent>,
     mut countdown: ResMut<WinCountdown>,
     draggable: Query<&ShapeComponent>,
     time: Res<Time>,
@@ -85,8 +98,12 @@ pub fn check_for_tower(
     wall_sensors: Query<Entity, With<WallSensor>>,
     walls: Query<Entity, With<WallPosition>>,
     level: Res<CurrentLevel>,
+    has_acted: Res<HasActed>,
 ) {
-    let Some(event) = check_events.iter().next() else{return;};
+    if check_events.is_empty() {
+        return;
+    }
+    check_events.clear();
 
     if countdown.0.is_some() {
         return; // no need to check, we're already winning
@@ -117,20 +134,25 @@ pub fn check_for_tower(
 
     collision_events.clear();
 
-    let prediction_result: PredictionResult = if level.raindrop_settings().is_some() {
+    let prediction_result: PredictionResult = if level.snowdrop_settings().is_some() {
         PredictionResult::ManyNonWall
     } else {
-        prediction::make_prediction(&rapier_context, event.into(), rapier_config.gravity)
+        prediction::make_prediction(
+            &rapier_context,
+            has_acted.as_ref().into(),
+            rapier_config.gravity,
+        )
     };
 
-    let countdown_seconds = event.get_countdown_seconds(prediction_result);
+    let countdown_seconds = prediction_result.get_countdown_seconds(&has_acted);
 
-    let Some(countdown_seconds) = countdown_seconds else {return;};
+    let Some(countdown_seconds) = countdown_seconds else {
+        return;
+    };
 
     countdown.0 = Some(Countdown {
         started_elapsed: time.elapsed(),
         total_secs: countdown_seconds,
-        event: event.clone()
     });
 }
 

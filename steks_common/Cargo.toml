@@ -8,18 +8,18 @@ edition = "2021"
 [dependencies]
 base64 = "0.21"
 geometrid = {version = "0.3", features= ["glam"]}
-once_cell = "1.18.0"
+once_cell = "1.18"
 bevy_prototype_lyon = {version="0.9", default-features = false}
 bevy_rapier2d = {version = "0.22"}
 bevy = { version = "0.11", default-features = false, features = ["bevy_render"] }
-serde = "1.0.166"
-num_enum = "0.6.1"
+serde = "1"
+num_enum = "0.7"
 strum = { version = "0.25", features = ["derive"] }
 rand = "0.8.5"
-
-[features]
-bevy =[]
-svg = []
+anyhow = "1"
+lazy_static = "1.4.0"
+serde_yaml = "0.9"
+serde_repr = "0.1"
 
 
 # # Enable high optimizations for dependencies (incl. Bevy), but not for our code:

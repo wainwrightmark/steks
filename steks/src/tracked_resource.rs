@@ -11,7 +11,7 @@ pub struct TrackedResourcePlugin<
     phantom: PhantomData<T>,
 }
 
-pub trait TrackableResource: Resource {
+pub trait TrackableResource: Resource + Serialize + DeserializeOwned + Default {
     const KEY: &'static str;
 }
 

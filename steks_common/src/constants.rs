@@ -5,7 +5,7 @@ pub const HEIGHT_MULTIPLIER: f32 = 0.72;
 
 //Be aware that changing these will mess with the saved and shared data
 pub const MAX_WINDOW_WIDTH: f32 = 1920f32;
-pub const MAX_WINDOW_HEIGHT: f32 = 1080f32;
+pub const MAX_WINDOW_HEIGHT: f32 = 1920f32;
 
 pub const WALL_WIDTH: f32 = 1920f32;
 

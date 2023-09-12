@@ -61,7 +61,7 @@ pub struct PersonalBests {
 }
 
 impl TrackableResource for PersonalBests {
-    const KEY: &'static str = "PersonalBests";
+    const KEY: &'static str = "PBs";
 }
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize)]

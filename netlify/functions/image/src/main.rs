@@ -263,7 +263,7 @@ mod tests {
     use test_case::test_case;
 
     // spell-checker: disable-next-line
-    const TEST_DATA: &'static str = "CQB7soTHrQwAfo2RbxMCAIPljd2LBQB8kF4O6RMAfQJmCOsIAIENmyiQBACA4qV-cg4AerRv1DcJAHq5eoKvCzCOqpxxPAIgi_-UJTwDIHlUV7Pp";
+    const TEST_DATA: &'static str = "CQCBGHvzog4AfvB2ZysEAILnjfABCACDxpPAAhMAfnVw1uAFAHw-bLbnAgCCyZ2xPgwAhV6IVCoJAIOygSikCzCOqo__PAMgeVRpVOkCIIv_i1Q8";
 
     fn test_image(data: &'static str, command: Command, dimensions: Dimensions) {
         let data_name = if data == TEST_DATA {

@@ -155,7 +155,7 @@ mod tests {
             location: Location {
                 position: Vec2 {
                     x: 41.99774,
-                    y: -108.,
+                    y: -108.00458,
                 },
                 angle: std::f32::consts::FRAC_PI_2,
             },

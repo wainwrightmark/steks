@@ -28,7 +28,6 @@ pub fn check_for_win(
     score_store: Res<WorldRecords>,
     pbs: Res<PersonalBests>,
     mut achievements: ResMut<Achievements>,
-    mut saved_data: ResMut<SavedData>,
 ) {
     if current_level.is_changed() {
         *countdown = WinCountdown(None);
@@ -88,7 +87,7 @@ pub fn check_for_win(
                     current_level.completion = LevelCompletion::Complete { score_info }
                 }
             }
-            saved_data.0 = Some(shapes);
+            current_level.saved_data = Some(shapes);
         }
     }
 }

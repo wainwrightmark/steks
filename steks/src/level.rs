@@ -18,7 +18,6 @@ impl Plugin for LevelPlugin {
             .add_systems(Update, skip_tutorial_completion)
             .add_systems(Update, adjust_gravity)
             .add_plugins(TrackedResourcePlugin::<CurrentLevel>::default())
-            .add_plugins(TrackedResourcePlugin::<SavedData>::default())
             .add_plugins(AsyncEventPlugin::<ChangeLevelEvent>::default());
     }
 }
@@ -28,7 +27,6 @@ fn manage_level_shapes(
     draggables: Query<((Entity, &ShapeIndex), With<ShapeComponent>)>,
     current_level: Res<CurrentLevel>,
     previous_level: Res<PreviousLevel>,
-    saved_data: Res<SavedData>,
     mut shape_creation_events: EventWriter<ShapeCreationData>,
     mut shape_update_events: EventWriter<ShapeUpdateData>,
 ) {
@@ -46,7 +44,7 @@ fn manage_level_shapes(
     }
 
     if previous_level.0.is_none() {
-        if let Some(saved_data) = &saved_data.0 {
+        if let Some(saved_data) = &current_level.saved_data {
             result.mogrify(saved_data);
         }
     }
@@ -58,7 +56,6 @@ fn manage_level_shapes(
 fn handle_change_level_events(
     mut change_level_events: EventReader<ChangeLevelEvent>,
     mut current_level: ResMut<CurrentLevel>,
-    mut saved_data: ResMut<SavedData>,
     mut global_ui_state: ResMut<GlobalUiState>,
     streak: Res<Streak>,
     completion: Res<CampaignCompletion>,
@@ -75,9 +72,7 @@ fn handle_change_level_events(
         }
         let completion = LevelCompletion::Incomplete { stage };
 
-        current_level.set_if_neq(CurrentLevel { level, completion });
-
-        saved_data.0 = None;
+        current_level.set_if_neq(CurrentLevel { level, completion, saved_data: None });
 
         *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
     }
@@ -99,25 +94,21 @@ fn choose_level_on_game_load(mut _change_level_events: EventWriter<ChangeLevelEv
     }
 }
 
-#[derive(Default, Resource, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Resource, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
+    pub saved_data:  Option<ShapesVec>
 }
 
 impl TrackableResource for CurrentLevel {
     const KEY: &'static str = "CurrentLevel";
 }
 
-#[derive(Default, Resource, Debug, PartialEq, Serialize, Deserialize)]
-pub struct SavedData(pub Option<ShapesVec>);
 
-impl TrackableResource for SavedData {
-    const KEY: &'static str = "SavedData";
-}
 
 #[derive(Default, Resource, Debug, PartialEq)]
-pub struct PreviousLevel(pub Option<CurrentLevel>);
+pub struct PreviousLevel(pub Option<(GameLevel, LevelCompletion)>);
 
 #[derive(Debug, EnumIs, Clone, Copy, PartialEq)]
 pub enum PreviousLevelType {
@@ -132,11 +123,11 @@ impl PreviousLevel {
             return PreviousLevelType::DifferentLevel;
         };
 
-        if previous.level != current_level.level {
+        if previous.0 != current_level.level {
             return PreviousLevelType::DifferentLevel;
         }
 
-        match (previous.completion, current_level.completion) {
+        match (previous.1, current_level.completion) {
             (
                 LevelCompletion::Incomplete { stage: prev_stage },
                 LevelCompletion::Incomplete {
@@ -162,7 +153,7 @@ impl PreviousLevel {
 
 fn update_previous_level(
     current_level: Res<CurrentLevel>,
-    mut current_local: Local<Option<CurrentLevel>>,
+    mut current_local: Local<Option<(GameLevel, LevelCompletion)>>,
     mut previous_level: ResMut<PreviousLevel>,
 ) {
     if !current_level.is_changed() {
@@ -170,7 +161,7 @@ fn update_previous_level(
     }
 
     *previous_level = PreviousLevel(current_local.clone());
-    *current_local = Some(current_level.clone());
+    *current_local = Some((current_level.level.clone(), current_level.completion.clone()));
 }
 
 

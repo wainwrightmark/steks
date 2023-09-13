@@ -151,7 +151,6 @@ fn hydrate_leaderboard(
     mut wrs: ResMut<WorldRecords>,
     mut events: EventReader<LeaderboardDataEvent>,
     mut current_level: ResMut<CurrentLevel>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
 ) {
     let Some(ev) = events.into_iter().next() else {
         return;
@@ -252,11 +251,15 @@ fn hydrate_leaderboard(
     if score_info.wr != Some(height) {
         if score_info.height > height {
             debug!("current wr is less than current score");
-            update_wr(
-                hash,
-                score_info.height,
-                shapes_vec_from_query(shapes_query).make_base64_data(),
-            );
+            if let Some(shapes_vec) = &current_level.saved_data{
+                update_wr(
+                    hash,
+                    score_info.height,
+                    shapes_vec.make_base64_data(),
+                );
+            }
+
+
         } else {
             debug!("Updating current level wr");
             current_level.completion = LevelCompletion::Complete {
@@ -375,7 +378,6 @@ fn update_campaign_completion(
 
 fn check_pbs_on_completion(
     current_level: Res<CurrentLevel>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     mut pbs: ResMut<PersonalBests>,
 ) {
     if !current_level.is_changed() {
@@ -393,10 +395,12 @@ fn check_pbs_on_completion(
             return;
         };
 
+    let Some(shapes) = &current_level.saved_data  else{return;};
+
     let level_pb = || LevelPB {
         height,
         star: StarType::Incomplete,
-        image_blob: shapes_vec_from_query(shapes_query).make_bytes(),
+        image_blob: shapes.make_bytes(),
     };
 
     let pb_changed = match DetectChangesMut::bypass_change_detection(&mut pbs)
@@ -450,7 +454,6 @@ fn check_pbs_on_completion(
 
 fn check_wrs_on_completion(
     current_level: Res<CurrentLevel>,
-    shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     writer: AsyncEventWriter<LeaderboardDataEvent>,
     mut world_records: ResMut<WorldRecords>,
 ) {
@@ -462,6 +465,8 @@ fn check_wrs_on_completion(
         return;
     }
 
+    let Some(shapes) = &current_level.saved_data  else{return;};
+
     let (height, hash) =
         if let LevelCompletion::Complete { score_info, .. } = current_level.completion {
             (score_info.height, score_info.hash)
@@ -472,7 +477,7 @@ fn check_wrs_on_completion(
     let level_wr = || LevelWR {
         height,
         updated: None,
-        image_blob: shapes_vec_from_query(shapes_query).make_bytes(),
+        image_blob: shapes.make_bytes(),
     };
 
     let refresh = match world_records.map.entry(hash) {

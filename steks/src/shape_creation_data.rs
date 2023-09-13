@@ -144,7 +144,7 @@ impl ShapeCreationData {
         } = value;
 
         Self {
-            shape,
+            shape: shape.game_shape(),
             location: Some(location),
             state,
             velocity: None,
@@ -219,7 +219,7 @@ impl ShapeCreationData {
     }
 
     pub fn fuzzy_match(&self, encodable: &EncodableShape) -> bool {
-        let matched = self.shape.index == encodable.shape.index
+        let matched = self.shape.index == encodable.shape
             && self.modifiers == encodable.modifiers
             && self.state.fuzzy_match(&encodable.state);
             matched

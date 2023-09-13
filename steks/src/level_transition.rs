@@ -143,14 +143,14 @@ impl LevelTransitionResult {
         }
     }
 
-    pub fn mogrify(&mut self, sv: ShapesVec) {
+    pub fn mogrify(&mut self, sv: &ShapesVec) {
         let mut new_creations: Vec<ShapeCreationData> = vec![];
 
         // for x in self.creations.iter(){
         //     //info!("{x:?}");
         // }
 
-        for encodable in sv.0.into_iter() {
+        for encodable in sv.0.iter() {
 
             //info!("{encodable:?}");
 

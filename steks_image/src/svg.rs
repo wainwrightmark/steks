@@ -22,7 +22,7 @@ pub fn create_svg<'a, I: Iterator<Item = EncodableShape>>(
         str.push('\n');
         let shape_svg =
             shape
-                .shape
+                .shape.game_shape()
                 .body
                 .as_svg(SHAPE_SIZE, shape.fill_color(false), shape.stroke_color());
 

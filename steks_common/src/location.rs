@@ -1,6 +1,6 @@
 use bevy::prelude::{Quat, Transform, Vec2, Vec3};
-
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+use serde::{Serialize, Deserialize};
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct Location {
     pub position: Vec2,
     /// angle in radians

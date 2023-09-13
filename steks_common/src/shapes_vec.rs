@@ -2,8 +2,8 @@ use std::ops::Deref;
 
 use crate::prelude::*;
 use base64::Engine;
-
-#[derive(Debug)]
+use serde::{Serialize, Deserialize};
+#[derive(Debug, Serialize, Deserialize, PartialEq )]
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
 impl Deref for ShapesVec {
@@ -30,7 +30,7 @@ impl ShapesVec {
             .iter()
             .map(|x| {
                 (
-                    x.shape.index.0 as u64,
+                    x.shape.0 as u64,
                     state_hash(&x.state),
                     x.modifiers as u64,
                 )
@@ -53,7 +53,7 @@ impl ShapesVec {
         self.0
             .iter()
             .filter(|x| !x.state.is_void())
-            .map(|x| x.shape.body.bounding_box(SHAPE_SIZE, &Location::default()))
+            .map(|x| x.shape.game_shape().body.bounding_box(SHAPE_SIZE, &Location::default()))
             .map(|bb| (bb.max - bb.min).length() * HEIGHT_MULTIPLIER)
             .sum()
     }
@@ -72,7 +72,7 @@ impl ShapesVec {
             if state == &ShapeState::Void {
                 continue;
             }
-            let bb = shape.body.bounding_box(SHAPE_SIZE, location);
+            let bb = shape.game_shape().body.bounding_box(SHAPE_SIZE, location);
 
             min = min.min(bb.min.y);
             max = max.max(bb.max.y);
@@ -99,7 +99,7 @@ impl From<&DesignedLevel> for ShapesVec {
 
         for stage in level.all_stages() {
             for shape_creation in stage.shapes.iter() {
-                let shape: &GameShape = shape_creation.shape.into();
+                let shape: ShapeIndex = shape_creation.shape.into();
 
                 let es = EncodableShape {
                     shape,

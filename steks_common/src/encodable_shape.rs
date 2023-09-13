@@ -1,11 +1,11 @@
 use bevy::prelude::{Color, Vec2};
 use std::ops::RangeInclusive;
-
+use serde::{Serialize, Deserialize};
 use crate::prelude::*;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct EncodableShape {
-    pub shape: &'static GameShape,
+    pub shape: ShapeIndex,
     pub location: Location,
     pub state: ShapeState,
     pub modifiers: ShapeModifiers,
@@ -29,7 +29,7 @@ impl EncodableShape {
     pub fn fill_color(&self, high_contrast: bool) -> Option<Color> {
         use ShapeState::*;
         match self.state {
-            Normal | Locked => Some(self.shape.default_fill_color(high_contrast)),
+            Normal | Locked => Some(self.shape.game_shape().default_fill_color(high_contrast)),
             Fixed => Some(crate::color::FIXED_SHAPE_FILL),
             Void => Some(crate::color::VOID_SHAPE_FILL),
         }
@@ -70,7 +70,7 @@ impl EncodableShape {
         let s_and_m = Self::encode_state_and_modifiers(state, modifiers);
 
         [
-            shape.index.0 as u8,
+            shape.0 as u8,
             s_and_m,
             x1,
             x2,
@@ -84,7 +84,7 @@ impl EncodableShape {
         let shape_index = arr[0] as usize;
         let (state, modifiers) = Self::decode_state_and_modifiers(arr[1]);
 
-        let shape = &ALL_SHAPES[shape_index % ALL_SHAPES.len()];
+        let shape = ShapeIndex(shape_index % ALL_SHAPES.len());
         let x_u16 = u16::from_be_bytes([arr[2], arr[3]]);
         let y_u16 = u16::from_be_bytes([arr[4], arr[5]]);
         let x = denormalize_from_range(x_u16, X_RANGE);
@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     fn test_shape_encoding_roundtrip() {
-        let shape = GameShape::by_name("O4").unwrap();
+        let shape = GameShape::by_name("O4").unwrap().index;
 
         let fs = EncodableShape {
             shape,

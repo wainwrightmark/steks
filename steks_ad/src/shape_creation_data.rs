@@ -122,7 +122,7 @@ impl ShapeCreationData {
         } = value;
 
         Self {
-            shape,
+            shape: shape.game_shape(),
             location: Some(location),
             state,
             velocity: None,

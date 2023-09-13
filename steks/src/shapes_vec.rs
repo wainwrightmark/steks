@@ -13,7 +13,7 @@ pub fn shapes_vec_from_query<F: ReadOnlyWorldQuery>(
         .iter()
         .map(
             |(index, transform, shape_component, friction)| EncodableShape {
-                shape: &ALL_SHAPES[index.0],
+                shape: *index,
                 location: transform.into(),
                 state: shape_component.into(),
                 modifiers: if friction.coefficient < DEFAULT_FRICTION {

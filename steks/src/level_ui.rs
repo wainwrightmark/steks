@@ -203,14 +203,14 @@ impl MavericNode for MainPanel {
                                 context,
                             );
 
-                            commands.add_child(
-                                "pb_star_heights",
-                                StarHeights {
-                                    level_stars,
-                                    star_type,
-                                },
-                                context,
-                            );
+                            // commands.add_child(
+                            //     "pb_star_heights",
+                            //     StarHeights {
+                            //         level_stars,
+                            //         star_type,
+                            //     },
+                            //     context,
+                            // );
                         }
                     }
 

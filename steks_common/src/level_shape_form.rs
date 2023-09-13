@@ -62,7 +62,7 @@ pub enum LevelShapeForm {
 
 impl From<LevelShapeForm> for ShapeIndex {
     fn from(val: LevelShapeForm) -> Self {
-        let index = val as usize;
+        let index = val as u8;
         ShapeIndex(index)
     }
 }

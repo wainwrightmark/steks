@@ -81,10 +81,10 @@ impl EncodableShape {
     }
 
     pub fn decode(arr: &[u8]) -> Self {
-        let shape_index = arr[0] as usize;
+        let shape_index = arr[0] ;
         let (state, modifiers) = Self::decode_state_and_modifiers(arr[1]);
 
-        let shape = ShapeIndex(shape_index % ALL_SHAPES.len());
+        let shape = ShapeIndex(shape_index % (ALL_SHAPES.len() as u8));
         let x_u16 = u16::from_be_bytes([arr[2], arr[3]]);
         let y_u16 = u16::from_be_bytes([arr[4], arr[5]]);
         let x = denormalize_from_range(x_u16, X_RANGE);

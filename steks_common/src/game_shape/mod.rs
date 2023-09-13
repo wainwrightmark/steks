@@ -61,7 +61,7 @@ impl GameShape {
             i => i,
         };
 
-        choose_color(index, high_contrast)
+        choose_color(index as usize, high_contrast)
     }
 
     pub fn fill(&self, high_contrast: bool) -> Fill {
@@ -123,7 +123,7 @@ pub static ALL_SHAPES: Lazy<Vec<GameShape>> = Lazy::new(|| {
         .map(|(index, (body, name))| GameShape {
             name,
             body,
-            index: ShapeIndex(index),
+            index: ShapeIndex(index as u8),
         })
         .collect()
 });

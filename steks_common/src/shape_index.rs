@@ -4,11 +4,11 @@ use rand::{rngs::StdRng, Rng};
 use serde::{Serialize, Deserialize};
 
 #[derive(Component, PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct ShapeIndex(pub usize);
+pub struct ShapeIndex(pub u8);
 
 impl ShapeIndex {
     pub fn exclusive_max() -> Self {
-        let i = ALL_SHAPES.len();
+        let i = ALL_SHAPES.len() as u8;
         Self(i)
     }
 
@@ -22,12 +22,12 @@ impl ShapeIndex {
     }
 
     pub fn game_shape(&self)-> &'static GameShape{
-        &ALL_SHAPES[self.0]
+        &ALL_SHAPES[self.0 as usize]
     }
 }
 
 impl From<ShapeIndex> for &'static GameShape {
     fn from(val: ShapeIndex) -> Self {
-        &ALL_SHAPES[val.0]
+        &ALL_SHAPES[val.0 as usize]
     }
 }

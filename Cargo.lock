@@ -76,7 +76,8 @@ name = "ad_postbuild"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "base64",
+ "base91",
+ "miniz_oxide",
  "regex",
 ]
 
@@ -334,6 +335,12 @@ name = "base64"
 version = "0.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ba43ea6f343b788c8764558649e08df62f86c6ef251fdaeb1ffd010a9ae50a2"
+
+[[package]]
+name = "base91"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4eb5fbae7b5ee422f239444a3dca9bdf5ecb3abf3af1bf87c8097db3f7bc025"
 
 [[package]]
 name = "bevy"

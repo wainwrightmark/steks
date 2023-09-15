@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.75"
-base64 = "0.21.4"
+base91 = "0.1.0"
+miniz_oxide = "0.7.1"
 regex = { version = "1.9.5" }

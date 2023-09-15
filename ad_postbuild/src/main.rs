@@ -42,6 +42,8 @@ fn main() -> Result<(), anyhow::Error> {
     let js_file_path = js_file_path.expect("js file was missing");
 
     let wasm_data = fs::read(wasm_file_path.clone())?;
+
+    println!("Wasm data is {} bytes", wasm_data.len());
     let encoded_wasm: String = general_purpose::STANDARD_NO_PAD.encode(wasm_data);
 
     let contents = "const data = '".to_string()

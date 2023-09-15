@@ -56,8 +56,6 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(HasActedPlugin)
         .add_plugins(FireworksPlugin)
 
-        .add_plugins(SnowPlugin)
-
 
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
@@ -84,14 +82,14 @@ pub fn setup_app(app: &mut App) {
         app.add_plugins(WASMPlugin);
     }
 
-    #[cfg(debug_assertions)]
-    {
-        use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
-        app.add_plugins(ScreenDiagnosticsPlugin::default());
-        app.add_plugins(ScreenFrameDiagnosticsPlugin);
+    // #[cfg(debug_assertions)]
+    // {
+    //     use bevy_screen_diagnostics::{ScreenDiagnosticsPlugin, ScreenFrameDiagnosticsPlugin};
+    //     app.add_plugins(ScreenDiagnosticsPlugin::default());
+    //     app.add_plugins(ScreenFrameDiagnosticsPlugin);
 
-        //app.add_plugins(RapierDebugRenderPlugin::default());
-    }
+    //     //app.add_plugins(RapierDebugRenderPlugin::default());
+    // }
 
 
 }

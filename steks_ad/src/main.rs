@@ -24,7 +24,6 @@ pub mod shape_creation_data;
 pub mod shape_maker;
 pub mod shape_update_data;
 pub mod shapes_vec;
-pub mod snow;
 pub mod spirit;
 pub mod startup;
 pub mod text_button;
@@ -67,7 +66,6 @@ pub mod prelude {
     pub use crate::shape_maker::*;
     pub use crate::shape_update_data::*;
     pub use crate::shapes_vec::*;
-    pub use crate::snow::*;
     pub use crate::spirit::*;
     pub use crate::text_button::*;
     pub use crate::ui::*;

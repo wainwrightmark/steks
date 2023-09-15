@@ -192,6 +192,7 @@ fn text_button_system(
                     {
                         info!("Exit App");
                         crate::wasm::google_ads_exit_app();
+                        // crate::wasm::facebook_ads_exit_app();
                     }
                 }
 

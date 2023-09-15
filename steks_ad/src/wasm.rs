@@ -8,6 +8,9 @@ extern "C" {
 
     #[wasm_bindgen(js_name = exit, js_namespace= ["ExitApi"])]
     pub fn google_ads_exit_app();
+
+    // #[wasm_bindgen(js_name = onCTAClick, js_namespace = ["FbPlayableAd"])]
+    // pub fn facebook_ads_exit_app();
 }
 
 #[derive(Resource)]

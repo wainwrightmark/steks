@@ -17,7 +17,6 @@ pub mod level;
 pub mod level_text_panel;
 pub mod level_ui;
 pub mod padlock;
-pub mod platform;
 pub mod prediction;
 pub mod settings;
 pub mod shape_component;
@@ -60,7 +59,6 @@ pub mod prelude {
     pub use crate::level_text_panel::*;
     pub use crate::level_ui::*;
     pub use crate::padlock::*;
-    pub use crate::platform::*;
     pub use crate::prediction::*;
     pub use crate::prediction::*;
     pub use crate::settings::*;

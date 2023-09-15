@@ -28,7 +28,7 @@ pub struct Countdown {
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
 
 const ARC_STROKE: f32 = 5.0;
-const POSITION_Y: f32 = 200.0;
+const POSITION_Y: f32 = 000.0;
 
 fn update_dynamic_elements(
     countdown: Res<WinCountdown>,

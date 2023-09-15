@@ -1,14 +1,22 @@
 apply plugin: 'com.android.application'
 
 android {
+    // signingConfigs {
+    //     debug {
+    //         storeFile file('C:\\Users\\wainw\\Desktop\\steksgame_key.jks')
+    //         storePassword '' //Westminster
+    //         keyAlias 'steksgame_key'
+    //         keyPassword '' //Westminster
+    //     }
+    // }
     namespace "com.steksgame.app"
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.steksgame.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 8
-        versionName "1.8"
+        versionCode 9
+        versionName "1.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

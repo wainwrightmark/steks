@@ -9,6 +9,7 @@
   "plugins": {
     "SplashScreen": {
       "launchAutoHide": false,
+      "launchFadeOutDuration": 2000,
       "backgroundColor": "#86AEEA",
       "androidSplashResourceName": "ic_launcher_foreground",
       "androidScaleType": "CENTER_CROP",

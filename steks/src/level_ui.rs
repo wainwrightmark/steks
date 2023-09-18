@@ -16,6 +16,7 @@ pub struct MainPanelWrapper {
     pub ui_state: GameUIState,
     pub level: GameLevel,
     pub score_info: ScoreInfo,
+    pub insets: Insets
 }
 
 impl MavericNode for MainPanelWrapper {
@@ -49,8 +50,8 @@ impl MavericNode for MainPanelWrapper {
         commands.ignore_context().advanced(|args, commands| {
             if args.is_hot() {
                 let top = match args.node.ui_state {
-                    GameUIState::Splash | GameUIState::Preview(_) => Val::Px(50.0),
-                    GameUIState::Minimized => Val::Px(0.0),
+                    GameUIState::Splash | GameUIState::Preview(_) => Val::Px(args.node.insets.top.max(50.0)),
+                    GameUIState::Minimized => Val::Px(args.node.insets.top),
                 };
 
                 commands.transition_value::<StyleTopLens>(top, top, Some(ScalarSpeed::new(100.0)));

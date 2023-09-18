@@ -1,6 +1,6 @@
 use bevy::{prelude::Resource, ui::Val};
 
-#[derive(Debug, Clone, Default, Resource)]
+#[derive(Debug, Clone, Default, Resource, PartialEq)]
 pub struct Insets {
     pub top: f32,
     pub left: f32,

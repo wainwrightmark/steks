@@ -143,31 +143,29 @@ impl MavericRootChildren for GlobalUiRoot {
             GlobalUiState::MenuClosed(ui_state) => {
                 let current_level = context.1.as_ref();
                 let asset_server = &context.2 .3;
+                let insets = &context.2 .2;
 
                 match current_level.completion {
                     LevelCompletion::Incomplete { stage } => {
+                        let show_news_icon = context.2 .4.latest.is_some() && !context.2 .4.is_read;
+                        let show_snow_icon = !context.2 .0.snow_enabled
+                            && current_level.snowdrop_settings().is_some();
+
+                        let icons = [
+                            Some((IconButton::OpenMenu, IconButtonStyle::Menu)),
+                            show_news_icon.then_some((IconButton::OpenNews, IconButtonStyle::News)),
+                            show_snow_icon
+                                .then_some((IconButton::EnableSnow, IconButtonStyle::Snow)),
+                        ];
+
                         commands.add_child(
-                            "open_icon",
-                            icon_button_node(IconButton::OpenMenu, IconButtonStyle::Menu),
+                            "icons",
+                            IconsPanel {
+                                icons,
+                                top: insets.top,
+                            },
                             asset_server,
                         );
-
-                        if context.2 .4.latest.is_some() && !context.2 .4.is_read {
-                            commands.add_child(
-                                "news_icon",
-                                icon_button_node(IconButton::OpenNews, IconButtonStyle::News),
-                                asset_server,
-                            );
-                        }
-
-                        if !context.2 .0.snow_enabled && current_level.snowdrop_settings().is_some()
-                        {
-                            commands.add_child(
-                                "snow_icon",
-                                icon_button_node(IconButton::EnableSnow, IconButtonStyle::Snow),
-                                asset_server,
-                            );
-                        }
 
                         if current_level.level.is_begging() {
                             commands.add_child("begging", BeggingPanel, asset_server);
@@ -192,6 +190,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     score_info,
                                     ui_state: ui_state.clone(),
                                     level: current_level.level.clone(),
+                                    insets: insets.as_ref().clone(),
                                 },
                                 asset_server,
                             )
@@ -204,3 +203,43 @@ impl MavericRootChildren for GlobalUiRoot {
 }
 
 impl_maveric_root!(GlobalUiRoot);
+
+#[derive(Debug, Clone, PartialEq)]
+struct IconsPanel<const ICONS: usize> {
+    icons: [Option<(IconButton, IconButtonStyle)>; ICONS],
+    top: f32,
+}
+
+impl<const ICONS: usize> MavericNode for IconsPanel<ICONS> {
+    type Context = AssetServer;
+
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
+        commands
+            .ignore_context()
+            .insert_with_node(|node| NodeBundle {
+                style: Style {
+                    display: Display::Flex,
+
+                    flex_direction: FlexDirection::Row,
+                    margin: UiRect::new(Val::Px(0.), Val::Px(0.), Val::Px(0.), Val::Px(0.)),
+                    top: Val::Px(node.top),
+                    align_self: AlignSelf::Start,
+                    width: Val::Auto,
+                    height: Val::Auto,
+
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands.unordered_children_with_node_and_context(|node, context, commands| {
+            for (key, icon) in node.icons.into_iter().enumerate() {
+                if let Some((icon, style)) = icon {
+                    commands.add_child(key as u32, icon_button_node(icon, style), context);
+                }
+            }
+        });
+    }
+}

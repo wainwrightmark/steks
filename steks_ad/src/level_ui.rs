@@ -10,13 +10,16 @@ pub enum GameUIState {
 
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct GetTheGamePanel;
+pub struct GetTheGamePanel{
+    pub top: Val,
+    pub position_type: PositionType
+}
 
 impl MavericNode for GetTheGamePanel {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_node().ignore_context().insert(NodeBundle {
+        commands.ignore_context().insert_with_node(|node| NodeBundle {
             style: Style {
                 display: Display::Flex,
                 align_items: AlignItems::Center,
@@ -26,6 +29,8 @@ impl MavericNode for GetTheGamePanel {
                 justify_content: JustifyContent::Center,
                 width: Val::Auto,
                 height: Val::Auto,
+                top: node.top,
+                position_type: node.position_type,
 
                 ..Default::default()
             },
@@ -113,7 +118,7 @@ impl MavericNode for BeggingPanel {
                     context,
                 );
 
-                commands.add_child(2, GetTheGamePanel, context);
+                commands.add_child(2, GetTheGamePanel{top: Val::Auto, position_type: PositionType::Relative}, context);
             });
     }
 }

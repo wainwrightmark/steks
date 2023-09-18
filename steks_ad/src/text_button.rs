@@ -121,7 +121,7 @@ impl TextButton {
             TextButton::ShowAchievements => "Show Achievements".to_string(),
             TextButton::SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
             TextButton::BackToMenu => "Back".to_string(),
-            TextButton::GetTheGame => "Get steks now".to_string(),
+            TextButton::GetTheGame => "Get The Game".to_string(),
         }
     }
 }

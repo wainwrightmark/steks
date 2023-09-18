@@ -213,7 +213,10 @@ impl WallPosition {
     }
 
     pub fn show_marker(&self) -> bool {
-        true
+        match self{
+            WallPosition::Bottom => false,
+            _=> true
+        }
     }
 
     pub fn get_extents(&self) -> Vec2 {

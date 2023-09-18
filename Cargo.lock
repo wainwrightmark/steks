@@ -294,23 +294,7 @@ dependencies = [
  "http",
  "http-body",
  "http-serde",
- "query_map 0.6.0",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "aws_lambda_events"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "771c11de66cef31b3f49f0b38f06d94f0af424f60381409fc21972ff9c8f835b"
-dependencies = [
- "base64",
- "bytes",
- "http",
- "http-body",
- "http-serde",
- "query_map 0.7.0",
+ "query_map",
  "serde",
  "serde_json",
 ]
@@ -2149,7 +2133,7 @@ dependencies = [
 name = "image"
 version = "0.1.0"
 dependencies = [
- "aws_lambda_events 0.11.1",
+ "aws_lambda_events",
  "base64",
  "http",
  "insta",
@@ -2338,7 +2322,7 @@ name = "leaderboard"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "aws_lambda_events 0.10.0",
+ "aws_lambda_events",
  "itertools",
  "lambda_runtime",
  "planetscale-driver",
@@ -3164,17 +3148,6 @@ name = "query_map"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4465aacac3bebc9484cf7a56dc8b2d7feacb657da6002a9198b4f7af4247a204"
-dependencies = [
- "form_urlencoded",
- "serde",
- "serde_derive",
-]
-
-[[package]]
-name = "query_map"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eab6b8b1074ef3359a863758dae650c7c0c6027927a085b7af911c8e0bf3a15"
 dependencies = [
  "form_urlencoded",
  "serde",

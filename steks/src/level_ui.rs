@@ -50,8 +50,8 @@ impl MavericNode for MainPanelWrapper {
         commands.ignore_context().advanced(|args, commands| {
             if args.is_hot() {
                 let top = match args.node.ui_state {
-                    GameUIState::Splash | GameUIState::Preview(_) => Val::Px(args.node.insets.top.max(50.0)),
-                    GameUIState::Minimized => Val::Px(args.node.insets.top),
+                    GameUIState::Splash | GameUIState::Preview(_) => Val::Px(args.node.insets.real_top().max(50.0)),
+                    GameUIState::Minimized => Val::Px(args.node.insets.real_top()),
                 };
 
                 commands.transition_value::<StyleTopLens>(top, top, Some(ScalarSpeed::new(100.0)));

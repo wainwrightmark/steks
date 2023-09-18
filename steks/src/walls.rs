@@ -196,7 +196,7 @@ impl WallPosition {
         const OFFSET: f32 = WALL_WIDTH / 2.0;
 
         let top_offset = if gravity.y > 0.0 {
-            (TOP_BOTTOM_OFFSET).max(insets.top) * -1.0
+            (TOP_BOTTOM_OFFSET).max(insets.real_top()) * -1.0
         } else {
             0.0
         };

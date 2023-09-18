@@ -162,7 +162,7 @@ impl MavericRootChildren for GlobalUiRoot {
                             "icons",
                             IconsPanel {
                                 icons,
-                                top: insets.top,
+                                top: insets.real_top(),
                             },
                             asset_server,
                         );

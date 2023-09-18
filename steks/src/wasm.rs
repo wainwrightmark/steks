@@ -236,22 +236,22 @@ fn get_insets() -> Option<Insets> {
     insets.top = style
         .get_property_value("--sat")
         .ok()
-        .and_then(|x| x.parse::<f32>().ok())
+        .and_then(|x| x.trim_end_matches("px").parse::<f32>().ok())
         .unwrap_or_default();
     insets.left = style
         .get_property_value("--sal")
         .ok()
-        .and_then(|x| x.parse::<f32>().ok())
+        .and_then(|x| x.trim_end_matches("px").parse::<f32>().ok())
         .unwrap_or_default();
     insets.right = style
         .get_property_value("--sar")
         .ok()
-        .and_then(|x| x.parse::<f32>().ok())
+        .and_then(|x| x.trim_end_matches("px").parse::<f32>().ok())
         .unwrap_or_default();
     insets.bottom = style
         .get_property_value("--sab")
         .ok()
-        .and_then(|x| x.parse::<f32>().ok())
+        .and_then(|x| x.trim_end_matches("px").parse::<f32>().ok())
         .unwrap_or_default();
 
     Some(insets)

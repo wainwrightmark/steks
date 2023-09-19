@@ -7,8 +7,8 @@ rust-version = "1.68.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aws_lambda_events = {version= "0.10", default-features=false, features=["apigw"]}
-lambda_runtime = {version= "*", default-features=false}
+aws_lambda_events = {version= "0.10", default-features=false, features=["apigw"]}  #don't update this
+lambda_runtime = {version= "0.8", default-features=false}
 tokio = {version= "*", default-features=false}
 itertools = "0.11"
 planetscale-driver =  {version="0.5", default-features=false }

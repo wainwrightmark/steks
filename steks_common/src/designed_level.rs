@@ -394,7 +394,7 @@ mod tests {
     #[test]
     pub fn test_ad_levels_deserialize() {
         let list = &crate::designed_level::AD_LEVELS;
-        assert_eq!(list.len(), 1)
+        assert_eq!(list.len(), 3)
     }
 
     #[test]

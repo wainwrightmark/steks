@@ -1,6 +1,4 @@
-- title: "steks"
-  text: "Tower building puzzle game\n\nBuild a tower with the shapes"
-
+- text: "welcome to steks\n\nthe tower building game\n\nmake a tower with the shapes"
   text_forever: true
   show_rotate: true
   shapes:
@@ -22,5 +20,54 @@
     - shape: U5
       x: 0
       y: -100
+      vel_x: 0.0
+      vel_y: 0.0
+- text: "great job\n\nnow can you do this?"
+  text_forever: true
+  show_rotate: true
+  shapes:
+    - shape: W5
+      x: 0.0
+      y: -150.0
+      r: 0.875
+      state: fixed
+    - shape: I4
+      x: -100
+      y: -100
+      vel_x: 0.0
+      vel_y: 0.0
+    - shape: X5
+      x: 100
+      y: -100
+      vel_x: 0.0
+      vel_y: 0.0
+    - shape: P5
+      x: -100
+      y: -150
+      r: 0.25
+      vel_x: 0.0
+      vel_y: 0.0
+- text: "have you tried\n\nrotating the shapes?"
+  text_forever: true
+  show_rotate: true
+  shapes:
+    - shape: Y5
+      x: 0.0
+      y: -150.0
+      r: 0.0
+      state: fixed
+    - shape: T5
+      x: -100
+      y: -100
+      vel_x: 0.0
+      vel_y: 0.0
+    - shape: F5
+      x: 100
+      y: -100
+      vel_x: 0.0
+      vel_y: 0.0
+    - shape: U5
+      x: 0
+      y: 0
       vel_x: 0.0
       vel_y: 0.0

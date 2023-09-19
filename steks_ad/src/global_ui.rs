@@ -64,19 +64,22 @@ impl MavericRootChildren for GlobalUiRoot {
 
                 match current_level.completion {
                     LevelCompletion::Incomplete { stage } => {
-                        if !context.2 .0.snow_enabled && current_level.snowdrop_settings().is_some()
-                        {
-                            commands.add_child(
-                                "snow_icon",
-                                icon_button_node(IconButton::EnableSnow, IconButtonStyle::Snow),
-                                asset_server,
-                            );
-                        }
+
 
                         if current_level.level.is_begging() {
                             commands.add_child("begging", BeggingPanel, asset_server);
                         } else {
                             let is_touch = context.3.touch_enabled;
+
+                            commands.add_child(
+                                "get_the_game",
+                                GetTheGamePanel{
+                                    top: Val::Px(0.0),
+                                    position_type: PositionType::Absolute
+                                },
+                                asset_server
+                            );
+
                             commands.add_child(
                                 "text",
                                 LevelTextPanel {

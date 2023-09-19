@@ -202,7 +202,10 @@ impl WallPosition {
         };
         let bottom_offset = if gravity.y > 0.0 {
             0.0
-        } else {
+        } else if cfg!(feature="ios") {            
+            25.0
+        } else{
+
             TOP_BOTTOM_OFFSET
         };
 

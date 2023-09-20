@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 base91 = "0.1.0"
-miniz_oxide = "0.7.1"
-regex = { version = "1.9.5" }
+sevenz-rust={version="0.5"}
+minify-js = "0.5.6"

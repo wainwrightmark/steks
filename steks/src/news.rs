@@ -130,10 +130,11 @@ fn update_news_items(
             if previous.date >= item.date {
                 info!("Latest news is no newer than stored news");
                 continue 'events;
-            } else if item.expired() {
-                info!("Latest news is expired");
-                continue 'events;
             }
+        }
+        else if item.expired() {
+            info!("Latest news is expired");
+            continue 'events;
         }
 
         match create_image_bytes(item, asset_server.as_ref(), &mut images) {

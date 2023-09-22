@@ -32,10 +32,11 @@ impl LevelTransitionResult {
                 //let today = get_today_date();
                 let seed = ((date.year().unsigned_abs() * 2000) + (date.month() * 100) + date.day())
                     as u64;
+                let mut shape_rng: rand::rngs::StdRng = rand::SeedableRng::seed_from_u64(seed);
                 (0..CHALLENGE_SHAPES)
-                    .map(|i| {
+                    .map(|_| {
                         ShapeCreationData::from_shape_index(
-                            ShapeIndex::from_seed_no_circle(seed + i as u64),
+                            ShapeIndex::random_no_circle(&mut shape_rng),
                             ShapeStage(0),
                         )
                         .with_random_velocity()

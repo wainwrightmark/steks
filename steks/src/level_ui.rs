@@ -19,6 +19,8 @@ pub struct MainPanelWrapper {
     pub insets: Insets,
     pub signed_in: UserSignedIn
 }
+#[derive(Debug, Clone, PartialEq, Component)]
+pub struct MainPanelMarker;
 
 impl MavericNode for MainPanelWrapper {
     type Context = AssetServer;
@@ -45,6 +47,7 @@ impl MavericNode for MainPanelWrapper {
                     z_index: ZIndex::Global(15),
                     ..Default::default()
                 })
+
                 .finish()
         });
 
@@ -135,6 +138,8 @@ impl MavericNode for MainPanel {
             };
 
             commands.insert(bundle);
+            commands.insert(MainPanelMarker);
+
         });
     }
 
@@ -375,6 +380,13 @@ impl MavericNode for MainPanel {
                         commands.add_child(
                             "streak",
                             panel_text_node(format!("Streak    {streak:.2}",)),
+                            context,
+                        );
+                    }
+                    else{
+                        commands.add_child(
+                            "no_streak",
+                            panel_text_node(format!(" ",)),
                             context,
                         );
                     }

@@ -1,3 +1,4 @@
+use bevy::ecs::query::Has;
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
 use steks_common::constants;
@@ -451,8 +452,10 @@ pub fn drag_start(
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
 
     mut global_ui_state: ResMut<GlobalUiState>,
-    //current_level: Res<CurrentLevel>,
-    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<Button>>,
+    node_query: Query<
+        (&Node, &GlobalTransform, &ComputedVisibility),
+        Or<(With<Button>, With<MainPanelMarker>)>,
+    >,
     windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     'events: for event in er_drag_start.iter() {
@@ -468,14 +471,9 @@ pub fn drag_start(
                     'capture: for (node, global_transform, _) in
                         node_query.iter().filter(|x| x.2.is_visible())
                     {
-                        let node_position = global_transform.translation().truncate();
-
-                        let half_size = 0.5 * node.size();
-                        let min = node_position - half_size;
-                        let max = node_position + half_size;
-
-                        if (min.x..max.x).contains(&event_ui_position.x)
-                            && (min.y..max.y).contains(&event_ui_position.y)
+                        if node
+                            .logical_rect(global_transform)
+                            .contains(event_ui_position)
                         {
                             captured = true;
                             break 'capture;
@@ -483,6 +481,7 @@ pub fn drag_start(
                     }
 
                     if !captured {
+                        info!("Click was not captured");
                         global_ui_state.minimize();
                     }
                 }

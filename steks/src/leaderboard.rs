@@ -52,7 +52,7 @@ pub struct WorldRecords {
 }
 
 impl TrackableResource for WorldRecords {
-    const KEY: &'static str = "WorldRecords";
+    const KEY: &'static str = "WRs";
 }
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize)]
@@ -164,7 +164,7 @@ fn hydrate_leaderboard(
         }
     };
 
-    let Some((hash, height, image_blob)) = text.split_ascii_whitespace().next_tuple() else {
+    let Some((hash, written_height, image_blob)) = text.split_ascii_whitespace().next_tuple() else {
         crate::logging::try_log_error_message(format!("Could not parse wr row: {text}"));
         return;
     };
@@ -176,18 +176,18 @@ fn hydrate_leaderboard(
             return;
         }
     };
-    let mut height: f32 = match height.parse() {
+    let written_height: f32 = match written_height.parse() {
         Ok(height) => height,
         Err(_err) => {
             crate::logging::try_log_error_message(format!(
-                "Error parsing height '{height}': {_err}"
+                "Error parsing height '{written_height}': {_err}"
             ));
             return;
         }
     };
     let updated = chrono::offset::Utc::now();
 
-    debug!("Received wr {hash} {height} {image_blob}");
+    debug!("Received wr {hash} {written_height} {image_blob}");
 
     let image_blob = if image_blob == "0" {
         vec![]
@@ -200,6 +200,9 @@ fn hydrate_leaderboard(
             }
         }
     };
+    let shapes = ShapesVec(decode_shapes(&image_blob));
+    let mut height = shapes.calculate_tower_height();
+
 
     match wrs.map.entry(hash) {
         std::collections::btree_map::Entry::Vacant(ve) => {
@@ -226,10 +229,18 @@ fn hydrate_leaderboard(
                 }
                 std::cmp::Ordering::Greater => {
                     debug!("Existing record is better than record from server");
-                    let existing_image_blob = base64::engine::general_purpose::URL_SAFE
-                        .encode(existing.image_blob.as_slice());
-                    update_wr(hash, existing.height, existing_image_blob);
-                    height = existing.height;
+                    let shapes = ShapesVec(decode_shapes(&existing.image_blob));
+                    let actual_height = shapes.calculate_tower_height();
+                    if existing.height != actual_height {
+                        warn!(
+                            "Existing record is wrong height {} actual {actual_height}",
+                            existing.height
+                        );
+                        oe.get_mut().height = actual_height;
+                    }
+                    height = actual_height;
+
+                    update_wr(&shapes);
                     oe.get_mut().updated = Some(updated);
                 }
             }
@@ -251,15 +262,9 @@ fn hydrate_leaderboard(
     if score_info.wr != Some(height) {
         if score_info.height > height {
             debug!("current wr is less than current score");
-            if let Some(shapes_vec) = &current_level.saved_data{
-                update_wr(
-                    hash,
-                    score_info.height,
-                    shapes_vec.make_base64_data(),
-                );
+            if let Some(shapes_vec) = &current_level.saved_data {
+                update_wr(shapes_vec);
             }
-
-
         } else {
             debug!("Updating current level wr");
             current_level.completion = LevelCompletion::Complete {
@@ -284,7 +289,10 @@ async fn get_leaderboard_data(hash: u64) -> LeaderboardDataEvent {
     }
 }
 
-fn update_wr(hash: u64, height: f32, blob: String) {
+fn update_wr(shapes_vec: &ShapesVec) {
+    let hash = shapes_vec.hash();
+    let height = shapes_vec.calculate_tower_height();
+    let blob = shapes_vec.make_base64_data();
     log::debug!("Updating wrs {hash} {height}");
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
@@ -376,10 +384,7 @@ fn update_campaign_completion(
     }
 }
 
-fn check_pbs_on_completion(
-    current_level: Res<CurrentLevel>,
-    mut pbs: ResMut<PersonalBests>,
-) {
+fn check_pbs_on_completion(current_level: Res<CurrentLevel>, mut pbs: ResMut<PersonalBests>) {
     if !current_level.is_changed() {
         return;
     }
@@ -395,7 +400,9 @@ fn check_pbs_on_completion(
             return;
         };
 
-    let Some(shapes) = &current_level.saved_data  else{return;};
+    let Some(shapes) = &current_level.saved_data else {
+        return;
+    };
 
     let level_pb = || LevelPB {
         height,
@@ -465,7 +472,9 @@ fn check_wrs_on_completion(
         return;
     }
 
-    let Some(shapes) = &current_level.saved_data  else{return;};
+    let Some(shapes) = &current_level.saved_data else {
+        return;
+    };
 
     let (height, hash) =
         if let LevelCompletion::Complete { score_info, .. } = current_level.completion {

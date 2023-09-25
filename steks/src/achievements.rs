@@ -11,25 +11,60 @@ impl Plugin for AchievementsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugins(TrackedResourcePlugin::<Achievements>::default())
             .add_systems(Startup, sign_in_user)
-            .add_systems(Update, track_level_completion_achievements);
+            .add_systems(Update, track_level_completion_achievements)
+            .add_plugins(AsyncEventPlugin::<SignInEvent>::default())
+            .add_systems(Update, check_for_sign_in)
+            .init_resource::<UserSignedIn>()
+            ;
     }
 }
 
-fn sign_in_user() {
+#[derive(Debug, Resource, Default, Clone, PartialEq, Eq)]
+pub struct UserSignedIn(pub bool);
+
+#[derive(Debug, Event, Clone, Copy, Eq, PartialEq)]
+pub struct SignInEvent;
+
+fn check_for_sign_in(mut ev: EventReader<SignInEvent>,mut signed_in: ResMut<UserSignedIn>, achievements: Res<Achievements>){
+    for _ in ev.iter(){
+        signed_in.0 = true;
+        achievements.resync();
+
+    }
+}
+
+#[allow(unused_variables)]
+fn sign_in_user(writer: AsyncEventWriter<SignInEvent>) {
+
+    #[allow(dead_code)]
+    async fn sign_in_async(writer: AsyncEventWriter<SignInEvent>)-> Result<(), capacitor_bindings::error::Error>{
+        let user = capacitor_bindings::game_connect::GameConnect::sign_in().await?;
+        info!("User signed in: {user:?}");
+        let _  = writer.send_async(SignInEvent).await;
+
+        Ok(())
+    }
+
     #[cfg(target_arch = "wasm32")]
     {
         #[cfg(any(feature = "android", feature = "ios"))]
         {
+
             info!("Signing in user to game services");
-            use capacitor_bindings::game_connect::*;
             bevy::tasks::IoTaskPool::get()
                 .spawn(async move {
-                    crate::logging::do_or_report_error_async(move || GameConnect::sign_in()).await;
+                    match sign_in_async(writer).await {
+                        Ok(())=>{}
+                        Err(err)=> error!("{err}")
+                    }
+
                 })
                 .detach();
         }
     }
 }
+
+
 
 pub fn show_achievements() {
     #[cfg(target_arch = "wasm32")]

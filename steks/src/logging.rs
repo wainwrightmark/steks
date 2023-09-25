@@ -204,6 +204,7 @@ impl LoggableEvent {
         const MESSAGES_TO_IGNORE: &[&str] = &[
             "Js Exception: Notifications not enabled on this device",
             "Js Exception: Notifications not supported in this browser.",
+            "Js Exception: Player is not authenticated",
         ];
 
         if MESSAGES_TO_IGNORE.contains(&message.as_str()) {

@@ -99,7 +99,7 @@ impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
         CurrentLevel,
-        NC5<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource>,
+        NC6<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource, UserSignedIn>,
         InputSettings,
     >;
 
@@ -144,6 +144,7 @@ impl MavericRootChildren for GlobalUiRoot {
                 let current_level = context.1.as_ref();
                 let asset_server = &context.2 .3;
                 let insets = &context.2 .2;
+                let signed_in = &context.2.5;
 
                 match current_level.completion {
                     LevelCompletion::Incomplete { stage } => {
@@ -191,6 +192,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     ui_state: ui_state.clone(),
                                     level: current_level.level.clone(),
                                     insets: insets.as_ref().clone(),
+                                    signed_in: signed_in.as_ref().clone()
                                 },
                                 asset_server,
                             )

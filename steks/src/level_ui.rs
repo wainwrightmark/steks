@@ -16,7 +16,8 @@ pub struct MainPanelWrapper {
     pub ui_state: GameUIState,
     pub level: GameLevel,
     pub score_info: ScoreInfo,
-    pub insets: Insets
+    pub insets: Insets,
+    pub signed_in: UserSignedIn
 }
 
 impl MavericNode for MainPanelWrapper {
@@ -67,6 +68,7 @@ impl MavericNode for MainPanelWrapper {
                     ui_state: args.ui_state.clone(),
                     level: args.level.clone(),
                     score_info: args.score_info,
+                    signed_in: args.signed_in.clone()
                 },
                 context,
             );
@@ -79,6 +81,7 @@ pub struct MainPanel {
     ui_state: GameUIState,
     level: GameLevel,
     score_info: ScoreInfo,
+    signed_in: UserSignedIn
 }
 
 impl MavericNode for MainPanel {
@@ -376,7 +379,7 @@ impl MavericNode for MainPanel {
                         );
                     }
 
-                    let bottom_icons = if cfg!(any(feature = "android", feature = "ios"))
+                    let bottom_icons = if cfg!(any(feature = "android", feature = "ios")) && args.signed_in.0
                         && args.level.leaderboard_id().is_some()
                     {
                         [

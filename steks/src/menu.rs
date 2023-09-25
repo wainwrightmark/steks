@@ -25,7 +25,7 @@ fn filter_button(button: TextButton, context: &NewsResource) -> bool {
 }
 
 impl MavericNode for MenuPage {
-    type Context = NC5<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource>;
+    type Context = NC6<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource, UserSignedIn>;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -179,13 +179,12 @@ impl MavericNode for MenuPage {
                     &context.3,
                 );
 
-                #[cfg(any(feature = "android", feature = "ios"))]
-                {
-                    commands.add_child(
-                        "sync_achievements",
-                        text_button_node(TextButton::SyncAchievements, true, false),
-                        &context.3,
-                    );
+                if context.5.0{
+                    // commands.add_child(
+                    //     "sync_achievements",
+                    //     text_button_node(TextButton::SyncAchievements, true, false),
+                    //     &context.3,
+                    // );
 
                     commands.add_child(
                         "show_achievements",

@@ -295,8 +295,11 @@ fn text_button_system(
                     settings.high_contrast = high_contrast
                 }
 
-                TextButton::SyncAchievements => achievements.resync(),
-                TextButton::ShowAchievements => show_achievements(),
+                // TextButton::SyncAchievements => {},
+                TextButton::ShowAchievements => {
+                    achievements.resync();
+                    show_achievements();
+                },
 
                 TextButton::SetFireworks(fireworks) => settings.fireworks_enabled = fireworks,
                 TextButton::SetSnow(snow) => settings.snow_enabled = snow,

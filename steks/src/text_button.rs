@@ -31,7 +31,7 @@ pub enum TextButton {
 
     Credits,
 
-    SyncAchievements,
+    //SyncAchievements,
     ShowAchievements,
 
     News,
@@ -65,7 +65,7 @@ impl TextButton {
             TextButton::SetSnow(_) => false,
             TextButton::SetRotationSensitivity(_) => false,
             TextButton::Credits => true,
-            TextButton::SyncAchievements => false,
+            // TextButton::SyncAchievements => false,
             TextButton::ShowAchievements => false,
             TextButton::News => false, //automatically closes menu
         }
@@ -114,7 +114,7 @@ impl TextButton {
             TextButton::SetHighContrast(true) => "Default           Colours".to_string(),
             TextButton::SetHighContrast(false) => "High Contrast     Colours".to_string(),
 
-            TextButton::SyncAchievements => "Sync Achievements".to_string(),
+            // TextButton::SyncAchievements => "Sync Achievements".to_string(),
             TextButton::ShowAchievements => "Show Achievements".to_string(),
             TextButton::SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
             TextButton::BackToMenu => "Back".to_string(),

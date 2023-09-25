@@ -47,7 +47,7 @@ pub fn spawn_children(
 ) {
     cb.spawn_empty()
         .insert(Shadow)
-        .insert(shape.body.get_shape_bundle(SHAPE_SIZE * ZOOM_LEVEL))
+        .insert(shape.body.get_shape_bundle(SHAPE_SIZE * OUTLINE_ZOOM))
         .insert(Transform {
             translation: Vec3::new(0., 0., 10.),
             ..Default::default()
@@ -55,7 +55,7 @@ pub fn spawn_children(
         .insert(Visibility::Hidden)
         .insert(Stroke {
             color: state.shadow_stroke(),
-            options: StrokeOptions::default().with_line_width(ZOOM_LEVEL),
+            options: StrokeOptions::default().with_line_width(OUTLINE_ZOOM),
         });
 
     if state == ShapeState::Fixed {

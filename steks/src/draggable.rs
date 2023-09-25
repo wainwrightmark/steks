@@ -1,4 +1,4 @@
-use bevy::ecs::query::Has;
+use bevy::gizmos;
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
 use steks_common::constants;
@@ -457,6 +457,7 @@ pub fn drag_start(
         Or<(With<Button>, With<MainPanelMarker>)>,
     >,
     windows: Query<&Window, With<PrimaryWindow>>,
+    ui_scale: Res<UiScale>,
 ) {
     'events: for event in er_drag_start.iter() {
         match global_ui_state.as_ref() {
@@ -464,24 +465,24 @@ pub fn drag_start(
             _ => {
                 if let Ok(window) = windows.get_single() {
                     let event_ui_position = Vec2 {
-                        x: event.position.x + (window.width() * 0.5),
-                        y: (window.height() * 0.5) - event.position.y,
+                        x: event.position.x * ui_scale.scale as f32 + (window.width() * 0.5),
+                        y: (window.height() * 0.5) - (event.position.y * ui_scale.scale as f32),
                     };
+
                     let mut captured = false;
                     'capture: for (node, global_transform, _) in
                         node_query.iter().filter(|x| x.2.is_visible())
                     {
-                        if node
-                            .logical_rect(global_transform)
-                            .contains(event_ui_position)
-                        {
+                        let physical_rect =
+                            node.physical_rect(global_transform, 1.0, ui_scale.scale);
+
+                        if physical_rect.contains(event_ui_position) {
                             captured = true;
                             break 'capture;
                         }
                     }
 
                     if !captured {
-                        info!("Click was not captured");
                         global_ui_state.minimize();
                     }
                 }

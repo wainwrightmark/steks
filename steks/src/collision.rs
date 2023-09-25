@@ -42,7 +42,7 @@ fn highlight_voids(
 
                 for child in children {
                     if let Ok(mut shadow) = shadows.get_mut(*child) {
-                        shadow.options.line_width = ZOOM_LEVEL * MULTIPLIER * VOID_STROKE_WIDTH;
+                        shadow.options.line_width = OUTLINE_ZOOM * MULTIPLIER * VOID_STROKE_WIDTH;
                     }
                 }
             }
@@ -52,7 +52,7 @@ fn highlight_voids(
 
             for child in children {
                 if let Ok(mut shadow) = shadows.get_mut(*child) {
-                    shadow.options.line_width = ZOOM_LEVEL * VOID_STROKE_WIDTH;
+                    shadow.options.line_width = OUTLINE_ZOOM * VOID_STROKE_WIDTH;
                 }
             }
         }

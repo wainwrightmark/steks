@@ -15,8 +15,8 @@ pub fn setup_app(app: &mut App) {
             canvas: Some("#game".to_string()),
             resolution: bevy::window::WindowResolution::new(WINDOW_WIDTH, WINDOW_HEIGHT),
             resize_constraints: WindowResizeConstraints {
-                min_height: WINDOW_HEIGHT,
-                min_width: WINDOW_WIDTH,
+                min_height: 480.,
+                min_width: 320.,
                 max_width: MAX_WINDOW_WIDTH,
                 max_height: MAX_WINDOW_HEIGHT,
             },

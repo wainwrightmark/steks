@@ -114,6 +114,7 @@ fn spawn_fireworks(
     mut countdown: ResMut<FireworksCountdown>,
     time: Res<Time>,
     window: Query<&Window, With<PrimaryWindow>>,
+    ui_scale: Res<UiScale>
 ) {
     if countdown.timer.paused() {
         return;
@@ -133,9 +134,10 @@ fn spawn_fireworks(
         let window = window.get_single().unwrap();
 
         let sparks = rng.gen_range(countdown.intensity..=(countdown.intensity * 2));
+        let scale_recip = ui_scale.scale.recip() as f32;
 
-        let x = rng.gen_range((window.width() * -0.5)..=(window.width() * 0.5));
-        let y = rng.gen_range(0.0..=(window.height() * 0.5));
+        let x = scale_recip * rng.gen_range((window.width() * -0.5)..=(window.width() * 0.5));
+        let y = scale_recip * rng.gen_range(0.0..=(window.height() * 0.5));
         let translation = Vec2 { x, y }.extend(0.0);
         for _ in 0..sparks {
             spawn_spark(&mut commands, translation, &mut rng, &countdown.shapes);

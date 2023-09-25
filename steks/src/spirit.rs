@@ -16,7 +16,7 @@ const SPIRIT_HALF_WIDTH: f32 = 100.0;
 #[derive(Debug, Component)]
 pub struct SpiritMarkerLine;
 
-impl Plugin for SpiritPlugin {
+impl Plugin for SpiritPlugin { //TODO adjust for scaling
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(PostUpdate, show_spirit_lines)
             .add_systems(PostUpdate, hide_spirit_lines)

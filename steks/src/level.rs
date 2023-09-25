@@ -72,7 +72,11 @@ fn handle_change_level_events(
         }
         let completion = LevelCompletion::Incomplete { stage };
 
-        current_level.set_if_neq(CurrentLevel { level, completion, saved_data: None });
+        current_level.set_if_neq(CurrentLevel {
+            level,
+            completion,
+            saved_data: None,
+        });
 
         *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
     }
@@ -98,14 +102,12 @@ fn choose_level_on_game_load(mut _change_level_events: EventWriter<ChangeLevelEv
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
-    pub saved_data:  Option<ShapesVec>
+    pub saved_data: Option<ShapesVec>,
 }
 
 impl TrackableResource for CurrentLevel {
     const KEY: &'static str = "CurrentLevel";
 }
-
-
 
 #[derive(Default, Resource, Debug, PartialEq)]
 pub struct PreviousLevel(pub Option<(GameLevel, LevelCompletion)>);
@@ -161,10 +163,11 @@ fn update_previous_level(
     }
 
     *previous_level = PreviousLevel(current_local.clone());
-    *current_local = Some((current_level.level.clone(), current_level.completion.clone()));
+    *current_local = Some((
+        current_level.level.clone(),
+        current_level.completion.clone(),
+    ));
 }
-
-
 
 impl CurrentLevel {
     pub fn get_current_stage(&self) -> usize {
@@ -659,7 +662,13 @@ impl ChangeLevelEvent {
                     }
                 }
                 GameLevel::Infinite { .. } => (GameLevel::new_infinite(), 0),
-                GameLevel::Challenge { .. } | GameLevel::Begging => (GameLevel::CREDITS, 0),
+                GameLevel::Challenge { .. } | GameLevel::Begging => {
+                    if !*IS_FULL_GAME {
+                        (GameLevel::Begging, 0)
+                    } else {
+                        (GameLevel::new_infinite(), 0)
+                    }
+                }
                 GameLevel::Loaded { .. } => {
                     if completion.stars.iter().all(|x| x.is_incomplete()) {
                         //IF they've never played the game before, take them to the tutorial

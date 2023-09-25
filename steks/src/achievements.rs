@@ -37,18 +37,18 @@ fn check_for_sign_in(mut ev: EventReader<SignInEvent>,mut signed_in: ResMut<User
 fn sign_in_user(writer: AsyncEventWriter<SignInEvent>) {
 
     #[allow(dead_code)]
-    async fn sign_in_async(writer: AsyncEventWriter<SignInEvent>)-> Result<(), capacitor_bindings::error::Error>{
-        let user = capacitor_bindings::game_connect::GameConnect::sign_in().await?;
-        info!("User signed in: {user:?}");
-        let _  = writer.send_async(SignInEvent).await;
-
-        Ok(())
-    }
-
     #[cfg(target_arch = "wasm32")]
     {
         #[cfg(any(feature = "android", feature = "ios"))]
         {
+
+            async fn sign_in_async(writer: AsyncEventWriter<SignInEvent>)-> Result<(), capacitor_bindings::error::Error>{
+                let user = capacitor_bindings::game_connect::GameConnect::sign_in().await?;
+                info!("User signed in: {user:?}");
+                let _  = writer.send_async(SignInEvent).await;
+
+                Ok(())
+            }
 
             info!("Signing in user to game services");
             bevy::tasks::IoTaskPool::get()

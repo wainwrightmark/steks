@@ -15,6 +15,11 @@ impl Deref for ShapesVec {
 }
 
 impl ShapesVec {
+
+    pub fn from_bytes(data: &[u8]) -> Self {
+        Self(data.chunks_exact(7).map(EncodableShape::decode).collect())
+    }
+
     pub fn hash(&self) -> u64 {
         fn state_hash(ss: &ShapeState) -> u64 {
             match ss {

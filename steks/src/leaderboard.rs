@@ -200,7 +200,7 @@ fn hydrate_leaderboard(
             }
         }
     };
-    let shapes = ShapesVec(decode_shapes(&image_blob));
+    let shapes = ShapesVec::from_bytes(&image_blob);
     let mut height = shapes.calculate_tower_height();
 
 
@@ -229,7 +229,7 @@ fn hydrate_leaderboard(
                 }
                 std::cmp::Ordering::Greater => {
                     debug!("Existing record is better than record from server");
-                    let shapes = ShapesVec(decode_shapes(&existing.image_blob));
+                    let shapes = ShapesVec::from_bytes(&existing.image_blob);
                     let actual_height = shapes.calculate_tower_height();
                     if existing.height != actual_height {
                         warn!(

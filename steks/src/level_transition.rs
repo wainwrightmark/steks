@@ -22,7 +22,7 @@ impl LevelTransitionResult {
                     .collect_vec(),
                 None => vec![],
             },
-            GameLevel::Loaded { bytes } => decode_shapes(bytes)
+            GameLevel::Loaded { bytes } => ShapesVec::from_bytes(&bytes).0
                 .into_iter()
                 .map(|encodable_shape| {
                     ShapeCreationData::from_encodable(encodable_shape, ShapeStage(0))

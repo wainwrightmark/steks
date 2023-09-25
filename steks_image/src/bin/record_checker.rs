@@ -6,7 +6,7 @@ pub fn main() {
     println!("Let's go");
 
     for (hash, record) in get_records(){
-        let sv = ShapesVec(decode_shapes(&record.image_blob));
+        let sv = ShapesVec::from_bytes(&record.image_blob);
         let height =record.height;
         let actual_height = sv.calculate_tower_height();
 

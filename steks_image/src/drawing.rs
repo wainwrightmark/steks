@@ -4,8 +4,8 @@ use resvg::tiny_skia::Transform;
 use resvg::usvg::{AspectRatio, NodeExt, NonZeroRect, Tree, TreeParsing, ViewBox};
 
 pub fn make_svg_from_bytes(bytes: &[u8], dimensions: Dimensions) -> String {
-    let shapes = decode_shapes(&bytes);
-    let svg = create_svg(shapes.into_iter(), dimensions);
+    let shapes = ShapesVec::from_bytes(&bytes);
+    let svg = create_svg(shapes.0.into_iter(), dimensions);
     svg
 }
 

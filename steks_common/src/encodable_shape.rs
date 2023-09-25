@@ -102,9 +102,7 @@ impl EncodableShape {
     }
 }
 
-pub fn decode_shapes(data: &[u8]) -> Vec<EncodableShape> {
-    data.chunks_exact(7).map(EncodableShape::decode).collect()
-}
+
 
 const X_RANGE: RangeInclusive<f32> = (MAX_WINDOW_WIDTH * -0.5)..=(MAX_WINDOW_WIDTH * 0.5);
 const Y_RANGE: RangeInclusive<f32> = (MAX_WINDOW_HEIGHT * -0.5)..=(MAX_WINDOW_HEIGHT * 0.5);

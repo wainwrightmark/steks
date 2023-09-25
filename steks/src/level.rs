@@ -724,8 +724,8 @@ impl ChangeLevelEvent {
                 )
             }
             ChangeLevelEvent::Load(bytes) => {
-                let decoded = decode_shapes(bytes);
-                let shapes = decoded.into_iter().map(|x| x.into()).collect_vec();
+                let decoded = ShapesVec::from_bytes(&bytes);
+                let shapes: Vec<ShapeCreation> = decoded.0.into_iter().map(|x| x.into()).collect_vec();
                 let initial_stage = LevelStage {
                     text: None,
                     mouse_text: None,

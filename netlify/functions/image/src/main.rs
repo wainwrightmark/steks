@@ -176,8 +176,7 @@ struct HeightAndStars {
 
 impl HeightAndStars {
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        let shapes = decode_shapes(&bytes);
-        let shapes_vec = ShapesVec(shapes);
+        let shapes_vec = ShapesVec::from_bytes(&bytes);
         let height = shapes_vec.calculate_tower_height();
         let hash = shapes_vec.hash();
 

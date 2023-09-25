@@ -231,23 +231,21 @@ impl WallPosition {
         const IOS_BOTTOM_OFFSET: f32 = 30.0;
         let scale = windows_size.object_scale();
 
-        let top_offset = scale
-            * if gravity.y > 0.0 {
+        let top_offset = if gravity.y > 0.0 {
                 if cfg!(feature = "ios") {
                     (TOP_BOTTOM_OFFSET).max(insets.real_top()) * -1.0
                 } else {
-                    TOP_BOTTOM_OFFSET * -1.0
+                    scale * TOP_BOTTOM_OFFSET * -1.0
                 }
             } else {
                 0.0
             };
-        let bottom_offset = scale
-            * if gravity.y > 0.0 {
+        let bottom_offset = if gravity.y > 0.0 {
                 0.0
             } else if cfg!(feature = "ios") {
                 IOS_BOTTOM_OFFSET
             } else {
-                TOP_BOTTOM_OFFSET
+                scale * TOP_BOTTOM_OFFSET
             };
 
         match self {
@@ -324,12 +322,6 @@ fn handle_window_resized(
     for ev in window_resized_events.iter() {
         window_size.window_width = ev.width;
         window_size.window_height = ev.height;
-        // info!(
-        //     "Window resized {}x{} - zoom scale {}",
-        //     ev.width,
-        //     ev.height,
-        //     window_size.size_scale()
-        // );
         ui_scale.scale = window_size.object_scale() as f64;
         for mut transform in draggables_query.iter_mut() {
             let max_x: f32 = ev.width / 2.0; //You can't leave the game area

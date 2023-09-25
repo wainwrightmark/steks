@@ -1,4 +1,3 @@
-use bevy::gizmos;
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
 use steks_common::constants;

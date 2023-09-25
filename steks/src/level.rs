@@ -1,4 +1,7 @@
-use crate::{prelude::*, startup};
+use crate::{
+    prelude::*,
+    startup::{self, get_today_date},
+};
 use chrono::{Days, NaiveDate};
 use itertools::Itertools;
 use rand::RngCore;
@@ -356,10 +359,17 @@ impl GameLevel {
     }
 
     pub fn leaderboard_id(&self) -> Option<String> {
-        if let GameLevel::Designed { meta, .. } = &self {
-            meta.get_level().leaderboard_id.clone()
-        } else {
-            None
+        match self {
+            GameLevel::Designed { meta } => meta.get_level().leaderboard_id.clone(),
+
+            GameLevel::Challenge { date, .. } => {
+                if get_today_date().eq(date) && cfg!(feature = "ios") {
+                    Some("Daily_Challenge".to_string())
+                } else {
+                    None
+                }
+            }
+            _ => None,
         }
     }
 
@@ -725,7 +735,8 @@ impl ChangeLevelEvent {
             }
             ChangeLevelEvent::Load(bytes) => {
                 let decoded = ShapesVec::from_bytes(&bytes);
-                let shapes: Vec<ShapeCreation> = decoded.0.into_iter().map(|x| x.into()).collect_vec();
+                let shapes: Vec<ShapeCreation> =
+                    decoded.0.into_iter().map(|x| x.into()).collect_vec();
                 let initial_stage = LevelStage {
                     text: None,
                     mouse_text: None,

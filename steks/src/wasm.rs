@@ -116,7 +116,7 @@ pub fn open_link(url: &str) {
         }
     };
 
-    match window.open_with_url_and_target(url, "_blank") {
+    match window.open_with_url_and_target(url, "_top") {
         Ok(_) => {}
         Err(err) => {
             error!("{err:?}")

@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose, Engine as _};
 use sevenz_rust::lzma::*;
 use std::env;
 use std::fs;
@@ -11,40 +12,22 @@ fn main() -> Result<(), anyhow::Error> {
         println!("Profile is {profile}. Doing nothing");
         return Ok(());
     }
-
-    let staging_dir = env::var("TRUNK_STAGING_DIR")?;
-
-    let staging_dir = Path::new(staging_dir.as_str());
-
-    let dir = fs::read_dir(staging_dir)?;
-
-    let mut wasm_file_path: Option<PathBuf> = None;
-    let mut html_file_path: Option<PathBuf> = None;
-    let mut js_file_path: Option<PathBuf> = None;
-
-    for file in dir {
-        let file = file?;
-
-        //let file_type = file.file_type()?;
-        let path = file.path();
-
-        let extension = path.extension().expect("File is missing extension");
-        if extension.eq_ignore_ascii_case("wasm") {
-            assert!(wasm_file_path.is_none());
-            wasm_file_path = Some(path);
-        } else if extension.eq_ignore_ascii_case("html") {
-            assert!(html_file_path.is_none());
-            html_file_path = Some(path);
-        } else if extension.eq_ignore_ascii_case("js") {
-            assert!(js_file_path.is_none());
-            js_file_path = Some(path);
-        } else {
-            panic!("Unexpected file {path:?}");
-        }
+    let compress_wasm = env::args().any(|x| x.eq_ignore_ascii_case("COMPRESS_WASM"));
+    if compress_wasm {
+        go_compressed_wasm()
+    } else {
+        go_no_compress()
     }
-    let wasm_file_path = wasm_file_path.expect("wasm file was missing");
-    let html_file_path = html_file_path.expect("html file was missing");
-    let js_file_path = js_file_path.expect("js file was missing");
+}
+
+fn go_compressed_wasm() -> Result<(), anyhow::Error> {
+    println!("Compress Wasm");
+
+    let Files {
+        wasm_file_path,
+        html_file_path,
+        js_file_path,
+    } = Files::try_new()?;
 
     let wasm_data = fs::read(wasm_file_path.clone())?;
     //let wasm_data = "Hello world".as_bytes();
@@ -88,15 +71,22 @@ fn main() -> Result<(), anyhow::Error> {
         let mut js_text = fs::read_to_string(js_file_path.clone())?;
         js_text = js_text.replace("export { initSync }", "");
         js_text = js_text.replace("export default __wbg_init;", "");
-        js_text = js_text.replace(format!("input = new URL('{wasm_file_name}', import.meta.url);").as_str(), "");
+        js_text = js_text.replace(
+            format!("input = new URL('{wasm_file_name}', import.meta.url);").as_str(),
+            "",
+        );
 
         println!("Js Text is {} chars", js_text.len());
         use minify_js::{Session, TopLevelMode};
         let session = Session::new();
         let mut js_out = Vec::new();
 
-        let minify_result =
-            minify_js::minify(&session, TopLevelMode::Global, js_text.as_bytes(), &mut js_out);
+        let minify_result = minify_js::minify(
+            &session,
+            TopLevelMode::Global,
+            js_text.as_bytes(),
+            &mut js_out,
+        );
         println!("Js Text is {} minified chars", js_out.len());
         match minify_result {
             Ok(()) => {
@@ -151,6 +141,161 @@ fn main() -> Result<(), anyhow::Error> {
     fs::remove_file(wasm_file_path.clone())?;
     fs::remove_file(js_file_path.clone())?;
     Ok(())
+}
+
+fn go_no_compress() -> Result<(), anyhow::Error> {
+    println!("Don't compress wasm");
+
+    let Files {
+        wasm_file_path,
+        html_file_path,
+        js_file_path,
+    } = Files::try_new()?;
+
+    let wasm_data = fs::read(wasm_file_path.clone())?;
+    //let wasm_data = "Hello world".as_bytes();
+
+    println!("Wasm data is {} bytes", wasm_data.len());
+    let encoded_wasm = general_purpose::STANDARD.encode(wasm_data);
+
+    println!(
+        "Wasm data encodes to {} base64 chars",
+        encoded_wasm.chars().count()
+    );
+
+    let wasm_file_name = wasm_file_path
+        .file_name()
+        .expect("wasm file should have name")
+        .to_str()
+        .unwrap();
+
+    let js_file_name = js_file_path
+        .file_name()
+        .expect("js file should have name")
+        .to_str()
+        .unwrap();
+
+    let js_minified_text = {
+        let mut js_text = fs::read_to_string(js_file_path.clone())?;
+        js_text = js_text.replace("export { initSync }", "");
+        js_text = js_text.replace("export default __wbg_init;", "");
+        js_text = js_text.replace(
+            format!("input = new URL('{wasm_file_name}', import.meta.url);").as_str(),
+            "",
+        );
+
+        println!("Js Text is {} chars", js_text.len());
+        use minify_js::{Session, TopLevelMode};
+        let session = Session::new();
+        let mut js_out = Vec::new();
+
+        let minify_result = minify_js::minify(
+            &session,
+            TopLevelMode::Global,
+            js_text.as_bytes(),
+            &mut js_out,
+        );
+        println!("Js Text is {} minified chars", js_out.len());
+        match minify_result {
+            Ok(()) => {
+                //fs::write(js_file_path, js_out)?;
+            }
+            Err(e) => {
+                anyhow::bail!(e.to_string());
+            }
+        }
+        let jmt = String::from_utf8(js_out)?;
+        jmt
+    };
+
+    let mut html_text = fs::read_to_string(html_file_path.clone())?;
+
+    html_text = html_text.replace(format!(
+        r#"<link rel="preload" href="/{wasm_file_name}" as="fetch" type="application/wasm" crossorigin="">"#
+    ).as_str(), "");
+
+    let rep2: String = format!(
+        r#"
+    <script>{js_minified_text} </script>
+
+    <script>const data = '{encoded_wasm}'; </script>
+    <script type="module">
+
+        const binary_string = atob(data);
+        var len = binary_string.length;
+        var bytes = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {{
+            bytes[i] = binary_string.charCodeAt(i);
+        }}
+        __wbg_init(bytes.buffer);
+    </script>
+    "#
+    );
+
+    html_text = html_text.replace(format!(
+        r#"<script type="module">import init from '/{js_file_name}';init('/{wasm_file_name}');</script>"#
+    ).as_str(), &rep2);
+
+    html_text = html_text.replace(
+        format!(r#"<link rel="modulepreload" href="/{js_file_name}">"#).as_str(),
+        "",
+    );
+
+    fs::write(html_file_path, html_text.as_bytes())?;
+
+    fs::remove_file(wasm_file_path.clone())?;
+    fs::remove_file(js_file_path.clone())?;
+    Ok(())
+}
+
+struct Files {
+    wasm_file_path: PathBuf,
+    html_file_path: PathBuf,
+    js_file_path: PathBuf,
+}
+
+impl Files {
+    pub fn try_new() -> Result<Self, anyhow::Error> {
+        let staging_dir = env::var("TRUNK_STAGING_DIR")?;
+
+        let staging_dir = Path::new(staging_dir.as_str());
+
+        let dir = fs::read_dir(staging_dir)?;
+
+        let mut wasm_file_path: Option<PathBuf> = None;
+        let mut html_file_path: Option<PathBuf> = None;
+        let mut js_file_path: Option<PathBuf> = None;
+
+        for file in dir {
+            let file = file?;
+
+            //let file_type = file.file_type()?;
+            let path = file.path();
+
+            let extension = path.extension().expect("File is missing extension");
+            if extension.eq_ignore_ascii_case("wasm") {
+                assert!(wasm_file_path.is_none());
+                wasm_file_path = Some(path);
+            } else if extension.eq_ignore_ascii_case("html") {
+                assert!(html_file_path.is_none());
+                html_file_path = Some(path);
+            } else if extension.eq_ignore_ascii_case("js") {
+                assert!(js_file_path.is_none());
+                js_file_path = Some(path);
+            } else {
+                panic!("Unexpected file {path:?}");
+            }
+        }
+        let wasm_file_path = wasm_file_path.expect("wasm file was missing");
+        let html_file_path = html_file_path.expect("html file was missing");
+        let js_file_path = js_file_path.expect("js file was missing");
+
+        Ok(Self {
+            wasm_file_path,
+            html_file_path,
+            js_file_path,
+        })
+    }
 }
 
 #[cfg(test)]

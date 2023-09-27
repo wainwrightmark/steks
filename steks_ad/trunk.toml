@@ -1,8 +1,9 @@
 [serve]
-#address = "192.168.68.126"
+address = "192.168.68.123"
 port = 8080
 
 [[hooks]]
 stage = "post_build"
 command = "cargo"
+#command_arguments = [ "run", "-p", "ad_postbuild", "--target", "x86_64-pc-windows-msvc", "--", "COMPRESS_WASM"]
 command_arguments = [ "run", "-p", "ad_postbuild", "--target", "x86_64-pc-windows-msvc"]

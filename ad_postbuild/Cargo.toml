@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 base91 = "0.1.0"
+base64 = "0.21"
 sevenz-rust={version="0.5"}
 minify-js = "0.5.6"

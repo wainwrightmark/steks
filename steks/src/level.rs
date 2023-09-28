@@ -2,6 +2,7 @@ use crate::{
     prelude::*,
     startup::{self, get_today_date},
 };
+use capacitor_bindings::game_connect::SubmitScoreOptions;
 use chrono::{Days, NaiveDate};
 use itertools::Itertools;
 use rand::RngCore;
@@ -197,6 +198,48 @@ impl CurrentLevel {
             _ => false,
         }
     }
+
+    pub fn submit_score_options(&self) -> Option<SubmitScoreOptions> {
+        fn height_to_score(height: f32) -> i32 {
+            (height * 100.).floor() as i32
+        }
+
+        match &self.level {
+            GameLevel::Designed { meta } => {
+                let leaderboard_id = meta.get_level().leaderboard_id.clone()?;
+
+                match self.completion {
+                    LevelCompletion::Incomplete { .. } => None,
+                    LevelCompletion::Complete { score_info } => Some(SubmitScoreOptions {
+                        leaderboard_id,
+                        total_score_amount: height_to_score(score_info.height),
+                    }),
+                }
+            }
+
+            GameLevel::Challenge { date, .. } => {
+                if get_today_date().eq(date) && cfg!(feature = "ios") {
+                    match self.completion {
+                        LevelCompletion::Incomplete { .. } => None,
+                        LevelCompletion::Complete { score_info } => Some(SubmitScoreOptions {
+                            leaderboard_id: DAILY_CHALLENGE_LEADERBOARD.to_string(),
+                            total_score_amount: height_to_score(score_info.height),
+                        }),
+                    }
+                } else {
+                    None
+                }
+            }
+            GameLevel::Infinite { .. } => match self.completion {
+                LevelCompletion::Incomplete { stage } => Some(SubmitScoreOptions {
+                    leaderboard_id: INFINITE_LEADERBOARD.to_string(),
+                    total_score_amount: (INFINITE_MODE_STARTING_SHAPES + stage - 1) as i32,
+                }),
+                LevelCompletion::Complete { .. } => None,
+            },
+            _ => None,
+        }
+    }
 }
 
 pub fn generate_score_info(
@@ -208,7 +251,7 @@ pub fn generate_score_info(
     let height = shapes.calculate_tower_height();
     let hash = shapes.hash();
 
-    let wr: Option<f32> = leaderboard.map.get(&hash).map(|x| x.height);
+    let wr: Option<f32> = leaderboard.map.get(&hash).map(|x| x.calculate_height());
     let old_height = pbs.map.get(&hash);
 
     let pb = old_height.map(|x| x.height).unwrap_or(0.0);
@@ -323,9 +366,7 @@ impl GameLevel {
                     meta.get_level().title.clone()
                 }
             }
-            GameLevel::Infinite { .. } => {
-                (stage == 0).then(||"Infinite Mode".to_string())
-            },
+            GameLevel::Infinite { .. } => (stage == 0).then(|| "Infinite Mode".to_string()),
             GameLevel::Challenge { .. } => Some("Daily Challenge".to_string()),
             GameLevel::Loaded { .. } => None,
             GameLevel::Begging { .. } => Some("Please buy the game!".to_string()), //users should not see this
@@ -366,10 +407,14 @@ impl GameLevel {
 
             GameLevel::Challenge { date, .. } => {
                 if get_today_date().eq(date) && cfg!(feature = "ios") {
-                    Some("Daily_Challenge".to_string())
+                    Some(DAILY_CHALLENGE_LEADERBOARD.to_string())
                 } else {
                     None
                 }
+            },
+
+            GameLevel::Infinite { .. }=>{
+                Some(INFINITE_LEADERBOARD.to_string())
             }
             _ => None,
         }

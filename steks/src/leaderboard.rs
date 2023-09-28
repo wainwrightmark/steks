@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use base64::Engine;
 use bevy::{log, prelude::*};
+use capacitor_bindings::game_connect::SubmitScoreOptions;
 use chrono::{DateTime, NaiveDate, Utc};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -20,9 +21,26 @@ pub struct LevelPB {
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct LevelWR {
-    pub height: f32,
+    #[deprecated]
+    height: f32,
     pub image_blob: Vec<u8>,
     pub updated: Option<DateTime<Utc>>,
+}
+
+impl LevelWR {
+    pub fn new(image_blob: Vec<u8>, updated: Option<DateTime<Utc>>) -> Self {
+        let height = ShapesVec::from_bytes(image_blob.as_slice()).calculate_tower_height();
+        #[allow(deprecated)]
+        Self {
+            height,
+            image_blob,
+            updated,
+        }
+    }
+
+    pub fn calculate_height(&self) -> f32 {
+        ShapesVec::from_bytes(&self.image_blob).calculate_tower_height()
+    }
 }
 
 pub struct LeaderboardPlugin;
@@ -33,6 +51,7 @@ impl Plugin for LeaderboardPlugin {
             .add_plugins(TrackedResourcePlugin::<PersonalBests>::default())
             .add_plugins(TrackedResourcePlugin::<WorldRecords>::default())
             .add_plugins(TrackedResourcePlugin::<CampaignCompletion>::default())
+            .add_plugins(TrackedResourcePlugin::<MaxInfiniteStage>::default())
             .add_plugins(TrackedResourcePlugin::<Streak>::default())
             .add_plugins(AsyncEventPlugin::<CheatEvent>::default())
             .init_resource::<WorldRecords>()
@@ -62,6 +81,13 @@ pub struct PersonalBests {
 
 impl TrackableResource for PersonalBests {
     const KEY: &'static str = "PBs";
+}
+
+#[derive(Debug, Resource, Default, Serialize, Deserialize)]
+pub struct MaxInfiniteStage(usize);
+
+impl TrackableResource for MaxInfiniteStage {
+    const KEY: &'static str = "MaxInfinite";
 }
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize)]
@@ -202,52 +228,34 @@ fn hydrate_leaderboard(
         }
     };
     let shapes = ShapesVec::from_bytes(&image_blob);
-    let mut height = shapes.calculate_tower_height();
+    let mut wr_height = shapes.calculate_tower_height();
 
     match wrs.map.entry(hash) {
         std::collections::btree_map::Entry::Vacant(ve) => {
-            ve.insert(LevelWR {
-                height,
-                image_blob,
-                updated: Some(updated),
-            });
+            ve.insert(LevelWR::new(image_blob, Some(updated)));
         }
         std::collections::btree_map::Entry::Occupied(mut oe) => {
-            let existing = oe.get();
+            let saved_wr = oe.get_mut();
+            let saved_shapes = ShapesVec::from_bytes(&saved_wr.image_blob);
+            let saved_height = saved_shapes.calculate_tower_height();
 
-            match existing.height.total_cmp(&height) {
+            match saved_height.total_cmp(&wr_height) {
                 std::cmp::Ordering::Less => {
-                    oe.insert(LevelWR {
-                        height,
-                        image_blob,
-                        updated: Some(updated),
-                    });
+                    *saved_wr = LevelWR::new(image_blob, Some(updated));
                 }
                 std::cmp::Ordering::Equal => {
-                    oe.get_mut().updated = Some(updated);
-                    return; // no change except to time updated
+                    saved_wr.updated = Some(updated);
                 }
                 std::cmp::Ordering::Greater => {
                     debug!("Existing record is better than record from server");
-                    let shapes = ShapesVec::from_bytes(&existing.image_blob);
-                    let actual_height = shapes.calculate_tower_height();
-                    if existing.height != actual_height {
-                        warn!(
-                            "Existing record is wrong height {} actual {actual_height}",
-                            existing.height
-                        );
-                        oe.get_mut().height = actual_height;
-                    }
-                    height = actual_height;
-
-                    update_wr(&shapes);
-                    oe.get_mut().updated = Some(updated);
+                    update_wr(&saved_shapes);
+                    saved_wr.updated = Some(updated);
+                    wr_height = saved_height;
                 }
             }
         }
     }
 
-    // new record is better than previous
     debug!("Updating record in score_info");
     let LevelCompletion::Complete { score_info } = current_level.as_ref().completion else {
         warn!("Current level is not complete");
@@ -259,8 +267,8 @@ fn hydrate_leaderboard(
         return;
     }
 
-    if score_info.wr != Some(height) {
-        if score_info.height > height {
+    if score_info.wr != Some(wr_height) {
+        if score_info.height > wr_height {
             debug!("current wr is less than current score");
             if let Some(shapes_vec) = &current_level.saved_data {
                 update_wr(shapes_vec);
@@ -269,7 +277,7 @@ fn hydrate_leaderboard(
             debug!("Updating current level wr");
             current_level.completion = LevelCompletion::Complete {
                 score_info: ScoreInfo {
-                    wr: Some(height),
+                    wr: Some(wr_height),
                     ..score_info
                 },
             };
@@ -384,7 +392,11 @@ fn update_campaign_completion(
     }
 }
 
-fn check_pbs_on_completion(current_level: Res<CurrentLevel>, mut pbs: ResMut<PersonalBests>) {
+fn check_pbs_on_completion(
+    current_level: Res<CurrentLevel>,
+    mut pbs: ResMut<PersonalBests>,
+    mut max_infinite: ResMut<MaxInfiniteStage>,
+) {
     if !current_level.is_changed() {
         return;
     }
@@ -393,12 +405,18 @@ fn check_pbs_on_completion(current_level: Res<CurrentLevel>, mut pbs: ResMut<Per
         return;
     }
 
-    let (height, hash) =
-        if let LevelCompletion::Complete { score_info, .. } = current_level.completion {
-            (score_info.height, score_info.hash)
-        } else {
+    let (height, hash) = match current_level.completion {
+        LevelCompletion::Incomplete { stage } => {
+            if stage > max_infinite.0 {
+                max_infinite.0 = stage;
+                if let Some(options) = current_level.submit_score_options() {
+                    submit_score(options);
+                }
+            }
             return;
-        };
+        }
+        LevelCompletion::Complete { score_info } => (score_info.height, score_info.hash),
+    };
 
     let Some(shapes) = &current_level.saved_data else {
         return;
@@ -429,33 +447,21 @@ fn check_pbs_on_completion(current_level: Res<CurrentLevel>, mut pbs: ResMut<Per
     };
     if pb_changed {
         pbs.set_changed();
-    }
 
-    {
-        if pb_changed {
-            if let Some(leaderboard_id) = current_level.level.leaderboard_id() {
-                submit_score(leaderboard_id, height)
-            }
+        if let Some(options) = current_level.submit_score_options() {
+            submit_score(options)
         }
     }
 }
 
-fn submit_score(leaderboard_id: String, height: f32) {
-    info!("Submitting Score {leaderboard_id} {height}");
-    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")) )]
+fn submit_score(options: SubmitScoreOptions) {
+    debug!("Submitting Score {options:?}");
+    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
     {
-        use capacitor_bindings::game_connect::*;
-        let options = SubmitScoreOptions {
-            total_score_amount: (height * 100.).floor() as i32, //multiply by 100 as there are two decimal places
-            leaderboard_id,
-        };
-
-        info!("Submitting score {:?}", options.clone());
-
         bevy::tasks::IoTaskPool::get()
             .spawn(async move {
                 crate::logging::do_or_report_error_async(move || {
-                    GameConnect::submit_score(options.clone())
+                    capacitor_bindings::game_connect::GameConnect::submit_score(options.clone())
                 })
                 .await;
             })
@@ -487,11 +493,7 @@ fn check_wrs_on_completion(
             return;
         };
 
-    let level_wr = || LevelWR {
-        height,
-        updated: None,
-        image_blob: shapes.make_bytes(),
-    };
+    let level_wr = || LevelWR::new(shapes.make_bytes(), None);
 
     let refresh = match world_records.map.entry(hash) {
         std::collections::btree_map::Entry::Vacant(v) => {
@@ -502,7 +504,7 @@ fn check_wrs_on_completion(
             let previous = o.get();
             let now = chrono::offset::Utc::now();
 
-            if previous.height + 0.01 < height {
+            if previous.calculate_height() + 0.01 < height {
                 o.insert(level_wr());
                 true
             } else {
@@ -524,11 +526,8 @@ pub fn try_show_leaderboard(level: &CurrentLevel) {
         return;
     };
 
-    match level.completion {
-        LevelCompletion::Incomplete { .. } => {}
-        LevelCompletion::Complete { score_info } => {
-            submit_score(leaderboard_id.clone(), score_info.height);
-        }
+    if let Some(options) = level.submit_score_options() {
+        submit_score(options);
     }
 
     info!("Showing leaderboard {:?}", leaderboard_id.clone());

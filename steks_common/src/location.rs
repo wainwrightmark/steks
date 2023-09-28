@@ -1,5 +1,5 @@
 use bevy::prelude::{Quat, Transform, Vec2, Vec3};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct Location {
     pub position: Vec2,
@@ -14,6 +14,8 @@ impl Location {
             angle,
         }
     }
+
+
 }
 
 impl From<Location> for Transform {

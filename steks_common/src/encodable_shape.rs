@@ -1,7 +1,7 @@
-use bevy::prelude::{Color, Vec2};
-use std::ops::RangeInclusive;
-use serde::{Serialize, Deserialize};
 use crate::prelude::*;
+use bevy::prelude::{Color, Vec2};
+use serde::{Deserialize, Serialize};
+use std::ops::RangeInclusive;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct EncodableShape {
@@ -81,7 +81,7 @@ impl EncodableShape {
     }
 
     pub fn decode(arr: &[u8]) -> Self {
-        let shape_index = arr[0] ;
+        let shape_index = arr[0];
         let (state, modifiers) = Self::decode_state_and_modifiers(arr[1]);
 
         let shape = ShapeIndex(shape_index % (ALL_SHAPES.len() as u8));
@@ -102,10 +102,19 @@ impl EncodableShape {
     }
 }
 
-
-
 const X_RANGE: RangeInclusive<f32> = (MAX_WINDOW_WIDTH * -0.5)..=(MAX_WINDOW_WIDTH * 0.5);
 const Y_RANGE: RangeInclusive<f32> = (MAX_WINDOW_HEIGHT * -0.5)..=(MAX_WINDOW_HEIGHT * 0.5);
+
+pub fn round_trip_location(location: &Location) -> Location {
+    let x = denormalize_from_range(normalize_to_range(location.position.x, X_RANGE), X_RANGE);
+    let y = denormalize_from_range(normalize_to_range(location.position.y, Y_RANGE), Y_RANGE);
+    let location = Location {
+        position: Vec2 { x, y },
+        angle: decode_angle(encode_angle(location.angle)),
+    };
+
+    location
+}
 
 fn decode_angle(a: u8) -> f32 {
     (a as f32) * std::f32::consts::TAU / (ANGLE_FRACTION as f32)

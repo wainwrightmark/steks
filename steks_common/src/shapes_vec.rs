@@ -77,7 +77,7 @@ impl ShapesVec {
             if state == &ShapeState::Void {
                 continue;
             }
-            let bb = shape.game_shape().body.bounding_box(SHAPE_SIZE, location);
+            let bb = shape.game_shape().body.bounding_box(SHAPE_SIZE, &round_trip_location(location));
 
             min = min.min(bb.min.y);
             max = max.max(bb.max.y);

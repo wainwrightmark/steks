@@ -746,10 +746,17 @@ impl ChangeLevelEvent {
                 let today = startup::get_today_date();
 
                 let streak = if streak_data.most_recent == today
-                    || streak_data.most_recent.checked_add_days(Days::new(1)) == Some(today)
+
                 {
+                    info!("Replaying challenge - streak is {}", streak_data.count);
                     streak_data.count
-                } else {
+                }
+                else if streak_data.most_recent.checked_add_days(Days::new(1)) == Some(today) {
+                    info!("Continuing streak - new streak is {}", streak_data.count + 1);
+                    streak_data.count + 1
+                }
+                 else {
+                    info!("Reset streak to 1");
                     1
                 };
 

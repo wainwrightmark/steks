@@ -21,8 +21,7 @@ pub struct WinCountdown(pub Option<Countdown>);
 
 #[derive(Debug)]
 pub struct Countdown {
-    pub started_elapsed: Duration,
-    pub total_secs: f32,
+    pub seconds_remaining: f32
 }
 
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
@@ -32,17 +31,16 @@ const POSITION_Y: f32 = 200.0;
 
 fn update_dynamic_elements(
     countdown: Res<WinCountdown>,
-    time: Res<Time>,
     mut marker_circle: Query<&mut Transform, With<CircleMarkerComponent>>,
     mut circle_arc: Query<&mut Path, With<CircleArcComponent>>,
 ) {
     let Some(countdown) = &countdown.0 else {
         return;
     };
-    let time_used = time.elapsed().saturating_sub(countdown.started_elapsed).as_secs_f32();
-    let time_used = time_used + LONG_WIN_SECONDS - countdown.total_secs;
-    let ratio = -time_used / LONG_WIN_SECONDS;
-    let theta = (ratio * TAU) + FRAC_PI_2;
+
+    let time_used = LONG_WIN_SECONDS - countdown.seconds_remaining;
+    let ratio = time_used / LONG_WIN_SECONDS;
+    let theta = (ratio * -TAU) + FRAC_PI_2;
 
     for mut transform in marker_circle.iter_mut() {
         let x = theta.cos() * RADIUS;

@@ -34,70 +34,68 @@ pub fn check_for_win(
         return;
     }
 
-    if let Some(Countdown {
-        started_elapsed,
-        total_secs,
-    }) = countdown.as_ref().0
-    {
-        let time_used = time.elapsed().saturating_sub(started_elapsed);
+    let Some(Countdown { seconds_remaining }) = countdown.as_ref().0 else {
+        return;
+    };
 
-        if time_used.as_secs_f32() >= total_secs {
-            countdown.0 = None;
+    if seconds_remaining > 0.0 {
+        // tick down at most one frame worth of time
+        let delta = time.delta_seconds().max(SECONDS_PER_FRAME);
+        // tick down without triggering change detection
+        countdown.bypass_change_detection().0 = Some(Countdown { seconds_remaining: seconds_remaining - delta });
+        return;
+    }
 
-            if has_acted.is_has_not_acted() {
-                match current_level.level {
-                    GameLevel::Designed { .. }
-                    | GameLevel::Infinite { .. }
-                    | GameLevel::Challenge { .. } => {
-                        Achievements::unlock_if_locked(
-                            &mut achievements,
-                            Achievement::ThatWasOneInAMillion,
-                        );
-                    }
-                    _ => {}
-                }
+    countdown.0 = None;
+
+    if has_acted.is_has_not_acted() {
+        match current_level.level {
+            GameLevel::Designed { .. }
+            | GameLevel::Infinite { .. }
+            | GameLevel::Challenge { .. } => {
+                Achievements::unlock_if_locked(
+                    &mut achievements,
+                    Achievement::ThatWasOneInAMillion,
+                );
             }
-
-            let shapes = shapes_vec_from_query(shapes_query);
-
-            match current_level.completion {
-                LevelCompletion::Incomplete { stage } => {
-                    let next_stage = stage + 1;
-                    if current_level.level.has_stage(&next_stage) {
-                        current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
-                    } else {
-                        let score_info =
-                            generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
-                        current_level.completion = LevelCompletion::Complete { score_info };
-                        global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
-                        //info!("Score info height {}", score_info.height);
-                    }
-                }
-
-                LevelCompletion::Complete { .. } => {
-                    let score_info =
-                        generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
-                    if score_info.is_pb() {
-                        global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
-                    }
-
-                    current_level.completion = LevelCompletion::Complete { score_info };
-                    //info!("Score info height {}", score_info.height);
-                }
-            }
-            //info!("Saved data height {}", shapes.calculate_tower_height());
-            current_level.saved_data = Some(shapes);
-
-
+            _ => {}
         }
     }
+
+    let shapes = shapes_vec_from_query(shapes_query);
+
+    match current_level.completion {
+        LevelCompletion::Incomplete { stage } => {
+            let next_stage = stage + 1;
+            if current_level.level.has_stage(&next_stage) {
+                current_level.completion = LevelCompletion::Incomplete { stage: next_stage }
+            } else {
+                let score_info =
+                    generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
+                current_level.completion = LevelCompletion::Complete { score_info };
+                global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
+                //info!("Score info height {}", score_info.height);
+            }
+        }
+
+        LevelCompletion::Complete { .. } => {
+            let score_info = generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
+            if score_info.is_pb() {
+                global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
+            }
+
+            current_level.completion = LevelCompletion::Complete { score_info };
+            //info!("Score info height {}", score_info.height);
+        }
+    }
+    //info!("Saved data height {}", shapes.calculate_tower_height());
+    current_level.saved_data = Some(shapes);
 }
 
 pub fn check_for_tower(
     mut check_events: EventReader<CheckForTowerEvent>,
     mut countdown: ResMut<WinCountdown>,
     draggable: Query<&ShapeComponent>,
-    time: Res<Time>,
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
     rapier_config: Res<RapierConfiguration>,
@@ -157,8 +155,7 @@ pub fn check_for_tower(
     };
 
     countdown.0 = Some(Countdown {
-        started_elapsed: time.elapsed(),
-        total_secs: countdown_seconds,
+        seconds_remaining: countdown_seconds
     });
 }
 

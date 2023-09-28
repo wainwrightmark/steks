@@ -1,5 +1,6 @@
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
+use bevy_prototype_lyon::prelude::StrokeOptions;
 use steks_common::constants;
 
 use crate::input;
@@ -342,11 +343,7 @@ fn draw_rotate_arrows(
     let radius = touch.radius;
 
     let start_angle = touch.start_angle;
-    //let end_angle = angle_to(touch.current - centre);
     let sweep_angle = touch.total_radians;
-
-    //let sweep_angle = closest_angle_representation(end_angle - start_angle, *previous_angle);
-    //*previous_angle = sweep_angle;
 
     let path_start = centre + point_at_angle(radius, start_angle);
     let path_end = centre + point_at_angle(radius, start_angle + sweep_angle);
@@ -356,8 +353,6 @@ fn draw_rotate_arrows(
     let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (radius * TAU);
     if sweep_angle.abs() > arrow_angle.abs() {
         path.move_to(path_start);
-
-        //path.quadratic_bezier_to(ctrl, to)
 
         path.arc(
             centre,
@@ -390,7 +385,12 @@ fn draw_rotate_arrows(
                     path: path.build(),
                     ..default()
                 },
-                bevy_prototype_lyon::prelude::Stroke::new(ARROW_STROKE, 10.0),
+                bevy_prototype_lyon::prelude::Stroke {
+                    color: ARROW_STROKE,
+                    options: StrokeOptions::default()
+                        .with_line_width(10.0)
+                        .with_line_cap(bevy_prototype_lyon::prelude::LineCap::Round),
+                },
             ))
             .insert(Transform::from_translation(Vec3::Z * 50.0))
             .insert(RotateArrow);

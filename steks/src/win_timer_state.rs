@@ -2,7 +2,7 @@ use std::f32::consts::{FRAC_PI_2, TAU};
 
 use crate::prelude::*;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke};
+use bevy_prototype_lyon::prelude::{Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke, StrokeOptions};
 use maveric::prelude::*;
 
 #[derive(Debug, Default)]
@@ -39,8 +39,9 @@ fn update_dynamic_elements(
     let Some(countdown) = &countdown.0 else {
         return;
     };
-    let time_used = time.elapsed().saturating_sub(countdown.started_elapsed);
-    let ratio = -time_used.as_secs_f32() / countdown.total_secs;
+    let time_used = time.elapsed().saturating_sub(countdown.started_elapsed).as_secs_f32();
+    let time_used = time_used + LONG_WIN_SECONDS - countdown.total_secs;
+    let ratio = -time_used / LONG_WIN_SECONDS;
     let theta = (ratio * TAU) + FRAC_PI_2;
 
     for mut transform in marker_circle.iter_mut() {
@@ -124,7 +125,10 @@ impl MavericNode for CircleArc {
                     },
                     ..Default::default()
                 },
-                Stroke::new(get_color(context), ARC_STROKE),
+                Stroke{
+                    options: StrokeOptions::default().with_line_width(ARC_STROKE).with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
+                    color: get_color(context),
+                },
                 CircleArcComponent,
             )
         });

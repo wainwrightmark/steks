@@ -21,18 +21,13 @@ pub struct LevelPB {
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct LevelWR {
-    #[deprecated]
-    height: f32,
     pub image_blob: Vec<u8>,
     pub updated: Option<DateTime<Utc>>,
 }
 
 impl LevelWR {
     pub fn new(image_blob: Vec<u8>, updated: Option<DateTime<Utc>>) -> Self {
-        let height = ShapesVec::from_bytes(image_blob.as_slice()).calculate_tower_height();
-        #[allow(deprecated)]
         Self {
-            height,
             image_blob,
             updated,
         }

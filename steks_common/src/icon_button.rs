@@ -27,6 +27,7 @@ pub enum IconButton {
     OpenNews,
     FollowNewsLink,
 
+    RefreshWR,
     None,
 }
 
@@ -34,6 +35,7 @@ impl IconButton {
     pub fn icon(&self) -> &'static str {
         use IconButton::*;
         match self {
+            RefreshWR => "\u{e800}",
             OpenMenu => "\u{f0c9}",
             Share => "\u{f1e0}",
             SharePB => "\u{f1e0}",

@@ -111,6 +111,7 @@ fn icon_button_system(
     current_level: Res<CurrentLevel>,
     dragged: Query<(), With<BeingDragged>>,
     mut news: ResMut<NewsResource>,
+    leaderboard_data_event_writer: AsyncEventWriter<LeaderboardDataEvent>
 ) {
     if !dragged.is_empty() {
         return;
@@ -145,6 +146,12 @@ fn icon_button_system(
                 NextLevelsPage => global_ui_state.as_mut().next_levels_page(),
 
                 PreviousLevelsPage => global_ui_state.as_mut().previous_levels_page(),
+                RefreshWR => {
+                    if let LevelCompletion::Complete { score_info } = current_level.completion {
+                        leaderboard::refresh_wr_data(score_info.hash, leaderboard_data_event_writer.clone())
+                    }
+
+                },
 
                 FollowNewsLink => match news.latest.as_ref() {
                     Some(_news_item) => {

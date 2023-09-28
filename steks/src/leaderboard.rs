@@ -118,8 +118,17 @@ impl TrackableResource for Streak {
     const KEY: &'static str = "Streak";
 }
 
-#[derive(Debug, Event)]
-pub struct LeaderboardDataEvent(Result<String, reqwest::Error>);
+#[derive(Debug, Event, Clone)]
+pub enum LeaderboardDataEvent {
+
+    Success{
+        text: String
+    },
+    Failure{
+        hash: u64,
+        error: String
+    }
+}
 
 #[derive(Debug, Event)]
 pub struct CheatEvent;
@@ -155,7 +164,7 @@ fn is_cheat_in_path() -> Option<()> {
     None
 }
 
-fn refresh_wr_data(hash: u64, writer: AsyncEventWriter<LeaderboardDataEvent>) {
+pub fn refresh_wr_data(hash: u64, writer: AsyncEventWriter<LeaderboardDataEvent>) {
     debug!("Refreshing Leaderboard");
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
@@ -177,10 +186,24 @@ fn hydrate_leaderboard(
         return;
     };
 
-    let text = match &ev.0 {
-        Ok(text) => text,
-        Err(err) => {
-            crate::logging::try_log_error_message(format!("{err}"));
+    let text = match &ev {
+        LeaderboardDataEvent::Success{text} => text,
+        LeaderboardDataEvent::Failure { hash, error } => {
+            crate::logging::try_log_error_message(error.clone());
+            match current_level.completion {
+                LevelCompletion::Incomplete { .. } => {}
+                LevelCompletion::Complete { score_info } => {
+                    if score_info.hash == *hash {
+                        current_level.completion = LevelCompletion::Complete {
+                            score_info: ScoreInfo {
+                                wr: WRData::ConnectionError,
+                                ..score_info
+                            },
+                        }
+                    }
+                }
+            }
+
             return;
         }
     };
@@ -288,8 +311,18 @@ async fn get_leaderboard_data(hash: u64) -> LeaderboardDataEvent {
     let res = client.get(url).send().await;
 
     match res {
-        Ok(response) => LeaderboardDataEvent(response.text().await),
-        Err(err) => LeaderboardDataEvent(Result::Err(err)),
+        Ok(response) => {
+            match response.text().await{
+                Ok(text) => LeaderboardDataEvent::Success { text },
+                Err(err) => LeaderboardDataEvent::Failure {
+                    error: err.to_string(),
+                    hash,
+                },
+            }},
+        Err(err) => LeaderboardDataEvent::Failure {
+            error: err.to_string(),
+            hash,
+        },
     }
 }
 

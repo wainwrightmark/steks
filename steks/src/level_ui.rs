@@ -348,7 +348,7 @@ impl MavericNode for MainPanel {
                         WRData::External(record) => (format!("Record    {:6.2}m", record), IconButton::ViewRecord),
                         WRData::InternalConfirmed =>    ("New World Record ".to_string(), IconButton::ViewRecord),
                         WRData::InternalProvisional =>  ("Loading  Record ".to_string(), IconButton::None),
-                        WRData::ConnectionError =>      ("Record Unknown   ".to_string(), IconButton::None),
+                        WRData::ConnectionError =>      ("Record:   unknown".to_string(), IconButton::RefreshWR),
                     };
 
                     commands.add_child(

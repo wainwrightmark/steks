@@ -389,7 +389,7 @@ fn draw_rotate_arrows(
                     color: ARROW_STROKE,
                     options: StrokeOptions::default()
                         .with_line_width(10.0)
-                        .with_line_cap(bevy_prototype_lyon::prelude::LineCap::Round),
+                        .with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
                 },
             ))
             .insert(Transform::from_translation(Vec3::Z * 50.0))

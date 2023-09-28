@@ -323,7 +323,9 @@ impl GameLevel {
                     meta.get_level().title.clone()
                 }
             }
-            GameLevel::Infinite { .. } => None,
+            GameLevel::Infinite { .. } => {
+                (stage == 0).then(||"Infinite Mode".to_string())
+            },
             GameLevel::Challenge { .. } => Some("Daily Challenge".to_string()),
             GameLevel::Loaded { .. } => None,
             GameLevel::Begging { .. } => Some("Please buy the game!".to_string()), //users should not see this

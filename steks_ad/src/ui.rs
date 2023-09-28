@@ -14,31 +14,6 @@ pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync 
     }
 }
 
-pub(crate) fn icon_button_node(
-    button_action: IconButton,
-    style: IconButtonStyle,
-) -> impl MavericNode<Context = AssetServer> {
-    let font_size = style.icon_font_size();
-    ButtonNode {
-        background_color: Color::NONE,
-        visibility: Visibility::Visible,
-        border_color: Color::NONE,
-        marker: IconButtonComponent {
-            disabled: false,
-            button_action,
-            button_type: ButtonType::Icon,
-        },
-        style,
-        children: (TextNode {
-            text: button_action.icon(),
-            font_size,
-            color: BUTTON_TEXT_COLOR,
-            font: ICON_FONT_PATH,
-            alignment: TextAlignment::Left,
-            linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-        },),
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum IconButtonStyle {

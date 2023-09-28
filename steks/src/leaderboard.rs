@@ -164,7 +164,8 @@ fn hydrate_leaderboard(
         }
     };
 
-    let Some((hash, written_height, image_blob)) = text.split_ascii_whitespace().next_tuple() else {
+    let Some((hash, written_height, image_blob)) = text.split_ascii_whitespace().next_tuple()
+    else {
         crate::logging::try_log_error_message(format!("Could not parse wr row: {text}"));
         return;
     };
@@ -202,7 +203,6 @@ fn hydrate_leaderboard(
     };
     let shapes = ShapesVec::from_bytes(&image_blob);
     let mut height = shapes.calculate_tower_height();
-
 
     match wrs.map.entry(hash) {
         std::collections::btree_map::Entry::Vacant(ve) => {
@@ -431,31 +431,35 @@ fn check_pbs_on_completion(current_level: Res<CurrentLevel>, mut pbs: ResMut<Per
         pbs.set_changed();
     }
 
-    #[cfg(target_arch = "wasm32")]
     {
-        #[cfg(any(feature = "android", feature = "ios"))]
-        {
-            if pb_changed {
-                if let Some(leaderboard_id) = current_level.level.leaderboard_id() {
-                    use capacitor_bindings::game_connect::*;
-                    let options = SubmitScoreOptions {
-                        total_score_amount: (height * 100.).floor() as i32, //multiply by 100 as there are two decimal places
-                        leaderboard_id,
-                    };
-
-                    info!("Submitting score {:?}", options.clone());
-
-                    bevy::tasks::IoTaskPool::get()
-                        .spawn(async move {
-                            crate::logging::do_or_report_error_async(move || {
-                                GameConnect::submit_score(options.clone())
-                            })
-                            .await;
-                        })
-                        .detach();
-                }
+        if pb_changed {
+            if let Some(leaderboard_id) = current_level.level.leaderboard_id() {
+                submit_score(leaderboard_id, height)
             }
         }
+    }
+}
+
+fn submit_score(leaderboard_id: String, height: f32) {
+    info!("Submitting Score {leaderboard_id} {height}");
+    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")) )]
+    {
+        use capacitor_bindings::game_connect::*;
+        let options = SubmitScoreOptions {
+            total_score_amount: (height * 100.).floor() as i32, //multiply by 100 as there are two decimal places
+            leaderboard_id,
+        };
+
+        info!("Submitting score {:?}", options.clone());
+
+        bevy::tasks::IoTaskPool::get()
+            .spawn(async move {
+                crate::logging::do_or_report_error_async(move || {
+                    GameConnect::submit_score(options.clone())
+                })
+                .await;
+            })
+            .detach();
     }
 }
 
@@ -520,7 +524,15 @@ pub fn try_show_leaderboard(level: &CurrentLevel) {
         return;
     };
 
+    match level.completion {
+        LevelCompletion::Incomplete { .. } => {}
+        LevelCompletion::Complete { score_info } => {
+            submit_score(leaderboard_id.clone(), score_info.height);
+        }
+    }
+
     info!("Showing leaderboard {:?}", leaderboard_id.clone());
+
     #[cfg(target_arch = "wasm32")]
     {
         #[cfg(any(feature = "android", feature = "ios"))]

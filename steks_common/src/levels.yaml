@@ -164,7 +164,7 @@
 #10
 - title: "Tri Hard II: Tri Harder"
   end_text: "Yippee-Ki-Yay!"
-  stars: {two: 330, three: 360}
+  stars: {two: 280, three: 350}
   #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQJA'
   shapes:

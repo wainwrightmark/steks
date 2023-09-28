@@ -187,7 +187,7 @@ fn get_new_fireworks(
     // New World Record
     if match info {
         None => false,
-        Some(x) => x.is_wr(),
+        Some(x) => x.wr.is_internal_confirmed(),
     } {
         return Some(FireworksCountdown {
             timer: Timer::from_seconds(0.0, TimerMode::Once),

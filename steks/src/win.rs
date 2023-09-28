@@ -60,10 +60,6 @@ pub fn check_for_win(
 
             let shapes = shapes_vec_from_query(shapes_query);
 
-            // for shape in shapes.iter(){
-            //     info!("{shape:?}");
-            // }
-
             match current_level.completion {
                 LevelCompletion::Incomplete { stage } => {
                     let next_stage = stage + 1;
@@ -74,20 +70,25 @@ pub fn check_for_win(
                             generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
                         current_level.completion = LevelCompletion::Complete { score_info };
                         global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
+                        //info!("Score info height {}", score_info.height);
                     }
                 }
 
                 LevelCompletion::Complete { .. } => {
                     let score_info =
                         generate_score_info(&current_level.level, &shapes, &score_store, &pbs);
-                    if score_info.is_pb() | score_info.is_wr() {
+                    if score_info.is_pb() {
                         global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
                     }
 
-                    current_level.completion = LevelCompletion::Complete { score_info }
+                    current_level.completion = LevelCompletion::Complete { score_info };
+                    //info!("Score info height {}", score_info.height);
                 }
             }
+            //info!("Saved data height {}", shapes.calculate_tower_height());
             current_level.saved_data = Some(shapes);
+
+
         }
     }
 }

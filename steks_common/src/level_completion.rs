@@ -22,19 +22,24 @@ pub struct ScoreInfo {
 
     pub star: Option<StarType>,
 
-    pub wr: Option<f32>,
+    pub wr: WRData,
     pub pb: f32,
 }
 
 impl ScoreInfo {
-    pub fn is_wr(&self) -> bool {
-        match self.wr {
-            Some(wr) if (self.height >= wr) => true,
-            _ => false,
-        }
-    }
-
     pub fn is_pb(&self) -> bool {
         self.height > self.pb
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, EnumIs)]
+pub enum WRData {
+    /// Someone else has the world record
+    External(f32),
+    /// Current score is the wr, confirmed
+    InternalConfirmed,
+    /// You maybe set the wr
+    InternalProvisional,
+    /// Could not download WR from the db
+    ConnectionError,
 }

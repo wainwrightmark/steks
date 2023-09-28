@@ -54,7 +54,6 @@ pub fn check_for_win(
 
                 LevelCompletion::Complete { .. } => {
                     let score_info = generate_score_info(&current_level.level, &shapes);
-                    if score_info.is_pb() | score_info.is_wr() {}
 
                     current_level.completion = LevelCompletion::Complete { score_info }
                 }

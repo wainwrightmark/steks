@@ -210,7 +210,7 @@ pub fn generate_score_info(level: &GameLevel, shapes: &ShapesVec) -> ScoreInfo {
         hash,
         height,
         is_first_win: true,
-        wr: None,
+        wr: WRData::InternalProvisional,
         pb: height,
         star,
     }

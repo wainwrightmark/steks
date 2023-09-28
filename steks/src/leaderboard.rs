@@ -209,7 +209,7 @@ fn hydrate_leaderboard(
     };
     let updated = chrono::offset::Utc::now();
 
-    debug!("Received wr {hash} {written_height} {image_blob}");
+    info!("Received wr {hash} {written_height} {image_blob}");
 
     let image_blob = if image_blob == "0" {
         vec![]
@@ -223,11 +223,11 @@ fn hydrate_leaderboard(
         }
     };
     let shapes = ShapesVec::from_bytes(&image_blob);
-    let mut wr_height = shapes.calculate_tower_height();
-
-    match wrs.map.entry(hash) {
+    let wr_height = shapes.calculate_tower_height();
+    let internal_wr_height: Option<f32> = match wrs.map.entry(hash) {
         std::collections::btree_map::Entry::Vacant(ve) => {
             ve.insert(LevelWR::new(image_blob, Some(updated)));
+            None
         }
         std::collections::btree_map::Entry::Occupied(mut oe) => {
             let saved_wr = oe.get_mut();
@@ -237,21 +237,24 @@ fn hydrate_leaderboard(
             match saved_height.total_cmp(&wr_height) {
                 std::cmp::Ordering::Less => {
                     *saved_wr = LevelWR::new(image_blob, Some(updated));
+                    None
                 }
                 std::cmp::Ordering::Equal => {
                     saved_wr.updated = Some(updated);
+                    None
                 }
                 std::cmp::Ordering::Greater => {
-                    debug!("Existing record is better than record from server");
+                    info!("Existing record {saved_height} is better than record from server {wr_height}");
                     update_wr(&saved_shapes);
                     saved_wr.updated = Some(updated);
-                    wr_height = saved_height;
+
+                    Some(saved_height)
                 }
             }
         }
-    }
+    };
 
-    debug!("Updating record in score_info");
+    info!("Updating record in score_info");
     let LevelCompletion::Complete { score_info } = current_level.as_ref().completion else {
         warn!("Current level is not complete");
         return;
@@ -262,21 +265,19 @@ fn hydrate_leaderboard(
         return;
     }
 
-    if score_info.wr != Some(wr_height) {
-        if score_info.height > wr_height {
-            debug!("current wr is less than current score");
-            if let Some(shapes_vec) = &current_level.saved_data {
-                update_wr(shapes_vec);
-            }
-        } else {
-            debug!("Updating current level wr");
-            current_level.completion = LevelCompletion::Complete {
-                score_info: ScoreInfo {
-                    wr: Some(wr_height),
-                    ..score_info
-                },
-            };
-        }
+    let wr_data: WRData = if internal_wr_height == Some(score_info.height) {
+        WRData::InternalConfirmed
+    } else {
+        WRData::External(wr_height)
+    };
+
+    if score_info.wr != wr_data {
+        current_level.completion = LevelCompletion::Complete {
+            score_info: ScoreInfo {
+                wr: wr_data,
+                ..score_info
+            },
+        };
     }
 }
 
@@ -483,6 +484,10 @@ fn check_wrs_on_completion(
 
     let (height, hash) =
         if let LevelCompletion::Complete { score_info, .. } = current_level.completion {
+            if !score_info.wr.is_internal_provisional() {
+                return;
+            }
+
             (score_info.height, score_info.hash)
         } else {
             return;

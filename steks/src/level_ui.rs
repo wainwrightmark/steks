@@ -17,7 +17,7 @@ pub struct MainPanelWrapper {
     pub level: GameLevel,
     pub score_info: ScoreInfo,
     pub insets: Insets,
-    pub signed_in: UserSignedIn
+    pub signed_in: UserSignedIn,
 }
 #[derive(Debug, Clone, PartialEq, Component)]
 pub struct MainPanelMarker;
@@ -47,14 +47,15 @@ impl MavericNode for MainPanelWrapper {
                     z_index: ZIndex::Global(15),
                     ..Default::default()
                 })
-
                 .finish()
         });
 
         commands.ignore_context().advanced(|args, commands| {
             if args.is_hot() {
                 let top = match args.node.ui_state {
-                    GameUIState::Splash | GameUIState::Preview(_) => Val::Px(args.node.insets.real_top().max(50.0)),
+                    GameUIState::Splash | GameUIState::Preview(_) => {
+                        Val::Px(args.node.insets.real_top().max(50.0))
+                    }
                     GameUIState::Minimized => Val::Px(args.node.insets.real_top()),
                 };
 
@@ -71,7 +72,7 @@ impl MavericNode for MainPanelWrapper {
                     ui_state: args.ui_state.clone(),
                     level: args.level.clone(),
                     score_info: args.score_info,
-                    signed_in: args.signed_in.clone()
+                    signed_in: args.signed_in.clone(),
                 },
                 context,
             );
@@ -84,7 +85,7 @@ pub struct MainPanel {
     ui_state: GameUIState,
     level: GameLevel,
     score_info: ScoreInfo,
-    signed_in: UserSignedIn
+    signed_in: UserSignedIn,
 }
 
 impl MavericNode for MainPanel {
@@ -139,7 +140,6 @@ impl MavericNode for MainPanel {
 
             commands.insert(bundle);
             commands.insert(MainPanelMarker);
-
         });
     }
 
@@ -344,37 +344,22 @@ impl MavericNode for MainPanel {
                         );
                     };
 
-                    if args.score_info.is_wr() {
-                        commands.add_child(
-                            "wr",
-                            TextPlusIcons {
-                                text: "New World Record ".to_string(),
-                                icons: [IconButton::ViewRecord],
-                                font_size: LEVEL_TEXT_FONT_SIZE,
-                            },
-                            context,
-                        );
-                    } else if let Some(record) = args.score_info.wr {
-                        commands.add_child(
-                            "wr",
-                            TextPlusIcons {
-                                text: format!("Record    {:6.2}m", record),
-                                icons: [IconButton::ViewRecord],
-                                font_size: LEVEL_TEXT_FONT_SIZE,
-                            },
-                            context,
-                        );
-                    } else {
-                        commands.add_child(
-                            "wr",
-                            TextPlusIcons {
-                                text: "Loading  Record ".to_string(),
-                                icons: [IconButton::None],
-                                font_size: LEVEL_TEXT_FONT_SIZE,
-                            },
-                            context,
-                        );
-                    }
+                    let (wr_text, wr_icon) = match args.score_info.wr{
+                        WRData::External(record) => (format!("Record    {:6.2}m", record), IconButton::ViewRecord),
+                        WRData::InternalConfirmed =>    ("New World Record ".to_string(), IconButton::ViewRecord),
+                        WRData::InternalProvisional =>  ("Loading  Record ".to_string(), IconButton::None),
+                        WRData::ConnectionError =>      ("Record Unknown   ".to_string(), IconButton::None),
+                    };
+
+                    commands.add_child(
+                        "wr",
+                        TextPlusIcons {
+                            text: wr_text,
+                            icons: [wr_icon],
+                            font_size: LEVEL_TEXT_FONT_SIZE,
+                        },
+                        context,
+                    );
 
                     if let GameLevel::Challenge { streak, .. } = args.level {
                         commands.add_child(
@@ -382,16 +367,12 @@ impl MavericNode for MainPanel {
                             panel_text_node(format!("Streak    {streak:.2}",)),
                             context,
                         );
-                    }
-                    else{
-                        commands.add_child(
-                            "no_streak",
-                            panel_text_node(format!(" ",)),
-                            context,
-                        );
+                    } else {
+                        commands.add_child("no_streak", panel_text_node(format!(" ",)), context);
                     }
 
-                    let bottom_icons = if cfg!(any(feature = "android", feature = "ios")) && args.signed_in.0
+                    let bottom_icons = if cfg!(any(feature = "android", feature = "ios"))
+                        && args.signed_in.0
                         && args.level.leaderboard_id().is_some()
                     {
                         [

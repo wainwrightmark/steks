@@ -245,17 +245,28 @@ impl CurrentLevel {
 pub fn generate_score_info(
     level: &GameLevel,
     shapes: &ShapesVec,
-    leaderboard: &Res<WorldRecords>,
+    world_records: &Res<WorldRecords>,
     pbs: &Res<PersonalBests>,
 ) -> ScoreInfo {
     let height = shapes.calculate_tower_height();
     let hash = shapes.hash();
 
-    let wr: Option<f32> = leaderboard.map.get(&hash).map(|x| x.calculate_height());
+    let old_wr: Option<f32> = world_records.map.get(&hash).map(|x| x.calculate_height());
     let old_height = pbs.map.get(&hash);
 
     let pb = old_height.map(|x| x.height).unwrap_or(0.0);
     let star = level.get_level_stars().map(|x| x.get_star(height));
+
+    let wr = match old_wr {
+        Some(old_wr) => {
+            if old_wr > height {
+                WRData::External(old_wr)
+            } else {
+                WRData::InternalProvisional
+            }
+        }
+        None => WRData::InternalProvisional,
+    };
 
     ScoreInfo {
         hash,
@@ -411,11 +422,9 @@ impl GameLevel {
                 } else {
                     None
                 }
-            },
-
-            GameLevel::Infinite { .. }=>{
-                Some(INFINITE_LEADERBOARD.to_string())
             }
+
+            GameLevel::Infinite { .. } => Some(INFINITE_LEADERBOARD.to_string()),
             _ => None,
         }
     }
@@ -745,17 +754,16 @@ impl ChangeLevelEvent {
             ChangeLevelEvent::StartChallenge => {
                 let today = startup::get_today_date();
 
-                let streak = if streak_data.most_recent == today
-
-                {
+                let streak = if streak_data.most_recent == today {
                     info!("Replaying challenge - streak is {}", streak_data.count);
                     streak_data.count
-                }
-                else if streak_data.most_recent.checked_add_days(Days::new(1)) == Some(today) {
-                    info!("Continuing streak - new streak is {}", streak_data.count + 1);
+                } else if streak_data.most_recent.checked_add_days(Days::new(1)) == Some(today) {
+                    info!(
+                        "Continuing streak - new streak is {}",
+                        streak_data.count + 1
+                    );
                     streak_data.count + 1
-                }
-                 else {
+                } else {
                     info!("Reset streak to 1");
                     1
                 };

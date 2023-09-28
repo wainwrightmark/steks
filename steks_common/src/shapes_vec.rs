@@ -2,8 +2,8 @@ use std::ops::Deref;
 
 use crate::prelude::*;
 use base64::Engine;
-use serde::{Serialize, Deserialize};
-#[derive(Debug, Serialize, Deserialize, PartialEq )]
+use serde::{Deserialize, Serialize};
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
 impl Deref for ShapesVec {
@@ -15,7 +15,6 @@ impl Deref for ShapesVec {
 }
 
 impl ShapesVec {
-
     pub fn from_bytes(data: &[u8]) -> Self {
         Self(data.chunks_exact(7).map(EncodableShape::decode).collect())
     }
@@ -33,13 +32,7 @@ impl ShapesVec {
         let mut shapes: Vec<_> = self
             .0
             .iter()
-            .map(|x| {
-                (
-                    x.shape.0 as u64,
-                    state_hash(&x.state),
-                    x.modifiers as u64,
-                )
-            })
+            .map(|x| (x.shape.0 as u64, state_hash(&x.state), x.modifiers as u64))
             .collect();
         shapes.sort();
 
@@ -58,7 +51,12 @@ impl ShapesVec {
         self.0
             .iter()
             .filter(|x| !x.state.is_void())
-            .map(|x| x.shape.game_shape().body.bounding_box(SHAPE_SIZE, &Location::default()))
+            .map(|x| {
+                x.shape
+                    .game_shape()
+                    .body
+                    .bounding_box(SHAPE_SIZE, &Location::default())
+            })
             .map(|bb| (bb.max - bb.min).length() * HEIGHT_MULTIPLIER)
             .sum()
     }
@@ -77,7 +75,10 @@ impl ShapesVec {
             if state == &ShapeState::Void {
                 continue;
             }
-            let bb = shape.game_shape().body.bounding_box(SHAPE_SIZE, &round_trip_location(location));
+            let bb = shape
+                .game_shape()
+                .body
+                .bounding_box(SHAPE_SIZE, &round_trip_location(location));
 
             min = min.min(bb.min.y);
             max = max.max(bb.max.y);
@@ -139,5 +140,27 @@ impl From<&DesignedLevel> for ShapesVec {
         shapes.extend(id_shapes.values());
 
         ShapesVec(shapes)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use base64::Engine;
+    use super::ShapesVec;
+
+    #[test]
+    pub fn test_calculate_height_consistency() {
+        let blob =  base64::engine::general_purpose::URL_SAFE
+        //spellchecker:disable-next-line
+        .decode("CQCBGHvzog4AfvB2ZysEAILnjfABCACDxpPAAhMAfnVw1uAFAHw-bLbnAgCCyZ2xPgwAhV6IVCoJAIOygSikCzCOqo__PAMgeVRpVOkCIIv_i1Q8").unwrap();
+
+        let vec = ShapesVec::from_bytes(blob.as_slice());
+        let height_1 = vec.calculate_tower_height();
+
+        let round_tripped = ShapesVec::from_bytes(vec.make_bytes().as_slice());
+
+        let height_2 = round_tripped.calculate_tower_height();
+
+        assert_eq!(height_1, height_2);
     }
 }

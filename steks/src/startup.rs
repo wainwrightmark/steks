@@ -112,10 +112,7 @@ pub fn setup_app(app: &mut App) {
 
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
     rapier_config.gravity = GRAVITY;
-    rapier_config.timestep_mode = TimestepMode::Fixed {
-        dt: SECONDS_PER_FRAME,
-        substeps: 1,
-    }
+    rapier_config.timestep_mode = TimestepMode::Interpolated { dt: SECONDS_PER_FRAME, time_scale: 1.0, substeps: 1 }
 }
 
 pub fn get_today_date() -> chrono::NaiveDate {

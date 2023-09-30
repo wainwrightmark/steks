@@ -8,7 +8,7 @@ edition = "2021"
 rand = "0.8.5"
 itertools = "0.11"
 bevy_prototype_lyon = {version="0.9"}
-bevy_rapier2d = {version = "0.22"}
+bevy_rapier2d = {git = "https://github.com/dimforge/bevy_rapier", package = "bevy_rapier2d", rev= "a149ff5" }
 
 strum = { version = "0.25", features = ["derive"] }
 chrono = {version="0.4", features = ["serde", "wasmbind"]}

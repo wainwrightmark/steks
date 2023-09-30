@@ -10,7 +10,7 @@ base64 = "0.21"
 geometrid = {version = "0.3", features= ["glam"]}
 once_cell = "1.18"
 bevy_prototype_lyon = {version="0.9", default-features = false}
-bevy_rapier2d = {version = "0.22"}
+bevy_rapier2d = {git = "https://github.com/dimforge/bevy_rapier", package = "bevy_rapier2d", rev= "a149ff5" }
 bevy = { version = "0.11", default-features = false, features = ["bevy_render"] }
 serde = "1"
 num_enum = "0.7"

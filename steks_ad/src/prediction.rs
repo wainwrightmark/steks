@@ -18,14 +18,14 @@ impl From<&HasActed> for PredictionSettings {
     fn from(val: &HasActed) -> Self {
         match val {
             HasActed::HasActed => PredictionSettings {
-                max_substeps: 60 * 6,
-                early_sensor_substeps: 90,
+                max_substeps: FRAMES_PER_SECOND * 6,
+                early_sensor_substeps: FRAMES_PER_SECOND,
                 max_non_sensor_collisions: 3,
             },
 
             HasActed::HasNotActed => PredictionSettings {
-                max_substeps: 60 * 6,
-                early_sensor_substeps: 90,
+                max_substeps: FRAMES_PER_SECOND * 6,
+                early_sensor_substeps: FRAMES_PER_SECOND  + (FRAMES_PER_SECOND / 2),
                 max_non_sensor_collisions: 3,
             },
         }

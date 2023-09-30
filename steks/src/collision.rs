@@ -18,7 +18,6 @@ impl Plugin for CollisionPlugin {
 #[derive(Component, PartialEq, Eq, Hash, Debug)]
 pub struct CollisionMarker {
     pub wall_entity: Entity,
-    pub other_entity: Entity,
     pub index: usize,
     pub marker_type: MarkerType,
 }
@@ -80,11 +79,12 @@ fn display_collision_markers(
 
             for manifold in contact.manifolds() {
                 for point in manifold.points().filter(|x| x.dist() < 0.) {
-                    let (other_entity, local_point, collider_handle) =
-                        if contact.collider1() == sensor_entity {
-                            (contact.collider2(), point.local_p1(), contact.raw.collider1)
+                    let Some(collider1_entity)  = rapier_context.collider_entity(contact.raw.collider1) else {continue;};
+                    let (local_point, collider_handle) =
+                        if collider1_entity == sensor_entity {
+                            (point.local_p1(), contact.raw.collider1)
                         } else {
-                            (contact.collider1(), point.local_p2(), contact.raw.collider2)
+                            (point.local_p2(), contact.raw.collider2)
                         };
 
                     let (collider_transform, collider_rot) = rapier_context
@@ -106,7 +106,6 @@ fn display_collision_markers(
 
                     let cm = CollisionMarker {
                         wall_entity: sensor_entity,
-                        other_entity,
                         index,
                         marker_type: wall.marker_type(),
                     };

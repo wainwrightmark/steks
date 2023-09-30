@@ -61,9 +61,12 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(SnowPlugin)
         .add_plugins(ImportPlugin)
         .add_plugins(NewsPlugin)
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
+        .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
+        .add_plugins(
+            RapierPhysicsPlugin::in_fixed_schedule(
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
             PHYSICS_SCALE,
-        ))
+        )))
         .add_systems(Startup, setup)
         .add_plugins(DragPlugin)
         .add_plugins(WinPlugin)
@@ -112,7 +115,10 @@ pub fn setup_app(app: &mut App) {
 
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
     rapier_config.gravity = GRAVITY;
-    rapier_config.timestep_mode = TimestepMode::Interpolated { dt: SECONDS_PER_FRAME, time_scale: 1.0, substeps: 1 }
+    rapier_config.timestep_mode = TimestepMode::Fixed {
+        dt: SECONDS_PER_FRAME,
+        substeps: 1,
+    }
 }
 
 pub fn get_today_date() -> chrono::NaiveDate {

@@ -83,7 +83,7 @@ impl MavericNode for LevelTextPanel {
             if let Some(message) = level.get_level_text(stage, args.touch_enabled) {
                 //info!("Message {initial_color:?} {destination_color:?}");
                 commands.add_child(
-                    stage as u32,
+                    "text",
                     panel_text_node(message).with_transition_in::<TextColorLens<0>>(
                         initial_color,
                         destination_color,

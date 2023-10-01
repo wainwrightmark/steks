@@ -62,6 +62,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(ImportPlugin)
         .add_plugins(NewsPlugin)
         .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
+        .add_systems(FixedUpdate, limit_fixed_time)
         .add_plugins(RapierPhysicsPlugin::in_fixed_schedule(
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE),
         ))
@@ -109,6 +110,15 @@ pub fn setup_app(app: &mut App) {
     }
 
     app.add_systems(PostStartup, set_device_id);
+}
+
+pub fn limit_fixed_time(mut time: ResMut<FixedTime>){
+    if time.accumulated() > Duration::from_secs(1){
+        warn!("Accumulated fixed time is over 1 second ({:?})", time.accumulated());
+        *time = FixedTime::new_from_secs(SECONDS_PER_FRAME);
+    }
+
+
 }
 
 pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {

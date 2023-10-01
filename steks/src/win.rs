@@ -9,8 +9,7 @@ pub struct WinPlugin;
 impl Plugin for WinPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(FixedUpdate, check_for_collisions)
-        .add_systems(FixedUpdate, check_for_win)
-            //.add_systems(First, check_for_win)
+            .add_systems(FixedUpdate, check_for_win)
             .add_event::<ShapeCreationData>()
             .add_event::<ShapeUpdateData>()
             .add_systems(Update, spawn_and_update_shapes)
@@ -43,7 +42,9 @@ pub fn check_for_win(
         // tick down at most one frame worth of time
 
         // tick down without triggering change detection
-        countdown.bypass_change_detection().0 = Some(Countdown { seconds_remaining: seconds_remaining - time.period.as_secs_f32() });
+        countdown.bypass_change_detection().0 = Some(Countdown {
+            seconds_remaining: seconds_remaining - time.period.as_secs_f32(),
+        });
         return;
     }
 
@@ -151,12 +152,12 @@ pub fn check_for_tower(
 
     let countdown_seconds = prediction_result.get_countdown_seconds(&has_acted);
 
-    let Some(countdown_seconds) = countdown_seconds else {
+    let Some(seconds_remaining) = countdown_seconds else {
         return;
     };
 
     countdown.0 = Some(Countdown {
-        seconds_remaining: countdown_seconds
+        seconds_remaining,
     });
 }
 

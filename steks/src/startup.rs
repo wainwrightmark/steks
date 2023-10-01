@@ -62,11 +62,9 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(ImportPlugin)
         .add_plugins(NewsPlugin)
         .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
-        .add_plugins(
-            RapierPhysicsPlugin::in_fixed_schedule(
-            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
-            PHYSICS_SCALE,
-        )))
+        .add_plugins(RapierPhysicsPlugin::in_fixed_schedule(
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE),
+        ))
         .add_systems(Startup, setup)
         .add_plugins(DragPlugin)
         .add_plugins(WinPlugin)

@@ -44,7 +44,6 @@ pub const DEFAULT_RESTITUTION: f32 = 0.3;
 pub const INFINITE_MODE_STARTING_SHAPES: usize = 3;
 
 pub const CHALLENGE_SHAPES: usize = 10;
-//pub const INFINITE_SHAPES: usize = 4;
 
 // About 400 is a good amount of wind
 pub const GRAVITY: Vec2 = Vec2::new(0.0, -1000.0);

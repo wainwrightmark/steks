@@ -1,3 +1,4 @@
+use bevy::app::RunFixedUpdateLoop;
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
 use bevy_prototype_lyon::prelude::StrokeOptions;
@@ -45,8 +46,8 @@ impl Plugin for DragPlugin {
                     .before(handle_drag_changes),
             )
             .add_systems(Update, detach_stuck_shapes_on_pickup)
-            .add_systems(Update, apply_forces.after(handle_rotate_events))
-            .add_systems(Update, handle_drag_changes.after(apply_forces))
+            .add_systems(FixedUpdate, apply_forces)
+            .add_systems(Update, handle_drag_changes.after(handle_rotate_events))
             .add_systems(Update, draw_rotate_arrows)
             .add_event::<RotateEvent>()
             .add_event::<ShapePickedUpEvent>()
@@ -529,7 +530,6 @@ pub fn drag_start(
 
 pub fn handle_drag_changes(
     mut commands: Commands,
-    //time: Res<Time>,
     mut query: Query<
         (
             Entity,
@@ -588,6 +588,7 @@ pub fn handle_drag_changes(
 
         if let ShapeComponent::Dragged(dragged) = draggable {
             let mut builder = commands.entity(entity);
+
             builder.insert(BeingDragged {
                 desired_position: transform.translation.truncate(),
             });

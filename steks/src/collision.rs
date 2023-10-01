@@ -11,13 +11,14 @@ impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, display_collision_markers)
             .add_systems(PreUpdate, highlight_voids)
-            .add_systems(Update, flash_collision_markers);
+            .add_systems(Update, pulse_collision_markers);
     }
 }
 
 #[derive(Component, PartialEq, Eq, Hash, Debug)]
 pub struct CollisionMarker {
     pub wall_entity: Entity,
+    pub other_entity: Entity, //needed as we want different markers for each collision
     pub index: usize,
     pub marker_type: MarkerType,
 }
@@ -77,14 +78,32 @@ fn display_collision_markers(
         {
             let mut index = 0;
 
-            for manifold in contact.manifolds() {
+            'm: for manifold in contact.manifolds() {
+                let Some(collider1_entity) = rapier_context.collider_entity(contact.raw.collider1)
+                else {
+                    continue 'm;
+                };
+                let Some(collider2_entity) = rapier_context.collider_entity(contact.raw.collider2)
+                else {
+                    continue 'm;
+                };
+
                 for point in manifold.points().filter(|x| x.dist() < 0.) {
-                    let Some(collider1_entity)  = rapier_context.collider_entity(contact.raw.collider1) else {continue;};
-                    let (local_point, collider_handle) =
+                    let (wall_entity, other_entity, local_point, collider_handle) =
                         if collider1_entity == sensor_entity {
-                            (point.local_p1(), contact.raw.collider1)
+                            (
+                                collider1_entity,
+                                collider2_entity,
+                                point.local_p1(),
+                                contact.raw.collider1,
+                            )
                         } else {
-                            (point.local_p2(), contact.raw.collider2)
+                            (
+                                collider2_entity,
+                                collider1_entity,
+                                point.local_p2(),
+                                contact.raw.collider2,
+                            )
                         };
 
                     let (collider_transform, collider_rot) = rapier_context
@@ -105,7 +124,8 @@ fn display_collision_markers(
                         * rapier_context.physics_scale();
 
                     let cm = CollisionMarker {
-                        wall_entity: sensor_entity,
+                        wall_entity,
+                        other_entity,
                         index,
                         marker_type: wall.marker_type(),
                     };
@@ -177,7 +197,7 @@ fn display_collision_markers(
     }
 }
 
-fn flash_collision_markers(
+fn pulse_collision_markers(
     mut query: Query<&mut Transform, With<CollisionMarker>>,
     time: Res<Time>,
     mut lerp: Local<Lerp>,

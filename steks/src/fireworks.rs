@@ -52,7 +52,7 @@ const DEFAULT_INTENSITY: u32 = 5;
 fn manage_fireworks(
     current_level: Res<CurrentLevel>,
     has_acted: Res<HasActed>,
-    previous_level: Res<PreviousLevel>,
+    previous_level: Local<PreviousLevel>,
     mut countdown: ResMut<FireworksCountdown>,
     settings: Res<GameSettings>,
 ) {
@@ -60,13 +60,16 @@ fn manage_fireworks(
         return;
     }
 
-    if has_acted.is_has_acted() || !settings.fireworks_enabled || previous_level.0.is_none() {
+    let previous_was_same =
+        previous_level.compare(&current_level) == PreviousLevelType::SameLevelSameStage;
+
+    let previous_was_none = previous_level.0.is_none();
+    update_previous_level(previous_level, &current_level);
+
+    if has_acted.is_has_acted() || !settings.fireworks_enabled || previous_was_none {
         countdown.timer.pause();
         return;
     }
-
-    let previous_was_same =
-        previous_level.compare(&current_level) == PreviousLevelType::SameLevelSameStage;
 
     match current_level.completion {
         LevelCompletion::Incomplete { .. } => {
@@ -114,7 +117,7 @@ fn spawn_fireworks(
     mut countdown: ResMut<FireworksCountdown>,
     time: Res<Time>,
     window: Query<&Window, With<PrimaryWindow>>,
-    ui_scale: Res<UiScale>
+    ui_scale: Res<UiScale>,
 ) {
     if countdown.timer.paused() {
         return;
@@ -165,8 +168,8 @@ fn get_new_fireworks(
         }
         GameLevel::Infinite { .. } => match current_level.completion {
             LevelCompletion::Incomplete { stage } => {
-                let shapes = stage + INFINITE_MODE_STARTING_SHAPES -1 ;
-                if shapes  % 5 == 0 {
+                let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
+                if shapes % 5 == 0 {
                     FireworksSettings {
                         intensity: Some(shapes as u32),
                         interval: None,

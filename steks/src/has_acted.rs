@@ -38,7 +38,7 @@ fn check_for_its_a_trap(
     has_acted: Res<HasActed>,
     mut collision_events: EventReader<CollisionEvent>,
     current_level: Res<CurrentLevel>,
-    previous_level: Res<PreviousLevel>,
+    previous_level: Local<PreviousLevel>,
     mut achievements: ResMut<Achievements>,
     draggables: Query<&ShapeStage>,
     walls: Query<(), With<WallSensor>>,
@@ -52,10 +52,12 @@ fn check_for_its_a_trap(
         return;
     }
 
-    if !previous_level
+    let is_same_level = previous_level
         .compare(current_level.as_ref())
-        .is_same_level_earlier_stage()
-    {
+        .is_same_level_earlier_stage();
+    update_previous_level(previous_level, &current_level);
+
+    if !is_same_level {
         return;
     }
 

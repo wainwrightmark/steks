@@ -13,9 +13,7 @@ use strum::EnumIs;
 pub struct LevelPlugin;
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<PreviousLevel>()
-            .add_systems(PreUpdate, update_previous_level)
-            .add_systems(PostStartup, choose_level_on_game_load)
+        app.add_systems(PostStartup, choose_level_on_game_load)
             .add_systems(First, handle_change_level_events)
             .add_systems(Last, track_level_completion)
             .add_systems(Update, manage_level_shapes)
@@ -30,7 +28,7 @@ fn manage_level_shapes(
     mut commands: Commands,
     draggables: Query<((Entity, &ShapeIndex), With<ShapeComponent>)>,
     current_level: Res<CurrentLevel>,
-    previous_level: Res<PreviousLevel>,
+    previous_level: Local<PreviousLevel>,
     mut shape_creation_events: EventWriter<ShapeCreationData>,
     mut shape_update_events: EventWriter<ShapeUpdateData>,
 ) {
@@ -39,7 +37,7 @@ fn manage_level_shapes(
     }
 
     let mut result =
-        LevelTransitionResult::from_level(current_level.as_ref(), previous_level.as_ref());
+        LevelTransitionResult::from_level(current_level.as_ref(), &previous_level);
 
     if result.despawn_existing {
         for ((e, _), _) in draggables.iter() {
@@ -55,6 +53,7 @@ fn manage_level_shapes(
 
     shape_creation_events.send_batch(result.creations);
     shape_update_events.send_batch(result.updates);
+    update_previous_level(previous_level, &current_level);
 }
 
 fn handle_change_level_events(
@@ -113,8 +112,20 @@ impl TrackableResource for CurrentLevel {
     const KEY: &'static str = "CurrentLevel";
 }
 
-#[derive(Default, Resource, Debug, PartialEq)]
+#[derive(Default, Debug, PartialEq)]
 pub struct PreviousLevel(pub Option<(GameLevel, LevelCompletion)>);
+
+pub fn update_previous_level(mut previous_level: Local<PreviousLevel>, current_level: &Res<CurrentLevel>){
+    if current_level.is_changed(){
+        *previous_level = current_level.as_ref().into();
+    }
+}
+
+impl From<&CurrentLevel> for PreviousLevel {
+    fn from(value: &CurrentLevel) -> Self {
+        Self(Some((value.level.clone(), value.completion)))
+    }
+}
 
 #[derive(Debug, EnumIs, Clone, Copy, PartialEq)]
 pub enum PreviousLevelType {
@@ -155,22 +166,6 @@ impl PreviousLevel {
             }
         }
     }
-}
-
-fn update_previous_level(
-    current_level: Res<CurrentLevel>,
-    mut current_local: Local<Option<(GameLevel, LevelCompletion)>>,
-    mut previous_level: ResMut<PreviousLevel>,
-) {
-    if !current_level.is_changed() {
-        return;
-    }
-
-    *previous_level = PreviousLevel(current_local.clone());
-    *current_local = Some((
-        current_level.level.clone(),
-        current_level.completion.clone(),
-    ));
 }
 
 impl CurrentLevel {

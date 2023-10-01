@@ -8,8 +8,9 @@ pub struct WinPlugin;
 
 impl Plugin for WinPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, check_for_collisions)
-            .add_systems(First, check_for_win)
+        app.add_systems(FixedUpdate, check_for_collisions)
+        .add_systems(FixedUpdate, check_for_win)
+            //.add_systems(First, check_for_win)
             .add_event::<ShapeCreationData>()
             .add_event::<ShapeUpdateData>()
             .add_systems(Update, spawn_and_update_shapes)
@@ -21,7 +22,7 @@ impl Plugin for WinPlugin {
 pub fn check_for_win(
     mut countdown: ResMut<WinCountdown>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
-    time: Res<Time>,
+    time: Res<FixedTime>,
     mut current_level: ResMut<CurrentLevel>,
     mut global_ui: ResMut<GlobalUiState>,
     has_acted: Res<HasActed>,
@@ -40,9 +41,9 @@ pub fn check_for_win(
 
     if seconds_remaining > 0.0 {
         // tick down at most one frame worth of time
-        let delta = time.delta_seconds().max(SECONDS_PER_FRAME);
+
         // tick down without triggering change detection
-        countdown.bypass_change_detection().0 = Some(Countdown { seconds_remaining: seconds_remaining - delta });
+        countdown.bypass_change_detection().0 = Some(Countdown { seconds_remaining: seconds_remaining - time.period.as_secs_f32() });
         return;
     }
 

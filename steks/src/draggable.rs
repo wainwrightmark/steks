@@ -1,4 +1,3 @@
-use bevy::app::RunFixedUpdateLoop;
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
 use bevy_prototype_lyon::prelude::StrokeOptions;

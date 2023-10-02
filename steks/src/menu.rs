@@ -179,16 +179,17 @@ impl MavericNode for MenuPage {
                     &context.3,
                 );
 
-                if context.5.0{
-                    // commands.add_child(
-                    //     "sync_achievements",
-                    //     text_button_node(TextButton::SyncAchievements, true, false),
-                    //     &context.3,
-                    // );
+                if context.5.is_signed_in{
 
                     commands.add_child(
                         "show_achievements",
                         text_button_node(TextButton::ShowAchievements, true, false),
+                        &context.3,
+                    );
+
+                    commands.add_child(
+                        "infinite_leaderboard",
+                        text_button_node(TextButton::InfiniteLeaderboard, true, false),
                         &context.3,
                     );
                 }

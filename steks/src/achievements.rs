@@ -20,14 +20,16 @@ impl Plugin for AchievementsPlugin {
 }
 
 #[derive(Debug, Resource, Default, Clone, PartialEq, Eq)]
-pub struct UserSignedIn(pub bool);
+pub struct UserSignedIn{
+    pub is_signed_in: bool
+}
 
 #[derive(Debug, Event, Clone, Copy, Eq, PartialEq)]
 pub struct SignInEvent;
 
 fn check_for_sign_in(mut ev: EventReader<SignInEvent>,mut signed_in: ResMut<UserSignedIn>, achievements: Res<Achievements>){
     for _ in ev.iter(){
-        signed_in.0 = true;
+        signed_in.is_signed_in = true;
         achievements.resync();
 
     }

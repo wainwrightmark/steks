@@ -563,6 +563,11 @@ pub fn try_show_leaderboard(level: &CurrentLevel) {
         submit_score(options);
     }
 
+    try_show_leaderboard_only(leaderboard_id);
+}
+
+
+pub fn try_show_leaderboard_only(leaderboard_id: String){
     info!("Showing leaderboard {:?}", leaderboard_id.clone());
 
     #[cfg(target_arch = "wasm32")]

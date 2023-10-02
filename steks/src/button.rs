@@ -307,6 +307,9 @@ fn text_button_system(
                     achievements.resync();
                     show_achievements();
                 },
+                TextButton::InfiniteLeaderboard =>{
+                    try_show_leaderboard_only(INFINITE_LEADERBOARD.to_string());
+                },
 
                 TextButton::SetFireworks(fireworks) => settings.fireworks_enabled = fireworks,
                 TextButton::SetSnow(snow) => settings.snow_enabled = snow,

@@ -372,7 +372,7 @@ impl MavericNode for MainPanel {
                     }
 
                     let bottom_icons = if cfg!(any(feature = "android", feature = "ios"))
-                        && args.signed_in.0
+                        && args.signed_in.is_signed_in
                         && args.level.leaderboard_id().is_some()
                     {
                         [

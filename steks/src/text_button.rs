@@ -33,7 +33,7 @@ pub enum TextButton {
 
     //SyncAchievements,
     ShowAchievements,
-
+    InfiniteLeaderboard,
     News,
 }
 
@@ -67,6 +67,7 @@ impl TextButton {
             TextButton::Credits => true,
             // TextButton::SyncAchievements => false,
             TextButton::ShowAchievements => false,
+            TextButton::InfiniteLeaderboard => false,
             TextButton::News => false, //automatically closes menu
         }
     }
@@ -116,6 +117,7 @@ impl TextButton {
 
             // TextButton::SyncAchievements => "Sync Achievements".to_string(),
             TextButton::ShowAchievements => "Show Achievements".to_string(),
+            TextButton::InfiniteLeaderboard => "Infinite Leaderboard".to_string(),
             TextButton::SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
             TextButton::BackToMenu => "Back".to_string(),
         }

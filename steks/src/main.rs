@@ -4,7 +4,7 @@ use bevy::prelude::App;
 
 pub mod achievements;
 pub mod app_redirect;
-pub mod async_event_writer;
+
 pub mod button;
 pub mod camera;
 pub mod collision;
@@ -43,7 +43,6 @@ pub mod snow;
 pub mod spirit;
 pub mod startup;
 pub mod text_button;
-pub mod tracked_resource;
 pub mod ui;
 pub mod walls;
 #[cfg(target_arch = "wasm32")]
@@ -59,10 +58,12 @@ pub mod prelude {
     pub use bevy_rapier2d::prelude::*;
     pub use std::time::Duration;
     pub use steks_common::prelude::*;
+    pub use bevy_utils::async_event_writer::*;
+    pub use bevy_utils::tracked_resource::*;
 
-    pub use crate::achievements::*;
+
     pub use crate::app_redirect::*;
-    pub use crate::async_event_writer::*;
+    pub use crate::achievements::*;
     pub use crate::button::*;
     pub use crate::camera::*;
     pub use crate::collision::*;
@@ -89,7 +90,7 @@ pub mod prelude {
     pub use crate::preview_images::*;
     pub use crate::settings::*;
     pub use crate::snow::*;
-    pub use crate::tracked_resource::*;
+
 
     pub use crate::prediction::*;
     pub use crate::shape_component::*;

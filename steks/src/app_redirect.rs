@@ -1,8 +1,4 @@
-use bevy::prelude::*;
-
-use crate::async_event_writer::*;
-use crate::leaderboard::CheatEvent;
-use crate::level::ChangeLevelEvent;
+use crate::prelude::*;
 
 pub struct AppUrlPlugin;
 

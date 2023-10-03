@@ -1,4 +1,4 @@
-use crate::{leaderboard, prelude::*};
+use crate::prelude::*;
 
 use strum::Display;
 
@@ -148,7 +148,7 @@ fn icon_button_system(
                 PreviousLevelsPage => global_ui_state.as_mut().previous_levels_page(),
                 RefreshWR => {
                     if let LevelCompletion::Complete { score_info } = current_level.completion {
-                        leaderboard::refresh_wr_data(score_info.hash, leaderboard_data_event_writer.clone())
+                        crate::leaderboard::refresh_wr_data(score_info.hash, leaderboard_data_event_writer.clone())
                     }
 
                 },
@@ -212,7 +212,7 @@ fn icon_button_system(
                 }
 
                 ShowLeaderboard => {
-                    leaderboard::try_show_leaderboard(&current_level);
+                    crate::leaderboard::try_show_leaderboard(&current_level);
                 }
                 EnableSnow => settings.snow_enabled = true,
             }

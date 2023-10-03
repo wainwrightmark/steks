@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use capacitor_bindings::local_notifications::*;
 
-use crate::{async_event_writer::AsyncEventWriter, level::ChangeLevelEvent, logging::*};
+use crate::prelude::*;
 
 #[cfg(any(feature = "ios", feature = "android"))]
 const DAILY_CHALLENGE_CLICK_ACTION_ID: &str = "DailyChallengeClick";

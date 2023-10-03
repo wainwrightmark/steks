@@ -12,7 +12,7 @@ bevy_rapier2d = { git = "https://github.com/dimforge/bevy_rapier", package = "be
 
 strum = { version = "0.25", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
-bevy_pkv = "0.8"
+bevy_pkv = { version = "0.8"}
 
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
@@ -28,10 +28,10 @@ capacitor_bindings = { features = [
 bevy_embedded_assets = "0.8"
 lazy_static = "1.4"
 serde_yaml = "0.9"
-async-channel = "1.8"
+
 steks_common = { path = "../steks_common" }
 steks_image = { path = "../steks_image" }
-bevy_utils = { path = "../bevy_utils" }
+bevy_utils = { path = "../bevy_utils", features = ["async-channel", "bevy_pkv"]}
 bevy_screen_diagnostics = "0.3"
 maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
   "widgets",

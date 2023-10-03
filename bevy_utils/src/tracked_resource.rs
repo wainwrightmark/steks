@@ -4,15 +4,13 @@ use bevy::prelude::*;
 use bevy_pkv::PkvStore;
 use serde::{de::DeserializeOwned, Serialize};
 
+use crate::TrackableResource;
+
 #[derive(Debug, Default)]
 pub struct TrackedResourcePlugin<
     T: Resource + FromWorld + Serialize + DeserializeOwned + TrackableResource,
 > {
     phantom: PhantomData<T>,
-}
-
-pub trait TrackableResource: Resource + Serialize + DeserializeOwned + Default {
-    const KEY: &'static str;
 }
 
 impl<T: Resource + Default + Serialize + DeserializeOwned + TrackableResource>

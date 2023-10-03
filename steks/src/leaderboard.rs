@@ -42,13 +42,13 @@ pub struct LeaderboardPlugin;
 
 impl Plugin for LeaderboardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(AsyncEventPlugin::<LeaderboardDataEvent>::default())
-            .add_plugins(TrackedResourcePlugin::<PersonalBests>::default())
-            .add_plugins(TrackedResourcePlugin::<WorldRecords>::default())
-            .add_plugins(TrackedResourcePlugin::<CampaignCompletion>::default())
-            .add_plugins(TrackedResourcePlugin::<MaxInfiniteStage>::default())
-            .add_plugins(TrackedResourcePlugin::<Streak>::default())
-            .add_plugins(AsyncEventPlugin::<CheatEvent>::default())
+        app.register_async_event::<LeaderboardDataEvent>()
+            .register_async_event::<CheatEvent>()
+            .init_tracked_resource::<PersonalBests>()
+            .init_tracked_resource::<WorldRecords>()
+            .init_tracked_resource::<CampaignCompletion>()
+            .init_tracked_resource::<MaxInfiniteStage>()
+            .init_tracked_resource::<Streak>()
             .init_resource::<WorldRecords>()
             .add_systems(PostStartup, check_for_cheat_on_game_load)
             .add_systems(Update, detect_cheat)
@@ -120,14 +120,8 @@ impl TrackableResource for Streak {
 
 #[derive(Debug, Event, Clone)]
 pub enum LeaderboardDataEvent {
-
-    Success{
-        text: String
-    },
-    Failure{
-        hash: u64,
-        error: String
-    }
+    Success { text: String },
+    Failure { hash: u64, error: String },
 }
 
 #[derive(Debug, Event)]
@@ -187,7 +181,7 @@ fn hydrate_leaderboard(
     };
 
     let text = match &ev {
-        LeaderboardDataEvent::Success{text} => text,
+        LeaderboardDataEvent::Success { text } => text,
         LeaderboardDataEvent::Failure { hash, error } => {
             crate::logging::try_log_error_message(error.clone());
             match current_level.completion {
@@ -311,14 +305,13 @@ async fn get_leaderboard_data(hash: u64) -> LeaderboardDataEvent {
     let res = client.get(url).send().await;
 
     match res {
-        Ok(response) => {
-            match response.text().await{
-                Ok(text) => LeaderboardDataEvent::Success { text },
-                Err(err) => LeaderboardDataEvent::Failure {
-                    error: err.to_string(),
-                    hash,
-                },
-            }},
+        Ok(response) => match response.text().await {
+            Ok(text) => LeaderboardDataEvent::Success { text },
+            Err(err) => LeaderboardDataEvent::Failure {
+                error: err.to_string(),
+                hash,
+            },
+        },
         Err(err) => LeaderboardDataEvent::Failure {
             error: err.to_string(),
             hash,
@@ -566,8 +559,7 @@ pub fn try_show_leaderboard(level: &CurrentLevel) {
     try_show_leaderboard_only(leaderboard_id);
 }
 
-
-pub fn try_show_leaderboard_only(leaderboard_id: String){
+pub fn try_show_leaderboard_only(leaderboard_id: String) {
     info!("Showing leaderboard {:?}", leaderboard_id.clone());
 
     #[cfg(target_arch = "wasm32")]

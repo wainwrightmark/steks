@@ -8,7 +8,7 @@ pub struct SettingsPlugin;
 
 impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(TrackedResourcePlugin::<GameSettings>::default())
+        app.init_tracked_resource::<GameSettings>()
             .add_systems(Update, track_settings_changes);
     }
 }

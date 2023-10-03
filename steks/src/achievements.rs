@@ -9,10 +9,10 @@ pub struct AchievementsPlugin;
 
 impl Plugin for AchievementsPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(TrackedResourcePlugin::<Achievements>::default())
+        app.init_tracked_resource::<Achievements>()
             .add_systems(Startup, sign_in_user)
             .add_systems(Update, track_level_completion_achievements)
-            .add_plugins(AsyncEventPlugin::<SignInEvent>::default())
+            .register_async_event::<SignInEvent>()
             .add_systems(Update, check_for_sign_in)
             .add_systems(Update, check_for_its_a_trap)
             .init_resource::<UserSignedIn>()

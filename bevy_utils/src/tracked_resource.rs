@@ -7,7 +7,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::TrackableResource;
 
 #[derive(Debug, Default)]
-pub struct TrackedResourcePlugin<
+pub (crate) struct TrackedResourcePlugin<
     T: Resource + FromWorld + Serialize + DeserializeOwned + TrackableResource,
 > {
     phantom: PhantomData<T>,

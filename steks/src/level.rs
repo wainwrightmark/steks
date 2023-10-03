@@ -19,8 +19,8 @@ impl Plugin for LevelPlugin {
             .add_systems(Update, manage_level_shapes)
             .add_systems(Update, skip_tutorial_completion)
             .add_systems(Update, adjust_gravity)
-            .add_plugins(TrackedResourcePlugin::<CurrentLevel>::default())
-            .add_plugins(AsyncEventPlugin::<ChangeLevelEvent>::default());
+            .init_tracked_resource::<CurrentLevel>()
+            .register_async_event::<ChangeLevelEvent>();
     }
 }
 

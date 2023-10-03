@@ -9,12 +9,11 @@ pub struct NewsPlugin;
 
 impl Plugin for NewsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(TrackedResourcePlugin::<NewsResource>::default())
+        app.init_tracked_resource::<NewsResource>()
+        .register_async_event::<NewsItem>()
             .add_systems(PostStartup, check_loaded_news)
             .add_systems(PostStartup, get_latest_news.after(check_loaded_news))
             .add_systems(Update, update_news_items);
-
-        app.add_plugins(AsyncEventPlugin::<NewsItem>::default());
     }
 }
 

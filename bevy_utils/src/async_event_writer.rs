@@ -2,7 +2,7 @@ use async_channel::SendError;
 use bevy::{ecs::system::SystemParam, prelude::*};
 use std::marker::PhantomData;
 
-pub struct AsyncEventPlugin<T: Event>(PhantomData<T>);
+pub (crate) struct AsyncEventPlugin<T: Event>(PhantomData<T>);
 
 impl<T: Event> Default for AsyncEventPlugin<T> {
     fn default() -> Self {

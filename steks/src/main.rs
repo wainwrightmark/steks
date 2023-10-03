@@ -56,6 +56,8 @@ pub mod prelude {
     pub use bevy::prelude::*;
 
     pub use bevy_utils::TrackableResource;
+    pub use bevy_utils::CanInitTrackedResource;
+    pub use bevy_utils::CanRegisterAsyncEvent;
 
     pub use bevy_rapier2d::prelude::*;
     pub use std::time::Duration;

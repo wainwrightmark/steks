@@ -1,0 +1,73 @@
+[package]
+name = "steks_base"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+rand = "0.8.5"
+itertools = "0.11"
+
+strum = { version = "0.25", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde", "wasmbind"] }
+
+
+serde = { version = "1", features = ["derive", "rc"] }
+anyhow = "1"
+base64 = "0.21"
+geometrid = { version = "0.3", features = ["glam"] }
+serde_with = "3"
+
+
+lazy_static = "1.4"
+serde_yaml = "0.9"
+
+steks_common = { path = "../steks_common" }
+steks_image = { path = "../steks_image" }
+bevy_utils = { path = "../bevy_utils", features = []}
+bevy_screen_diagnostics = "0.3"
+maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
+  "widgets",
+] }
+serde_repr = "0.1"
+enumset = { version = "1", features = ["serde"] }
+
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = { version = "0.3" }
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
+  'Url',
+  'Window',
+  'Element',
+  'HtmlElement',
+  'HtmlCollection',
+  'Location',
+  'UrlSearchParams',
+  'CssStyleDeclaration',
+] }
+console_error_panic_hook = "0.1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+winit = { version = "0.28", features = ["x11"] }
+
+[dev-dependencies]
+insta = "1"
+test-case = "3"
+
+
+[dependencies.bevy]
+version = "0.11"
+
+
+# Disable the default features if there are any that you do not want
+default-features = false
+features = [
+  "bevy_winit",         # Window management
+  "bevy_render",        # Rendering framework core
+  "bevy_core_pipeline", # Higher-level rendering abstractions
+  "bevy_sprite",        # 2D (sprites) rendering
+  "bevy_text",          # Text/font rendering
+  "bevy_ui",            # UI toolkit
+  "webgl2",
+]

@@ -5,6 +5,7 @@ members = [
 "steks_ad",
 "bevy_utils",
 "steks_image",
+"steks_base",
 "netlify/functions/image",
 "netlify/functions/leaderboard",
 "ad_postbuild"

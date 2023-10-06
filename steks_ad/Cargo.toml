@@ -15,7 +15,7 @@ strum = { version = "0.25", features = ["derive"] }
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
 base64 = "0.21"
-geometrid = {version = "0.3", features= ["glam"]}
+geometrid = {version = "0.4", features= ["glam"]}
 
 bevy_embedded_assets = "0.8"
 lazy_static = "1.4"

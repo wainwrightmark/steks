@@ -17,7 +17,7 @@ bevy_pkv = { version = "0.8"}
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
 base64 = "0.21"
-geometrid = { version = "0.3", features = ["glam"] }
+geometrid = { version = "0.4", features = ["glam"] }
 serde_with = "3"
 reqwest = { version = "0.11", default-features = false, features = ["json"] }
 capacitor_bindings = { features = [

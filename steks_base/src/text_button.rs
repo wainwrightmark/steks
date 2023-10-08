@@ -31,12 +31,11 @@ pub enum TextButton {
 
     Credits,
 
-    SyncAchievements,
+    //SyncAchievements,
     ShowAchievements,
-
+    InfiniteLeaderboard,
     News,
-
-    GetTheGame,
+    GetTheGame
 }
 
 impl TextButton {
@@ -67,10 +66,11 @@ impl TextButton {
             TextButton::SetSnow(_) => false,
             TextButton::SetRotationSensitivity(_) => false,
             TextButton::Credits => true,
-            TextButton::SyncAchievements => false,
+            // TextButton::SyncAchievements => false,
             TextButton::ShowAchievements => false,
+            TextButton::InfiniteLeaderboard => false,
             TextButton::News => false, //automatically closes menu
-            TextButton::GetTheGame => false, //automatically closes menu
+            TextButton::GetTheGame => true, //automatically closes menu
         }
     }
 
@@ -86,6 +86,7 @@ impl TextButton {
             TextButton::Share => "Share".to_string(),
             TextButton::ChooseLevel => "Choose Level".to_string(),
             TextButton::ClipboardImport => "Import Level".to_string(),
+            TextButton::GetTheGame => "Get The Game".to_string(),
             TextButton::GotoLevel { level } => {
                 let level_number = format_campaign_level_number(level, false);
                 if let Some(set_level) = steks_common::designed_level::get_campaign_level(*level) {
@@ -117,11 +118,11 @@ impl TextButton {
             TextButton::SetHighContrast(true) => "Default           Colours".to_string(),
             TextButton::SetHighContrast(false) => "High Contrast     Colours".to_string(),
 
-            TextButton::SyncAchievements => "Sync Achievements".to_string(),
+            // TextButton::SyncAchievements => "Sync Achievements".to_string(),
             TextButton::ShowAchievements => "Show Achievements".to_string(),
+            TextButton::InfiniteLeaderboard => "Infinite Leaderboard".to_string(),
             TextButton::SetRotationSensitivity(rs) => format!("Set Sensitivity {rs}"),
             TextButton::BackToMenu => "Back".to_string(),
-            TextButton::GetTheGame => "Get The Game".to_string(),
         }
     }
 }

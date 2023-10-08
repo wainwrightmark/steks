@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::prelude::*;
 use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
@@ -5,20 +7,22 @@ use bevy_rapier2d::prelude::RapierContext;
 //use bevy_tweening::{lens::TransformScaleLens, Animator, EaseFunction, RepeatCount, Tween};
 use steks_common::prelude::*;
 
-pub struct CollisionPlugin;
+#[derive(Debug, Default)]
+pub struct CollisionPlugin<L : Level>(PhantomData<L>);
 
-impl Plugin for CollisionPlugin {
+impl<L: Level> Plugin for CollisionPlugin<L> {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, display_collision_markers)
+        app.add_systems(PreUpdate, display_collision_markers::<L>)
             .add_systems(PreUpdate, highlight_voids)
-            .add_systems(Update, flash_collision_markers);
+            .add_systems(Update, pulse_collision_markers);
     }
+
 }
 
 #[derive(Component, PartialEq, Eq, Hash, Debug)]
 pub struct CollisionMarker {
     pub wall_entity: Entity,
-    pub other_entity: Entity,
+    pub other_entity: Entity, //needed as we want different markers for each collision
     pub index: usize,
     pub marker_type: MarkerType,
 }
@@ -42,7 +46,7 @@ fn highlight_voids(
 
                 for child in children {
                     if let Ok(mut shadow) = shadows.get_mut(*child) {
-                        shadow.options.line_width = ZOOM_LEVEL * MULTIPLIER * VOID_STROKE_WIDTH;
+                        shadow.options.line_width = OUTLINE_ZOOM * MULTIPLIER * VOID_STROKE_WIDTH;
                     }
                 }
             }
@@ -52,24 +56,25 @@ fn highlight_voids(
 
             for child in children {
                 if let Ok(mut shadow) = shadows.get_mut(*child) {
-                    shadow.options.line_width = ZOOM_LEVEL * VOID_STROKE_WIDTH;
+                    shadow.options.line_width = OUTLINE_ZOOM * VOID_STROKE_WIDTH;
                 }
             }
         }
     }
 }
 
-fn display_collision_markers(
+fn display_collision_markers<L : Level>(
     mut commands: Commands,
     rapier_context: Res<RapierContext>,
     walls: Query<(Entity, &Transform, &WallPosition), Without<CollisionMarker>>,
     mut markers: Query<(Entity, &mut Transform, &CollisionMarker), Without<WallPosition>>,
+    current_level: Res<CurrentLevel<L>>,
 ) {
     let mut markers_map = HashMap::from_iter(markers.iter_mut().map(|x| (x.2, (x.0, x.1))));
 
     for (sensor_entity, wall_transform, wall) in walls
         .iter()
-        .filter(|x| x.2.show_marker())
+        .filter(|x| x.2.show_marker(current_level.as_ref()))
     {
         for contact in rapier_context
             .contacts_with(sensor_entity)
@@ -77,13 +82,32 @@ fn display_collision_markers(
         {
             let mut index = 0;
 
-            for manifold in contact.manifolds() {
+            'm: for manifold in contact.manifolds() {
+                let Some(collider1_entity) = rapier_context.collider_entity(contact.raw.collider1)
+                else {
+                    continue 'm;
+                };
+                let Some(collider2_entity) = rapier_context.collider_entity(contact.raw.collider2)
+                else {
+                    continue 'm;
+                };
+
                 for point in manifold.points().filter(|x| x.dist() < 0.) {
-                    let (other_entity, local_point, collider_handle) =
-                        if contact.collider1() == sensor_entity {
-                            (contact.collider2(), point.local_p1(), contact.raw.collider1)
+                    let (wall_entity, other_entity, local_point, collider_handle) =
+                        if collider1_entity == sensor_entity {
+                            (
+                                collider1_entity,
+                                collider2_entity,
+                                point.local_p1(),
+                                contact.raw.collider1,
+                            )
                         } else {
-                            (contact.collider1(), point.local_p2(), contact.raw.collider2)
+                            (
+                                collider2_entity,
+                                collider1_entity,
+                                point.local_p2(),
+                                contact.raw.collider2,
+                            )
                         };
 
                     let (collider_transform, collider_rot) = rapier_context
@@ -104,7 +128,7 @@ fn display_collision_markers(
                         * rapier_context.physics_scale();
 
                     let cm = CollisionMarker {
-                        wall_entity: sensor_entity,
+                        wall_entity,
                         other_entity,
                         index,
                         marker_type: wall.marker_type(),
@@ -177,7 +201,7 @@ fn display_collision_markers(
     }
 }
 
-fn flash_collision_markers(
+fn pulse_collision_markers(
     mut query: Query<&mut Transform, With<CollisionMarker>>,
     time: Res<Time>,
     mut lerp: Local<Lerp>,

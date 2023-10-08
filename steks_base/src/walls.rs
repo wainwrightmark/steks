@@ -16,9 +16,35 @@ impl Plugin for WallsPlugin {
 }
 
 #[derive(Debug, PartialEq, Resource)]
-struct WindowSize {
-    width: f32,
-    height: f32,
+pub struct WindowSize {
+    window_width: f32,
+    window_height: f32,
+}
+
+impl WindowSize {
+    /// The scale to multiply the height and width by
+    pub fn size_scale(&self) -> f32 {
+        if self.window_width >= 768. && self.window_height >= 1024. {
+            0.5
+        } else if self.window_width < 360. || self.window_height <= 520. {
+            1.1
+        } else {
+            1.0
+        }
+    }
+
+    /// The scale to multiply objects and ui elements by
+    pub fn object_scale(&self) -> f32 {
+        self.size_scale().recip()
+    }
+
+    pub fn scaled_width(&self) -> f32 {
+        self.window_width * self.size_scale()
+    }
+
+    pub fn scaled_height(&self) -> f32 {
+        self.window_height * self.size_scale()
+    }
 }
 
 impl FromWorld for WindowSize {
@@ -27,8 +53,8 @@ impl FromWorld for WindowSize {
         let window = query.single(world);
 
         WindowSize {
-            width: window.width(),
-            height: window.height(),
+            window_width: window.width(),
+            window_height: window.height(),
         }
     }
 }
@@ -103,15 +129,16 @@ impl MavericNode for WallNode {
         });
 
         commands.insert_with_node_and_context(|node, context| {
-            let (window_size, insets, _, rapier) = context;
+            let (window_size, insets, settings, rapier) = context;
             let wall = node.0;
             let point = wall.get_position(
-                window_size.height,
-                window_size.width,
+                window_size.scaled_height(),
+                window_size.scaled_width(),
                 rapier.gravity,
                 insets,
+                &window_size,
             );
-            let color = wall.color();
+            let color = wall.color(settings);
 
             (Fill::color(color), Transform::from_translation(point))
         });
@@ -179,29 +206,46 @@ pub enum WallPosition {
     Bottom,
     Left,
     Right,
+    TopLeft,
 }
 
 #[derive(Debug, Component)]
 pub struct WallSensor;
 
 const WALL_Z: f32 = 2.0;
+const TOP_LEFT_Z: f32 = 1.0;
 
 const TOP_BOTTOM_OFFSET: f32 = 10.0;
 
 impl WallPosition {
-    pub fn get_position(&self, height: f32, width: f32, gravity: Vec2, insets: &Insets) -> Vec3 {
+    pub fn get_position(
+        &self,
+        height: f32,
+        width: f32,
+        gravity: Vec2,
+        insets: &Insets,
+        windows_size: &WindowSize,
+    ) -> Vec3 {
         use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;
+        const IOS_BOTTOM_OFFSET: f32 = 30.0;
+        let scale = windows_size.object_scale();
 
         let top_offset = if gravity.y > 0.0 {
-            (TOP_BOTTOM_OFFSET).max(insets.real_top()) * -1.0
+            if cfg!(feature = "ios") {
+                (TOP_BOTTOM_OFFSET).max(insets.real_top()) * -1.0
+            } else {
+                scale * TOP_BOTTOM_OFFSET * -1.0
+            }
         } else {
             0.0
         };
         let bottom_offset = if gravity.y > 0.0 {
             0.0
+        } else if cfg!(feature = "ios") {
+            IOS_BOTTOM_OFFSET
         } else {
-            TOP_BOTTOM_OFFSET
+            scale * TOP_BOTTOM_OFFSET
         };
 
         match self {
@@ -209,14 +253,19 @@ impl WallPosition {
             Bottom => Vec3::new(0.0, -height / 2.0 - OFFSET + bottom_offset, WALL_Z),
             Left => Vec3::new(-width / 2.0 - OFFSET, 0.0, WALL_Z),
             Right => Vec3::new(width / 2.0 + OFFSET, 0.0, WALL_Z),
+            TopLeft => Vec3 {
+                x: (-width / 2.0) + (TOP_LEFT_SQUARE_SIZE / 2.0),
+                y: (height / 2.0) - (TOP_LEFT_SQUARE_SIZE / 2.0),
+                z: TOP_LEFT_Z,
+            },
         }
     }
 
-    pub fn show_marker(&self) -> bool {
-        match self{
-            WallPosition::Bottom => false,
-            _=> true
+    pub fn show_marker<L: Level>(&self, current_level: &CurrentLevel<L>) -> bool {
+        if !self.is_bottom() {
+            return true;
         }
+        current_level.level.show_bottom_markers()
     }
 
     pub fn get_extents(&self) -> Vec2 {
@@ -232,6 +281,10 @@ impl WallPosition {
                 x: WALL_WIDTH,
                 y: MAX_WINDOW_HEIGHT,
             },
+            TopLeft => Vec2 {
+                x: TOP_LEFT_SQUARE_SIZE,
+                y: TOP_LEFT_SQUARE_SIZE,
+            },
         }
     }
 
@@ -240,27 +293,32 @@ impl WallPosition {
         match self {
             Top | Bottom => MarkerType::Horizontal,
             Left | Right => MarkerType::Vertical,
+            TopLeft => MarkerType::Horizontal,
         }
     }
 
-    pub fn color(&self) -> Color {
+    pub fn color(&self, settings: &GameSettings) -> Color {
         use WallPosition::*;
         match self {
             Top | Bottom | Left | Right => ACCENT_COLOR,
+            TopLeft => settings.background_color(),
         }
     }
 }
 
+const TOP_LEFT_SQUARE_SIZE: f32 = 60.0;
 
 fn handle_window_resized(
     mut window_resized_events: EventReader<WindowResized>,
 
     mut draggables_query: Query<&mut Transform, With<ShapeComponent>>,
     mut window_size: ResMut<WindowSize>,
+    mut ui_scale: ResMut<UiScale>,
 ) {
     for ev in window_resized_events.iter() {
-        window_size.width = ev.width;
-        window_size.height = ev.height;
+        window_size.window_width = ev.width;
+        window_size.window_height = ev.height;
+        ui_scale.scale = window_size.object_scale() as f64;
         for mut transform in draggables_query.iter_mut() {
             let max_x: f32 = ev.width / 2.0; //You can't leave the game area
             let max_y: f32 = ev.height / 2.0;

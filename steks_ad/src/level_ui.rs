@@ -8,42 +8,45 @@ pub enum GameUIState {
     Minimized,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct GetTheGamePanel{
+pub struct GetTheGamePanel {
     pub top: Val,
-    pub position_type: PositionType
+    pub position_type: PositionType,
 }
 
 impl MavericNode for GetTheGamePanel {
     type Context = AssetServer;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.ignore_context().insert_with_node(|node| NodeBundle {
-            style: Style {
-                display: Display::Flex,
-                align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Row,
-                // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
-                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
-                justify_content: JustifyContent::Center,
-                width: Val::Auto,
-                height: Val::Auto,
-                top: node.top,
-                position_type: node.position_type,
+        commands
+            .ignore_context()
+            .insert_with_node(|node| NodeBundle {
+                style: Style {
+                    display: Display::Flex,
+                    align_items: AlignItems::Center,
+                    flex_direction: FlexDirection::Row,
+                    // max_size: Size::new(Val::Px(WINDOW_WIDTH), Val::Auto),
+                    margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                    justify_content: JustifyContent::Center,
+                    width: Val::Auto,
+                    height: Val::Auto,
+                    top: node.top,
+                    position_type: node.position_type,
 
+                    ..Default::default()
+                },
                 ..Default::default()
-            },
-            ..Default::default()
-        });
+            });
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
         commands.ignore_node().unordered_children_with_context(
             |context: &Res<'_, AssetServer>, commands| {
-                commands.add_child(0,
-                    text_button_node(TextButton::GetTheGame, true, false)
-                    , context);
+                commands.add_child(
+                    0,
+                    text_button_node(TextButton::GetTheGame, true, false),
+                    context,
+                );
             },
         );
     }
@@ -118,8 +121,14 @@ impl MavericNode for BeggingPanel {
                     context,
                 );
 
-                commands.add_child(2, GetTheGamePanel{top: Val::Auto, position_type: PositionType::Relative}, context);
+                commands.add_child(
+                    2,
+                    GetTheGamePanel {
+                        top: Val::Auto,
+                        position_type: PositionType::Relative,
+                    },
+                    context,
+                );
             });
     }
 }
-

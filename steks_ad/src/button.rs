@@ -1,25 +1,10 @@
-use crate::prelude::*;
+use crate::{prelude::*};
+use steks_base::prelude::*;
 
+use steks_base::ui::*;
 use strum::Display;
 
-pub const ICON_BUTTON_WIDTH: f32 = 65.;
-pub const ICON_BUTTON_HEIGHT: f32 = 65.;
-pub const COMPACT_ICON_BUTTON_HEIGHT: f32 = 25.;
 
-pub const THREE_STARS_IMAGE_HEIGHT: f32 = 48.;
-pub const THREE_STARS_IMAGE_WIDTH: f32 = 3.2 * THREE_STARS_IMAGE_HEIGHT;
-
-pub const BADGE_BUTTON_WIDTH: f32 = 2.584 * BADGE_BUTTON_HEIGHT;
-pub const BADGE_BUTTON_HEIGHT: f32 = 60.;
-
-pub const TEXT_BUTTON_WIDTH: f32 = 280.;
-pub const TEXT_BUTTON_HEIGHT: f32 = 50.;
-
-pub const MENU_TOP_BOTTOM_MARGIN: f32 = 4.0;
-
-pub const UI_BORDER_WIDTH: f32 = 3.0;
-pub const UI_BORDER_WIDTH_MEDIUM: f32 = 6.0;
-pub const UI_BORDER_WIDTH_FAT: f32 = 9.0;
 
 pub struct ButtonPlugin;
 
@@ -30,56 +15,8 @@ impl Plugin for ButtonPlugin {
     }
 }
 
-#[derive(Debug, Clone, Copy, Component, PartialEq)]
-pub struct IconButtonComponent {
-    pub disabled: bool,
-    pub button_action: IconButton,
-    pub button_type: ButtonType,
-}
 
-#[derive(Debug, Clone, Copy, Component, PartialEq)]
-pub struct TextButtonComponent {
-    pub disabled: bool,
-    pub button_action: TextButton,
-    pub button_type: ButtonType,
-}
 
-#[derive(Debug, Clone, Copy, Display, PartialEq, Eq)]
-pub enum ButtonType {
-    Icon,
-    Text,
-    Image,
-}
-
-impl ButtonType {
-    pub fn background_color(&self, interaction: &Interaction, disabled: bool) -> BackgroundColor {
-        if disabled {
-            return DISABLED_BUTTON_BACKGROUND.into();
-        }
-
-        const ICON_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.0);
-        const ICON_PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
-
-        const TEXT_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.9);
-        const TEXT_PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
-
-        use ButtonType::*;
-        use Interaction::*;
-
-        match (self, interaction) {
-            (Icon, Pressed) => ICON_PRESSED_BUTTON,
-            (Icon, Hovered) => ICON_HOVERED_BUTTON,
-            (Icon, None) => ICON_BUTTON_BACKGROUND,
-
-            (Text, Pressed) => TEXT_PRESSED_BUTTON,
-            (Text, Hovered) => TEXT_HOVERED_BUTTON,
-            (Text, None) => TEXT_BUTTON_BACKGROUND,
-
-            (Image, _) => Color::NONE,
-        }
-        .into()
-    }
-}
 
 pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
     ButtonBundle {

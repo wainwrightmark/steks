@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{time::Duration, marker::PhantomData};
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
@@ -12,16 +12,17 @@ use maveric::{
 };
 use strum::EnumIs;
 
-pub struct PadlockPlugin;
+#[derive(Debug, Default)]
+pub struct PadlockPlugin<L : Level>(PhantomData<L>);
 
-impl Plugin for PadlockPlugin {
+impl<L: Level> Plugin for PadlockPlugin<L> {
     fn build(&self, app: &mut App) {
         app.init_resource::<PadlockResource>();
 
         app.register_transition::<TransformTranslationLens>();
         app.register_transition::<FillColorLens>();
         app.register_maveric::<PadlockRoot>()
-            .add_systems(Update, clear_padlock_on_level_change);
+            .add_systems(Update, clear_padlock_on_level_change::<L>);
     }
 }
 
@@ -236,8 +237,8 @@ impl PadlockResource {
     }
 }
 
-fn clear_padlock_on_level_change(
-    level: Res<CurrentLevel>,
+fn clear_padlock_on_level_change<L: Level>(
+    level: Res<CurrentLevel<L>>,
     mut padlock_resource: ResMut<PadlockResource>,
 ) {
     if level.is_changed() && level.completion == (LevelCompletion::Incomplete { stage: 0 }) {

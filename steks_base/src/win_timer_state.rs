@@ -2,7 +2,7 @@ use std::f32::consts::{FRAC_PI_2, TAU};
 
 use crate::prelude::*;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke};
+use bevy_prototype_lyon::prelude::{Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke, StrokeOptions};
 use maveric::prelude::*;
 
 #[derive(Debug, Default)]
@@ -21,27 +21,26 @@ pub struct WinCountdown(pub Option<Countdown>);
 
 #[derive(Debug)]
 pub struct Countdown {
-    pub started_elapsed: Duration,
-    pub total_secs: f32,
+    pub seconds_remaining: f32
 }
 
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
 
 const ARC_STROKE: f32 = 5.0;
-const POSITION_Y: f32 = 000.0;
+const POSITION_Y: f32 = 200.0;
 
 fn update_dynamic_elements(
     countdown: Res<WinCountdown>,
-    time: Res<Time>,
     mut marker_circle: Query<&mut Transform, With<CircleMarkerComponent>>,
     mut circle_arc: Query<&mut Path, With<CircleArcComponent>>,
 ) {
     let Some(countdown) = &countdown.0 else {
         return;
     };
-    let time_used = time.elapsed().saturating_sub(countdown.started_elapsed);
-    let ratio = -time_used.as_secs_f32() / countdown.total_secs;
-    let theta = (ratio * TAU) + FRAC_PI_2;
+
+    let time_used = LONG_WIN_SECONDS - countdown.seconds_remaining;
+    let ratio = time_used / LONG_WIN_SECONDS;
+    let theta = (ratio * -TAU) + FRAC_PI_2;
 
     for mut transform in marker_circle.iter_mut() {
         let x = theta.cos() * RADIUS;
@@ -124,7 +123,10 @@ impl MavericNode for CircleArc {
                     },
                     ..Default::default()
                 },
-                Stroke::new(get_color(context), ARC_STROKE),
+                Stroke{
+                    options: StrokeOptions::default().with_line_width(ARC_STROKE).with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
+                    color: get_color(context),
+                },
                 CircleArcComponent,
             )
         });

@@ -1,14 +1,16 @@
+use std::marker::PhantomData;
+
 use crate::prelude::*;
 use bevy::prelude::*;
 use strum::EnumIs;
 
 #[derive(Debug, Default)]
-pub struct HasActedPlugin;
+pub struct HasActedPlugin<L : Level>(PhantomData<L>);
 
-impl Plugin for HasActedPlugin {
+impl<L: Level> Plugin for HasActedPlugin<L> {
     fn build(&self, app: &mut App) {
         app.insert_resource(HasActed::default())
-            .add_systems(Update, handle_level_state_changes);
+            .add_systems(Update, handle_level_state_changes::<L>);
     }
 }
 
@@ -19,9 +21,9 @@ pub enum HasActed {
     HasActed,
 }
 
-fn handle_level_state_changes(
+fn handle_level_state_changes<L: Level>(
     mut state: ResMut<HasActed>,
-    current_level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel<L>>,
     mut pickup_events: EventReader<ShapePickedUpEvent>,
 ) {
     if current_level.is_changed() {
@@ -32,4 +34,3 @@ fn handle_level_state_changes(
         *state = HasActed::HasActed
     }
 }
-

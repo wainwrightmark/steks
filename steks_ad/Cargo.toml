@@ -21,6 +21,7 @@ bevy_embedded_assets = "0.8"
 lazy_static = "1.4"
 serde_yaml = "0.9"
 steks_common = {path= "../steks_common"}
+steks_base = {path= "../steks_base"}
 #bevy_screen_diagnostics = "0.3"
 maveric= {git= 'https://github.com/wainwrightmark/maveric', features = ["widgets"]}
 serde_repr = "0.1"

@@ -2,7 +2,7 @@ use bevy::prelude::{App, Event};
 
 #[cfg(feature = "async-channel")]
 pub mod async_event_writer;
-
+#[cfg(feature = "bevy_pkv")]
 pub mod tracked_resource;
 
 pub trait TrackableResource:

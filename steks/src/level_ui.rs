@@ -19,8 +19,7 @@ pub struct MainPanelWrapper {
     pub insets: Insets,
     pub signed_in: UserSignedIn,
 }
-#[derive(Debug, Clone, PartialEq, Component)]
-pub struct MainPanelMarker;
+
 
 impl MavericNode for MainPanelWrapper {
     type Context = AssetServer;

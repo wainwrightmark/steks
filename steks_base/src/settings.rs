@@ -8,7 +8,7 @@ pub struct SettingsPlugin;
 
 impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<GameSettings>()
+        app.init_tracked_resource::<GameSettings>()
             .add_systems(Update, track_settings_changes);
     }
 }
@@ -24,6 +24,9 @@ pub struct GameSettings {
     pub snow_enabled: bool,
 }
 
+impl TrackableResource for GameSettings {
+    const KEY: &'static str = "GameSettings";
+}
 
 impl Default for GameSettings {
     fn default() -> Self {

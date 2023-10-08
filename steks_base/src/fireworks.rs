@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_prototype_lyon::prelude::ShapeBundle;
 
@@ -5,20 +7,21 @@ use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 
 use crate::prelude::*;
 
-pub struct FireworksPlugin;
+#[derive(Debug, Default)]
+pub struct FireworksPlugin<L: Level>(PhantomData<L>);
 
-#[derive(Debug, Component)]
-pub struct Firework;
-
-impl Plugin for FireworksPlugin {
+impl<L: Level> Plugin for FireworksPlugin<L> {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Update, spawn_fireworks)
             .add_systems(Update, despawn_fireworks)
-            .add_systems(Update, manage_fireworks)
+            .add_systems(Update, manage_fireworks::<L>)
             .add_systems(Update, firework_physics)
             .init_resource::<FireworksCountdown>();
     }
 }
+
+#[derive(Debug, Component)]
+pub struct Firework;
 
 #[derive(Debug, Resource)]
 struct FireworksCountdown {
@@ -49,10 +52,10 @@ const FIREWORK_DAMPING: f32 = 0.9;
 const FIREWORK_ANGULAR_VELOCITY: f32 = 10.0;
 const DEFAULT_INTENSITY: u32 = 5;
 
-fn manage_fireworks(
-    current_level: Res<CurrentLevel>,
+fn manage_fireworks<L: Level>(
+    current_level: Res<CurrentLevel<L>>,
     has_acted: Res<HasActed>,
-    previous_level: Res<PreviousLevel>,
+    previous_level: Local<PreviousLevel<L>>,
     mut countdown: ResMut<FireworksCountdown>,
     settings: Res<GameSettings>,
 ) {
@@ -60,28 +63,32 @@ fn manage_fireworks(
         return;
     }
 
-    if has_acted.is_has_acted() || !settings.fireworks_enabled || previous_level.0.is_none() {
+    let previous_was_same =
+        previous_level.compare(&current_level) == PreviousLevelType::SameLevelSameStage;
+
+    let previous_was_none = previous_level.0.is_none();
+    update_previous_level(previous_level, &current_level);
+
+    if has_acted.is_has_acted() || !settings.fireworks_enabled || previous_was_none {
         countdown.timer.pause();
         return;
     }
 
-    let previous_was_same =
-        previous_level.compare(&current_level) == PreviousLevelType::SameLevelSameStage;
+    let settings = current_level.level.fireworks_settings();
 
     match current_level.completion {
-        LevelCompletion::Incomplete { .. } => {
-            if let Some(new_countdown) = get_new_fireworks(&current_level, None, previous_was_same)
+        LevelCompletion::Complete { score_info }  => {
+            if let Some(new_countdown) =
+                get_new_fireworks(settings, Some(&score_info), previous_was_same)
             {
+                *countdown = new_countdown;
+            }
+        }
+        LevelCompletion::Incomplete { .. } => {
+            if let Some(new_countdown) = get_new_fireworks(settings, None, previous_was_same) {
                 *countdown = new_countdown;
             } else {
                 countdown.timer.pause();
-            }
-        }
-        LevelCompletion::Complete { score_info } => {
-            if let Some(new_countdown) =
-                get_new_fireworks(&current_level, Some(&score_info), previous_was_same)
-            {
-                *countdown = new_countdown;
             }
         }
     }
@@ -114,6 +121,7 @@ fn spawn_fireworks(
     mut countdown: ResMut<FireworksCountdown>,
     time: Res<Time>,
     window: Query<&Window, With<PrimaryWindow>>,
+    ui_scale: Res<UiScale>,
 ) {
     if countdown.timer.paused() {
         return;
@@ -133,9 +141,10 @@ fn spawn_fireworks(
         let window = window.get_single().unwrap();
 
         let sparks = rng.gen_range(countdown.intensity..=(countdown.intensity * 2));
+        let scale_recip = ui_scale.scale.recip() as f32;
 
-        let x = rng.gen_range((window.width() * -0.5)..=(window.width() * 0.5));
-        let y = rng.gen_range(0.0..=(window.height() * 0.5));
+        let x = scale_recip * rng.gen_range((window.width() * -0.5)..=(window.width() * 0.5));
+        let y = scale_recip * rng.gen_range(0.0..=(window.height() * 0.5));
         let translation = Vec2 { x, y }.extend(0.0);
         for _ in 0..sparks {
             spawn_spark(&mut commands, translation, &mut rng, &countdown.shapes);
@@ -144,26 +153,43 @@ fn spawn_fireworks(
 }
 
 fn get_new_fireworks(
-    current_level: &CurrentLevel,
+    settings: FireworksSettings,
     info: Option<&ScoreInfo>,
     previous_was_same: bool,
 ) -> Option<FireworksCountdown> {
-    let settings = match &current_level.level {
-        GameLevel::Designed { meta, .. } => {
+    // let settings = match &current_level.level {
+    //     GameLevel::Designed { meta, .. } => {
+    //         if meta.is_tutorial() {
+    //             return None;
+    //         }
 
+    //         match current_level.completion {
+    //             LevelCompletion::Incomplete { stage } => {
+    //                 meta.get_level().get_fireworks_settings(&stage)
+    //             }
+    //             LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
+    //         }
+    //     }
+    //     GameLevel::Infinite { .. } => match current_level.completion {
+    //         LevelCompletion::Incomplete { stage } => {
+    //             let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
+    //             if shapes % 5 == 0 {
+    //                 FireworksSettings {
+    //                     intensity: Some(shapes as u32),
+    //                     interval: None,
+    //                     shapes: Default::default(),
+    //                 }
+    //             } else {
+    //                 FireworksSettings::default()
+    //             }
+    //         }
+    //         _ => FireworksSettings::default(),
+    //     },
 
-            match current_level.completion {
-                LevelCompletion::Incomplete { stage } => {
-                    meta.get_level().get_fireworks_settings(&stage)
-                }
-                LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
-            }
-        }
-
-        GameLevel::Begging => {
-            FireworksSettings::default()
-        }
-    };
+    //     GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
+    //         FireworksSettings::default()
+    //     }
+    // };
 
     // New World Record
     if match info {

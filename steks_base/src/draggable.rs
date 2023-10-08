@@ -1,21 +1,26 @@
+use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::Path;
+use bevy_prototype_lyon::prelude::StrokeOptions;
 use steks_common::constants;
 
 use crate::input;
 use crate::prelude::*;
 use std::f32::consts::TAU;
+use std::marker::PhantomData;
 
 const POSITION_DAMPING: f32 = 1.0;
 const POSITION_STIFFNESS: f32 = 20.0;
 const MAX_FORCE: f32 = 800.0;
 
-pub struct DragPlugin;
-impl Plugin for DragPlugin {
+#[derive(Debug, Default)]
+pub struct DragPlugin<L: Level, U: UITrait>(PhantomData<L>, PhantomData<U>);
+
+impl<L: Level, U: UITrait> Plugin for DragPlugin<L, U> {
     fn build(&self, app: &mut App) {
         app.insert_resource(TouchRotateResource::default())
             .add_systems(
                 Update,
-                drag_start
+                drag_start::<U>
                     .after(input::mousebutton_listener)
                     .after(input::touch_listener)
                     .before(handle_drag_changes),
@@ -43,9 +48,9 @@ impl Plugin for DragPlugin {
                     .before(handle_drag_changes),
             )
             .add_systems(Update, detach_stuck_shapes_on_pickup)
-            .add_systems(Update, apply_forces.after(handle_rotate_events))
-            .add_systems(Update, handle_drag_changes.after(apply_forces))
-            .add_systems(Update, draw_rotate_arrows)
+            .add_systems(FixedUpdate, apply_forces)
+            .add_systems(Update, handle_drag_changes.after(handle_rotate_events))
+            .add_systems(Update, draw_rotate_arrows::<L>)
             .add_event::<RotateEvent>()
             .add_event::<ShapePickedUpEvent>()
             .add_event::<DragStartEvent>()
@@ -298,19 +303,19 @@ fn point_at_angle(dist: f32, radians: f32) -> Vec2 {
     Vec2 { x, y }
 }
 
-fn draw_rotate_arrows(
+fn draw_rotate_arrows<L: Level>(
     mut commands: Commands,
     touch_rotate: Res<TouchRotateResource>,
     mut existing_arrows: Query<(Entity, &mut Path), With<RotateArrow>>,
     draggables: Query<(&ShapeComponent, &Transform), With<BeingDragged>>,
     //mut previous_angle: Local<f32>,
-    current_level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel<L>>,
     settings: Res<GameSettings>,
 ) {
     if !touch_rotate.is_changed() {
         return;
     }
-    if !settings.show_arrows && !current_level.show_rotate_arrow() {
+    if !settings.show_arrows && !current_level.level.show_rotate_arrow() {
         for (entity, _) in existing_arrows.iter() {
             commands.entity(entity).despawn_recursive();
         }
@@ -341,11 +346,7 @@ fn draw_rotate_arrows(
     let radius = touch.radius;
 
     let start_angle = touch.start_angle;
-    //let end_angle = angle_to(touch.current - centre);
     let sweep_angle = touch.total_radians;
-
-    //let sweep_angle = closest_angle_representation(end_angle - start_angle, *previous_angle);
-    //*previous_angle = sweep_angle;
 
     let path_start = centre + point_at_angle(radius, start_angle);
     let path_end = centre + point_at_angle(radius, start_angle + sweep_angle);
@@ -355,8 +356,6 @@ fn draw_rotate_arrows(
     let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (radius * TAU);
     if sweep_angle.abs() > arrow_angle.abs() {
         path.move_to(path_start);
-
-        //path.quadratic_bezier_to(ctrl, to)
 
         path.arc(
             centre,
@@ -389,7 +388,12 @@ fn draw_rotate_arrows(
                     path: path.build(),
                     ..default()
                 },
-                bevy_prototype_lyon::prelude::Stroke::new(ARROW_STROKE, 10.0),
+                bevy_prototype_lyon::prelude::Stroke {
+                    color: ARROW_STROKE,
+                    options: StrokeOptions::default()
+                        .with_line_width(10.0)
+                        .with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
+                },
             ))
             .insert(Transform::from_translation(Vec3::Z * 50.0))
             .insert(RotateArrow);
@@ -439,7 +443,7 @@ pub fn detach_stuck_shapes_on_pickup(
     }
 }
 
-pub fn drag_start(
+pub fn drag_start<U : UITrait>(
     mut er_drag_start: EventReader<DragStartEvent>,
     rapier_context: Res<RapierContext>,
     mut draggables: Query<
@@ -448,8 +452,43 @@ pub fn drag_start(
     >,
     mut touch_rotate: ResMut<TouchRotateResource>,
     mut picked_up_events: EventWriter<ShapePickedUpEvent>,
+
+    mut global_ui_state: ResMut<U>,
+    node_query: Query<
+        (&Node, &GlobalTransform, &ComputedVisibility),
+        Or<(With<Button>, With<MainPanelMarker>)>,
+    >,
+    windows: Query<&Window, With<PrimaryWindow>>,
+    ui_scale: Res<UiScale>,
 ) {
-    for event in er_drag_start.iter() {
+    'events: for event in er_drag_start.iter() {
+        if !global_ui_state.is_minimized(){
+            if let Ok(window) = windows.get_single() {
+                let event_ui_position = Vec2 {
+                    x: event.position.x * ui_scale.scale as f32 + (window.width() * 0.5),
+                    y: (window.height() * 0.5) - (event.position.y * ui_scale.scale as f32),
+                };
+
+                let mut captured = false;
+                'capture: for (node, global_transform, _) in
+                    node_query.iter().filter(|x| x.2.is_visible())
+                {
+                    let physical_rect =
+                        node.physical_rect(global_transform, 1.0, ui_scale.scale);
+
+                    if physical_rect.contains(event_ui_position) {
+                        captured = true;
+                        break 'capture;
+                    }
+                }
+
+                if !captured {
+                    global_ui_state.minimize();
+                }
+            }
+            continue 'events;
+        }
+
         if draggables.iter().all(|x| !x.0.is_dragged()) {
             rapier_context.intersections_with_point(event.position, default(), |entity| {
                 if let Ok((mut draggable, transform)) = draggables.get_mut(entity) {
@@ -490,7 +529,6 @@ pub fn drag_start(
 
 pub fn handle_drag_changes(
     mut commands: Commands,
-    //time: Res<Time>,
     mut query: Query<
         (
             Entity,
@@ -549,6 +587,7 @@ pub fn handle_drag_changes(
 
         if let ShapeComponent::Dragged(dragged) = draggable {
             let mut builder = commands.entity(entity);
+
             builder.insert(BeingDragged {
                 desired_position: transform.translation.truncate(),
             });

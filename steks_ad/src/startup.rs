@@ -53,20 +53,22 @@ pub fn setup_app(app: &mut App) {
 
         .add_plugins(SpiritPlugin)
 
-        .add_plugins(HasActedPlugin)
-        .add_plugins(FireworksPlugin)
+        .add_plugins(HasActedPlugin::<GameLevel>::default())
+        .add_plugins(FireworksPlugin::<GameLevel>::default())
+        .add_plugins(RecordsPlugin::default())
+        .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
 
 
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
-            PHYSICS_SCALE,
-        ))
+        //.add_systems(FixedUpdate, limit_fixed_time)
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE).in_fixed_schedule())
         .add_systems(Startup, setup)
-        .add_plugins(DragPlugin)
-        .add_plugins(WinPlugin)
-        .add_plugins(LevelPlugin)
+        .add_plugins(DragPlugin::<GameLevel, GlobalUiState>::default())
+        .add_plugins(WinPlugin::<GameLevel, GlobalUiState>::default())
+        .add_plugins(LevelPlugin::<GameLevel>::default())
+        .add_plugins(GameLevelPlugin::default())
 
-        .add_plugins(CollisionPlugin)
-        .add_plugins(PadlockPlugin)
+        .add_plugins(CollisionPlugin::<GameLevel>::default())
+        .add_plugins(PadlockPlugin::<GameLevel>::default())
         .insert_resource(Insets::default())
 
         .insert_resource(bevy::winit::WinitSettings {

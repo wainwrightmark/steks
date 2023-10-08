@@ -25,6 +25,20 @@ pub enum GlobalUiState {
     MenuClosed(GameUIState),
 }
 
+impl UITrait for GlobalUiState{
+    fn is_minimized(&self)-> bool {
+        true
+    }
+
+    fn minimize(&mut self) {
+
+    }
+
+    fn on_level_complete(m: &mut ResMut<Self>) {
+
+    }
+}
+
 impl Default for GlobalUiState {
     fn default() -> Self {
         Self::MenuClosed(GameUIState::Minimized)
@@ -46,7 +60,7 @@ pub struct GlobalUiRoot;
 impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
-        CurrentLevel,
+        CurrentLevel<GameLevel>,
         NC5<GameSettings, NoContext, Insets, AssetServer, NoContext>,
         InputSettings,
     >;

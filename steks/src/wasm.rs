@@ -51,6 +51,16 @@ pub async fn application_start() -> LoggableEvent {
     }
 }
 
+const PLATFORM: &str = {
+    if cfg!(feature= "android"){
+        "Android"
+    } else if cfg!(feature = "ios"){
+        "IOS"
+    } else{
+        "Web"
+    }
+};
+
 pub async fn new_user_async() -> LoggableEvent {
     let search_params = get_url_search_params().await;
 
@@ -70,6 +80,7 @@ pub async fn new_user_async() -> LoggableEvent {
         language,
         device,
         app,
+        platform: PLATFORM
     }
 }
 

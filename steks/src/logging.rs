@@ -62,6 +62,7 @@ pub enum LoggableEvent {
         language: Option<String>,
         device: Option<LogDeviceInfo>,
         app: Option<LogAppInfo>,
+        platform: &'static str
     },
     ApplicationStart {
         ref_param: Option<String>,

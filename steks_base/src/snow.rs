@@ -6,7 +6,8 @@ use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 
 use crate::prelude::*;
-pub struct SnowPlugin<L : Level>(PhantomData<L>);
+#[derive(Debug, Default)]
+pub struct SnowPlugin<L: Level>(PhantomData<L>);
 
 impl<L: Level> Plugin for SnowPlugin<L> {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -73,7 +74,7 @@ fn spawn_snowdrops(
     mut countdown: ResMut<SnowdropCountdown>,
     time: Res<Time>,
     settings: Res<GameSettings>,
-    window_size: Res<WindowSize>
+    window_size: Res<WindowSize>,
 ) {
     if countdown.timer.paused() {
         return;
@@ -95,7 +96,6 @@ fn spawn_snowdrops(
         let linvel_x = linvel_x * linvel_x * linvel_x.signum();
         let width = window_size.scaled_width();
         for _ in 0..count {
-
             let x = if linvel_x < 10.0 {
                 rng.gen_range(0.0..=(width * 0.5))
             } else if linvel_x > 10.0 {
@@ -128,11 +128,16 @@ fn spawn_snowdrops(
     }
 }
 
-fn manage_snowdrops<L : Level> (current_level: Res<CurrentLevel<L>>, mut countdown: ResMut<SnowdropCountdown>) {
+fn manage_snowdrops<L: Level>(
+    current_level: Res<CurrentLevel<L>>,
+    mut countdown: ResMut<SnowdropCountdown>,
+) {
     if !current_level.is_changed() {
         return;
     }
-    let settings = current_level.level.snowdrop_settings();
+    let settings = current_level
+        .level
+        .snowdrop_settings(&current_level.completion);
 
     match settings {
         Some(settings) => {

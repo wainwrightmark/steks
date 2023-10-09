@@ -1,10 +1,5 @@
-use crate::{prelude::*};
+use crate::prelude::*;
 use steks_base::prelude::*;
-
-use steks_base::ui::*;
-use strum::Display;
-
-
 
 pub struct ButtonPlugin;
 
@@ -12,27 +7,6 @@ impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(First, icon_button_system);
         app.add_systems(First, text_button_system);
-    }
-}
-
-
-
-
-pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
-    ButtonBundle {
-        style: Style {
-            width: Val::Px(ICON_BUTTON_WIDTH),
-            height: Val::Px(ICON_BUTTON_HEIGHT),
-            margin: UiRect::all(Val::Auto),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
-
-            ..Default::default()
-        },
-        background_color: ButtonType::Icon.background_color(&Interaction::None, disabled),
-        ..default()
     }
 }
 

@@ -4,6 +4,9 @@ pub use bevy::prelude::*;
 use capacitor_bindings::device::DeviceId;
 use lazy_static::lazy_static;
 
+pub const WINDOW_WIDTH: f32 = 360f32;
+pub const WINDOW_HEIGHT: f32 = 520f32;
+
 pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
     #[cfg(target_arch = "wasm32")]
@@ -55,10 +58,10 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(LeaderboardPlugin)
         .add_plugins(SpiritPlugin)
         .add_plugins(PreviewImagePlugin)
-        .add_plugins(HasActedPlugin)
-        .add_plugins(FireworksPlugin)
+        .add_plugins(HasActedPlugin::<GameLevel>::default())
+        .add_plugins(FireworksPlugin::<GameLevel>::default())
         .add_plugins(AppUrlPlugin)
-        .add_plugins(SnowPlugin)
+        .add_plugins(SnowPlugin::<GameLevel>::default())
         .add_plugins(ImportPlugin)
         .add_plugins(NewsPlugin)
         .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
@@ -67,12 +70,13 @@ pub fn setup_app(app: &mut App) {
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE),
         ))
         .add_systems(Startup, setup)
-        .add_plugins(DragPlugin)
-        .add_plugins(WinPlugin)
-        .add_plugins(LevelPlugin)
+        .add_plugins(DragPlugin::<GameLevel, GlobalUiState>::default())
+        .add_plugins(WinPlugin::<GameLevel, GlobalUiState>::default())
+        .add_plugins(GameLevelPlugin)
+        .add_plugins(LevelPlugin::<GameLevel>::default())
         .add_plugins(SharePlugin)
-        .add_plugins(CollisionPlugin)
-        .add_plugins(PadlockPlugin)
+        .add_plugins(CollisionPlugin::<GameLevel>::default())
+        .add_plugins(PadlockPlugin::<GameLevel>::default())
         .insert_resource(Insets::default())
         .insert_resource(bevy_pkv::PkvStore::new("bleppo", "steks"))
         .insert_resource(bevy::winit::WinitSettings {

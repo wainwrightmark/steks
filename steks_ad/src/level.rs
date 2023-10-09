@@ -50,12 +50,8 @@ impl Level for GameLevel {
         true
     }
 
-    fn fireworks_settings(&self) -> FireworksSettings {
+    fn fireworks_settings(&self, _completion: &LevelCompletion) -> FireworksSettings {
         FireworksSettings::default()
-    }
-
-    fn snowdrop_settings(&self) -> Option<SnowdropSettings> {
-        None
     }
 
     fn has_stage(&self, stage: &usize) -> bool {
@@ -66,10 +62,6 @@ impl Level for GameLevel {
     }
 
     fn get_level_stars(&self) -> Option<LevelStars> {
-        None
-    }
-
-    fn get_gravity(&self, stage: usize) -> Option<Vec2> {
         None
     }
 
@@ -130,6 +122,14 @@ impl Level for GameLevel {
             }
             GameLevel::Begging => {}
         }
+    }
+
+    fn snowdrop_settings(&self, _completion: &LevelCompletion) -> Option<SnowdropSettings> {
+        None
+    }
+
+    fn get_gravity(&self, _completion: &LevelCompletion) -> Option<Vec2> {
+        None
     }
 }
 

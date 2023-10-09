@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum::EnumDiscriminants;
 
-use crate::level::LevelLogData;
+use crate::game_level::LevelLogData;
 
 #[must_use]
 #[skip_serializing_none]

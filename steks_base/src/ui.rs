@@ -78,7 +78,25 @@ impl ButtonType {
     }
 }
 
-pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
+pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
+    ButtonBundle {
+        style: Style {
+            width: Val::Px(ICON_BUTTON_WIDTH),
+            height: Val::Px(ICON_BUTTON_HEIGHT),
+            margin: UiRect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_grow: 0.0,
+            flex_shrink: 0.0,
+
+            ..Default::default()
+        },
+        background_color: ButtonType::Icon.background_color(&Interaction::None, disabled),
+        ..default()
+    }
+}
+
+pub fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
     text: T,
 ) -> TextNode<T> {
     TextNode {
@@ -91,7 +109,7 @@ pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync 
     }
 }
 
-pub(crate) fn icon_button_node(
+pub fn icon_button_node(
     button_action: IconButton,
     style: IconButtonStyle,
 ) -> impl MavericNode<Context = AssetServer> {
@@ -117,7 +135,7 @@ pub(crate) fn icon_button_node(
     }
 }
 
-pub(crate) fn flashing_icon_button_node(
+pub fn flashing_icon_button_node(
     button_action: IconButton,
     style: IconButtonStyle,
 ) -> impl MavericNode<Context = AssetServer> {
@@ -253,7 +271,7 @@ impl IntoBundle for IconButtonStyle {
     }
 }
 
-pub(crate) fn image_button_node(
+pub fn image_button_node(
     button_action: IconButton,
     image_path: &'static str,
     button_node_style: impl IntoBundle<B = Style>,
@@ -278,7 +296,7 @@ pub(crate) fn image_button_node(
     }
 }
 
-pub(crate) fn text_button_node(
+pub fn text_button_node(
     button_action: TextButton,
     centred: bool,
     disabled: bool,
@@ -286,7 +304,7 @@ pub(crate) fn text_button_node(
     text_button_node_with_text(button_action, button_action.text(), centred, disabled)
 }
 
-pub(crate) fn text_button_node_with_text(
+pub fn text_button_node_with_text(
     button_action: TextButton,
     text: String,
     centred: bool,
@@ -363,7 +381,7 @@ impl IntoBundle for TextButtonStyle {
     }
 }
 
-pub(crate) fn text_button_node_with_text_and_image(
+pub fn text_button_node_with_text_and_image(
     button_action: TextButton,
     centred: bool,
     disabled: bool,

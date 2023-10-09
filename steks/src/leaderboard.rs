@@ -1,51 +1,24 @@
-use std::collections::BTreeMap;
+
 
 use base64::Engine;
 use bevy::{log, prelude::*};
 use capacitor_bindings::game_connect::SubmitScoreOptions;
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::NaiveDate;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
 
-pub type PbMap = BTreeMap<u64, LevelPB>;
-pub type WrMAP = BTreeMap<u64, LevelWR>;
-
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-pub struct LevelPB {
-    pub star: StarType,
-    pub height: f32,
-    pub image_blob: Vec<u8>,
-}
-
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
-pub struct LevelWR {
-    pub image_blob: Vec<u8>,
-    pub updated: Option<DateTime<Utc>>,
-}
-
-impl LevelWR {
-    pub fn new(image_blob: Vec<u8>, updated: Option<DateTime<Utc>>) -> Self {
-        Self {
-            image_blob,
-            updated,
-        }
-    }
-
-    pub fn calculate_height(&self) -> f32 {
-        ShapesVec::from_bytes(&self.image_blob).calculate_tower_height()
-    }
-}
 
 pub struct LeaderboardPlugin;
 
 impl Plugin for LeaderboardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+
+        app.add_plugins(RecordsPlugin);
+
         app.register_async_event::<LeaderboardDataEvent>()
             .register_async_event::<CheatEvent>()
-            .init_tracked_resource::<PersonalBests>()
-            .init_tracked_resource::<WorldRecords>()
             .init_tracked_resource::<CampaignCompletion>()
             .init_tracked_resource::<MaxInfiniteStage>()
             .init_tracked_resource::<Streak>()
@@ -174,7 +147,7 @@ pub fn refresh_wr_data(hash: u64, writer: AsyncEventWriter<LeaderboardDataEvent>
 fn hydrate_leaderboard(
     mut wrs: ResMut<WorldRecords>,
     mut events: EventReader<LeaderboardDataEvent>,
-    mut current_level: ResMut<CurrentLevel>,
+    mut current_level: ResMut<CurrentLevel<GameLevel>>,
 ) {
     let Some(ev) = events.into_iter().next() else {
         return;
@@ -356,7 +329,7 @@ async fn update_wrs_async(hash: u64, height: f32, blob: String) -> Result<(), re
 }
 
 fn update_campaign_completion(
-    current_level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel<GameLevel>>,
     mut campaign_completion: ResMut<CampaignCompletion>,
     mut achievements: ResMut<Achievements>,
 ) {
@@ -415,7 +388,7 @@ fn update_campaign_completion(
 }
 
 fn check_pbs_on_completion(
-    current_level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel<GameLevel>>,
     mut pbs: ResMut<PersonalBests>,
     mut max_infinite: ResMut<MaxInfiniteStage>,
 ) {
@@ -431,7 +404,7 @@ fn check_pbs_on_completion(
         LevelCompletion::Incomplete { stage } => {
             if stage > max_infinite.0 {
                 max_infinite.0 = stage;
-                if let Some(options) = current_level.submit_score_options() {
+                if let Some(options) = submit_score_options(current_level.as_ref()) {
                     submit_score(options);
                 }
             }
@@ -470,7 +443,7 @@ fn check_pbs_on_completion(
     if pb_changed {
         pbs.set_changed();
 
-        if let Some(options) = current_level.submit_score_options() {
+        if let Some(options) = submit_score_options(current_level.as_ref()) {
             submit_score(options)
         }
     }
@@ -492,7 +465,7 @@ fn submit_score(options: SubmitScoreOptions) {
 }
 
 fn check_wrs_on_completion(
-    current_level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel<GameLevel>>,
     writer: AsyncEventWriter<LeaderboardDataEvent>,
     mut world_records: ResMut<WorldRecords>,
 ) {
@@ -547,12 +520,12 @@ fn check_wrs_on_completion(
     }
 }
 
-pub fn try_show_leaderboard(level: &CurrentLevel) {
-    let Some(leaderboard_id) = level.level.leaderboard_id() else {
+pub fn try_show_leaderboard(current_level: &CurrentLevel<GameLevel>) {
+    let Some(leaderboard_id) = current_level.level.leaderboard_id() else {
         return;
     };
 
-    if let Some(options) = level.submit_score_options() {
+    if let Some(options) = submit_score_options(current_level) {
         submit_score(options);
     }
 

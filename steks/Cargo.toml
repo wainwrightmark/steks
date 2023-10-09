@@ -30,6 +30,7 @@ lazy_static = "1.4"
 serde_yaml = "0.9"
 
 steks_common = { path = "../steks_common" }
+steks_base = { path = "../steks_base" }
 steks_image = { path = "../steks_image" }
 bevy_utils = { path = "../bevy_utils", features = ["async-channel", "bevy_pkv"]}
 bevy_screen_diagnostics = "0.3"

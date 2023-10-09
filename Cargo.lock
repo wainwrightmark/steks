@@ -4063,6 +4063,7 @@ dependencies = [
  "serde_repr",
  "serde_with",
  "serde_yaml",
+ "steks_base",
  "steks_common",
  "steks_image",
  "strum",

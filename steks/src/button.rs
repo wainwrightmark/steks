@@ -1,101 +1,11 @@
 use crate::prelude::*;
 
-use strum::Display;
-
-pub const ICON_BUTTON_WIDTH: f32 = 65.;
-pub const ICON_BUTTON_HEIGHT: f32 = 65.;
-pub const COMPACT_ICON_BUTTON_HEIGHT: f32 = 25.;
-
-pub const THREE_STARS_IMAGE_HEIGHT: f32 = 48.;
-pub const THREE_STARS_IMAGE_WIDTH: f32 = 3.2 * THREE_STARS_IMAGE_HEIGHT;
-
-pub const BADGE_BUTTON_WIDTH: f32 = 2.584 * BADGE_BUTTON_HEIGHT;
-pub const BADGE_BUTTON_HEIGHT: f32 = 60.;
-
-pub const TEXT_BUTTON_WIDTH: f32 = 360.;
-pub const TEXT_BUTTON_HEIGHT: f32 = 50.;
-
-pub const MENU_TOP_BOTTOM_MARGIN: f32 = 4.0;
-
-pub const UI_BORDER_WIDTH: f32 = 3.0;
-pub const UI_BORDER_WIDTH_MEDIUM: f32 = 6.0;
-pub const UI_BORDER_WIDTH_FAT: f32 = 9.0;
-
 pub struct ButtonPlugin;
 
 impl Plugin for ButtonPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(First, text_button_system)
             .add_systems(First, icon_button_system);
-    }
-}
-
-#[derive(Debug, Clone, Copy, Component, PartialEq)]
-pub struct IconButtonComponent {
-    pub disabled: bool,
-    pub button_action: IconButton,
-    pub button_type: ButtonType,
-}
-
-#[derive(Debug, Clone, Copy, Component, PartialEq)]
-pub struct TextButtonComponent {
-    pub disabled: bool,
-    pub button_action: TextButton,
-    pub button_type: ButtonType,
-}
-
-#[derive(Debug, Clone, Copy, Display, PartialEq, Eq)]
-pub enum ButtonType {
-    Icon,
-    Text,
-    Image,
-}
-
-impl ButtonType {
-    pub fn background_color(&self, interaction: &Interaction, disabled: bool) -> BackgroundColor {
-        if disabled {
-            return DISABLED_BUTTON_BACKGROUND.into();
-        }
-
-        const ICON_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.0);
-        const ICON_PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
-
-        const TEXT_HOVERED_BUTTON: Color = Color::rgba(0.8, 0.8, 0.8, 0.9);
-        const TEXT_PRESSED_BUTTON: Color = Color::rgb(0.7, 0.7, 0.7);
-
-        use ButtonType::*;
-        use Interaction::*;
-
-        match (self, interaction) {
-            (Icon, Pressed) => ICON_PRESSED_BUTTON,
-            (Icon, Hovered) => ICON_HOVERED_BUTTON,
-            (Icon, None) => ICON_BUTTON_BACKGROUND,
-
-            (Text, Pressed) => TEXT_PRESSED_BUTTON,
-            (Text, Hovered) => TEXT_HOVERED_BUTTON,
-            (Text, None) => TEXT_BUTTON_BACKGROUND,
-
-            (Image, _) => Color::NONE,
-        }
-        .into()
-    }
-}
-
-pub fn icon_button_bundle(disabled: bool) -> ButtonBundle {
-    ButtonBundle {
-        style: Style {
-            width: Val::Px(ICON_BUTTON_WIDTH),
-            height: Val::Px(ICON_BUTTON_HEIGHT),
-            margin: UiRect::all(Val::Auto),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            flex_grow: 0.0,
-            flex_shrink: 0.0,
-
-            ..Default::default()
-        },
-        background_color: ButtonType::Icon.background_color(&Interaction::None, disabled),
-        ..default()
     }
 }
 
@@ -108,10 +18,10 @@ fn icon_button_system(
     mut share_events: EventWriter<ShareEvent>,
     mut global_ui_state: ResMut<GlobalUiState>,
     mut settings: ResMut<GameSettings>,
-    current_level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel<GameLevel>>,
     dragged: Query<(), With<BeingDragged>>,
     mut news: ResMut<NewsResource>,
-    leaderboard_data_event_writer: AsyncEventWriter<LeaderboardDataEvent>
+    leaderboard_data_event_writer: AsyncEventWriter<LeaderboardDataEvent>,
 ) {
     if !dragged.is_empty() {
         return;
@@ -148,10 +58,12 @@ fn icon_button_system(
                 PreviousLevelsPage => global_ui_state.as_mut().previous_levels_page(),
                 RefreshWR => {
                     if let LevelCompletion::Complete { score_info } = current_level.completion {
-                        crate::leaderboard::refresh_wr_data(score_info.hash, leaderboard_data_event_writer.clone())
+                        crate::leaderboard::refresh_wr_data(
+                            score_info.hash,
+                            leaderboard_data_event_writer.clone(),
+                        )
                     }
-
-                },
+                }
 
                 FollowNewsLink => match news.latest.as_ref() {
                     Some(_news_item) => {
@@ -233,7 +145,7 @@ fn text_button_system(
     mut settings: ResMut<GameSettings>,
     mut news: ResMut<NewsResource>,
 
-    current_level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel<GameLevel>>,
     achievements: Res<Achievements>,
 
     dragged: Query<(), With<BeingDragged>>,
@@ -306,13 +218,15 @@ fn text_button_system(
                 TextButton::ShowAchievements => {
                     achievements.resync();
                     show_achievements();
-                },
-                TextButton::InfiniteLeaderboard =>{
+                }
+                TextButton::InfiniteLeaderboard => {
                     try_show_leaderboard_only(INFINITE_LEADERBOARD.to_string());
-                },
+                }
 
                 TextButton::SetFireworks(fireworks) => settings.fireworks_enabled = fireworks,
                 TextButton::SetSnow(snow) => settings.snow_enabled = snow,
+
+                TextButton::GetTheGame => {}
             }
 
             if button.button_action.closes_menu() {

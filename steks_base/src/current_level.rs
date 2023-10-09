@@ -21,7 +21,7 @@ impl<T: Level> CurrentLevel<T> {
     }
 
     pub fn snowdrop_settings(&self) -> Option<SnowdropSettings> {
-        self.level.snowdrop_settings()
+        self.level.snowdrop_settings(&self.completion)
     }
 
     pub fn show_rotate_arrow(&self) -> bool {
@@ -29,9 +29,7 @@ impl<T: Level> CurrentLevel<T> {
     }
 }
 
-// impl<'de, T: LevelT + DeserializeOwned> TrackableResource for CurrentLevel<T> {
-//     const KEY: &'static str = "CurrentLevel";
-// }
+
 
 pub trait Level: Send + Sync + Default + Serialize + Clone + PartialEq + 'static {
 
@@ -39,13 +37,13 @@ pub trait Level: Send + Sync + Default + Serialize + Clone + PartialEq + 'static
     fn show_bottom_markers(&self) -> bool;
     fn show_rotate_arrow(&self) -> bool;
 
-    fn fireworks_settings(&self) -> FireworksSettings;
+    fn fireworks_settings(&self, completion: &LevelCompletion) -> FireworksSettings;
 
-    fn snowdrop_settings(&self) -> Option<SnowdropSettings>;
+    fn snowdrop_settings(&self, completion: &LevelCompletion) -> Option<SnowdropSettings>;
 
     fn get_level_stars(&self) -> Option<LevelStars>;
 
-    fn get_gravity(&self, stage: usize) -> Option<Vec2>;
+    fn get_gravity(&self, completion: &LevelCompletion) -> Option<Vec2>;
 
     fn create_initial_shapes(&self) -> Vec<ShapeCreationData>;
 

@@ -74,7 +74,7 @@ fn manage_fireworks<L: Level>(
         return;
     }
 
-    let settings = current_level.level.fireworks_settings();
+    let settings = current_level.level.fireworks_settings(&current_level.completion);
 
     match current_level.completion {
         LevelCompletion::Complete { score_info }  => {
@@ -157,39 +157,6 @@ fn get_new_fireworks(
     info: Option<&ScoreInfo>,
     previous_was_same: bool,
 ) -> Option<FireworksCountdown> {
-    // let settings = match &current_level.level {
-    //     GameLevel::Designed { meta, .. } => {
-    //         if meta.is_tutorial() {
-    //             return None;
-    //         }
-
-    //         match current_level.completion {
-    //             LevelCompletion::Incomplete { stage } => {
-    //                 meta.get_level().get_fireworks_settings(&stage)
-    //             }
-    //             LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
-    //         }
-    //     }
-    //     GameLevel::Infinite { .. } => match current_level.completion {
-    //         LevelCompletion::Incomplete { stage } => {
-    //             let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
-    //             if shapes % 5 == 0 {
-    //                 FireworksSettings {
-    //                     intensity: Some(shapes as u32),
-    //                     interval: None,
-    //                     shapes: Default::default(),
-    //                 }
-    //             } else {
-    //                 FireworksSettings::default()
-    //             }
-    //         }
-    //         _ => FireworksSettings::default(),
-    //     },
-
-    //     GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
-    //         FireworksSettings::default()
-    //     }
-    // };
 
     // New World Record
     if match info {

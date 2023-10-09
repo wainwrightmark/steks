@@ -289,7 +289,9 @@ impl IntoBundle for NewsButtonStyle {
 
 #[cfg(test)]
 mod tests {
-    use crate::shape_component::{try_draw_image, NewsItem};
+    use crate::global_ui::NewsItem;
+
+
 
     #[test]
     pub fn go() {
@@ -298,6 +300,6 @@ mod tests {
 
         let item: NewsItem = item.expect("Should be able to deserialize latest news");
 
-        let _: Vec<u8> = try_draw_image(&item.svg).expect("Should be able to draw image");
+        let _: Vec<u8> = crate::global_ui::try_draw_image(&item.svg).expect("Should be able to draw image");
     }
 }

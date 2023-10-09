@@ -15,6 +15,7 @@ impl Plugin for AchievementsPlugin {
             .register_async_event::<SignInEvent>()
             .add_systems(Update, check_for_sign_in)
             .add_systems(Update, check_for_its_a_trap)
+            .add_systems(Update, check_for_one_in_a_million)
             .init_resource::<UserSignedIn>()
             ;
     }
@@ -226,11 +227,11 @@ impl Achievement {
 }
 
 fn track_level_completion_achievements(
-    current_level: Res<CurrentLevel>,
+    current_level: Res<CurrentLevel<GameLevel>>,
     mut achievements: ResMut<Achievements>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
 ) {
-    use crate::shape_component::GameLevel::*;
+
     use Achievement::*;
     use DesignedLevelMeta::*;
 
@@ -239,7 +240,7 @@ fn track_level_completion_achievements(
     }
     match current_level.completion {
         LevelCompletion::Incomplete { stage } => {
-            if let Infinite { .. } = current_level.level {
+            if let GameLevel::Infinite { .. } = current_level.level {
                 if let Some(achievement) = match stage + 2 {
                     5 => Some(InfinityMinus5),
                     10 => Some(AlephOmega),
@@ -276,14 +277,14 @@ fn track_level_completion_achievements(
             }
 
             match current_level.level {
-                Designed {
+                GameLevel::Designed {
                     meta: Tutorial { index },
                 } => {
                     if index == 2 {
                         Achievements::unlock_if_locked(&mut achievements, QualifyAsAnArchitect);
                     }
                 }
-                Designed {
+                GameLevel::Designed {
                     meta: Campaign { index },
                 } => {
                     if let Some(achievement) = match index + 1 {
@@ -300,7 +301,7 @@ fn track_level_completion_achievements(
                         Achievements::unlock_if_locked(&mut achievements, achievement);
                     }
                 }
-                Challenge { streak, .. } => {
+                GameLevel::Challenge { streak, .. } => {
                     if let Some(achievement) = match streak {
                         1 => Some(Enthusiast),
                         3 => Some(OnTheBrain),
@@ -311,7 +312,7 @@ fn track_level_completion_achievements(
                         Achievements::unlock_if_locked(&mut achievements, achievement);
                     }
                 }
-                Designed { meta: Credits } => {
+                GameLevel::Designed { meta: Credits } => {
                     Achievements::unlock_if_locked(&mut achievements, LookTheresBleppo);
                 }
 
@@ -321,13 +322,20 @@ fn track_level_completion_achievements(
     }
 }
 
+fn check_for_one_in_a_million(mut events: EventReader<LevelWonEvent>, mut achievements: ResMut<Achievements>,){
+    for event in events.into_iter(){
+        if event.has_not_acted{
+            Achievements::unlock_if_locked(&mut achievements, Achievement::ThatWasOneInAMillion);
+        }
+    }
+}
 
 
 fn check_for_its_a_trap(
     has_acted: Res<HasActed>,
     mut collision_events: EventReader<CollisionEvent>,
-    current_level: Res<CurrentLevel>,
-    previous_level: Local<PreviousLevel>,
+    current_level: Res<CurrentLevel<GameLevel>>,
+    previous_level: Local<PreviousLevel<GameLevel>>,
     mut achievements: ResMut<Achievements>,
     draggables: Query<&ShapeStage>,
     walls: Query<(), With<WallSensor>>,

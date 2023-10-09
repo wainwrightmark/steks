@@ -27,6 +27,23 @@ pub enum GlobalUiState {
     News,
 }
 
+impl UITrait for GlobalUiState {
+    fn is_minimized(&self) -> bool {
+        match self {
+            GlobalUiState::MenuClosed(game_ui_state) => game_ui_state.is_minimized(),
+            _ => false,
+        }
+    }
+
+    fn minimize(&mut self) {
+        *self = GlobalUiState::MenuClosed(GameUIState::Minimized)
+    }
+
+    fn on_level_complete(global_ui: &mut ResMut<Self>) {
+        global_ui.set_if_neq(GlobalUiState::MenuClosed(GameUIState::Splash));
+    }
+}
+
 impl Default for GlobalUiState {
     fn default() -> Self {
         Self::MenuClosed(GameUIState::Minimized)
@@ -42,7 +59,7 @@ impl GlobalUiState {
         matches!(self, GlobalUiState::MenuClosed(GameUIState::Splash))
     }
 
-    pub fn toggle_levels(&mut self, current_level: &CurrentLevel) {
+    pub fn toggle_levels(&mut self, current_level: &CurrentLevel<GameLevel>) {
         const LEVELS_PER_PAGE: u8 = 8;
 
         let page = match current_level.level {
@@ -98,7 +115,7 @@ pub struct GlobalUiRoot;
 impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
-        CurrentLevel,
+        CurrentLevel<GameLevel>,
         NC6<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource, UserSignedIn>,
         InputSettings,
     >;
@@ -144,7 +161,7 @@ impl MavericRootChildren for GlobalUiRoot {
                 let current_level = context.1.as_ref();
                 let asset_server = &context.2 .3;
                 let insets = &context.2 .2;
-                let signed_in = &context.2.5;
+                let signed_in = &context.2 .5;
 
                 match current_level.completion {
                     LevelCompletion::Incomplete { stage } => {
@@ -192,7 +209,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     ui_state: ui_state.clone(),
                                     level: current_level.level.clone(),
                                     insets: insets.as_ref().clone(),
-                                    signed_in: signed_in.as_ref().clone()
+                                    signed_in: signed_in.as_ref().clone(),
                                 },
                                 asset_server,
                             )

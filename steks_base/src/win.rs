@@ -60,23 +60,7 @@ pub fn check_for_win<L: Level, U: UITrait>(
 
     countdown.0 = None;
 
-    // if has_acted.is_has_not_acted() {
-    //     match current_level.level {
-    //         GameLevel::Designed { .. }
-    //         | GameLevel::Infinite { .. }
-    //         | GameLevel::Challenge { .. } => {
-    //             Achievements::unlock_if_locked(
-    //                 &mut achievements,
-    //                 Achievement::ThatWasOneInAMillion,
-    //             );
-    //         }
-    //         _ => {}
-    //     }
-    // }
-
     let shapes = shapes_vec_from_query(shapes_query);
-
-    //
 
     match current_level.completion {
         LevelCompletion::Incomplete { stage } => {
@@ -117,7 +101,7 @@ pub fn check_for_tower<L: Level>(
     rapier_config: Res<RapierConfiguration>,
     wall_sensors: Query<Entity, With<WallSensor>>,
     walls: Query<Entity, With<WallPosition>>,
-    level: Res<CurrentLevel<L>>,
+    current_level: Res<CurrentLevel<L>>,
     has_acted: Res<HasActed>,
 ) {
     if check_events.is_empty() {
@@ -154,7 +138,11 @@ pub fn check_for_tower<L: Level>(
 
     collision_events.clear();
 
-    let prediction_result: PredictionResult = if level.level.snowdrop_settings().is_some() {
+    let prediction_result: PredictionResult = if current_level
+        .level
+        .snowdrop_settings(&current_level.completion)
+        .is_some()
+    {
         PredictionResult::ManyNonWall
     } else {
         prediction::make_prediction(

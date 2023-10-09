@@ -10,55 +10,26 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use steks_common::color;
 use strum::EnumIs;
-pub struct LevelPlugin;
-impl Plugin for LevelPlugin {
+pub struct GameLevelPlugin;
+impl Plugin for GameLevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PostStartup, choose_level_on_game_load)
             .add_systems(First, handle_change_level_events)
             .add_systems(Last, track_level_completion)
-            .add_systems(Update, manage_level_shapes)
             .add_systems(Update, skip_tutorial_completion)
-            .add_systems(Update, adjust_gravity)
-            .init_tracked_resource::<CurrentLevel>()
             .register_async_event::<ChangeLevelEvent>();
+
+        app.init_tracked_resource::<CurrentLevel<GameLevel>>();
     }
 }
 
-fn manage_level_shapes(
-    mut commands: Commands,
-    draggables: Query<((Entity, &ShapeIndex), With<ShapeComponent>)>,
-    current_level: Res<CurrentLevel>,
-    previous_level: Local<PreviousLevel>,
-    mut shape_creation_events: EventWriter<ShapeCreationData>,
-    mut shape_update_events: EventWriter<ShapeUpdateData>,
-) {
-    if !current_level.is_changed() {
-        return;
-    }
-
-    let mut result =
-        LevelTransitionResult::from_level(current_level.as_ref(), &previous_level);
-
-    if result.despawn_existing {
-        for ((e, _), _) in draggables.iter() {
-            commands.entity(e).despawn_recursive();
-        }
-    }
-
-    if previous_level.0.is_none() {
-        if let Some(saved_data) = &current_level.saved_data {
-            result.mogrify(saved_data);
-        }
-    }
-
-    shape_creation_events.send_batch(result.creations);
-    shape_update_events.send_batch(result.updates);
-    update_previous_level(previous_level, &current_level);
+impl TrackableResource for CurrentLevel<GameLevel> {
+    const KEY: &'static str = "CurrentLevel";
 }
 
 fn handle_change_level_events(
     mut change_level_events: EventReader<ChangeLevelEvent>,
-    mut current_level: ResMut<CurrentLevel>,
+    mut current_level: ResMut<CurrentLevel<GameLevel>>,
     mut global_ui_state: ResMut<GlobalUiState>,
     streak: Res<Streak>,
     completion: Res<CampaignCompletion>,
@@ -101,139 +72,45 @@ fn choose_level_on_game_load(mut _change_level_events: EventWriter<ChangeLevelEv
     }
 }
 
-#[derive(Default, Resource, Debug, PartialEq, Serialize, Deserialize)]
-pub struct CurrentLevel {
-    pub level: GameLevel,
-    pub completion: LevelCompletion,
-    pub saved_data: Option<ShapesVec>,
-}
-
-impl TrackableResource for CurrentLevel {
-    const KEY: &'static str = "CurrentLevel";
-}
-
-#[derive(Default, Debug, PartialEq)]
-pub struct PreviousLevel(pub Option<(GameLevel, LevelCompletion)>);
-
-pub fn update_previous_level(mut previous_level: Local<PreviousLevel>, current_level: &Res<CurrentLevel>){
-    if current_level.is_changed(){
-        *previous_level = current_level.as_ref().into();
+pub fn submit_score_options(current_level: &CurrentLevel<GameLevel>) -> Option<SubmitScoreOptions> {
+    fn height_to_score(height: f32) -> i32 {
+        (height * 100.).floor() as i32
     }
-}
 
-impl From<&CurrentLevel> for PreviousLevel {
-    fn from(value: &CurrentLevel) -> Self {
-        Self(Some((value.level.clone(), value.completion)))
-    }
-}
+    match &current_level.level {
+        GameLevel::Designed { meta } => {
+            let leaderboard_id = meta.get_level().leaderboard_id.clone()?;
 
-#[derive(Debug, EnumIs, Clone, Copy, PartialEq)]
-pub enum PreviousLevelType {
-    DifferentLevel,
-    SameLevelSameStage,
-    SameLevelEarlierStage(usize),
-}
-
-impl PreviousLevel {
-    pub fn compare(&self, current_level: &CurrentLevel) -> PreviousLevelType {
-        let Some(previous) = &self.0 else {
-            return PreviousLevelType::DifferentLevel;
-        };
-
-        if previous.0 != current_level.level {
-            return PreviousLevelType::DifferentLevel;
-        }
-
-        match (previous.1, current_level.completion) {
-            (
-                LevelCompletion::Incomplete { stage: prev_stage },
-                LevelCompletion::Incomplete {
-                    stage: current_stage,
-                },
-            ) => match prev_stage.cmp(&current_stage) {
-                std::cmp::Ordering::Less => PreviousLevelType::SameLevelEarlierStage(prev_stage),
-                std::cmp::Ordering::Equal => PreviousLevelType::SameLevelSameStage,
-                std::cmp::Ordering::Greater => PreviousLevelType::DifferentLevel,
-            },
-            (LevelCompletion::Incomplete { stage }, LevelCompletion::Complete { .. }) => {
-                PreviousLevelType::SameLevelEarlierStage(stage)
-            }
-            (LevelCompletion::Complete { .. }, LevelCompletion::Incomplete { .. }) => {
-                PreviousLevelType::DifferentLevel
-            }
-            (LevelCompletion::Complete { .. }, LevelCompletion::Complete { .. }) => {
-                PreviousLevelType::SameLevelSameStage
+            match current_level.completion {
+                LevelCompletion::Incomplete { .. } => None,
+                LevelCompletion::Complete { score_info } => Some(SubmitScoreOptions {
+                    leaderboard_id,
+                    total_score_amount: height_to_score(score_info.height),
+                }),
             }
         }
-    }
-}
 
-impl CurrentLevel {
-    pub fn get_current_stage(&self) -> usize {
-        match self.completion {
-            LevelCompletion::Incomplete { stage } => stage,
-            LevelCompletion::Complete { .. } => self.level.get_last_stage(),
-        }
-    }
-
-    pub fn snowdrop_settings(&self) -> Option<SnowdropSettings> {
-        let settings = match &self.level {
-            GameLevel::Designed { meta, .. } => {
-                meta.get_level().get_current_stage(self.completion).rainfall
-            }
-            GameLevel::Infinite { .. } | GameLevel::Begging => None,
-            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => None,
-        };
-        settings
-    }
-
-    pub fn show_rotate_arrow(&self) -> bool {
-        match &self.level {
-            GameLevel::Designed { meta } => meta.is_tutorial(),
-            _ => false,
-        }
-    }
-
-    pub fn submit_score_options(&self) -> Option<SubmitScoreOptions> {
-        fn height_to_score(height: f32) -> i32 {
-            (height * 100.).floor() as i32
-        }
-
-        match &self.level {
-            GameLevel::Designed { meta } => {
-                let leaderboard_id = meta.get_level().leaderboard_id.clone()?;
-
-                match self.completion {
+        GameLevel::Challenge { date, .. } => {
+            if get_today_date().eq(date) && cfg!(feature = "ios") {
+                match current_level.completion {
                     LevelCompletion::Incomplete { .. } => None,
                     LevelCompletion::Complete { score_info } => Some(SubmitScoreOptions {
-                        leaderboard_id,
+                        leaderboard_id: DAILY_CHALLENGE_LEADERBOARD.to_string(),
                         total_score_amount: height_to_score(score_info.height),
                     }),
                 }
+            } else {
+                None
             }
-
-            GameLevel::Challenge { date, .. } => {
-                if get_today_date().eq(date) && cfg!(feature = "ios") {
-                    match self.completion {
-                        LevelCompletion::Incomplete { .. } => None,
-                        LevelCompletion::Complete { score_info } => Some(SubmitScoreOptions {
-                            leaderboard_id: DAILY_CHALLENGE_LEADERBOARD.to_string(),
-                            total_score_amount: height_to_score(score_info.height),
-                        }),
-                    }
-                } else {
-                    None
-                }
-            }
-            GameLevel::Infinite { .. } => match self.completion {
-                LevelCompletion::Incomplete { stage } => Some(SubmitScoreOptions {
-                    leaderboard_id: INFINITE_LEADERBOARD.to_string(),
-                    total_score_amount: (INFINITE_MODE_STARTING_SHAPES + stage - 1) as i32,
-                }),
-                LevelCompletion::Complete { .. } => None,
-            },
-            _ => None,
         }
+        GameLevel::Infinite { .. } => match current_level.completion {
+            LevelCompletion::Incomplete { stage } => Some(SubmitScoreOptions {
+                leaderboard_id: INFINITE_LEADERBOARD.to_string(),
+                total_score_amount: (INFINITE_MODE_STARTING_SHAPES + stage - 1) as i32,
+            }),
+            LevelCompletion::Complete { .. } => None,
+        },
+        _ => None,
     }
 }
 
@@ -285,7 +162,124 @@ pub enum GameLevel {
     Begging,
 }
 
+impl Level for GameLevel {
+    fn get_last_stage(&self) -> usize {
+        match self {
+            GameLevel::Designed { meta } => meta.get_level().total_stages().saturating_sub(1),
+            _ => 0,
+        }
+    }
+
+    fn has_stage(&self, stage: &usize) -> bool {
+        match self {
+            GameLevel::Designed { meta, .. } => meta.get_level().total_stages() > *stage,
+            GameLevel::Infinite { .. } => true,
+            GameLevel::Challenge { .. } => false,
+            GameLevel::Loaded { .. } => false,
+            GameLevel::Begging => false,
+        }
+    }
+
+    fn show_bottom_markers(&self) -> bool {
+        match self {
+            GameLevel::Designed { meta } => meta.is_tutorial(),
+            _ => false,
+        }
+    }
+
+    fn show_rotate_arrow(&self) -> bool {
+        match self {
+            GameLevel::Designed { meta } => meta.is_tutorial(),
+            _ => false,
+        }
+    }
+
+    fn fireworks_settings(&self, completion: &LevelCompletion) -> FireworksSettings {
+        match &self {
+            GameLevel::Designed { meta, .. } => {
+                if meta.is_tutorial() {
+                    return FireworksSettings::default();
+                }
+
+                match completion {
+                    LevelCompletion::Incomplete { stage } => {
+                        meta.get_level().get_fireworks_settings(&stage)
+                    }
+                    LevelCompletion::Complete { .. } => meta.get_level().end_fireworks.clone(),
+                }
+            }
+            GameLevel::Infinite { .. } => match completion {
+                LevelCompletion::Incomplete { stage } => {
+                    let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
+                    if shapes % 5 == 0 {
+                        FireworksSettings {
+                            intensity: Some(shapes as u32),
+                            interval: None,
+                            shapes: Default::default(),
+                        }
+                    } else {
+                        FireworksSettings::default()
+                    }
+                }
+                _ => FireworksSettings::default(),
+            },
+
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {
+                FireworksSettings::default()
+            }
+        }
+    }
+
+    fn snowdrop_settings(&self, completion: &LevelCompletion) -> Option<SnowdropSettings> {
+        match self {
+            GameLevel::Designed { meta, .. } => {
+                meta.get_level().get_current_stage(self.completion).rainfall
+            }
+            _ => None,
+        }
+    }
+
+    fn get_level_stars(&self) -> Option<LevelStars> {
+        match self {
+            GameLevel::Designed { meta } => meta.get_level().stars,
+            _ => None,
+        }
+    }
+
+    fn get_gravity(&self, completion: &LevelCompletion) -> Option<Vec2> {
+        match self {
+            GameLevel::Designed { meta, .. } => {
+                meta.get_level().get_current_stage(self.completion).gravity
+            }
+            _ => None,
+        }
+    }
+
+    fn create_initial_shapes(&self) -> Vec<ShapeCreationData> {
+        todo!()
+    }
+
+    fn generate_creations_and_updates(
+        &self,
+        previous_stage: usize,
+        current_stage: usize,
+        shape_creations: &mut Vec<ShapeCreationData>,
+        shape_updates: &mut Vec<ShapeUpdateData>,
+    ) {
+        todo!()
+    }
+}
+
 impl GameLevel {
+    pub fn skip_completion(&self) -> bool {
+        matches!(
+            self,
+            GameLevel::Designed {
+                meta: DesignedLevelMeta::Tutorial { .. },
+            }
+        )
+    }
+
     pub fn flashing_button(&self) -> Option<IconButton> {
         match self {
             GameLevel::Designed { meta } => meta.get_level().flashing_button,
@@ -327,7 +321,9 @@ impl GameLevel {
                     None
                 } else {
                     let shapes = stage + INFINITE_MODE_STARTING_SHAPES - 1;
-                    let line = INFINITE_COMMENTS.get(shapes).unwrap_or(&"");
+                    let line = steks_base::infinity::INFINITE_COMMENTS
+                        .get(shapes)
+                        .unwrap_or(&"");
 
                     Some(line.to_string())
                 }
@@ -506,34 +502,6 @@ impl DesignedLevelMeta {
     }
 }
 
-impl GameLevel {
-    pub fn get_last_stage(&self) -> usize {
-        match self {
-            GameLevel::Designed { meta } => meta.get_level().total_stages().saturating_sub(1),
-            _ => 0,
-        }
-    }
-
-    pub fn has_stage(&self, stage: &usize) -> bool {
-        match self {
-            GameLevel::Designed { meta, .. } => meta.get_level().total_stages() > *stage,
-            GameLevel::Infinite { .. } => true,
-            GameLevel::Challenge { .. } => false,
-            GameLevel::Loaded { .. } => false,
-            GameLevel::Begging => false,
-        }
-    }
-
-    pub fn skip_completion(&self) -> bool {
-        matches!(
-            self,
-            GameLevel::Designed {
-                meta: DesignedLevelMeta::Tutorial { .. },
-            }
-        )
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum LevelLogData {
     TutorialLevel { index: u8 },
@@ -639,36 +607,19 @@ impl ChangeLevelEvent {
     }
 }
 
-fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConfiguration>) {
-    if level.is_changed() {
-        let LevelCompletion::Incomplete { stage } = level.completion else {
-            return;
-        };
-
-        let gravity = match level.level.clone() {
-            GameLevel::Designed { meta, .. } => {
-                if let Some(stage) = meta.get_level().get_stage(&stage) {
-                    stage.gravity.unwrap_or(GRAVITY)
-                } else {
-                    GRAVITY
-                }
-            }
-            GameLevel::Infinite { .. }
-            | GameLevel::Challenge { .. }
-            | GameLevel::Loaded { .. }
-            | GameLevel::Begging => GRAVITY,
-        };
-        rapier_config.gravity = gravity;
-    }
-}
-
-fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<ChangeLevelEvent>) {
+fn skip_tutorial_completion(
+    level: Res<CurrentLevel<GameLevel>>,
+    mut events: EventWriter<ChangeLevelEvent>,
+) {
     if level.is_changed() && level.completion.is_complete() && level.level.skip_completion() {
         events.send(ChangeLevelEvent::Next);
     }
 }
 
-fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<Streak>) {
+fn track_level_completion(
+    level: Res<CurrentLevel<GameLevel>>,
+    mut streak_resource: ResMut<Streak>,
+) {
     if !level.is_changed() {
         return;
     }
@@ -872,32 +823,3 @@ impl ChangeLevelEvent {
         })
     }
 }
-
-const INFINITE_COMMENTS: &[&str] = &[
-    "",
-    "just getting started", //5
-    "",
-    "",
-    "",
-    "hitting your stride", //10
-    "",
-    "",
-    "",
-    "",
-    "looking good", //15
-    "",
-    "",
-    "",
-    "",
-    "nice!", //20
-    "",
-    "",
-    "",
-    "",
-    "very nice!", //25
-    "",
-    "",
-    "",
-    "",
-    "an overwhelming surplus of nice!", //30
-];

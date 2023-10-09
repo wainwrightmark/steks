@@ -3,7 +3,7 @@ use crate::{
     startup::{self, get_today_date},
 };
 use capacitor_bindings::game_connect::SubmitScoreOptions;
-use chrono::{Days, NaiveDate};
+use chrono::{Days, NaiveDate, Datelike};
 use itertools::Itertools;
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
@@ -256,7 +256,52 @@ impl Level for GameLevel {
     }
 
     fn create_initial_shapes(&self) -> Vec<ShapeCreationData> {
-        todo!()
+        let mut shapes: Vec<ShapeCreationData> = match self {
+            GameLevel::Designed { meta, .. } => match meta.get_level().get_stage(&0) {
+                Some(stage) => stage
+                    .shapes
+                    .iter()
+                    .map(|&shape_creation| {
+                        ShapeCreationData::from_shape_creation(shape_creation, ShapeStage(0))
+                    })
+                    .collect_vec(),
+                None => vec![],
+            },
+            GameLevel::Loaded { bytes } => ShapesVec::from_bytes(&bytes)
+                .0
+                .into_iter()
+                .map(|encodable_shape| {
+                    ShapeCreationData::from_encodable(encodable_shape, ShapeStage(0))
+                })
+                .collect_vec(),
+            GameLevel::Challenge { date, .. } => {
+                //let today = get_today_date();
+                let seed = ((date.year().unsigned_abs() * 2000) + (date.month() * 100) + date.day())
+                    as u64;
+                let mut shape_rng: rand::rngs::StdRng = rand::SeedableRng::seed_from_u64(seed);
+                (0..CHALLENGE_SHAPES)
+                    .map(|_| {
+                        ShapeCreationData::from_shape_index(
+                            ShapeIndex::random_no_circle(&mut shape_rng),
+                            ShapeStage(0),
+                        )
+                        .with_random_velocity()
+                    })
+                    .collect_vec()
+            }
+
+            GameLevel::Infinite { seed } => {
+                steks_base::infinity::get_all_shapes(*seed, INFINITE_MODE_STARTING_SHAPES)
+            }
+
+            GameLevel::Begging => {
+                vec![]
+            }
+        };
+
+        shapes.sort_by_key(|x| (x.state.is_locked(), x.location.is_some()));
+
+        shapes
     }
 
     fn generate_creations_and_updates(
@@ -266,7 +311,37 @@ impl Level for GameLevel {
         shape_creations: &mut Vec<ShapeCreationData>,
         shape_updates: &mut Vec<ShapeUpdateData>,
     ) {
-        todo!()
+        match &self {
+            GameLevel::Designed { meta, .. } => {
+                for stage in (previous_stage + 1)..=(current_stage) {
+                    if let Some(level_stage) = meta.get_level().get_stage(&stage) {
+                        for creation in level_stage.shapes.iter() {
+                            shape_creations.push(ShapeCreationData::from_shape_creation(
+                                *creation,
+                                ShapeStage(stage),
+                            ));
+                        }
+
+                        for update in level_stage.updates.iter() {
+                            shape_updates.push((*update).into());
+                        }
+                    }
+                }
+            }
+            GameLevel::Infinite { seed } => {
+                let next_shapes = steks_base::infinity::get_all_shapes(
+                    *seed,
+                    current_stage + INFINITE_MODE_STARTING_SHAPES,
+                );
+                shape_creations.extend(
+                    next_shapes
+                        .into_iter()
+                        .skip(INFINITE_MODE_STARTING_SHAPES + previous_stage),
+                );
+            }
+            GameLevel::Challenge { .. } | GameLevel::Loaded { .. } => {}
+            GameLevel::Begging => {}
+        }
     }
 }
 

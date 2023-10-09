@@ -27,12 +27,13 @@ pub struct Countdown {
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
 
 const ARC_STROKE: f32 = 5.0;
-const POSITION_Y: f32 = 200.0;
+//const POSITION_Y: f32 = 200.0;
 
 fn update_dynamic_elements(
     countdown: Res<WinCountdown>,
     mut marker_circle: Query<&mut Transform, With<CircleMarkerComponent>>,
     mut circle_arc: Query<&mut Path, With<CircleArcComponent>>,
+    window_size: Res<WindowSize>
 ) {
     let Some(countdown) = &countdown.0 else {
         return;
@@ -47,7 +48,7 @@ fn update_dynamic_elements(
         let y = theta.sin() * RADIUS;
 
         transform.translation.x = x;
-        transform.translation.y = y + POSITION_Y;
+        transform.translation.y = y + window_size.win_timer_position_y();
     }
 
     for mut path in circle_arc.iter_mut() {
@@ -76,7 +77,7 @@ struct TimerStateRoot;
 impl_maveric_root!(TimerStateRoot);
 
 impl MavericRootChildren for TimerStateRoot {
-    type Context = NC2<WinCountdown, GameSettings>;
+    type Context = NC2<WinCountdown, NC2<GameSettings, WindowSize>>;
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
@@ -111,21 +112,21 @@ fn get_color(settings: &GameSettings) -> Color {
 }
 
 impl MavericNode for CircleArc {
-    type Context = GameSettings;
+    type Context = NC2<GameSettings, WindowSize>;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().insert_with_context(|context| {
             (
                 ShapeBundle {
                     transform: Transform {
-                        translation: Vec3::new(00.0, POSITION_Y, 1.0),
+                        translation: Vec3::new(00.0, context.1.win_timer_position_y(), 1.0),
                         ..Default::default()
                     },
                     ..Default::default()
                 },
                 Stroke{
                     options: StrokeOptions::default().with_line_width(ARC_STROKE).with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
-                    color: get_color(context),
+                    color: get_color(&context.0),
                 },
                 CircleArcComponent,
             )
@@ -136,7 +137,7 @@ impl MavericNode for CircleArc {
 }
 
 impl MavericNode for CircleMarker {
-    type Context = GameSettings;
+    type Context = NC2<GameSettings, WindowSize>;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().insert_with_context(|context| {
@@ -147,13 +148,13 @@ impl MavericNode for CircleMarker {
                         radius: ARC_STROKE,
                     }),
                     transform: Transform {
-                        translation: Vec3::new(00.0, POSITION_Y + RADIUS, 1.0),
+                        translation: Vec3::new(00.0, context.1.win_timer_position_y() + RADIUS, 1.0),
                         ..Default::default()
                     },
                     ..Default::default()
                 },
-                Fill::color(get_color(context)),
-                Stroke::new(get_color(context), ARC_STROKE),
+                Fill::color(get_color(&context.0)),
+                Stroke::new(get_color(&context.0), ARC_STROKE),
                 CircleMarkerComponent,
             )
         });

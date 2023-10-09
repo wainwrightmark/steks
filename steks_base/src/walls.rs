@@ -45,6 +45,15 @@ impl WindowSize {
     pub fn scaled_height(&self) -> f32 {
         self.window_height * self.size_scale()
     }
+
+    pub fn win_timer_position_y(&self)-> f32{
+        if self.scaled_height() <= 500.0{
+            100.0
+        }
+        else{
+            200.0
+        }
+    }
 }
 
 impl FromWorld for WindowSize {
@@ -261,7 +270,7 @@ impl WallPosition {
         }
     }
 
-    pub fn show_marker<L: Level>(&self, current_level: &CurrentLevel<L>) -> bool {
+    pub fn show_marker(&self, current_level: &CurrentLevel) -> bool {
         if !self.is_bottom() {
             return true;
         }

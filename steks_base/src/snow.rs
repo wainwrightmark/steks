@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{Fill, FillOptions, ShapeBundle, Stroke, StrokeOptions};
 use bevy_rapier2d::prelude::*;
@@ -7,13 +5,13 @@ use rand::{rngs::ThreadRng, Rng};
 
 use crate::prelude::*;
 #[derive(Debug, Default)]
-pub struct SnowPlugin<L: Level>(PhantomData<L>);
+pub struct SnowPlugin;
 
-impl<L: Level> Plugin for SnowPlugin<L> {
+impl Plugin for SnowPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Update, spawn_snowdrops)
             .add_systems(Update, despawn_snowdrops)
-            .add_systems(Update, manage_snowdrops::<L>)
+            .add_systems(Update, manage_snowdrops)
             .init_resource::<SnowdropCountdown>();
     }
 }
@@ -128,8 +126,8 @@ fn spawn_snowdrops(
     }
 }
 
-fn manage_snowdrops<L: Level>(
-    current_level: Res<CurrentLevel<L>>,
+fn manage_snowdrops(
+    current_level: Res<CurrentLevel>,
     mut countdown: ResMut<SnowdropCountdown>,
 ) {
     if !current_level.is_changed() {
@@ -137,7 +135,7 @@ fn manage_snowdrops<L: Level>(
     }
     let settings = current_level
         .level
-        .snowdrop_settings(&current_level.completion);
+        .snowdrop_settings(current_level.completion);
 
     match settings {
         Some(settings) => {

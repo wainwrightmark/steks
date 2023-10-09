@@ -17,7 +17,7 @@ impl Plugin for NewsPlugin {
     }
 }
 
-#[derive(Debug, PartialEq, Resource, Serialize, Deserialize, Default)]
+#[derive(Debug, PartialEq, Resource, Serialize, Deserialize, Default, Clone)]
 pub struct NewsResource {
     pub latest: Option<NewsItem>,
     pub is_read: bool,

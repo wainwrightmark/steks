@@ -1,20 +1,6 @@
 use crate::prelude::*;
 use maveric::prelude::*;
 
-pub(crate) fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'static>(
-    text: T,
-) -> TextNode<T> {
-    TextNode {
-        text,
-        font_size: LEVEL_TEXT_FONT_SIZE,
-        color: LEVEL_TEXT_COLOR,
-        font: LEVEL_TEXT_FONT_PATH,
-        alignment: TextAlignment::Center,
-        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-    }
-}
-
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum IconButtonStyle {
     HeightPadded,
@@ -112,79 +98,6 @@ impl IntoBundle for IconButtonStyle {
     }
 }
 
-// pub(crate) fn image_button_node(
-//     button_action: IconButton,
-//     image_path: &'static str,
-//     button_node_style: impl IntoBundle<B = Style>,
-//     image_style: impl IntoBundle<B = Style>,
-// ) -> impl MavericNode<Context = AssetServer> {
-//     ButtonNode {
-//         style: button_node_style,
-//         visibility: Visibility::Visible,
-//         border_color: Color::NONE,
-//         background_color: Color::NONE,
-//         //button_node_style,
-//         marker: IconButtonComponent {
-//             disabled: false,
-//             button_action,
-//             button_type: ButtonType::Image,
-//         },
-//         children: (ImageNode {
-//             style: image_style,
-//             path: image_path,
-//             background_color: Color::WHITE,
-//         },),
-//     }
-// }
-
-pub(crate) fn text_button_node(
-    button_action: TextButton,
-    centred: bool,
-    disabled: bool,
-) -> impl MavericNode<Context = AssetServer> {
-    text_button_node_with_text(button_action, button_action.text(), centred, disabled)
-}
-
-pub(crate) fn text_button_node_with_text(
-    button_action: TextButton,
-    text: String,
-    centred: bool,
-    disabled: bool,
-) -> impl MavericNode<Context = AssetServer> {
-    let (background_color, color, border_color) =
-        (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
-
-    let style = if button_action.emphasize() {
-        TextButtonStyle::Fat
-    } else {
-        TextButtonStyle::Normal
-    };
-
-    ButtonNode {
-        style,
-        visibility: Visibility::Visible,
-        background_color,
-        border_color,
-        marker: TextButtonComponent {
-            disabled,
-            button_action,
-            button_type: ButtonType::Text,
-        },
-        children: (TextNode {
-            text: text.clone(),
-            font_size: BUTTON_FONT_SIZE,
-            color,
-            font: MENU_TEXT_FONT_PATH,
-            alignment: if centred {
-                TextAlignment::Center
-            } else {
-                TextAlignment::Left
-            },
-            linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-        },),
-    }
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum TextButtonStyle {
     Normal,
@@ -221,51 +134,6 @@ impl IntoBundle for TextButtonStyle {
         }
     }
 }
-
-// pub(crate) fn text_button_node_with_text_and_image(
-//     button_action: TextButton,
-//     centred: bool,
-//     disabled: bool,
-//     image_path: &'static str,
-//     image_style: impl IntoBundle<B = Style>,
-//     style: TextButtonStyle,
-// ) -> impl MavericNode<Context = AssetServer> {
-//     let background_color = if disabled {
-//         DISABLED_BUTTON_BACKGROUND
-//     } else {
-//         TEXT_BUTTON_BACKGROUND
-//     };
-//     ButtonNode {
-//         style,
-//         visibility: Visibility::Visible,
-//         background_color,
-//         border_color: BUTTON_BORDER,
-//         marker: TextButtonComponent {
-//             disabled,
-//             button_action,
-//             button_type: ButtonType::Text,
-//         },
-//         children: (
-//             TextNode {
-//                 text: button_action.text(),
-//                 font_size: BUTTON_FONT_SIZE,
-//                 color: BUTTON_TEXT_COLOR,
-//                 font: MENU_TEXT_FONT_PATH,
-//                 alignment: if centred {
-//                     TextAlignment::Center
-//                 } else {
-//                     TextAlignment::Left
-//                 },
-//                 linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
-//             },
-//             ImageNode {
-//                 style: image_style,
-//                 path: image_path,
-//                 background_color,
-//             },
-//         ),
-//     }
-// }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct LevelStarsImageStyle;

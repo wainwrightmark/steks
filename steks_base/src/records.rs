@@ -11,6 +11,7 @@ impl Plugin for RecordsPlugin{
     fn build(&self, app: &mut App) {
         app.init_tracked_resource::<WorldRecords>();
         app.init_tracked_resource::<PersonalBests>();
+        app.init_tracked_resource::<MaxInfiniteStage>();
     }
 }
 
@@ -43,7 +44,7 @@ impl LevelWR {
     }
 }
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize)]
+#[derive(Debug, Resource, Default, Serialize, Deserialize, Clone)]
 pub struct WorldRecords {
     pub map: WrMAP,
 }
@@ -52,7 +53,7 @@ impl TrackableResource for WorldRecords {
     const KEY: &'static str = "WRs";
 }
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize)]
+#[derive(Debug, Resource, Default, Serialize, Deserialize, Clone)]
 pub struct PersonalBests {
     pub map: PbMap,
 }
@@ -61,8 +62,8 @@ impl TrackableResource for PersonalBests {
     const KEY: &'static str = "PBs";
 }
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize)]
-pub struct MaxInfiniteStage(usize);
+#[derive(Debug, Resource, Default, Serialize, Deserialize, Clone)]
+pub struct MaxInfiniteStage(pub usize);
 
 impl TrackableResource for MaxInfiniteStage {
     const KEY: &'static str = "MaxInfinite";

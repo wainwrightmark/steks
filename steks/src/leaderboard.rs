@@ -1,94 +1,25 @@
-
-
 use base64::Engine;
 use bevy::{log, prelude::*};
 use capacitor_bindings::game_connect::SubmitScoreOptions;
-use chrono::NaiveDate;
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
-
 
 pub struct LeaderboardPlugin;
 
 impl Plugin for LeaderboardPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-
         app.add_plugins(RecordsPlugin);
 
         app.register_async_event::<LeaderboardDataEvent>()
             .register_async_event::<CheatEvent>()
-            .init_tracked_resource::<CampaignCompletion>()
-            .init_tracked_resource::<MaxInfiniteStage>()
-            .init_tracked_resource::<Streak>()
-            .init_resource::<WorldRecords>()
             .add_systems(PostStartup, check_for_cheat_on_game_load)
             .add_systems(Update, detect_cheat)
             .add_systems(Update, hydrate_leaderboard)
             .add_systems(Update, check_pbs_on_completion)
-            .add_systems(Update, check_pbs_on_completion)
             .add_systems(Update, check_wrs_on_completion)
             .add_systems(Update, update_campaign_completion);
     }
-}
-
-#[derive(Debug, Resource, Default, Serialize, Deserialize)]
-pub struct WorldRecords {
-    pub map: WrMAP,
-}
-
-impl TrackableResource for WorldRecords {
-    const KEY: &'static str = "WRs";
-}
-
-#[derive(Debug, Resource, Default, Serialize, Deserialize)]
-pub struct PersonalBests {
-    pub map: PbMap,
-}
-
-impl TrackableResource for PersonalBests {
-    const KEY: &'static str = "PBs";
-}
-
-#[derive(Debug, Resource, Default, Serialize, Deserialize)]
-pub struct MaxInfiniteStage(usize);
-
-impl TrackableResource for MaxInfiniteStage {
-    const KEY: &'static str = "MaxInfinite";
-}
-
-#[derive(Debug, Resource, Default, Serialize, Deserialize)]
-pub struct CampaignCompletion {
-    pub stars: Vec<StarType>,
-}
-
-impl TrackableResource for CampaignCompletion {
-    const KEY: &'static str = "CampaignCompletion";
-}
-
-impl CampaignCompletion {
-    pub fn fill_with_incomplete(completion: &mut ResMut<CampaignCompletion>) {
-        let Some(take) = CAMPAIGN_LEVELS.len().checked_sub(completion.stars.len()) else {
-            return;
-        };
-
-        if take > 0 {
-            completion
-                .stars
-                .extend(std::iter::repeat(StarType::Incomplete).take(take));
-        }
-    }
-}
-
-#[derive(Debug, Resource, Default, Serialize, Deserialize)]
-pub struct Streak {
-    pub count: u16,
-    pub most_recent: NaiveDate,
-}
-
-impl TrackableResource for Streak {
-    const KEY: &'static str = "Streak";
 }
 
 #[derive(Debug, Event, Clone)]
@@ -147,7 +78,7 @@ pub fn refresh_wr_data(hash: u64, writer: AsyncEventWriter<LeaderboardDataEvent>
 fn hydrate_leaderboard(
     mut wrs: ResMut<WorldRecords>,
     mut events: EventReader<LeaderboardDataEvent>,
-    mut current_level: ResMut<CurrentLevel<GameLevel>>,
+    mut current_level: ResMut<CurrentLevel>,
 ) {
     let Some(ev) = events.into_iter().next() else {
         return;
@@ -329,7 +260,7 @@ async fn update_wrs_async(hash: u64, height: f32, blob: String) -> Result<(), re
 }
 
 fn update_campaign_completion(
-    current_level: Res<CurrentLevel<GameLevel>>,
+    current_level: Res<CurrentLevel>,
     mut campaign_completion: ResMut<CampaignCompletion>,
     mut achievements: ResMut<Achievements>,
 ) {
@@ -388,7 +319,7 @@ fn update_campaign_completion(
 }
 
 fn check_pbs_on_completion(
-    current_level: Res<CurrentLevel<GameLevel>>,
+    current_level: Res<CurrentLevel>,
     mut pbs: ResMut<PersonalBests>,
     mut max_infinite: ResMut<MaxInfiniteStage>,
 ) {
@@ -465,7 +396,7 @@ fn submit_score(options: SubmitScoreOptions) {
 }
 
 fn check_wrs_on_completion(
-    current_level: Res<CurrentLevel<GameLevel>>,
+    current_level: Res<CurrentLevel>,
     writer: AsyncEventWriter<LeaderboardDataEvent>,
     mut world_records: ResMut<WorldRecords>,
 ) {
@@ -520,7 +451,7 @@ fn check_wrs_on_completion(
     }
 }
 
-pub fn try_show_leaderboard(current_level: &CurrentLevel<GameLevel>) {
+pub fn try_show_leaderboard(current_level: &CurrentLevel) {
     let Some(leaderboard_id) = current_level.level.leaderboard_id() else {
         return;
     };

@@ -227,7 +227,7 @@ impl Achievement {
 }
 
 fn track_level_completion_achievements(
-    current_level: Res<CurrentLevel<GameLevel>>,
+    current_level: Res<CurrentLevel>,
     mut achievements: ResMut<Achievements>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
 ) {
@@ -334,8 +334,8 @@ fn check_for_one_in_a_million(mut events: EventReader<LevelWonEvent>, mut achiev
 fn check_for_its_a_trap(
     has_acted: Res<HasActed>,
     mut collision_events: EventReader<CollisionEvent>,
-    current_level: Res<CurrentLevel<GameLevel>>,
-    previous_level: Local<PreviousLevel<GameLevel>>,
+    current_level: Res<CurrentLevel>,
+    previous_level: Local<PreviousLevel>,
     mut achievements: ResMut<Achievements>,
     draggables: Query<&ShapeStage>,
     walls: Query<(), With<WallSensor>>,

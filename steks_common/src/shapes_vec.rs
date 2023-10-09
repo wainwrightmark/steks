@@ -3,7 +3,7 @@ use std::ops::Deref;
 use crate::prelude::*;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ShapesVec(pub Vec<EncodableShape>);
 
 impl Deref for ShapesVec {

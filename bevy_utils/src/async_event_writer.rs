@@ -2,7 +2,7 @@ use async_channel::SendError;
 use bevy::{ecs::system::SystemParam, prelude::*};
 use std::marker::PhantomData;
 
-pub (crate) struct AsyncEventPlugin<T: Event>(PhantomData<T>);
+pub(crate) struct AsyncEventPlugin<T: Event>(PhantomData<T>);
 
 impl<T: Event> Default for AsyncEventPlugin<T> {
     fn default() -> Self {
@@ -54,10 +54,10 @@ unsafe impl<T: Event> SystemParam for AsyncEventWriter<T> {
         world: bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell<'world>,
         _: bevy::ecs::component::Tick,
     ) -> Self::Item<'world, 'state> {
-        let resource = world
-            .get_resource::<AsyncEventResource<T>>()
-            .expect("Event is not registered as an async event");
-        Self(resource.sender.clone())
+        match world.get_resource::<AsyncEventResource<T>>() {
+            Some(resource) => Self(resource.sender.clone()),
+            None => panic!("Event {} is not registered as an async event", std::any::type_name::<T>()),
+        }
     }
 }
 

@@ -34,7 +34,7 @@ impl UITrait for GlobalUiState{
 
     }
 
-    fn on_level_complete(m: &mut ResMut<Self>) {
+    fn on_level_complete(_m: &mut ResMut<Self>) {
 
     }
 }
@@ -60,7 +60,7 @@ pub struct GlobalUiRoot;
 impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
-        CurrentLevel<GameLevel>,
+        CurrentLevel,
         NC5<GameSettings, NoContext, Insets, AssetServer, NoContext>,
         InputSettings,
     >;

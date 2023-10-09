@@ -13,9 +13,9 @@ const POSITION_STIFFNESS: f32 = 20.0;
 const MAX_FORCE: f32 = 800.0;
 
 #[derive(Debug, Default)]
-pub struct DragPlugin<L: Level, U: UITrait>(PhantomData<L>, PhantomData<U>);
+pub struct DragPlugin< U: UITrait>( PhantomData<U>);
 
-impl<L: Level, U: UITrait> Plugin for DragPlugin<L, U> {
+impl< U: UITrait> Plugin for DragPlugin<U> {
     fn build(&self, app: &mut App) {
         app.insert_resource(TouchRotateResource::default())
             .add_systems(
@@ -50,7 +50,7 @@ impl<L: Level, U: UITrait> Plugin for DragPlugin<L, U> {
             .add_systems(Update, detach_stuck_shapes_on_pickup)
             .add_systems(FixedUpdate, apply_forces)
             .add_systems(Update, handle_drag_changes.after(handle_rotate_events))
-            .add_systems(Update, draw_rotate_arrows::<L>)
+            .add_systems(Update, draw_rotate_arrows)
             .add_event::<RotateEvent>()
             .add_event::<ShapePickedUpEvent>()
             .add_event::<DragStartEvent>()
@@ -303,13 +303,13 @@ fn point_at_angle(dist: f32, radians: f32) -> Vec2 {
     Vec2 { x, y }
 }
 
-fn draw_rotate_arrows<L: Level>(
+fn draw_rotate_arrows(
     mut commands: Commands,
     touch_rotate: Res<TouchRotateResource>,
     mut existing_arrows: Query<(Entity, &mut Path), With<RotateArrow>>,
     draggables: Query<(&ShapeComponent, &Transform), With<BeingDragged>>,
     //mut previous_angle: Local<f32>,
-    current_level: Res<CurrentLevel<L>>,
+    current_level: Res<CurrentLevel>,
     settings: Res<GameSettings>,
 ) {
     if !touch_rotate.is_changed() {

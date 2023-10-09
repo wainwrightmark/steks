@@ -2,9 +2,53 @@ use bevy::{log, prelude::*, tasks::IoTaskPool};
 use capacitor_bindings::{app::AppInfo, device::*};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use steks_base::shape_component::{handle_change_level_events, ChangeLevelEvent, CurrentLevel};
 use strum::EnumDiscriminants;
 
-use crate::game_level::LevelLogData;
+use crate::{game_level::LevelLogData, global_ui::GlobalUiState};
+
+pub struct LogWatchPlugin;
+
+impl Plugin for LogWatchPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            First,
+            watch_level_changes.before(handle_change_level_events::<GlobalUiState>),
+        );
+    }
+}
+
+#[allow(unused_variables)]
+fn watch_level_changes(
+    mut events: EventReader<ChangeLevelEvent>,
+    current_level: Res<CurrentLevel>,
+) {
+    for ev in events.into_iter() {
+        let event = match ev {
+            ChangeLevelEvent::Next => "Next Level".to_string(),
+            ChangeLevelEvent::ChooseCampaignLevel { index, .. } => format!("Go to campaign level {index}") ,
+            ChangeLevelEvent::ChooseTutorialLevel { index, .. } => format!("Go to tutorial level {index}"),
+            ChangeLevelEvent::ResetLevel => "Reset Level".to_string(),
+            ChangeLevelEvent::StartInfinite => "Start Infinite".to_string(),
+            ChangeLevelEvent::StartChallenge => "Start Challenge".to_string(),
+            ChangeLevelEvent::Load(_) => "Load Game".to_string(),
+            ChangeLevelEvent::Credits => "Start Credits".to_string(),
+            ChangeLevelEvent::Begging => "Go to begging".to_string(),
+            ChangeLevelEvent::Custom { .. } => "Go to custom level".to_string(),
+        };
+        let loggable_event = LoggableEvent::ChangeLevel {
+            level_from: current_level.level.clone().into(),
+            event,
+        };
+
+        //info!("{loggable_event:?}");
+        //todo log change levels events
+        #[cfg(target_arch = "wasm32")]
+        {
+            loggable_event.try_log1();
+        }
+    }
+}
 
 #[must_use]
 #[skip_serializing_none]
@@ -25,7 +69,8 @@ pub enum LoggableEvent {
         gclid: Option<String>,
     },
     ChangeLevel {
-        level: LevelLogData,
+        level_from: LevelLogData,
+        event: String,
     },
     ClickShare,
     ShareOn {

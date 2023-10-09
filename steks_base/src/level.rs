@@ -1,22 +1,26 @@
-use std::marker::PhantomData;
-
 use crate::prelude::*;
-#[derive(Debug, Default)]
-pub struct LevelPlugin<L: Level>(PhantomData<L>);
+#[derive(Debug)]
+pub struct LevelPlugin{
+    pub initial: CurrentLevel
+}
 
-impl<L: Level> Plugin for LevelPlugin<L> {
+impl LevelPlugin {
+    pub fn new(initial: CurrentLevel) -> Self { Self { initial } }
+}
+
+impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, manage_level_shapes::<L>)
-            .add_systems(Update, adjust_gravity::<L>)
-            .init_resource::<CurrentLevel<L>>();
+        app.add_systems(Update, manage_level_shapes)
+            .add_systems(Update, adjust_gravity)
+            .insert_tracked_resource(self.initial.clone());
     }
 }
 
-fn manage_level_shapes<L: Level>(
+fn manage_level_shapes(
     mut commands: Commands,
     draggables: Query<((Entity, &ShapeIndex), With<ShapeComponent>)>,
-    current_level: Res<CurrentLevel<L>>,
-    previous_level: Local<PreviousLevel<L>>,
+    current_level: Res<CurrentLevel>,
+    previous_level: Local<PreviousLevel>,
     mut shape_creation_events: EventWriter<ShapeCreationData>,
     mut shape_update_events: EventWriter<ShapeUpdateData>,
 ) {
@@ -43,14 +47,11 @@ fn manage_level_shapes<L: Level>(
     update_previous_level(previous_level, &current_level);
 }
 
-fn adjust_gravity<L: Level>(
-    level: Res<CurrentLevel<L>>,
-    mut rapier_config: ResMut<RapierConfiguration>,
-) {
+fn adjust_gravity(level: Res<CurrentLevel>, mut rapier_config: ResMut<RapierConfiguration>) {
     if level.is_changed() {
         let gravity = level
             .level
-            .get_gravity(&level.completion)
+            .get_gravity(level.completion)
             .unwrap_or(GRAVITY);
         rapier_config.gravity = gravity;
     }

@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use crate::prelude::*;
 use bevy::{prelude::*, utils::HashMap};
 use bevy_prototype_lyon::prelude::*;
@@ -8,11 +6,11 @@ use bevy_rapier2d::prelude::RapierContext;
 use steks_common::prelude::*;
 
 #[derive(Debug, Default)]
-pub struct CollisionPlugin<L : Level>(PhantomData<L>);
+pub struct CollisionPlugin;
 
-impl<L: Level> Plugin for CollisionPlugin<L> {
+impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, display_collision_markers::<L>)
+        app.add_systems(PreUpdate, display_collision_markers)
             .add_systems(PreUpdate, highlight_voids)
             .add_systems(Update, pulse_collision_markers);
     }
@@ -63,12 +61,12 @@ fn highlight_voids(
     }
 }
 
-fn display_collision_markers<L : Level>(
+fn display_collision_markers(
     mut commands: Commands,
     rapier_context: Res<RapierContext>,
     walls: Query<(Entity, &Transform, &WallPosition), Without<CollisionMarker>>,
     mut markers: Query<(Entity, &mut Transform, &CollisionMarker), Without<WallPosition>>,
-    current_level: Res<CurrentLevel<L>>,
+    current_level: Res<CurrentLevel>,
 ) {
     let mut markers_map = HashMap::from_iter(markers.iter_mut().map(|x| (x.2, (x.0, x.1))));
 

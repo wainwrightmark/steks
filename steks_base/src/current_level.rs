@@ -1,18 +1,23 @@
 use bevy::prelude::*;
+use bevy_utils::TrackableResource;
 use serde::{Deserialize, Serialize};
 use steks_common::prelude::*;
 use strum::EnumIs;
 
-use crate::{shape_component::ShapeUpdateData, shape_creation_data::ShapeCreationData, records::{WorldRecords, PersonalBests}};
+use crate::game_level::GameLevel;
 
-#[derive(Default, Resource, Debug, PartialEq, Serialize, Deserialize)]
-pub struct CurrentLevel<T: Level> {
-    pub level: T,
+#[derive(Resource, Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct CurrentLevel {
+    pub level: GameLevel,
     pub completion: LevelCompletion,
     pub saved_data: Option<ShapesVec>,
 }
 
-impl<T: Level> CurrentLevel<T> {
+impl TrackableResource for CurrentLevel {
+    const KEY: &'static str = "CurrentLevel";
+}
+
+impl CurrentLevel {
     pub fn get_current_stage(&self) -> usize {
         match self.completion {
             LevelCompletion::Incomplete { stage } => stage,
@@ -21,7 +26,7 @@ impl<T: Level> CurrentLevel<T> {
     }
 
     pub fn snowdrop_settings(&self) -> Option<SnowdropSettings> {
-        self.level.snowdrop_settings(&self.completion)
+        self.level.snowdrop_settings(self.completion)
     }
 
     pub fn show_rotate_arrow(&self) -> bool {
@@ -29,85 +34,20 @@ impl<T: Level> CurrentLevel<T> {
     }
 }
 
-
-
-pub trait Level: Send + Sync + Default + Serialize + Clone + PartialEq + 'static {
-
-    fn has_stage(&self, stage: &usize) -> bool;
-    fn show_bottom_markers(&self) -> bool;
-    fn show_rotate_arrow(&self) -> bool;
-
-    fn fireworks_settings(&self, completion: &LevelCompletion) -> FireworksSettings;
-
-    fn snowdrop_settings(&self, completion: &LevelCompletion) -> Option<SnowdropSettings>;
-
-    fn get_level_stars(&self) -> Option<LevelStars>;
-
-    fn get_gravity(&self, completion: &LevelCompletion) -> Option<Vec2>;
-
-    fn create_initial_shapes(&self) -> Vec<ShapeCreationData>;
-
-     fn get_last_stage(&self) -> usize;
-
-    fn generate_creations_and_updates(
-        &self,
-        previous_stage: usize,
-        current_stage: usize,
-        shape_creations: &mut Vec<ShapeCreationData>,
-        shape_updates: &mut Vec<ShapeUpdateData>,
-    );
-
-    fn generate_score_info(
-        &self,
-        shapes: &ShapesVec,
-        world_records: &Res<WorldRecords>,
-        pbs: &Res<PersonalBests>,
-    ) -> ScoreInfo {
-        let height = shapes.calculate_tower_height();
-        let hash = shapes.hash();
-
-        let old_wr: Option<f32> = world_records.map.get(&hash).map(|x| x.calculate_height());
-        let old_height = pbs.map.get(&hash);
-
-        let pb = old_height.map(|x| x.height).unwrap_or(0.0);
-        let star = self.get_level_stars().map(|x| x.get_star(height));
-
-        let wr = match old_wr {
-            Some(old_wr) => {
-                if old_wr > height {
-                    WRData::External(old_wr)
-                } else {
-                    WRData::InternalProvisional
-                }
-            }
-            None => WRData::InternalProvisional,
-        };
-
-        ScoreInfo {
-            hash,
-            height,
-            is_first_win: old_height.is_none(),
-            wr,
-            pb,
-            star,
-        }
-    }
-}
-
 #[derive(Default, Debug, PartialEq)]
-pub struct PreviousLevel<T: Level>(pub Option<(T, LevelCompletion)>);
+pub struct PreviousLevel(pub Option<(GameLevel, LevelCompletion)>);
 
-pub fn update_previous_level<L: Level>(
-    mut previous_level: Local<PreviousLevel<L>>,
-    current_level: &Res<CurrentLevel<L>>,
+pub fn update_previous_level(
+    mut previous_level: Local<PreviousLevel>,
+    current_level: &Res<CurrentLevel>,
 ) {
     if current_level.is_changed() {
         *previous_level = current_level.as_ref().into();
     }
 }
 
-impl<L: Level> From<&CurrentLevel<L>> for PreviousLevel<L> {
-    fn from(value: &CurrentLevel<L>) -> Self {
+impl From<&CurrentLevel> for PreviousLevel {
+    fn from(value: &CurrentLevel) -> Self {
         Self(Some((value.level.clone(), value.completion)))
     }
 }
@@ -119,8 +59,8 @@ pub enum PreviousLevelType {
     SameLevelEarlierStage(usize),
 }
 
-impl<T: Level> PreviousLevel<T> {
-    pub fn compare(&self, current_level: &CurrentLevel<T>) -> PreviousLevelType {
+impl PreviousLevel {
+    pub fn compare(&self, current_level: &CurrentLevel) -> PreviousLevelType {
         let Some(previous) = &self.0 else {
             return PreviousLevelType::DifferentLevel;
         };

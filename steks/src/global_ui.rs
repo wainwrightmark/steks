@@ -59,7 +59,7 @@ impl GlobalUiState {
         matches!(self, GlobalUiState::MenuClosed(GameUIState::Splash))
     }
 
-    pub fn toggle_levels(&mut self, current_level: &CurrentLevel<GameLevel>) {
+    pub fn toggle_levels(&mut self, current_level: &CurrentLevel) {
         const LEVELS_PER_PAGE: u8 = 8;
 
         let page = match current_level.level {
@@ -115,7 +115,7 @@ pub struct GlobalUiRoot;
 impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
-        CurrentLevel<GameLevel>,
+        CurrentLevel,
         NC6<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource, UserSignedIn>,
         InputSettings,
     >;

@@ -18,7 +18,7 @@ fn icon_button_system(
     mut share_events: EventWriter<ShareEvent>,
     mut global_ui_state: ResMut<GlobalUiState>,
     mut settings: ResMut<GameSettings>,
-    current_level: Res<CurrentLevel<GameLevel>>,
+    current_level: Res<CurrentLevel>,
     dragged: Query<(), With<BeingDragged>>,
     mut news: ResMut<NewsResource>,
     leaderboard_data_event_writer: AsyncEventWriter<LeaderboardDataEvent>,
@@ -145,7 +145,7 @@ fn text_button_system(
     mut settings: ResMut<GameSettings>,
     mut news: ResMut<NewsResource>,
 
-    current_level: Res<CurrentLevel<GameLevel>>,
+    current_level: Res<CurrentLevel>,
     achievements: Res<Achievements>,
 
     dragged: Query<(), With<BeingDragged>>,

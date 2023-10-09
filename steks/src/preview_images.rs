@@ -34,7 +34,7 @@ fn update_preview_images(
     ui_state: Res<GlobalUiState>,
     pbs: Res<PersonalBests>,
     wrs: Res<WorldRecords>,
-    current_level: Res<CurrentLevel<GameLevel>>,
+    current_level: Res<CurrentLevel>,
 ) {
     if !ui_state.is_changed() && !current_level.is_changed() {
         return;

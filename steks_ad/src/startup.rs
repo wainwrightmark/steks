@@ -42,7 +42,6 @@ pub fn setup_app(app: &mut App) {
                     bevy_embedded_assets::EmbeddedAssetPlugin,
                 ),
         )
-
         .add_plugins(WallsPlugin)
         .add_plugins(GlobalUiPlugin)
         .add_plugins(ButtonPlugin)
@@ -50,27 +49,41 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(bevy_prototype_lyon::prelude::ShapePlugin)
         .add_plugins(InputPlugin)
         .add_plugins(CameraPlugin)
-
         .add_plugins(SpiritPlugin)
-
-        .add_plugins(HasActedPlugin::<GameLevel>::default())
-        .add_plugins(FireworksPlugin::<GameLevel>::default())
+        .add_plugins(StreakPlugin)
+        .add_plugins(HasActedPlugin::default())
+        .add_plugins(FireworksPlugin::default())
         .add_plugins(RecordsPlugin::default())
+        .insert_resource(DemoResource {
+            is_full_game: false,
+            max_demo_level: 8,
+        })
         .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
-
-
+        .insert_resource(RapierConfiguration {
+            gravity: GRAVITY,
+            timestep_mode: TimestepMode::Fixed {
+                dt: SECONDS_PER_FRAME,
+                substeps: 1,
+            },
+            ..RapierConfiguration::default()
+        })
         //.add_systems(FixedUpdate, limit_fixed_time)
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE).in_fixed_schedule())
-        .add_systems(Startup, setup)
-        .add_plugins(DragPlugin::<GameLevel, GlobalUiState>::default())
-        .add_plugins(WinPlugin::<GameLevel, GlobalUiState>::default())
-        .add_plugins(LevelPlugin::<GameLevel>::default())
-        .add_plugins(GameLevelPlugin::default())
-
-        .add_plugins(CollisionPlugin::<GameLevel>::default())
-        .add_plugins(PadlockPlugin::<GameLevel>::default())
+        .add_plugins(
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE).in_fixed_schedule(),
+        )
+        .add_plugins(DragPlugin::<GlobalUiState>::default())
+        .add_plugins(WinPlugin::<GlobalUiState>::default())
+        .add_plugins(LevelPlugin::new(CurrentLevel {
+            level: GameLevel::Designed {
+                meta: DesignedLevelMeta::Ad { index: 0 },
+            },
+            completion: LevelCompletion::Incomplete { stage: 0 },
+            saved_data: None,
+        }))
+        .add_plugins(ChangeLevelPlugin::<GlobalUiState>::default())
+        .add_plugins(CollisionPlugin::default())
+        .add_plugins(PadlockPlugin::default())
         .insert_resource(Insets::default())
-
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,
@@ -92,18 +105,7 @@ pub fn setup_app(app: &mut App) {
 
     //     //app.add_plugins(RapierDebugRenderPlugin::default());
     // }
-
-
 }
-
-pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
-    rapier_config.gravity = GRAVITY;
-    rapier_config.timestep_mode = TimestepMode::Fixed {
-        dt: SECONDS_PER_FRAME,
-        substeps: 1,
-    }
-}
-
 
 #[cfg(test)]
 pub mod test {

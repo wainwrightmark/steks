@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_prototype_lyon::prelude::ShapeBundle;
 
@@ -8,13 +6,13 @@ use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
 use crate::prelude::*;
 
 #[derive(Debug, Default)]
-pub struct FireworksPlugin<L: Level>(PhantomData<L>);
+pub struct FireworksPlugin;
 
-impl<L: Level> Plugin for FireworksPlugin<L> {
+impl Plugin for FireworksPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Update, spawn_fireworks)
             .add_systems(Update, despawn_fireworks)
-            .add_systems(Update, manage_fireworks::<L>)
+            .add_systems(Update, manage_fireworks)
             .add_systems(Update, firework_physics)
             .init_resource::<FireworksCountdown>();
     }
@@ -52,10 +50,10 @@ const FIREWORK_DAMPING: f32 = 0.9;
 const FIREWORK_ANGULAR_VELOCITY: f32 = 10.0;
 const DEFAULT_INTENSITY: u32 = 5;
 
-fn manage_fireworks<L: Level>(
-    current_level: Res<CurrentLevel<L>>,
+fn manage_fireworks(
+    current_level: Res<CurrentLevel>,
     has_acted: Res<HasActed>,
-    previous_level: Local<PreviousLevel<L>>,
+    previous_level: Local<PreviousLevel>,
     mut countdown: ResMut<FireworksCountdown>,
     settings: Res<GameSettings>,
 ) {

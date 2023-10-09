@@ -56,28 +56,47 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(InputPlugin)
         .add_plugins(CameraPlugin)
         .add_plugins(LeaderboardPlugin)
+        .add_plugins(LogWatchPlugin)
         .add_plugins(SpiritPlugin)
         .add_plugins(PreviewImagePlugin)
-        .add_plugins(HasActedPlugin::<GameLevel>::default())
-        .add_plugins(FireworksPlugin::<GameLevel>::default())
+        .add_plugins(HasActedPlugin::default())
+        .add_plugins(FireworksPlugin::default())
         .add_plugins(AppUrlPlugin)
-        .add_plugins(SnowPlugin::<GameLevel>::default())
+        .add_plugins(SnowPlugin::default())
         .add_plugins(ImportPlugin)
         .add_plugins(NewsPlugin)
+        .add_plugins(StreakPlugin)
         .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
         .add_systems(FixedUpdate, limit_fixed_time)
+        .insert_resource(RapierConfiguration {
+            gravity: GRAVITY,
+            timestep_mode: TimestepMode::Fixed {
+                dt: SECONDS_PER_FRAME,
+                substeps: 1,
+            },
+            ..RapierConfiguration::default()
+        })
         .add_plugins(RapierPhysicsPlugin::in_fixed_schedule(
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE),
         ))
-        .add_systems(Startup, setup)
-        .add_plugins(DragPlugin::<GameLevel, GlobalUiState>::default())
-        .add_plugins(WinPlugin::<GameLevel, GlobalUiState>::default())
+
+
+        .add_plugins(DragPlugin::<GlobalUiState>::default())
+        .add_plugins(WinPlugin::<GlobalUiState>::default())
         .add_plugins(GameLevelPlugin)
-        .add_plugins(LevelPlugin::<GameLevel>::default())
+        .add_plugins(LevelPlugin::new(CurrentLevel {
+            level: GameLevel::Designed {
+                meta: DesignedLevelMeta::Tutorial { index: 0 },
+            },
+            completion: LevelCompletion::Incomplete { stage: 0 },
+            saved_data: None,
+        }))
         .add_plugins(SharePlugin)
-        .add_plugins(CollisionPlugin::<GameLevel>::default())
-        .add_plugins(PadlockPlugin::<GameLevel>::default())
+        .add_plugins(ChangeLevelPlugin::<GlobalUiState>::default())
+        .add_plugins(CollisionPlugin::default())
+        .add_plugins(PadlockPlugin::default())
         .insert_resource(Insets::default())
+        .insert_resource(create_demo_resource())
         .insert_resource(bevy_pkv::PkvStore::new("bleppo", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
@@ -116,26 +135,21 @@ pub fn setup_app(app: &mut App) {
     app.add_systems(PostStartup, set_device_id);
 }
 
-pub fn limit_fixed_time(mut time: ResMut<FixedTime>){
-    if time.accumulated() > Duration::from_secs(1){
-        warn!("Accumulated fixed time is over 1 second ({:?})", time.accumulated());
+fn create_demo_resource() -> DemoResource {
+    DemoResource {
+        is_full_game: *IS_FULL_GAME,
+        max_demo_level: *MAX_DEMO_LEVEL,
+    }
+}
+
+pub fn limit_fixed_time(mut time: ResMut<FixedTime>) {
+    if time.accumulated() > Duration::from_secs(1) {
+        warn!(
+            "Accumulated fixed time is over 1 second ({:?})",
+            time.accumulated()
+        );
         *time = FixedTime::new_from_secs(SECONDS_PER_FRAME);
     }
-
-
-}
-
-pub fn setup(mut rapier_config: ResMut<RapierConfiguration>) {
-    rapier_config.gravity = GRAVITY;
-    rapier_config.timestep_mode = TimestepMode::Fixed {
-        dt: SECONDS_PER_FRAME,
-        substeps: 1,
-    }
-}
-
-pub fn get_today_date() -> chrono::NaiveDate {
-    let today = chrono::offset::Utc::now();
-    today.date_naive()
 }
 
 fn set_device_id() {

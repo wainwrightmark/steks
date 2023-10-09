@@ -18,9 +18,9 @@ impl LevelTransitionResult {
         }
     }
 
-    pub fn from_level<L: Level>(
-        current_level: &CurrentLevel<L>,
-        previous_level: &PreviousLevel<L>,
+    pub fn from_level(
+        current_level: &CurrentLevel,
+        previous_level: &PreviousLevel,
     ) -> Self {
         let previous_stage = match previous_level.compare(&current_level) {
             PreviousLevelType::DifferentLevel => None,

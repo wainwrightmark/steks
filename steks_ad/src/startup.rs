@@ -67,7 +67,6 @@ pub fn setup_app(app: &mut App) {
             },
             ..RapierConfiguration::default()
         })
-        //.add_systems(FixedUpdate, limit_fixed_time)
         .add_plugins(
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE).in_fixed_schedule(),
         )

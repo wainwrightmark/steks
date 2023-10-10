@@ -56,8 +56,8 @@ impl PredictionResult {
 
 pub fn make_prediction(
     context: &RapierContext,
+    config: &RapierConfiguration,
     prediction_settings: PredictionSettings,
-    gravity: Vect,
 ) -> PredictionResult {
     let mut physics_pipeline = PhysicsPipeline::default();
 
@@ -95,12 +95,26 @@ pub fn make_prediction(
 
     debug!("Looking for future collisions with {} bodies", bodies.len());
 
+    let dt = match config.timestep_mode {
+        TimestepMode::Fixed { dt, substeps } => dt / (substeps as Real),
+        TimestepMode::Variable {
+            max_dt,
+            time_scale: _,
+            substeps,
+        } => max_dt / substeps as Real,
+        TimestepMode::Interpolated {
+            dt,
+            time_scale,
+            substeps,
+        } => dt / (substeps as Real) * time_scale,
+    };
+
     let mut substep_integration_parameters = context.integration_parameters;
-    substep_integration_parameters.dt = SECONDS_PER_FRAME;
+    substep_integration_parameters.dt = dt;
     let event_handler = PredictionCollisionHandler::default();
     for i in 0..prediction_settings.max_substeps {
         physics_pipeline.step(
-            &(gravity / context.physics_scale()).into(),
+            &(config.gravity / context.physics_scale()).into(),
             &context.integration_parameters,
             &mut islands,
             &mut broad_phase,

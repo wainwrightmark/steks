@@ -1,15 +1,15 @@
 use std::marker::PhantomData;
 
-use bevy::ecs::event::Events;
+use bevy::{ecs::event::Events, app::RunFixedUpdateLoop};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::{prediction, prelude::*};
 
 #[derive(Debug, Default)]
-pub struct WinPlugin<U: UITrait>(PhantomData< U>);
+pub struct WinPlugin<U: UITrait>(PhantomData<U>);
 
-impl<U: UITrait> Plugin for WinPlugin< U> {
+impl<U: UITrait> Plugin for WinPlugin<U> {
     fn build(&self, app: &mut App) {
         app.add_systems(FixedUpdate, check_for_collisions)
             .add_systems(FixedUpdate, check_for_win::<U>)
@@ -17,7 +17,7 @@ impl<U: UITrait> Plugin for WinPlugin< U> {
             .add_event::<ShapeUpdateData>()
             .add_event::<LevelWonEvent>()
             .add_systems(Update, spawn_and_update_shapes)
-            .add_systems(Update, check_for_tower.before(drag_end));
+            .add_systems(RunFixedUpdateLoop, check_for_tower);
         app.add_plugins(WinCountdownPlugin);
     }
 }
@@ -95,7 +95,7 @@ pub fn check_for_win<U: UITrait>(
 pub fn check_for_tower(
     mut check_events: EventReader<CheckForTowerEvent>,
     mut countdown: ResMut<WinCountdown>,
-    draggable: Query<&ShapeComponent>,
+    draggable: Query<&BeingDragged>,
     mut collision_events: ResMut<Events<CollisionEvent>>,
     rapier_context: Res<RapierContext>,
     rapier_config: Res<RapierConfiguration>,
@@ -113,9 +113,11 @@ pub fn check_for_tower(
         return; // no need to check, we're already winning
     }
 
-    if draggable.iter().any(|x| x.is_dragged()) {
+    if !draggable.is_empty() {
         return; //Something is being dragged so the player can't win yet
     }
+
+    debug!("Checking for tower");
 
     //Check for contacts
     if walls.iter().any(|entity| {
@@ -145,14 +147,12 @@ pub fn check_for_tower(
     {
         PredictionResult::ManyNonWall
     } else {
-        prediction::make_prediction(
-            &rapier_context,
-            has_acted.as_ref().into(),
-            rapier_config.gravity,
-        )
+        prediction::make_prediction(&rapier_context, &rapier_config, has_acted.as_ref().into())
     };
 
     let countdown_seconds = prediction_result.get_countdown_seconds(&has_acted);
+
+    debug!("Prediction {prediction_result:?} seconds {countdown_seconds:?}");
 
     let Some(seconds_remaining) = countdown_seconds else {
         return;

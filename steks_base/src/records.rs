@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 #[derive(Debug, Default)]
 pub struct RecordsPlugin;
 
-impl Plugin for RecordsPlugin{
+impl Plugin for RecordsPlugin {
     fn build(&self, app: &mut App) {
         app.init_tracked_resource::<WorldRecords>();
         app.init_tracked_resource::<PersonalBests>();
@@ -20,6 +20,7 @@ pub type WrMAP = BTreeMap<u64, LevelWR>;
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct LevelPB {
+    #[deprecated = "not set correctly historically"]
     pub star: StarType,
     pub height: f32,
     pub image_blob: Vec<u8>,
@@ -60,6 +61,16 @@ pub struct PersonalBests {
 
 impl TrackableResource for PersonalBests {
     const KEY: &'static str = "PBs";
+}
+
+impl PersonalBests {
+    pub fn get_from_level_index(&self, level_index: usize) -> Option<&LevelPB >{
+        let level = CAMPAIGN_LEVELS.get(level_index)?;
+        let sv = ShapesVec::from(level);
+        let hash = sv.hash();
+
+        self.map.get(&hash)
+    }
 }
 
 #[derive(Debug, Resource, Default, Serialize, Deserialize, Clone)]

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::prelude::*;
 
 pub struct ButtonPlugin;
@@ -19,6 +21,7 @@ fn icon_button_system(
     mut global_ui_state: ResMut<GlobalUiState>,
     mut settings: ResMut<GameSettings>,
     current_level: Res<CurrentLevel>,
+    personal_bests: Res<PersonalBests>,
     dragged: Query<(), With<BeingDragged>>,
     mut news: ResMut<NewsResource>,
     leaderboard_data_event_writer: AsyncEventWriter<LeaderboardDataEvent>,
@@ -54,6 +57,19 @@ fn icon_button_system(
                     *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Splash);
                 }
                 NextLevelsPage => global_ui_state.as_mut().next_levels_page(),
+                PlayPB => {
+                    match global_ui_state.as_ref() {
+                        GlobalUiState::MenuOpen(MenuPage::PBs { level }) => {
+                            if let Some(pb) = personal_bests.get_from_level_index(*level as usize){
+                            change_level_events.send(ChangeLevelEvent::Load(Arc::new(pb.image_blob.clone())));
+
+                            }
+                        }
+                        _ => {
+                            //do nothing
+                        }
+                    }
+                }
 
                 PreviousLevelsPage => global_ui_state.as_mut().previous_levels_page(),
                 RefreshWR => {
@@ -198,6 +214,10 @@ fn text_button_system(
                 TextButton::ChooseLevel => global_ui_state
                     .as_mut()
                     .toggle_levels(current_level.as_ref()),
+
+                TextButton::ViewPBs => global_ui_state
+                    .as_mut()
+                    .toggle_view_pbs(current_level.as_ref()),
                 TextButton::MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })

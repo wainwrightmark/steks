@@ -14,7 +14,8 @@ pub enum MenuPage {
     Main,
     Settings,
     Accessibility,
-    Level(u8),
+    Level { page: u8 },
+    PBs { level: u8 },
 }
 
 fn filter_button(button: TextButton, context: &NewsResource) -> bool {
@@ -25,7 +26,15 @@ fn filter_button(button: TextButton, context: &NewsResource) -> bool {
 }
 
 impl MavericNode for MenuPage {
-    type Context = NC6<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource, UserSignedIn>;
+    type Context = NC7<
+        GameSettings,
+        CampaignCompletion,
+        Insets,
+        AssetServer,
+        NewsResource,
+        UserSignedIn,
+        PersonalBests,
+    >;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -52,11 +61,11 @@ impl MavericNode for MenuPage {
             MenuPage::Main => {
                 use TextButton::*;
 
-                let buttons: &[TextButton] =
-                if *IS_FULL_GAME{
+                let buttons: &[TextButton] = if *IS_FULL_GAME {
                     &[
                         Resume,
                         ChooseLevel,
+                        ViewPBs,
                         #[cfg(feature = "web")]
                         Begging,
                         DailyChallenge,
@@ -73,11 +82,11 @@ impl MavericNode for MenuPage {
                         #[cfg(all(feature = "android", target_arch = "wasm32"))]
                         MinimizeApp,
                     ]
-                }
-                else{
+                } else {
                     &[
                         Resume,
                         ChooseLevel,
+                        ViewPBs,
                         #[cfg(feature = "web")]
                         Begging,
                         DailyChallenge,
@@ -179,8 +188,7 @@ impl MavericNode for MenuPage {
                     &context.3,
                 );
 
-                if context.5.is_signed_in{
-
+                if context.5.is_signed_in {
                     commands.add_child(
                         "show_achievements",
                         text_button_node(TextButton::ShowAchievements, true, false),
@@ -206,21 +214,21 @@ impl MavericNode for MenuPage {
                     &context.3,
                 );
             }
-            MenuPage::Level(page) => {
+            MenuPage::Level { page } => {
                 let start = page * LEVELS_PER_PAGE;
                 let end = start + LEVELS_PER_PAGE;
-                let current_level = &context.1;
+                let campaign_completion = &context.1;
 
                 for (key, level) in (start..end).enumerate() {
                     let enabled = match level.checked_sub(1) {
-                        Some(index) => current_level
+                        Some(index) => campaign_completion
                             .stars
                             .get(index as usize)
                             .is_some_and(|m| !m.is_incomplete()), //check if previous level is complete
                         None => true, //first level always unlocked
                     };
 
-                    let star = current_level
+                    let star = campaign_completion
                         .stars
                         .get(level as usize)
                         .cloned()
@@ -247,6 +255,184 @@ impl MavericNode for MenuPage {
                 }
 
                 commands.add_child("buttons", LevelMenuArrows(*page), &context.3);
+            }
+
+            MenuPage::PBs { level } => {
+                //let campaign_completion = &context.1;
+                commands.add_child("preview", PBPreview { level: *level }, context);
+            }
+        });
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct PBPreview {
+    level: u8,
+}
+
+impl MavericNode for PBPreview {
+    type Context = NC7<
+        GameSettings,
+        CampaignCompletion,
+        Insets,
+        AssetServer,
+        NewsResource,
+        UserSignedIn,
+        PersonalBests,
+    >;
+
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
+        commands.ignore_node().ignore_context().insert(NodeBundle {
+            style: Style {
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.), Val::Px(0.)),
+                justify_content: JustifyContent::Center,
+                border: UiRect::all(Val::Px(UI_BORDER_WIDTH)),
+                ..Default::default()
+            },
+
+            background_color: BackgroundColor(Color::WHITE),
+            border_color: BorderColor(Color::BLACK),
+            z_index: ZIndex::Global(15),
+            ..Default::default()
+        });
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands.unordered_children_with_node_and_context(|node, context, commands| {
+            commands.add_child(
+                "image",
+                ImageNode {
+                    path: PREVIEW_IMAGE_ASSET_PATH,
+                    background_color: Color::WHITE,
+                    style: PreviewImageStyle,
+                },
+                &context.3,
+            );
+
+            if let Some(level_pb) = context.6.get_from_level_index(node.level as usize) {
+                let height = level_pb.height;
+                commands.add_child(
+                    "height_data",
+                    TextNode {
+                        text: format!("{height:6.2}m",),
+                        font_size: LEVEL_HEIGHT_FONT_SIZE,
+                        color: LEVEL_TEXT_COLOR,
+                        font: LEVEL_TEXT_FONT_PATH,
+                        alignment: TextAlignment::Center,
+                        linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
+                    },
+                    &context.3,
+                );
+
+                if let Some(level_stars) = CAMPAIGN_LEVELS
+                    .get(node.level as usize)
+                    .and_then(|x| x.stars)
+                {
+                    let stars = level_stars.get_star(height);
+                    commands.add_child(
+                        "pb_stars",
+                        ImageNode {
+                            path: stars.wide_stars_asset_path(),
+                            background_color: Color::WHITE,
+                            style: ThreeStarsImageStyle,
+                        },
+                        &context.3,
+                    );
+                }
+            }
+
+            commands.add_child("buttons", PBArrows{level: node.level}, context);
+        });
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct PBArrows {
+    level: u8,
+}
+
+impl MavericNode for PBArrows {
+    type Context = NC7<
+        GameSettings,
+        CampaignCompletion,
+        Insets,
+        AssetServer,
+        NewsResource,
+        UserSignedIn,
+        PersonalBests,
+    >;
+
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
+        commands.ignore_node().ignore_context().insert(NodeBundle {
+            style: Style {
+                position_type: PositionType::Relative,
+                left: Val::Percent(0.0),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+
+                width: Val::Px(PREVIEW_IMAGE_SIZE_F32),
+                height: Val::Px(TEXT_BUTTON_HEIGHT),
+                margin: UiRect {
+                    left: Val::Auto,
+                    right: Val::Auto,
+                    top: Val::Px(MENU_TOP_BOTTOM_MARGIN),
+                    bottom: Val::Px(MENU_TOP_BOTTOM_MARGIN),
+                },
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_grow: 0.0,
+                flex_shrink: 0.0,
+
+                ..Default::default()
+            },
+            background_color: BackgroundColor(TEXT_BUTTON_BACKGROUND),
+
+            ..Default::default()
+        });
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands.unordered_children_with_node_and_context(|args, context, commands| {
+            if args.level == 0 {
+                commands.add_child(
+                    "left",
+                    icon_button_node(IconButton::OpenMenu, IconButtonStyle::HeightPadded),
+                    &context.3,
+                )
+            } else {
+                commands.add_child(
+                    "left",
+                    icon_button_node(
+                        IconButton::PreviousLevelsPage,
+                        IconButtonStyle::HeightPadded,
+                    ),
+                    &context.3,
+                )
+            }
+
+            commands.add_child(
+                "play",
+                icon_button_node(IconButton::PlayPB, IconButtonStyle::HeightPadded),
+                &context.3,
+            );
+
+            let can_go_right = context.1.stars.get(args.level.saturating_add(1) as usize).is_some_and(|x| !x.is_incomplete()) ;
+
+            if can_go_right {
+                commands.add_child(
+                    "right",
+                    icon_button_node(IconButton::NextLevelsPage, IconButtonStyle::HeightPadded),
+                    &context.3,
+                )
+            } else {
+                commands.add_child(
+                    "right",
+                    icon_button_node(IconButton::None, IconButtonStyle::HeightPadded),
+                    &context.3,
+                )
             }
         });
     }

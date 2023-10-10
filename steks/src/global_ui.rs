@@ -70,8 +70,22 @@ impl GlobalUiState {
         };
 
         match self {
-            GlobalUiState::MenuOpen(MenuPage::Level(..)) => self.minimize(),
-            _ => *self = GlobalUiState::MenuOpen(MenuPage::Level(page)),
+            GlobalUiState::MenuOpen(MenuPage::Level { .. }) => self.minimize(),
+            _ => *self = GlobalUiState::MenuOpen(MenuPage::Level { page }),
+        }
+    }
+
+    pub fn toggle_view_pbs(&mut self, current_level: &CurrentLevel) {
+        let level = match current_level.level {
+            GameLevel::Designed {
+                meta: DesignedLevelMeta::Campaign { index },
+            } => index,
+            _ => 0,
+        };
+
+        match self {
+            GlobalUiState::MenuOpen(MenuPage::Level { .. }) => self.minimize(),
+            _ => *self = GlobalUiState::MenuOpen(MenuPage::PBs { level }),
         }
     }
 
@@ -92,17 +106,27 @@ impl GlobalUiState {
     }
 
     pub fn next_levels_page(&mut self) {
-        if let GlobalUiState::MenuOpen(MenuPage::Level(levels)) = self {
-            let new_page = levels.saturating_add(1) % (max_page_exclusive() - 1);
+        if let GlobalUiState::MenuOpen(MenuPage::Level { page }) = self {
+            let new_page = page.saturating_add(1) % (max_page_exclusive() - 1);
 
-            *self = GlobalUiState::MenuOpen(MenuPage::Level(new_page))
+            *self = GlobalUiState::MenuOpen(MenuPage::Level { page: new_page })
+        } else if let GlobalUiState::MenuOpen(MenuPage::PBs { level }) = self {
+            let new_level = level.saturating_add(1) % (CAMPAIGN_LEVELS.len() as u8 - 1);
+
+            *self = GlobalUiState::MenuOpen(MenuPage::PBs { level: new_level })
         }
     }
 
     pub fn previous_levels_page(&mut self) {
-        if let GlobalUiState::MenuOpen(MenuPage::Level(levels)) = self {
-            if let Some(new_page) = levels.checked_sub(1) {
-                *self = GlobalUiState::MenuOpen(MenuPage::Level(new_page));
+        if let GlobalUiState::MenuOpen(MenuPage::Level { page }) = self {
+            if let Some(new_page) = page.checked_sub(1) {
+                *self = GlobalUiState::MenuOpen(MenuPage::Level { page: new_page });
+            } else {
+                *self = GlobalUiState::MenuOpen(MenuPage::Main);
+            }
+        } else if let GlobalUiState::MenuOpen(MenuPage::PBs { level }) = self {
+            if let Some(new_level) = level.checked_sub(1) {
+                *self = GlobalUiState::MenuOpen(MenuPage::PBs { level: new_level });
             } else {
                 *self = GlobalUiState::MenuOpen(MenuPage::Main);
             }
@@ -116,7 +140,15 @@ impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
         CurrentLevel,
-        NC6<GameSettings, CampaignCompletion, Insets, AssetServer, NewsResource, UserSignedIn>,
+        NC7<
+            GameSettings,
+            CampaignCompletion,
+            Insets,
+            AssetServer,
+            NewsResource,
+            UserSignedIn,
+            PersonalBests,
+        >,
         InputSettings,
     >;
 
@@ -139,7 +171,12 @@ impl MavericRootChildren for GlobalUiRoot {
                         0 => MenuPage::Main,
                         1 => MenuPage::Settings,
                         2 => MenuPage::Accessibility,
-                        n => MenuPage::Level((n - 3) as u8),
+                        3..=99 => MenuPage::Level {
+                            page: ((page - 3) as u8),
+                        },
+                        100.. => MenuPage::PBs {
+                            level: (page - 100) as u8,
+                        },
                     })
                 }
 
@@ -150,9 +187,14 @@ impl MavericRootChildren for GlobalUiRoot {
                         Carousel::new(2, get_carousel_child, transition_duration)
                     }
 
-                    MenuPage::Level(n) => {
-                        Carousel::new((n + 3) as u32, get_carousel_child, transition_duration)
+                    MenuPage::Level { page } => {
+                        Carousel::new((page + 3) as u32, get_carousel_child, transition_duration)
                     }
+                    MenuPage::PBs { level } => Carousel::new(
+                        (level + 100) as u32,
+                        get_carousel_child,
+                        transition_duration,
+                    ),
                 };
 
                 commands.add_child("carousel", carousel, &context.2);

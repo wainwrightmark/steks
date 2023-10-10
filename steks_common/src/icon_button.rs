@@ -7,6 +7,8 @@ pub enum IconButton {
     Share,
     SharePB,
 
+    PlayPB,
+
     EnableSnow,
 
     NextLevel,
@@ -54,6 +56,7 @@ impl IconButton {
 
             OpenNews => "\u{e824}",
             FollowNewsLink => "\u{e824}",
+            PlayPB => "\u{e808}",
 
             None => "",
         }

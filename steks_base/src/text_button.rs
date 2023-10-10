@@ -11,8 +11,10 @@ pub enum TextButton {
     DailyChallenge,
     Share,
     ChooseLevel,
+    ViewPBs,
     ClipboardImport,
     GotoLevel { level: u8 },
+
     MinimizeApp,
     OpenSettings,
     OpenAccessibility,
@@ -54,6 +56,7 @@ impl TextButton {
             TextButton::Share => true,
             TextButton::BackToMenu => false,
             TextButton::ChooseLevel => false,
+            TextButton::ViewPBs => false,
             TextButton::ClipboardImport => true,
             TextButton::GotoLevel { .. } => true,
             TextButton::MinimizeApp => true,
@@ -70,7 +73,7 @@ impl TextButton {
             TextButton::ShowAchievements => false,
             TextButton::InfiniteLeaderboard => false,
             TextButton::News => false, //automatically closes menu
-            TextButton::GetTheGame => true, //automatically closes menu
+            TextButton::GetTheGame => true,
         }
     }
 
@@ -85,6 +88,7 @@ impl TextButton {
             TextButton::DailyChallenge => "Daily Challenge".to_string(),
             TextButton::Share => "Share".to_string(),
             TextButton::ChooseLevel => "Choose Level".to_string(),
+            TextButton::ViewPBs => "Personal Bests".to_string(),
             TextButton::ClipboardImport => "Import Level".to_string(),
             TextButton::GetTheGame => "Get The Game".to_string(),
             TextButton::GotoLevel { level } => {

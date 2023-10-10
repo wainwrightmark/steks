@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     signingConfigs {
-        debug {
-            storeFile file('C:\\Users\\wainw\\Desktop\\steksgame_key.jks')
-            storePassword '' //Westminster
-            keyAlias 'steksgame_key'
-            keyPassword '' //Westminster
-        }
+        // debug {
+        //     storeFile file('C:\\Users\\wainw\\Desktop\\steksgame_key.jks')
+        //     storePassword '' //Westminster
+        //     keyAlias 'steksgame_key'
+        //     keyPassword '' //Westminster
+        // }
     }
     namespace "com.steksgame.app"
     compileSdkVersion rootProject.ext.compileSdkVersion

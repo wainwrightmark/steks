@@ -14,8 +14,8 @@ impl Plugin for PreviewImagePlugin {
     }
 }
 
-const PREVIEW_IMAGE_SIZE_U32: u32 = 256;
-const PREVIEW_IMAGE_SIZE_F32: f32 = PREVIEW_IMAGE_SIZE_U32 as f32;
+pub const PREVIEW_IMAGE_SIZE_U32: u32 = 256;
+pub const PREVIEW_IMAGE_SIZE_F32: f32 = PREVIEW_IMAGE_SIZE_U32 as f32;
 pub const PREVIEW_IMAGE_ASSET_PATH: &str = "images/preview.png";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIs)]
@@ -40,12 +40,23 @@ fn update_preview_images(
         return;
     }
 
-    let GlobalUiState::MenuClosed(GameUIState::Preview(preview)) = ui_state.as_ref() else {
-        return;
-    };
+    let (preview, hash) = match ui_state.as_ref() {
+        GlobalUiState::MenuClosed(GameUIState::Preview(preview)) => {
+            let LevelCompletion::Complete { score_info } = current_level.completion else {
+                return;
+            };
 
-    let LevelCompletion::Complete { score_info } = current_level.completion else {
-        return;
+            (*preview, score_info.hash)
+        }
+        GlobalUiState::MenuOpen(MenuPage::PBs { level }) => {
+            let Some(level) = CAMPAIGN_LEVELS.get(*level as usize) else {
+                return;
+            };
+            let sv = ShapesVec::from(level);
+            let hash = sv.hash();
+            (PreviewImage::PB, hash)
+        }
+        _ => return,
     };
 
     let handle = images.get_handle(PREVIEW_IMAGE_ASSET_PATH);
@@ -58,7 +69,7 @@ fn update_preview_images(
 
     match preview {
         PreviewImage::PB => {
-            if let Some(pb) = pbs.map.get(&score_info.hash) {
+            if let Some(pb) = pbs.map.get(&hash) {
                 match game_to_image(pb.image_blob.as_slice()) {
                     Ok(image) => {
                         *im = image;
@@ -70,7 +81,7 @@ fn update_preview_images(
             }
         }
         PreviewImage::WR => {
-            if let Some(wr) = wrs.map.get(&score_info.hash) {
+            if let Some(wr) = wrs.map.get(&hash) {
                 match game_to_image(wr.image_blob.as_slice()) {
                     Ok(image) => {
                         *im = image;
@@ -101,7 +112,7 @@ fn game_to_image(data: &[u8]) -> Result<Image, anyhow::Error> {
             width: PREVIEW_IMAGE_SIZE_U32,
             height: PREVIEW_IMAGE_SIZE_U32,
         },
-        ()
+        (),
     )?;
 
     Ok(Image::from_buffer(

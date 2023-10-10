@@ -16,40 +16,42 @@ impl Plugin for AchievementsPlugin {
             .add_systems(Update, check_for_sign_in)
             .add_systems(Update, check_for_its_a_trap)
             .add_systems(Update, check_for_one_in_a_million)
-            .init_resource::<UserSignedIn>()
-            ;
+            .init_resource::<UserSignedIn>();
     }
 }
 
 #[derive(Debug, Resource, Default, Clone, PartialEq, Eq)]
-pub struct UserSignedIn{
-    pub is_signed_in: bool
+pub struct UserSignedIn {
+    pub is_signed_in: bool,
 }
 
 #[derive(Debug, Event, Clone, Copy, Eq, PartialEq)]
 pub struct SignInEvent;
 
-fn check_for_sign_in(mut ev: EventReader<SignInEvent>,mut signed_in: ResMut<UserSignedIn>, achievements: Res<Achievements>){
-    for _ in ev.iter(){
+fn check_for_sign_in(
+    mut ev: EventReader<SignInEvent>,
+    mut signed_in: ResMut<UserSignedIn>,
+    achievements: Res<Achievements>,
+) {
+    for _ in ev.iter() {
         signed_in.is_signed_in = true;
         achievements.resync();
-
     }
 }
 
 #[allow(unused_variables)]
 fn sign_in_user(writer: AsyncEventWriter<SignInEvent>) {
-
     #[allow(dead_code)]
     #[cfg(target_arch = "wasm32")]
     {
         #[cfg(any(feature = "android", feature = "ios"))]
         {
-
-            async fn sign_in_async(writer: AsyncEventWriter<SignInEvent>)-> Result<(), capacitor_bindings::error::Error>{
+            async fn sign_in_async(
+                writer: AsyncEventWriter<SignInEvent>,
+            ) -> Result<(), capacitor_bindings::error::Error> {
                 let user = capacitor_bindings::game_connect::GameConnect::sign_in().await?;
                 info!("User signed in: {user:?}");
-                let _  = writer.send_async(SignInEvent).await;
+                let _ = writer.send_async(SignInEvent).await;
 
                 Ok(())
             }
@@ -58,17 +60,14 @@ fn sign_in_user(writer: AsyncEventWriter<SignInEvent>) {
             bevy::tasks::IoTaskPool::get()
                 .spawn(async move {
                     match sign_in_async(writer).await {
-                        Ok(())=>{}
-                        Err(err)=> error!("{err}")
+                        Ok(()) => {}
+                        Err(err) => error!("{err}"),
                     }
-
                 })
                 .detach();
         }
     }
 }
-
-
 
 pub fn show_achievements() {
     #[cfg(target_arch = "wasm32")]
@@ -231,7 +230,6 @@ fn track_level_completion_achievements(
     mut achievements: ResMut<Achievements>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
 ) {
-
     use Achievement::*;
     use DesignedLevelMeta::*;
 
@@ -322,20 +320,21 @@ fn track_level_completion_achievements(
     }
 }
 
-fn check_for_one_in_a_million(mut events: EventReader<LevelWonEvent>, mut achievements: ResMut<Achievements>,){
-    for event in events.into_iter(){
-        if event.has_not_acted{
+fn check_for_one_in_a_million(
+    mut events: EventReader<LevelWonEvent>,
+    mut achievements: ResMut<Achievements>,
+) {
+    for event in events.into_iter() {
+        if event.has_not_acted {
             Achievements::unlock_if_locked(&mut achievements, Achievement::ThatWasOneInAMillion);
         }
     }
 }
 
-
 fn check_for_its_a_trap(
     has_acted: Res<HasActed>,
     mut collision_events: EventReader<CollisionEvent>,
     current_level: Res<CurrentLevel>,
-    previous_level: Local<PreviousLevel>,
     mut achievements: ResMut<Achievements>,
     draggables: Query<&ShapeStage>,
     walls: Query<(), With<WallSensor>>,
@@ -346,15 +345,6 @@ fn check_for_its_a_trap(
     }
 
     if achievements.completed.contains(Achievement::ItsATrap) {
-        return;
-    }
-
-    let is_same_level = previous_level
-        .compare(current_level.as_ref())
-        .is_same_level_earlier_stage();
-    update_previous_level(previous_level, &current_level);
-
-    if !is_same_level {
         return;
     }
 
@@ -371,6 +361,7 @@ fn check_for_its_a_trap(
                     match current_level.completion {
                         LevelCompletion::Incomplete { stage } => {
                             if shape_stage.0 != stage {
+                                info!("Found its a trap");
                                 Achievements::unlock_if_locked(
                                     &mut achievements,
                                     Achievement::ItsATrap,

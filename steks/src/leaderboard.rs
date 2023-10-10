@@ -348,10 +348,14 @@ fn check_pbs_on_completion(
         return;
     };
 
-    let level_pb = || LevelPB {
-        height,
-        star: StarType::Incomplete,
-        image_blob: shapes.make_bytes(),
+    let level_pb = || {
+        let star = current_level.level.get_level_stars().map(|s|s.get_star(height)).unwrap_or(StarType::Incomplete);
+        #[allow(deprecated)]
+        LevelPB {
+            height,
+            star,
+            image_blob: shapes.make_bytes(),
+        }
     };
 
     let pb_changed = match DetectChangesMut::bypass_change_detection(&mut pbs)

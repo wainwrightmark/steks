@@ -5,8 +5,8 @@ use steks_common::prelude::*;
 use crate::window_size::WindowSize;
 
 pub struct RectangleSet {
-    outer: Rect,
-    existing: Vec<Rect>,
+    pub outer: Rect,
+    pub existing: Vec<Rect>,
 }
 
 impl RectangleSet {

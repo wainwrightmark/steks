@@ -1,7 +1,7 @@
 use bevy::window::{PrimaryWindow, WindowResized};
 use maveric::prelude::*;
 
-use crate::prelude::*;
+use crate::{prelude::*, rectangle_set};
 
 pub struct WindowSizePlugin;
 
@@ -74,7 +74,7 @@ impl FromWorld for WindowSize {
 fn handle_window_resized(
     mut window_resized_events: EventReader<WindowResized>,
 
-    mut draggables_query: Query<&mut Transform, With<ShapeComponent>>,
+    mut draggables_query: Query<(&mut Transform, &ShapeComponent, &ShapeIndex)>,
     mut window_size: ResMut<WindowSize>,
     mut ui_scale: ResMut<UiScale>,
 ) {
@@ -83,18 +83,33 @@ fn handle_window_resized(
         window_size.window_height = ev.height;
         ui_scale.scale = window_size.object_scale() as f64;
 
-        for mut transform in draggables_query.iter_mut() {
-            let max_x: f32 = ev.width / 2.0; //You can't leave the game area
-            let max_y: f32 = ev.height / 2.0;
+        let mut rectangle_set = rectangle_set::RectangleSet::new(&window_size, std::iter::empty());
+        let mut shapes_to_add: Vec<(Mut<Transform>, &ShapeComponent, &ShapeIndex)> = vec![];
+        for shape in draggables_query.iter_mut() {
+            if shape.1.is_free() {
+                let location: Location = shape.0.as_ref().into();
+                let rect = shape
+                    .2
+                    .game_shape()
+                    .body
+                    .bounding_box(SHAPE_SIZE, &location);
 
-            let min_x: f32 = -max_x;
-            let min_y: f32 = -max_y;
+                if rectangle_set.outer.contains(rect.min) && rectangle_set.outer.contains(rect.max)
+                {
+                    rectangle_set.existing.push(rect);
+                } else {
+                    shapes_to_add.push(shape);
+                }
+            }
+        }
 
-            transform.translation = bevy::math::Vec3::clamp(
-                transform.translation,
-                Vec3::new(min_x, min_y, f32::MIN),
-                Vec3::new(max_x, max_y, f32::MAX),
-            );
+        if !shapes_to_add.is_empty() {
+            let mut rng = rand::thread_rng();
+            for (mut transform, _, shape_index) in shapes_to_add {
+                let location = rectangle_set.do_place(shape_index.game_shape().body, &mut rng);
+
+                *transform = location.into();
+            }
         }
     }
 }

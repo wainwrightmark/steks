@@ -86,7 +86,7 @@ fn handle_window_resized(
         let mut rectangle_set = rectangle_set::RectangleSet::new(&window_size, std::iter::empty());
         let mut shapes_to_add: Vec<(Mut<Transform>, &ShapeComponent, &ShapeIndex)> = vec![];
         for shape in draggables_query.iter_mut() {
-            if shape.1.is_free() {
+            if shape.1.is_free() || shape.1.is_locked() {
                 let location: Location = shape.0.as_ref().into();
                 let rect = shape
                     .2

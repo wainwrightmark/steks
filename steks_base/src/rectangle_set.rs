@@ -1,8 +1,8 @@
-use bevy::prelude::{Rect, Transform, Vec2, warn};
+use bevy::prelude::{warn, Rect, Transform, Vec2};
 use itertools::Itertools;
 use steks_common::prelude::*;
 
-use crate::walls::WindowSize;
+use crate::window_size::WindowSize;
 
 pub struct RectangleSet {
     outer: Rect,
@@ -79,7 +79,7 @@ impl RectangleSet {
         return Some(location);
     }
 
-    fn random_location(&self, rng: &mut impl rand::Rng,)-> Location{
+    fn random_location(&self, rng: &mut impl rand::Rng) -> Location {
         let min_x = self.outer.min.x + SHAPE_SIZE;
         let max_x = self.outer.max.x - SHAPE_SIZE;
 
@@ -101,7 +101,7 @@ mod tests {
     use steks_common::prelude::ALL_SHAPES;
     use test_case::test_case;
 
-    use crate::walls::WindowSize;
+    use crate::window_size::WindowSize;
 
     use super::RectangleSet;
 

@@ -35,6 +35,7 @@ pub mod walls;
 pub mod win;
 pub mod win_timer_state;
 pub mod rectangle_set;
+pub mod window_size;
 
 pub mod prelude {
 
@@ -82,6 +83,7 @@ pub mod prelude {
     pub use crate::walls::*;
     pub use crate::win::*;
     pub use crate::win_timer_state::*;
+    pub use crate::window_size::*;
 
     pub fn get_today_date() -> chrono::NaiveDate {
         let today = chrono::offset::Utc::now();

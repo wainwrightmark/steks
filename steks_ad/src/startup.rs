@@ -43,6 +43,7 @@ pub fn setup_app(app: &mut App) {
                 ),
         )
         .add_plugins(WallsPlugin)
+        .add_plugins(WindowSizePlugin)
         .add_plugins(GlobalUiPlugin)
         .add_plugins(ButtonPlugin)
         .add_plugins(SettingsPlugin)

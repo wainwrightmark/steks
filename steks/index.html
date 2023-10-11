@@ -12,8 +12,14 @@
     <meta property="og:title" content="Steks" />
     <meta property="og:url" content="www.steks.net" />
     <meta property="og:site_name" content="Steks" />
-    <meta property="og:description" content="The Ultimate Tower Building Puzzle Game" />
-    <meta name="description" content="The Ultimate Tower Building Puzzle Game">
+    <meta
+      property="og:description"
+      content="The Ultimate Tower Building Puzzle Game"
+    />
+    <meta
+      name="description"
+      content="The Ultimate Tower Building Puzzle Game"
+    />
 
     <meta property="og:image" content="https://steks.net/icon/og_image.png" />
 
@@ -43,6 +49,25 @@
       nomodule
       src="https://unpkg.com/@ionic/pwa-elements@latest/dist/ionicpwaelements/ionicpwaelements.js"
     ></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=AW-11332063513"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+
+      function gtag_convert(){
+        console.log("Google tag converted");
+        gtag('event', 'conversion', {'send_to': 'AW-11332063513/xFVgCJ3L0eUYEJmixpsq'});
+      }
+      gtag("js", new Date());
+      gtag("config", "AW-11332063513");
+    </script>
 
     <script src="../plugins/@capacitor/toast.js" type="module"></script>
     <script src="../plugins/@capacitor/share.js" type="module"></script>

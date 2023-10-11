@@ -8,6 +8,13 @@ use bevy::{
     window::{PrimaryWindow, WindowResized},
 };
 use capacitor_bindings::{device::Device, share::ShareOptions};
+use wasm_bindgen::prelude::*;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+#[wasm_bindgen()]
+extern "C" {
+    #[wasm_bindgen(final, js_name = "gtag_convert")]
+    pub(crate) fn gtag_convert();
+}
 
 pub fn request_fullscreen() {
     let window = web_sys::window().expect("Could not get window");
@@ -52,11 +59,11 @@ pub async fn application_start() -> LoggableEvent {
 }
 
 const PLATFORM: &str = {
-    if cfg!(feature= "android"){
+    if cfg!(feature = "android") {
         "Android"
-    } else if cfg!(feature = "ios"){
+    } else if cfg!(feature = "ios") {
         "IOS"
-    } else{
+    } else {
         "Web"
     }
 };
@@ -80,7 +87,7 @@ pub async fn new_user_async() -> LoggableEvent {
         language,
         device,
         app,
-        platform: PLATFORM
+        platform: PLATFORM,
     }
 }
 
@@ -263,7 +270,7 @@ fn get_insets() -> Option<Insets> {
         .and_then(|x| x.trim_end_matches("px").parse::<f32>().ok())
         .unwrap_or_default();
 
-    let insets = Insets::new(top,left,right,bottom);
+    let insets = Insets::new(top, left, right, bottom);
 
     Some(insets)
 }

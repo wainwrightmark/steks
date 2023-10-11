@@ -115,7 +115,13 @@ fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<
     match level.completion {
         LevelCompletion::Incomplete { .. } => {}
         LevelCompletion::Complete { .. } => match &level.level {
-            GameLevel::Designed { .. } => {}
+            GameLevel::Designed { meta } => {
+                if meta ==( &DesignedLevelMeta::Tutorial { index: 0 }){
+                    #[cfg(all(target_arch = "wasm32", feature = "web"))]{
+                        crate::wasm::gtag_convert();
+                    }
+                }
+            }
             GameLevel::Infinite { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {}
             GameLevel::Challenge { date, streak } => {
                 streak_resource.count = *streak;

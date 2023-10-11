@@ -2,7 +2,7 @@ use crate::prelude::*;
 use bevy::{ecs::system::EntityCommands, render::color};
 use bevy_prototype_lyon::prelude::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Event)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShapeCreationData {
     pub shape: &'static GameShape,
     pub location: Option<Location>,

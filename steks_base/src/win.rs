@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
-use bevy::{ecs::event::Events, app::RunFixedUpdateLoop};
 use bevy::prelude::*;
+use bevy::{app::RunFixedUpdateLoop, ecs::event::Events};
 use bevy_rapier2d::prelude::*;
 
 use crate::{prediction, prelude::*};
@@ -13,8 +13,6 @@ impl<U: UITrait> Plugin for WinPlugin<U> {
     fn build(&self, app: &mut App) {
         app.add_systems(FixedUpdate, check_for_collisions)
             .add_systems(FixedUpdate, check_for_win::<U>)
-            .add_event::<ShapeCreationData>()
-            .add_event::<ShapeUpdateData>()
             .add_event::<LevelWonEvent>()
             .add_systems(Update, spawn_and_update_shapes)
             .add_systems(RunFixedUpdateLoop, check_for_tower);

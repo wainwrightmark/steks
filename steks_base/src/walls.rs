@@ -22,6 +22,8 @@ pub struct WindowSize {
 }
 
 impl WindowSize {
+    pub fn new(window_width: f32, window_height: f32) -> Self { Self { window_width, window_height } }
+
     /// The scale to multiply the height and width by
     pub fn size_scale(&self) -> f32 {
         if self.window_width >= 768. && self.window_height >= 1024. {

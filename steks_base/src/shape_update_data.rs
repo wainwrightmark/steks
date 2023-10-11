@@ -2,7 +2,7 @@ use crate::{prelude::*, shape_creation_data};
 use bevy::render::color;
 use bevy_prototype_lyon::prelude::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Event)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShapeUpdateData {
     pub id: u32,
     pub shape: Option<&'static GameShape>,

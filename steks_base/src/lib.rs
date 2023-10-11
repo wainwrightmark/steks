@@ -34,6 +34,7 @@ pub mod ui_trait;
 pub mod walls;
 pub mod win;
 pub mod win_timer_state;
+pub mod rectangle_set;
 
 pub mod prelude {
 

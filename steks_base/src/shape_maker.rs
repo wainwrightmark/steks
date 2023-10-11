@@ -1,101 +1,103 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    rectangle_set::{self, RectangleSet},
+};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use std::collections::VecDeque;
 
 pub fn spawn_and_update_shapes(
     mut commands: Commands,
-    mut creations: EventReader<ShapeCreationData>,
-    mut updates: EventReader<ShapeUpdateData>,
-    rapier_context: Res<RapierContext>,
-    mut creation_queue: Local<Vec<ShapeCreationData>>,
-    mut update_queue: Local<VecDeque<ShapeUpdateData>>,
+    current_level: Res<CurrentLevel>,
+    previous_level: Local<PreviousLevel>,
     existing_query: Query<(
         Entity,
-        &ShapeWithId,
-        &ShapeComponent,
-        &ShapeIndex,
-        &Transform,
+        (
+            Option<&ShapeWithId>,
+            &ShapeComponent,
+            &ShapeIndex,
+            &Transform,
+        ),
     )>,
-    mut queue_spawn_event: Local<bool>,
 
     mut check_win: EventWriter<CheckForTowerEvent>,
     settings: Res<GameSettings>,
     window_size: Res<WindowSize>,
 ) {
-    creation_queue.extend(creations.iter());
-    update_queue.extend(updates.iter());
+    if !current_level.is_changed() {
+        return;
+    }
 
-    let mut created = false;
-    let mut changed = false;
-    let mut should_spawn_event = false;
+    let mut result = LevelTransitionResult::from_level(current_level.as_ref(), &previous_level);
 
-    'creation: while !creation_queue.is_empty() || !update_queue.is_empty() {
-        if created {
-            if let Some(next) = creation_queue.first() {
-                if next.location.is_none() {
-                    break 'creation; //we need to wait before creating this shape
-                }
-            } else if !update_queue.is_empty() {
-                break 'creation; //we need to wait before doing the update
-            }
+    //info!("{result:?}");
+
+    if result.despawn_existing {
+        for (e, _) in existing_query.iter() {
+            commands.entity(e).despawn_recursive();
         }
+    }
 
-        if let Some(creation) = creation_queue.pop() {
-            let mut rng = rand::thread_rng();
-            should_spawn_event = !creation.from_saved_game;
+    if previous_level.0.is_none() {
+        if let Some(saved_data) = &current_level.saved_data {
+            result.mogrify(saved_data);
+        }
+    }
+    update_previous_level(previous_level, &current_level);
+
+    let check_for_tower =
+        !result.despawn_existing && (!result.creations.is_empty() || !result.updates.is_empty());
+
+    for update in result.updates {
+        if let Some((existing_entity, (_, shape_component, shape_index, transform))) =
+            existing_query
+                .iter()
+                .find(|shape| shape.1 .0.is_some_and(|sid| sid.id == update.id))
+        {
+            let prev: &'static GameShape = (*shape_index).into();
+            update.update_shape(
+                &mut commands,
+                existing_entity,
+                prev,
+                shape_component,
+                transform,
+                &settings,
+            );
+        } else {
+            error!("Could not find shape with id {}", update.id);
+        }
+    }
+
+    if !result.creations.is_empty() {
+        let mut rng = rand::thread_rng();
+        let mut rectangle_set = rectangle_set::RectangleSet::new(
+            &window_size,
+            existing_query
+                .iter()
+                .map(|x| (x.1 .2.clone(), x.1 .3.clone())),
+        ); //TODO adjust positions based on updates
+
+        for creation in result.creations {
             place_and_create_shape(
                 &mut commands,
                 creation,
-                &rapier_context,
+                &mut rectangle_set,
                 &mut rng,
                 &settings,
-                &window_size
             );
-            created = true;
-            changed = true;
-        } else if let Some(update) = update_queue.pop_front() {
-            if let Some((existing_entity, _, shape_component, shape_index, transform)) =
-                existing_query.iter().find(|x| x.1.id == update.id)
-            {
-                let prev: &'static GameShape = (*shape_index).into();
-                update.update_shape(
-                    &mut commands,
-                    existing_entity,
-                    prev,
-                    shape_component,
-                    transform,
-                    &settings,
-                );
-                changed = true;
-                should_spawn_event = true;
-            } else {
-                error!("Could not find shape with id {}", update.id);
-            }
-        };
+        }
     }
 
-    //info!("Spawn and update shapes {} {}", creation_queue.len(), update_queue.len());
-
-    if changed {
-        *queue_spawn_event = should_spawn_event;
-    } else {
-        if *queue_spawn_event {
-            //send this event one frame after spawning shapes
-            info!("Sending check for tower event");
-            check_win.send(CheckForTowerEvent);
-        }
-        *queue_spawn_event = false;
+    if check_for_tower {
+        check_win.send(CheckForTowerEvent);
     }
 }
 
 pub fn place_and_create_shape<RNG: rand::Rng>(
     commands: &mut Commands,
     mut shape_with_data: ShapeCreationData,
-    rapier_context: &Res<RapierContext>,
+    rectangle_set: &mut RectangleSet,
     rng: &mut RNG,
     settings: &GameSettings,
-    window_size: &WindowSize,
 ) {
     let location: Location = if let Some(l) = shape_with_data.location {
         bevy::log::debug!(
@@ -105,44 +107,7 @@ pub fn place_and_create_shape<RNG: rand::Rng>(
         );
         l
     } else {
-        let collider = shape_with_data.shape.body.to_collider_shape(SHAPE_SIZE);
-        let mut tries = 0;
-        loop {
-            let width = window_size.scaled_width() - (2.0 * SHAPE_SIZE);
-            let height = window_size.scaled_height() - (2.0 * SHAPE_SIZE);
-            let x = rng.gen_range((width * -0.5)..(width * 0.5));
-            let y = rng.gen_range((height * -0.5)..(height * 0.5));
-            let angle = rng.gen_range(0f32..std::f32::consts::TAU);
-            let position = Vec2 { x, y };
-
-            if tries >= 20 {
-                bevy::log::warn!(
-                    "Placed shape {} without checking after {tries} tries at {position}",
-                    shape_with_data.shape.name
-                );
-                break Location { position, angle };
-            }
-
-            if rapier_context
-                .intersection_with_shape(
-                    position,
-                    angle,
-                    &collider,
-                    QueryFilter::new().groups(CollisionGroups {
-                        memberships: SHAPE_COLLISION_GROUP,
-                        filters: SHAPE_COLLISION_FILTERS,
-                    }),
-                )
-                .is_none()
-            {
-                bevy::log::debug!(
-                    "Placed shape {} after {tries} tries at {position}",
-                    shape_with_data.shape.name
-                );
-                break Location { position, angle };
-            }
-            tries += 1;
-        }
+        rectangle_set.do_place(shape_with_data.shape.body, rng)
     };
 
     let velocity = shape_with_data.velocity.unwrap_or_else(|| Velocity {

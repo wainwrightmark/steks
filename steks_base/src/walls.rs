@@ -1,4 +1,3 @@
-use bevy::window::{PrimaryWindow, WindowResized};
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 use maveric::prelude::*;
 use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};

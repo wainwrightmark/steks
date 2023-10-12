@@ -9,8 +9,8 @@ use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct PredictionSettings {
-    max_substeps: usize,
-    early_sensor_substeps: usize,
+    max_substeps: u32,
+    early_sensor_substeps: u32,
     max_non_sensor_collisions: i8,
 }
 
@@ -18,14 +18,14 @@ impl From<&HasActed> for PredictionSettings {
     fn from(val: &HasActed) -> Self {
         match val {
             HasActed::HasActed => PredictionSettings {
-                max_substeps: 60 * 6,
-                early_sensor_substeps: 90,
+                max_substeps: FRAMES_PER_SECOND * 6,
+                early_sensor_substeps: SHORT_WIN_FRAMES,
                 max_non_sensor_collisions: 3,
             },
 
             HasActed::HasNotActed => PredictionSettings {
-                max_substeps: 60 * 6,
-                early_sensor_substeps: 90,
+                max_substeps: FRAMES_PER_SECOND * 6,
+                early_sensor_substeps: SHORT_WIN_FRAMES,
                 max_non_sensor_collisions: 3,
             },
         }
@@ -41,15 +41,15 @@ pub enum PredictionResult {
 }
 
 impl PredictionResult {
-    pub fn get_countdown_seconds(&self, has_acted: &HasActed) -> Option<f32> {
+    pub fn get_countdown_frames(&self, has_acted: &HasActed) -> Option<u32> {
         match (has_acted, self) {
             (_, PredictionResult::EarlyWall) => None,
-            (_, PredictionResult::ManyNonWall) => Some(LONG_WIN_SECONDS),
-            (_, PredictionResult::Wall) => Some(LONG_WIN_SECONDS),
+            (_, PredictionResult::ManyNonWall) => Some(LONG_WIN_FRAMES),
+            (_, PredictionResult::Wall) => Some(LONG_WIN_FRAMES),
 
-            (HasActed::HasActed, PredictionResult::MinimalCollision) => Some(SHORT_WIN_SECONDS),
+            (HasActed::HasActed, PredictionResult::MinimalCollision) => Some(SHORT_WIN_FRAMES),
 
-            (HasActed::HasNotActed, PredictionResult::MinimalCollision) => Some(LONG_WIN_SECONDS),
+            (HasActed::HasNotActed, PredictionResult::MinimalCollision) => Some(LONG_WIN_FRAMES),
         }
     }
 }
@@ -87,6 +87,10 @@ pub fn make_prediction(
         );
     }
 
+    // for (_handle, body) in bodies.iter_mut(){
+    //     body.reset_forces(false);
+    // }
+
     for collider in colliders.iter_mut() {
         collider
             .1
@@ -111,10 +115,13 @@ pub fn make_prediction(
 
     let mut substep_integration_parameters = context.integration_parameters;
     substep_integration_parameters.dt = dt;
+    let gravity = &(config.gravity / context.physics_scale()).into();
+
+    //info!("{substep_integration_parameters:?}");
     let event_handler = PredictionCollisionHandler::default();
     for i in 0..prediction_settings.max_substeps {
         physics_pipeline.step(
-            &(config.gravity / context.physics_scale()).into(),
+            gravity,
             &context.integration_parameters,
             &mut islands,
             &mut broad_phase,
@@ -181,6 +188,9 @@ impl EventHandler for PredictionCollisionHandler {
         event: bevy_rapier2d::rapier::prelude::CollisionEvent,
         _contact_pair: Option<&bevy_rapier2d::rapier::prelude::ContactPair>,
     ) {
+        // let c1 = _colliders.get(event.collider1()).map(|x|x.user_data);
+        // let c2 = _colliders.get(event.collider2()).map(|x|x.user_data);
+        // info!("Event detected sensor:{sensor} {c1:?} {c2:?}", sensor = event.sensor(), );
         if event.sensor() {
             self.sensor_collision_found
                 .store(true, std::sync::atomic::Ordering::Relaxed);

@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
+use bevy::ecs::event::Events;
 use bevy::prelude::*;
-use bevy::{app::RunFixedUpdateLoop, ecs::event::Events};
 use bevy_rapier2d::prelude::*;
 
 use crate::{prediction, prelude::*};
@@ -15,7 +15,7 @@ impl<U: UITrait> Plugin for WinPlugin<U> {
             .add_systems(FixedUpdate, check_for_win::<U>)
             .add_event::<LevelWonEvent>()
             .add_systems(Update, spawn_and_update_shapes)
-            .add_systems(RunFixedUpdateLoop, check_for_tower);
+            .add_systems(First, check_for_tower);
         app.add_plugins(WinCountdownPlugin);
     }
 }
@@ -28,7 +28,7 @@ pub struct LevelWonEvent {
 pub fn check_for_win<U: UITrait>(
     mut countdown: ResMut<WinCountdown>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
-    time: Res<FixedTime>,
+    //time: Res<FixedTime>,
     mut current_level: ResMut<CurrentLevel>,
     mut events: EventWriter<LevelWonEvent>,
     has_acted: Res<HasActed>,
@@ -43,15 +43,14 @@ pub fn check_for_win<U: UITrait>(
         return;
     }
 
-    let Some(Countdown { seconds_remaining }) = countdown.as_ref().0 else {
+    let Some(Countdown { frames_remaining }) = countdown.as_ref().0 else {
         return;
     };
 
-    if seconds_remaining > 0.0 {
-        // tick down at most one frame worth of time
+    if frames_remaining > 0 {
         // tick down without triggering change detection
         countdown.bypass_change_detection().0 = Some(Countdown {
-            seconds_remaining: seconds_remaining - time.period.as_secs_f32(),
+            frames_remaining: frames_remaining -1
         });
         return;
     }
@@ -148,15 +147,15 @@ pub fn check_for_tower(
         prediction::make_prediction(&rapier_context, &rapier_config, has_acted.as_ref().into())
     };
 
-    let countdown_seconds = prediction_result.get_countdown_seconds(&has_acted);
+    let countdown_frames = prediction_result.get_countdown_frames(&has_acted);
 
-    debug!("Prediction {prediction_result:?} seconds {countdown_seconds:?}");
+    debug!("Prediction {prediction_result:?} frames: {countdown_frames:?}");
 
-    let Some(seconds_remaining) = countdown_seconds else {
+    let Some(frames_remaining) = countdown_frames else {
         return;
     };
 
-    countdown.0 = Some(Countdown { seconds_remaining });
+    countdown.0 = Some(Countdown { frames_remaining });
 }
 
 fn check_for_collisions(
@@ -191,6 +190,15 @@ fn check_for_collisions(
     }
 
     if let Some(_error_message) = fail {
+        // let fr = countdown.0.as_ref().unwrap().frames_remaining;
+        // let long = LONG_WIN_FRAMES.saturating_sub(fr);
+        // if let Some(short) = SHORT_WIN_FRAMES.checked_sub(fr){
+        //     info!("Countdown stopped ({_error_message}) after {short} or {long} frames");
+        // }
+        // else{
+        //     info!("Countdown stopped ({_error_message}) after {long} frames");
+        // }
+
         countdown.0 = None;
     }
 }

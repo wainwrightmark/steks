@@ -2,7 +2,9 @@ use std::f32::consts::{FRAC_PI_2, TAU};
 
 use crate::prelude::*;
 use bevy::prelude::*;
-use bevy_prototype_lyon::prelude::{Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke, StrokeOptions};
+use bevy_prototype_lyon::prelude::{
+    Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke, StrokeOptions,
+};
 use maveric::prelude::*;
 
 #[derive(Debug, Default)]
@@ -21,7 +23,7 @@ pub struct WinCountdown(pub Option<Countdown>);
 
 #[derive(Debug)]
 pub struct Countdown {
-    pub seconds_remaining: f32
+    pub frames_remaining: u32,
 }
 
 const RADIUS: f32 = 80.0 * std::f32::consts::FRAC_2_SQRT_PI * 0.5;
@@ -33,14 +35,14 @@ fn update_dynamic_elements(
     countdown: Res<WinCountdown>,
     mut marker_circle: Query<&mut Transform, With<CircleMarkerComponent>>,
     mut circle_arc: Query<&mut Path, With<CircleArcComponent>>,
-    window_size: Res<WindowSize>
+    window_size: Res<WindowSize>,
 ) {
     let Some(countdown) = &countdown.0 else {
         return;
     };
 
-    let time_used = LONG_WIN_SECONDS - countdown.seconds_remaining;
-    let ratio = time_used / LONG_WIN_SECONDS;
+    let frames_used = LONG_WIN_FRAMES - countdown.frames_remaining;
+    let ratio = frames_used as f32 / LONG_WIN_FRAMES as f32;
     let theta = (ratio * -TAU) + FRAC_PI_2;
 
     for mut transform in marker_circle.iter_mut() {
@@ -124,8 +126,10 @@ impl MavericNode for CircleArc {
                     },
                     ..Default::default()
                 },
-                Stroke{
-                    options: StrokeOptions::default().with_line_width(ARC_STROKE).with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
+                Stroke {
+                    options: StrokeOptions::default()
+                        .with_line_width(ARC_STROKE)
+                        .with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
                     color: get_color(&context.0),
                 },
                 CircleArcComponent,
@@ -148,7 +152,7 @@ impl MavericNode for CircleMarker {
                         radius: ARC_STROKE,
                     }),
                     transform: Transform {
-                        translation: Vec3::new(00.0, context.1.win_timer_position_y() + RADIUS, 1.0),
+                        translation: Vec3::new(0.0, context.1.win_timer_position_y() + RADIUS, 1.0),
                         ..Default::default()
                     },
                     ..Default::default()

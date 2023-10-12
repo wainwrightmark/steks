@@ -15,7 +15,7 @@ impl<U: UITrait> Plugin for WinPlugin<U> {
             .add_systems(FixedUpdate, check_for_win::<U>)
             .add_event::<LevelWonEvent>()
             .add_systems(Update, spawn_and_update_shapes)
-            .add_systems(First, check_for_tower);
+            .add_systems(Update, check_for_tower.before(drag_end));
         app.add_plugins(WinCountdownPlugin);
     }
 }
@@ -36,7 +36,6 @@ pub fn check_for_win<U: UITrait>(
 
     wrs: Res<WorldRecords>,
     pbs: Res<PersonalBests>,
-    // mut achievements: ResMut<Achievements>,
 ) {
     if current_level.is_changed() {
         *countdown = WinCountdown(None);
@@ -47,10 +46,12 @@ pub fn check_for_win<U: UITrait>(
         return;
     };
 
+    //info!("{frames_remaining} fr {:?}", time.accumulated());
+
     if frames_remaining > 0 {
         // tick down without triggering change detection
         countdown.bypass_change_detection().0 = Some(Countdown {
-            frames_remaining: frames_remaining -1
+            frames_remaining: frames_remaining - 1,
         });
         return;
     }
@@ -192,12 +193,10 @@ fn check_for_collisions(
     if let Some(_error_message) = fail {
         // let fr = countdown.0.as_ref().unwrap().frames_remaining;
         // let long = LONG_WIN_FRAMES.saturating_sub(fr);
-        // if let Some(short) = SHORT_WIN_FRAMES.checked_sub(fr){
-        //     info!("Countdown stopped ({_error_message}) after {short} or {long} frames");
-        // }
-        // else{
-        //     info!("Countdown stopped ({_error_message}) after {long} frames");
-        // }
+        // info!(
+        //     "Countdown stopped ({_error_message}) after {long} frames ({s} seconds)",
+        //     s = (long as f32) * SECONDS_PER_FRAME
+        // );
 
         countdown.0 = None;
     }

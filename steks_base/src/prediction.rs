@@ -87,17 +87,11 @@ pub fn make_prediction(
         );
     }
 
-    // for (_handle, body) in bodies.iter_mut(){
-    //     body.reset_forces(false);
-    // }
-
     for collider in colliders.iter_mut() {
         collider
             .1
             .set_active_events(bevy_rapier2d::rapier::pipeline::ActiveEvents::COLLISION_EVENTS);
     }
-
-    debug!("Looking for future collisions with {} bodies", bodies.len());
 
     let dt = match config.timestep_mode {
         TimestepMode::Fixed { dt, substeps } => dt / (substeps as Real),
@@ -117,12 +111,18 @@ pub fn make_prediction(
     substep_integration_parameters.dt = dt;
     let gravity = &(config.gravity / context.physics_scale()).into();
 
-    //info!("{substep_integration_parameters:?}");
+    debug!(
+        "Looking for future collisions with {} bodies. dt = {dt}",
+        bodies.len()
+    );
+
+    //let now = chrono::Utc::now();
+
     let event_handler = PredictionCollisionHandler::default();
     for i in 0..prediction_settings.max_substeps {
         physics_pipeline.step(
             gravity,
-            &context.integration_parameters,
+            &substep_integration_parameters,
             &mut islands,
             &mut broad_phase,
             &mut narrow_phase,
@@ -141,12 +141,18 @@ pub fn make_prediction(
             .load(std::sync::atomic::Ordering::Relaxed);
 
         if sensor_found {
-            debug!("Sensor collision found after {i} substeps");
+            // let time = chrono::Utc::now()
+            //     .signed_duration_since(now)
+            //     .num_milliseconds();
+            debug!(
+                "Sensor collision found after {i} substeps ({s} seconds)",
+                s = (i as f32) * SECONDS_PER_FRAME
+            );
         }
 
         if i < prediction_settings.early_sensor_substeps {
             if sensor_found {
-                return PredictionResult::EarlyWall;
+                return PredictionResult::Wall;
             }
         } else {
             if sensor_found {
@@ -158,11 +164,21 @@ pub fn make_prediction(
                 .load(std::sync::atomic::Ordering::Relaxed);
 
             if total_collisions > prediction_settings.max_non_sensor_collisions {
+                // let time = chrono::Utc::now()
+                //     .signed_duration_since(now)
+                //     .num_milliseconds();
+                debug!(
+                    "Many non-sensor collisions found after {i} substeps ({s} seconds)",
+                    s = (i as f32) * SECONDS_PER_FRAME
+                );
                 return PredictionResult::ManyNonWall;
             }
         }
     }
 
+    // let time = chrono::Utc::now()
+    //     .signed_duration_since(now)
+    //     .num_milliseconds();
     debug!(
         "Minimum collisions found after {} substeps. {} collisions found",
         prediction_settings.max_substeps,

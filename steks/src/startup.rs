@@ -6,6 +6,45 @@ pub const WINDOW_WIDTH: f32 = 360f32;
 pub const WINDOW_HEIGHT: f32 = 520f32;
 
 pub fn setup_app(app: &mut App) {
+    // use steamworks::AppId;
+    // use steamworks::Client;
+    // use steamworks::FriendFlags;
+    // use steamworks::PersonaStateChange;
+    // let (client, single) = Client::init_app(2651120).unwrap();
+
+    // let _cb = client.register_callback(|p: PersonaStateChange| {
+    //     println!("Got callback: {:?}", p);
+    // });
+
+    // let utils = client.utils();
+    // println!("Utils:");
+    // println!("AppId: {:?}", utils.app_id());
+    // println!("UI Language: {}", utils.ui_language());
+
+    // let apps = client.apps();
+    // println!("Apps");
+    // println!("IsInstalled(480): {}", apps.is_app_installed(AppId(480)));
+    // println!("InstallDir(480): {}", apps.app_install_dir(AppId(480)));
+    // println!("BuildId: {}", apps.app_build_id());
+    // println!("AppOwner: {:?}", apps.app_owner());
+    // println!("Langs: {:?}", apps.available_game_languages());
+    // println!("Lang: {}", apps.current_game_language());
+    // println!("Beta: {:?}", apps.current_beta_name());
+
+    // let friends = client.friends();
+    // println!("Friends");
+    // let list = friends.get_friends(FriendFlags::IMMEDIATE);
+    // println!("{:?}", list);
+    // for f in &list {
+    //     println!("Friend: {:?} - {}({:?})", f.id(), f.name(), f.state());
+    //     friends.request_user_information(f.id(), true);
+    // }
+
+    // for _ in 0..50 {
+    //     single.run_callbacks();
+    //     ::std::thread::sleep(::std::time::Duration::from_millis(100));
+    // }
+
     // When building for WASM, print panics to the browser console
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
@@ -189,11 +228,17 @@ async fn log_start_async<'a>(user_exists: bool) {
         if !user_exists {
             let new_user: LoggableEvent;
 
-            #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios", feature = "web")))]
+            #[cfg(all(
+                target_arch = "wasm32",
+                any(feature = "android", feature = "ios", feature = "web")
+            ))]
             {
                 new_user = crate::wasm::new_user_async().await;
             }
-            #[cfg(not(all(target_arch = "wasm32", any(feature = "android", feature = "ios", feature = "web"))))]
+            #[cfg(not(all(
+                target_arch = "wasm32",
+                any(feature = "android", feature = "ios", feature = "web")
+            )))]
             {
                 new_user = LoggableEvent::NewUser {
                     ref_param: None,
@@ -209,12 +254,18 @@ async fn log_start_async<'a>(user_exists: bool) {
             new_user.try_log_async1(device_id.clone()).await;
         }
         let application_start: LoggableEvent;
-        #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios", feature = "web")))]
+        #[cfg(all(
+            target_arch = "wasm32",
+            any(feature = "android", feature = "ios", feature = "web")
+        ))]
         {
             application_start = crate::wasm::application_start().await;
         }
 
-        #[cfg(not(all(target_arch = "wasm32", any(feature = "android", feature = "ios", feature = "web"))))]
+        #[cfg(not(all(
+            target_arch = "wasm32",
+            any(feature = "android", feature = "ios", feature = "web")
+        )))]
         {
             application_start = LoggableEvent::ApplicationStart {
                 ref_param: None,

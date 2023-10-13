@@ -40,6 +40,7 @@ maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
 serde_repr = "0.1"
 enumset = { version = "1", features = ["serde"] }
 resvg = { version = "0.35", default-features = false, features = ["text"] }
+steamworks ={version =  "0.10", optional = true}
 
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -89,4 +90,4 @@ features = [
 web = ["capacitor_bindings/web"]
 android = ["capacitor_bindings/android"]
 ios = ["capacitor_bindings/ios"]
-steam = ["reqwest/native-tls"]
+steam = ["reqwest/native-tls", "dep:steamworks"]

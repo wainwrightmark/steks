@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicBool, AtomicI8};
 
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters};
 use strum::EnumIs;
 
 use crate::prelude::*;
@@ -54,140 +54,176 @@ impl PredictionResult {
     }
 }
 
-pub fn make_prediction(
-    context: &RapierContext,
-    config: &RapierConfiguration,
+pub struct PredictionContext {
     prediction_settings: PredictionSettings,
-) -> PredictionResult {
-    let mut physics_pipeline = PhysicsPipeline::default();
+    gravity: bevy_rapier2d::rapier::prelude::Vector<Real>,
+    integration_parameters: IntegrationParameters,
+    islands: bevy_rapier2d::rapier::prelude::IslandManager,
+    broad_phase: bevy_rapier2d::rapier::prelude::BroadPhase,
+    narrow_phase: bevy_rapier2d::rapier::prelude::NarrowPhase,
+    bodies: bevy_rapier2d::rapier::prelude::RigidBodySet,
+    colliders: bevy_rapier2d::rapier::prelude::ColliderSet,
+    impulse_joints: bevy_rapier2d::rapier::prelude::ImpulseJointSet,
+    multibody_joints: bevy_rapier2d::rapier::prelude::MultibodyJointSet,
+    ccd_solver: bevy_rapier2d::rapier::prelude::CCDSolver,
+    substep: u32,
+    physics_pipeline: PhysicsPipeline,
+}
 
-    let mut islands = context.islands.clone();
-    let mut broad_phase = context.broad_phase.clone();
-    let mut narrow_phase = context.narrow_phase.clone();
-    let mut bodies = context.bodies.clone();
-    let mut colliders = context.colliders.clone();
-    let mut impulse_joints = context.impulse_joints.clone();
-    let mut multibody_joints = context.multibody_joints.clone();
-    let mut ccd_solver = context.ccd_solver.clone();
+impl PredictionContext {
+    pub fn new(
+        context: &RapierContext,
+        config: RapierConfiguration,
+        prediction_settings: PredictionSettings,
+    ) -> Self {
+        let physics_pipeline: PhysicsPipeline = PhysicsPipeline::default();
 
-    let bodies_to_remove: Vec<_> = colliders
-        .iter()
-        .filter(|x| x.1.collision_groups().memberships.bits() == SNOW_COLLISION_GROUP.bits())
-        .flat_map(|x| x.1.parent())
-        .collect();
+        let mut islands: bevy_rapier2d::rapier::prelude::IslandManager = context.islands.clone();
+        let broad_phase: bevy_rapier2d::rapier::prelude::BroadPhase = context.broad_phase.clone();
+        let narrow_phase: bevy_rapier2d::rapier::prelude::NarrowPhase =
+            context.narrow_phase.clone();
+        let mut bodies: bevy_rapier2d::rapier::prelude::RigidBodySet = context.bodies.clone();
+        let mut colliders: bevy_rapier2d::rapier::prelude::ColliderSet = context.colliders.clone();
+        let mut impulse_joints: bevy_rapier2d::rapier::prelude::ImpulseJointSet =
+            context.impulse_joints.clone();
+        let mut multibody_joints: bevy_rapier2d::rapier::prelude::MultibodyJointSet =
+            context.multibody_joints.clone();
+        let ccd_solver: bevy_rapier2d::rapier::prelude::CCDSolver = context.ccd_solver.clone();
 
-    for rbh in bodies_to_remove {
-        bodies.remove(
-            rbh,
-            &mut islands,
-            &mut colliders,
-            &mut impulse_joints,
-            &mut multibody_joints,
-            true,
-        );
-    }
+        let bodies_to_remove: Vec<_> = colliders
+            .iter()
+            .filter(|x| x.1.collision_groups().memberships.bits() == SNOW_COLLISION_GROUP.bits())
+            .flat_map(|x| x.1.parent())
+            .collect();
 
-    for collider in colliders.iter_mut() {
-        collider
-            .1
-            .set_active_events(bevy_rapier2d::rapier::pipeline::ActiveEvents::COLLISION_EVENTS);
-    }
-
-    let dt = match config.timestep_mode {
-        TimestepMode::Fixed { dt, substeps } => dt / (substeps as Real),
-        TimestepMode::Variable {
-            max_dt,
-            time_scale: _,
-            substeps,
-        } => max_dt / substeps as Real,
-        TimestepMode::Interpolated {
-            dt,
-            time_scale,
-            substeps,
-        } => dt / (substeps as Real) * time_scale,
-    };
-
-    let mut substep_integration_parameters = context.integration_parameters;
-    substep_integration_parameters.dt = dt;
-    let gravity = &(config.gravity / context.physics_scale()).into();
-
-    debug!(
-        "Looking for future collisions with {} bodies. dt = {dt}",
-        bodies.len()
-    );
-
-    //let now = chrono::Utc::now();
-
-    let event_handler = PredictionCollisionHandler::default();
-    for i in 0..prediction_settings.max_substeps {
-        physics_pipeline.step(
-            gravity,
-            &substep_integration_parameters,
-            &mut islands,
-            &mut broad_phase,
-            &mut narrow_phase,
-            &mut bodies,
-            &mut colliders,
-            &mut impulse_joints,
-            &mut multibody_joints,
-            &mut ccd_solver,
-            None,
-            &(),
-            &event_handler,
-        );
-
-        let sensor_found = event_handler
-            .sensor_collision_found
-            .load(std::sync::atomic::Ordering::Relaxed);
-
-        if sensor_found {
-            // let time = chrono::Utc::now()
-            //     .signed_duration_since(now)
-            //     .num_milliseconds();
-            debug!(
-                "Sensor collision found after {i} substeps ({s} seconds)",
-                s = (i as f32) * SECONDS_PER_FRAME
+        for rbh in bodies_to_remove {
+            bodies.remove(
+                rbh,
+                &mut islands,
+                &mut colliders,
+                &mut impulse_joints,
+                &mut multibody_joints,
+                true,
             );
         }
 
-        if i < prediction_settings.early_sensor_substeps {
-            if sensor_found {
-                return PredictionResult::Wall;
-            }
-        } else {
-            if sensor_found {
-                return PredictionResult::Wall;
-            }
+        for collider in colliders.iter_mut() {
+            collider
+                .1
+                .set_active_events(bevy_rapier2d::rapier::pipeline::ActiveEvents::COLLISION_EVENTS);
+        }
 
-            let total_collisions = event_handler
-                .total_collisions_found
-                .load(std::sync::atomic::Ordering::Relaxed);
+        let dt = match config.timestep_mode {
+            TimestepMode::Fixed { dt, substeps } => dt / (substeps as Real),
+            TimestepMode::Variable {
+                max_dt,
+                time_scale: _,
+                substeps,
+            } => max_dt / substeps as Real,
+            TimestepMode::Interpolated {
+                dt,
+                time_scale,
+                substeps,
+            } => dt / (substeps as Real) * time_scale,
+        };
 
-            if total_collisions > prediction_settings.max_non_sensor_collisions {
-                // let time = chrono::Utc::now()
-                //     .signed_duration_since(now)
-                //     .num_milliseconds();
-                debug!(
-                    "Many non-sensor collisions found after {i} substeps ({s} seconds)",
-                    s = (i as f32) * SECONDS_PER_FRAME
-                );
-                return PredictionResult::ManyNonWall;
-            }
+        let mut integration_parameters = context.integration_parameters;
+        integration_parameters.dt = dt;
+        let gravity = (config.gravity / context.physics_scale()).into();
+
+        Self {
+            physics_pipeline,
+            prediction_settings,
+            gravity,
+            integration_parameters,
+            islands,
+            broad_phase,
+            narrow_phase,
+            bodies,
+            colliders,
+            impulse_joints,
+            multibody_joints,
+            ccd_solver,
+            substep: 0,
         }
     }
 
-    // let time = chrono::Utc::now()
-    //     .signed_duration_since(now)
-    //     .num_milliseconds();
-    debug!(
-        "Minimum collisions found after {} substeps. {} collisions found",
-        prediction_settings.max_substeps,
-        event_handler
-            .total_collisions_found
-            .load(std::sync::atomic::Ordering::Relaxed)
-    );
+    fn step(&mut self, event_handler: &PredictionCollisionHandler) {
+        self.physics_pipeline.step(
+            &self.gravity,
+            &self.integration_parameters,
+            &mut self.islands,
+            &mut self.broad_phase,
+            &mut self.narrow_phase,
+            &mut self.bodies,
+            &mut self.colliders,
+            &mut self.impulse_joints,
+            &mut self.multibody_joints,
+            &mut self.ccd_solver,
+            None,
+            &(),
+            event_handler,
+        );
+    }
 
-    PredictionResult::MinimalCollision
+    pub fn advance(&mut self, max_steps_to_do: u32) -> Option<PredictionResult> {
+        let event_handler = PredictionCollisionHandler::default();
+        let to = self
+            .prediction_settings
+            .max_substeps
+            .min(self.substep + max_steps_to_do);
+        while self.substep < to {
+            self.substep += 1;
+            let i = self.substep;
+            self.step(&event_handler);
+
+            let sensor_found = event_handler
+                .sensor_collision_found
+                .load(std::sync::atomic::Ordering::Relaxed);
+
+            if sensor_found {
+                info!(
+                    "Sensor collision found after {i} substeps ({s} seconds)",
+                    s = (i as f32) * SECONDS_PER_FRAME
+                );
+            }
+
+            if i < self.prediction_settings.early_sensor_substeps {
+                if sensor_found {
+                    return Some(PredictionResult::EarlyWall);
+                }
+            } else {
+                if sensor_found {
+                    return Some(PredictionResult::Wall);
+                }
+
+                let total_collisions = event_handler
+                    .total_collisions_found
+                    .load(std::sync::atomic::Ordering::Relaxed);
+
+                if total_collisions > self.prediction_settings.max_non_sensor_collisions {
+                    info!(
+                        "Many non-sensor collisions found after {i} substeps ({s} seconds)",
+                        s = (i as f32) * SECONDS_PER_FRAME
+                    );
+                    return Some(PredictionResult::ManyNonWall);
+                }
+            }
+        }
+
+        if self.substep >= self.prediction_settings.max_substeps {
+            info!(
+                "Minimum collisions found after {} substeps. {} collisions found",
+                self.substep,
+                event_handler
+                    .total_collisions_found
+                    .load(std::sync::atomic::Ordering::Relaxed)
+            );
+            Some(PredictionResult::MinimalCollision)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Default, Debug)]

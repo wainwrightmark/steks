@@ -4,7 +4,9 @@ use bevy::ecs::event::Events;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{prediction, prelude::*};
+use crate::prelude::*;
+
+const SUBSTEPS_PER_FRAME: u32 = 120;
 
 #[derive(Debug, Default)]
 pub struct WinPlugin<U: UITrait>(PhantomData<U>);
@@ -101,17 +103,21 @@ pub fn check_for_tower(
     walls: Query<Entity, With<WallPosition>>,
     current_level: Res<CurrentLevel>,
     has_acted: Res<HasActed>,
+
+    mut prediction_context: Local<Option<PredictionContext>>,
 ) {
-    if check_events.is_empty() {
+    if check_events.is_empty() && prediction_context.is_none() {
         return;
     }
     check_events.clear();
 
     if countdown.0.is_some() {
+        *prediction_context = None;
         return; // no need to check, we're already winning
     }
 
     if !draggable.is_empty() {
+        *prediction_context = None;
         return; //Something is being dragged so the player can't win yet
     }
 
@@ -124,6 +130,7 @@ pub fn check_for_tower(
             .any(|contact| contact.has_any_active_contacts())
     }) {
         debug!("Wall Contact Found");
+        *prediction_context = None;
         return;
     }
 
@@ -133,30 +140,46 @@ pub fn check_for_tower(
             .any(|contact| contact.2) //.any(|contact|contact.2)
     }) {
         debug!("Wall Intersection Found");
+        *prediction_context = None;
         return;
     }
 
-    collision_events.clear();
+    collision_events.clear(); //todo do we need this?
 
-    let prediction_result: PredictionResult = if current_level
-        .level
-        .snowdrop_settings(current_level.completion)
-        .is_some()
-    {
-        PredictionResult::ManyNonWall
-    } else {
-        prediction::make_prediction(&rapier_context, &rapier_config, has_acted.as_ref().into())
+    let prediction_result: Option<PredictionResult> = match prediction_context.as_mut() {
+        Some(prediction_context) => prediction_context.advance(SUBSTEPS_PER_FRAME),
+        None => {
+            if current_level
+                .level
+                .snowdrop_settings(current_level.completion)
+                .is_some()
+            {
+                //don't event bother doing the prediction on snow levels
+                Some(PredictionResult::ManyNonWall)
+            } else {
+                *prediction_context = Some(PredictionContext::new(
+                    &rapier_context,
+                    rapier_config.clone(),
+                    has_acted.as_ref().into(),
+                ));
+
+                None
+            }
+        }
     };
 
-    let countdown_frames = prediction_result.get_countdown_frames(&has_acted);
+    if let Some(prediction_result) = prediction_result {
+        *prediction_context = None;
+        let countdown_frames = prediction_result.get_countdown_frames(&has_acted);
 
-    debug!("Prediction {prediction_result:?} frames: {countdown_frames:?}");
+        info!("Prediction {prediction_result:?} frames: {countdown_frames:?}");
 
-    let Some(frames_remaining) = countdown_frames else {
-        return;
-    };
+        let Some(frames_remaining) = countdown_frames else {
+            return;
+        };
 
-    countdown.0 = Some(Countdown { frames_remaining });
+        countdown.0 = Some(Countdown { frames_remaining });
+    }
 }
 
 fn check_for_collisions(
@@ -191,12 +214,12 @@ fn check_for_collisions(
     }
 
     if let Some(_error_message) = fail {
-        // let fr = countdown.0.as_ref().unwrap().frames_remaining;
-        // let long = LONG_WIN_FRAMES.saturating_sub(fr);
-        // info!(
-        //     "Countdown stopped ({_error_message}) after {long} frames ({s} seconds)",
-        //     s = (long as f32) * SECONDS_PER_FRAME
-        // );
+        let fr = countdown.0.as_ref().unwrap().frames_remaining;
+        let long = LONG_WIN_FRAMES.saturating_sub(fr);
+        info!(
+            "Countdown stopped ({_error_message}) after {long} frames ({s} seconds)",
+            s = (long as f32) * SECONDS_PER_FRAME
+        );
 
         countdown.0 = None;
     }

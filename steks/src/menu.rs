@@ -344,17 +344,17 @@ impl MavericNode for PBPreview {
                 }
             }
 
-            commands.add_child("buttons", PBArrows { level: node.level }, context);
+            commands.add_child("buttons", PBButtons { level: node.level }, context);
         });
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct PBArrows {
+pub struct PBButtons {
     level: u8,
 }
 
-impl MavericNode for PBArrows {
+impl MavericNode for PBButtons {
     type Context = NC7<
         GameSettings,
         CampaignCompletion,
@@ -416,6 +416,12 @@ impl MavericNode for PBArrows {
             commands.add_child(
                 "play",
                 icon_button_node(IconButton::PlayPB, IconButtonStyle::HeightPadded),
+                &context.3,
+            );
+
+            commands.add_child(
+                "share",
+                icon_button_node(IconButton::SharePB, IconButtonStyle::HeightPadded),
                 &context.3,
             );
 

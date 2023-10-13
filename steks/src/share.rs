@@ -22,16 +22,30 @@ fn handle_shares(
     mut events: EventReader<ShareEvent>,
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction)>,
     pbs: Res<PersonalBests>,
+    ui_state: Res<GlobalUiState>,
 ) {
     let Some(ev) = events.iter().next() else {
         return;
     };
-    let shapes = shapes_vec_from_query(shapes_query);
+
     let data: String = match ev {
-        ShareEvent::CurrentShapes => shapes.make_base64_data(),
+        ShareEvent::CurrentShapes => {
+            let shapes = shapes_vec_from_query(shapes_query);
+            shapes.make_base64_data()
+        }
         ShareEvent::PersonalBest => {
-            let hash = shapes.hash();
-            let Some(pb) = pbs.map.get(&hash) else {
+            let shapes = shapes_vec_from_query(shapes_query);
+            let pb = match ui_state.as_ref() {
+                GlobalUiState::MenuOpen(MenuPage::PBs { level }) => {
+                    pbs.get_from_level_index(*level as usize)
+                }
+                _ => {
+                    let hash = shapes.hash();
+                    pbs.map.get(&hash)
+                }
+            };
+
+            let Some(pb) = pb else {
                 return;
             };
 

@@ -4,26 +4,28 @@ use bevy::prelude::App;
 
 pub mod achievements;
 pub mod app_redirect;
-
+pub mod asynchronous;
 pub mod button;
 pub mod demo;
+pub mod game_level;
 pub mod global_ui;
 pub mod import;
 pub mod leaderboard;
-pub mod game_level;
 pub mod level_text_panel;
 pub mod level_ui;
 pub mod logging;
 pub mod menu;
 pub mod news;
-#[cfg(target_arch = "wasm32")]
-pub mod notifications;
-pub mod platform;
 pub mod preview_images;
 pub mod share;
 pub mod startup;
+
+
+#[cfg(any(feature = "android", feature = "ios", feature = "web"))]
+pub mod notifications;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
+pub mod compatibility;
 
 pub mod prelude {
 
@@ -43,26 +45,26 @@ pub mod prelude {
 
     pub use crate::achievements::*;
     pub use crate::app_redirect::*;
+    pub use crate::asynchronous::*;
     pub use crate::button::*;
     pub use crate::demo::*;
+    pub use crate::compatibility::*;
+    pub use crate::game_level::*;
     pub use crate::global_ui::*;
     pub use crate::import::*;
     pub use crate::leaderboard::*;
-    pub use crate::game_level::*;
     pub use crate::level_text_panel::*;
     pub use crate::level_ui::*;
+    pub use crate::logging::*;
     pub use crate::menu::*;
     pub use crate::news::*;
-    pub use crate::platform::*;
     pub use crate::preview_images::*;
     pub use crate::share::*;
-
-    //#[cfg(target_arch = "wasm32")]
-    pub use crate::logging::*;
-    #[cfg(target_arch = "wasm32")]
-    pub use crate::notifications::*;
     #[cfg(target_arch = "wasm32")]
     pub use crate::wasm::*;
+
+    #[cfg(any(feature = "android", feature = "ios", feature = "web"))]
+    pub use crate::notifications::*;
 }
 
 pub fn main() {

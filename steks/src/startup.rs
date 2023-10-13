@@ -1,8 +1,6 @@
 pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
-use capacitor_bindings::device::DeviceId;
-use lazy_static::lazy_static;
 
 pub const WINDOW_WIDTH: f32 = 360f32;
 pub const WINDOW_HEIGHT: f32 = 520f32;
@@ -80,8 +78,6 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(RapierPhysicsPlugin::in_fixed_schedule(
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PHYSICS_SCALE),
         ))
-
-
         .add_plugins(DragPlugin::<GlobalUiState>::default())
         .add_plugins(WinPlugin::<GlobalUiState>::default())
         .add_plugins(GameLevelPlugin)
@@ -110,10 +106,11 @@ pub fn setup_app(app: &mut App) {
     #[cfg(target_arch = "wasm32")]
     {
         app.add_plugins(WASMPlugin);
+    }
 
-        if !cfg!(debug_assertions) {
-            app.add_plugins(NotificationPlugin);
-        }
+    #[cfg(any(feature = "android", feature = "ios", feature = "web"))]
+    if !cfg!(debug_assertions) {
+        app.add_plugins(NotificationPlugin);
     }
 
     #[cfg(debug_assertions)]
@@ -129,11 +126,7 @@ pub fn setup_app(app: &mut App) {
     app.add_systems(Startup, hide_splash);
     app.add_systems(Startup, set_status_bar.after(hide_splash));
 
-    if !cfg!(debug_assertions) {
-        app.add_systems(PostStartup, log_start);
-    }
-
-    app.add_systems(PostStartup, set_device_id);
+    app.add_systems(PostStartup, on_start);
 }
 
 fn create_demo_resource() -> DemoResource {
@@ -153,15 +146,7 @@ pub fn limit_fixed_time(mut time: ResMut<FixedTime>) {
     }
 }
 
-fn set_device_id() {
-    bevy::tasks::IoTaskPool::get()
-        .spawn(async move {
-            set_device_id_async().await;
-        })
-        .detach();
-}
-
-pub fn log_start(mut pkv: ResMut<bevy_pkv::PkvStore>) {
+pub fn on_start(mut pkv: ResMut<bevy_pkv::PkvStore>) {
     const KEY: &str = "UserExists";
 
     let user_exists = pkv.get::<bool>(KEY).ok().unwrap_or_default();
@@ -170,60 +155,107 @@ pub fn log_start(mut pkv: ResMut<bevy_pkv::PkvStore>) {
         pkv.set(KEY, &true).unwrap();
     }
 
-    bevy::tasks::IoTaskPool::get()
-        .spawn(async move { log_start_async(user_exists).await })
-        .detach();
+    spawn_and_run(log_start_async(user_exists));
+}
+
+async fn log_start_async<'a>(user_exists: bool) {
+    {
+        let device_id: DeviceIdentifier;
+        #[cfg(any(feature = "android", feature = "ios", feature = "web"))]
+        {
+            device_id = match capacitor_bindings::device::Device::get_id().await {
+                Ok(device_id) => device_id.into(),
+                Err(err) => {
+                    crate::logging::try_log_error_message(format!("{err:?}"));
+                    DeviceIdentifier::unknown()
+                }
+            };
+        }
+
+        #[cfg(not(any(feature = "android", feature = "ios", feature = "web")))]
+        {
+            device_id = DeviceIdentifier::unknown();
+        }
+
+        match DEVICE_ID.set(device_id.clone()) {
+            Ok(()) => {
+                info!("Device id set {device_id:?}");
+            }
+            Err(err) => {
+                error!("Error setting device id {err:?}")
+            }
+        }
+
+        if !user_exists {
+            let new_user: LoggableEvent;
+
+            #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios", feature = "web")))]
+            {
+                new_user = crate::wasm::new_user_async().await;
+            }
+            #[cfg(not(all(target_arch = "wasm32", any(feature = "android", feature = "ios", feature = "web"))))]
+            {
+                new_user = LoggableEvent::NewUser {
+                    ref_param: None,
+                    referrer: None,
+                    gclid: None,
+                    language: None,
+                    device: None,
+                    app: None,
+                    platform: Platform::CURRENT,
+                };
+            }
+
+            new_user.try_log_async1(device_id.clone()).await;
+        }
+        let application_start: LoggableEvent;
+        #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios", feature = "web")))]
+        {
+            application_start = crate::wasm::application_start().await;
+        }
+
+        #[cfg(not(all(target_arch = "wasm32", any(feature = "android", feature = "ios", feature = "web"))))]
+        {
+            application_start = LoggableEvent::ApplicationStart {
+                ref_param: None,
+                referrer: None,
+                gclid: None,
+            };
+        }
+
+        application_start.try_log_async1(device_id).await;
+    }
 }
 
 fn disable_back() {
-    bevy::tasks::IoTaskPool::get()
-        .spawn(async move { disable_back_async().await })
-        .detach();
+    spawn_and_run(disable_back_async());
 }
 
 fn hide_splash() {
-    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
+    #[cfg(any(feature = "android", feature = "ios"))]
     {
-        bevy::tasks::IoTaskPool::get()
-            .spawn(
-                async move { capacitor_bindings::splash_screen::SplashScreen::hide(2000.0).await },
-            )
-            .detach();
+        do_or_report_error(capacitor_bindings::splash_screen::SplashScreen::hide(
+            2000.0,
+        ));
     }
 }
 
 fn set_status_bar() {
-    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
+    #[cfg(any(feature = "android", feature = "ios"))]
     {
         use capacitor_bindings::status_bar::*;
-        bevy::tasks::IoTaskPool::get()
-            .spawn(async move {
-                crate::logging::do_or_report_error_async(|| StatusBar::set_style(Style::Dark))
-                    .await;
 
-                #[cfg(feature = "android")]
-                crate::logging::do_or_report_error_async(|| {
-                    StatusBar::set_background_color("#5B8BE2")
-                })
-                .await;
-                //logging::do_or_report_error_async(|| StatusBar::hide()).await;
-            })
-            .detach();
+        do_or_report_error(StatusBar::set_style(Style::Dark));
+        #[cfg(feature = "android")]
+        do_or_report_error(StatusBar::set_background_color("#5B8BE2"));
     }
 }
 
 async fn disable_back_async<'a>() {
-    #[cfg(all(feature = "android", target_arch = "wasm32"))]
+    #[cfg(feature = "android")]
     {
         let result = capacitor_bindings::app::App::add_back_button_listener(|_| {
-            // bevy::tasks::IoTaskPool::get()
-            //     .spawn(async move {
-            //         logging::do_or_report_error_async(|| {
-            //             capacitor_bindings::app::App::minimize_app()
-            //         })
-            //         .await;
-            //     })
-            //     .detach();
+            //todo minimize app??
         })
         .await;
 
@@ -236,53 +268,6 @@ async fn disable_back_async<'a>() {
             }
         }
     }
-}
-
-async fn log_start_async<'a>(_user_exists: bool) {
-    #[cfg(target_arch = "wasm32")]
-    {
-        let device_id = match capacitor_bindings::device::Device::get_id().await {
-            Ok(device_id) => device_id,
-            Err(err) => {
-                crate::logging::try_log_error_message(format!("{err:?}"));
-                return;
-            }
-        };
-
-        if !_user_exists {
-            let new_user = crate::wasm::new_user_async().await;
-            new_user.try_log_async1(device_id.clone()).await;
-        }
-        let application_start = crate::wasm::application_start().await;
-        application_start.try_log_async1(device_id).await;
-    }
-}
-
-async fn set_device_id_async() {
-    #[cfg(target_arch = "wasm32")]
-    {
-        //info!("Setting device id");
-        let device_id = match capacitor_bindings::device::Device::get_id().await {
-            Ok(device_id) => device_id,
-            Err(err) => {
-                crate::logging::try_log_error_message(format!("{err:?}"));
-                return;
-            }
-        };
-
-        match DEVICE_ID.set(device_id.clone()) {
-            Ok(()) => {
-                info!("Device id set {device_id:?}");
-            }
-            Err(err) => {
-                error!("Error setting device id {err:?}")
-            }
-        }
-    }
-}
-
-lazy_static! {
-    pub static ref DEVICE_ID: std::sync::OnceLock<DeviceId> = Default::default();
 }
 
 #[cfg(test)]

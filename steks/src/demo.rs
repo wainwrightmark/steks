@@ -2,8 +2,7 @@ use std::hash::Hash;
 
 use bevy::prelude::*;
 use lazy_static::lazy_static;
-
-use crate::startup::DEVICE_ID;
+use crate::prelude::*;
 
 lazy_static! {
     pub static ref IS_FULL_GAME: bool = check_is_full_game().is_some();
@@ -54,7 +53,6 @@ fn check_is_full_game() -> Option<()> {
     }
     #[cfg(not(feature = "web"))]
     {
-        //info!("Game is not demo");
         Some(())
     }
 }

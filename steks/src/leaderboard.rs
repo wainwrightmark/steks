@@ -1,6 +1,6 @@
 use base64::Engine;
 use bevy::{log, prelude::*};
-use capacitor_bindings::game_connect::SubmitScoreOptions;
+
 use itertools::Itertools;
 
 use crate::prelude::*;
@@ -64,15 +64,13 @@ fn is_cheat_in_path() -> Option<()> {
 
 pub fn refresh_wr_data(hash: u64, writer: AsyncEventWriter<LeaderboardDataEvent>) {
     debug!("Refreshing Leaderboard");
-    bevy::tasks::IoTaskPool::get()
-        .spawn(async move {
-            let data_event = get_leaderboard_data(hash).await;
-            writer
-                .send_async(data_event)
-                .await
-                .expect("Leaderboard event channel closed prematurely");
-        })
-        .detach();
+    spawn_and_run(async move {
+        let data_event = get_leaderboard_data(hash).await;
+        writer
+            .send_async(data_event)
+            .await
+            .expect("Leaderboard event channel closed prematurely");
+    });
 }
 
 fn hydrate_leaderboard(
@@ -228,21 +226,16 @@ fn update_wr(shapes_vec: &ShapesVec) {
     let height = shapes_vec.calculate_tower_height();
     let blob = shapes_vec.make_base64_data();
     log::debug!("Updating wrs {hash} {height}");
-    bevy::tasks::IoTaskPool::get()
-        .spawn(async move {
-            match update_wrs_async(hash, height, blob).await {
-                Ok(_) => log::debug!("Updated leaderboard {hash} {height}"),
-                Err(_err) => {
-                    #[cfg(target_arch = "wasm32")]
-                    {
-                        crate::logging::try_log_error_message(format!(
-                            "Could not update leaderboard: {_err}"
-                        ));
-                    }
-                }
+    spawn_and_run(async move {
+        match update_wrs_async(hash, height, blob).await {
+            Ok(_) => log::debug!("Updated leaderboard {hash} {height}"),
+            Err(err) => {
+                crate::logging::try_log_error_message(format!(
+                    "Could not update leaderboard: {err}"
+                ));
             }
-        })
-        .detach();
+        }
+    });
 }
 
 async fn update_wrs_async(hash: u64, height: f32, blob: String) -> Result<(), reqwest::Error> {
@@ -294,11 +287,9 @@ fn update_campaign_completion(
     if previous_stars < stars {
         campaign_completion.stars[index as usize] = stars;
         if matches!(index + 1, 7 | 25 | 40) && previous_stars == StarType::Incomplete {
-            #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
+            #[cfg(any(feature = "android", feature = "ios"))]
             {
-                bevy::tasks::IoTaskPool::get()
-                    .spawn(async move { capacitor_bindings::rate::Rate::request_review().await })
-                    .detach();
+                do_or_report_error(capacitor_bindings::rate::Rate::request_review());
             }
         }
 
@@ -336,7 +327,7 @@ fn check_pbs_on_completion(
             if stage > max_infinite.0 {
                 max_infinite.0 = stage;
                 if let Some(options) = submit_score_options(current_level.as_ref()) {
-                    submit_score(options);
+                    submit_score(options.into());
                 }
             }
             return;
@@ -349,7 +340,11 @@ fn check_pbs_on_completion(
     };
 
     let level_pb = || {
-        let star = current_level.level.get_level_stars().map(|s|s.get_star(height)).unwrap_or(StarType::Incomplete);
+        let star = current_level
+            .level
+            .get_level_stars()
+            .map(|s| s.get_star(height))
+            .unwrap_or(StarType::Incomplete);
         #[allow(deprecated)]
         LevelPB {
             height,
@@ -379,23 +374,19 @@ fn check_pbs_on_completion(
         pbs.set_changed();
 
         if let Some(options) = submit_score_options(current_level.as_ref()) {
-            submit_score(options)
+            submit_score(options.into())
         }
     }
 }
 
-fn submit_score(options: SubmitScoreOptions) {
-    debug!("Submitting Score {options:?}");
-    #[cfg(all(target_arch = "wasm32", any(feature = "android", feature = "ios")))]
+fn submit_score(data: SubmitScoreData) {
+    debug!("Submitting Score {data:?}");
+    #[cfg(any(feature = "android", feature = "ios"))]
     {
-        bevy::tasks::IoTaskPool::get()
-            .spawn(async move {
-                crate::logging::do_or_report_error_async(move || {
-                    capacitor_bindings::game_connect::GameConnect::submit_score(options.clone())
-                })
-                .await;
-            })
-            .detach();
+        do_or_report_error(capacitor_bindings::game_connect::GameConnect::submit_score(
+            <SubmitScoreData as Into<capacitor_bindings::game_connect::SubmitScoreOptions>>::into(data)
+
+        ));
     }
 }
 
@@ -470,21 +461,11 @@ pub fn try_show_leaderboard(current_level: &CurrentLevel) {
 pub fn try_show_leaderboard_only(leaderboard_id: String) {
     info!("Showing leaderboard {:?}", leaderboard_id.clone());
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(feature = "android", feature = "ios"))]
     {
-        #[cfg(any(feature = "android", feature = "ios"))]
-        {
-            use capacitor_bindings::game_connect::*;
-            let options = ShowLeaderboardOptions { leaderboard_id };
+        use capacitor_bindings::game_connect::*;
+        let options = ShowLeaderboardOptions { leaderboard_id };
 
-            bevy::tasks::IoTaskPool::get()
-                .spawn(async move {
-                    crate::logging::do_or_report_error_async(move || {
-                        GameConnect::show_leaderboard(options.clone())
-                    })
-                    .await;
-                })
-                .detach();
-        }
+        do_or_report_error(GameConnect::show_leaderboard(options.clone()));
     }
 }

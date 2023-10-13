@@ -41,8 +41,8 @@ fn check_for_sign_in(
 
 #[allow(unused_variables)]
 fn sign_in_user(writer: AsyncEventWriter<SignInEvent>) {
-    #[allow(dead_code)]
-    #[cfg(target_arch = "wasm32")]
+    //#[allow(dead_code)]
+    //#[cfg(target_arch = "wasm32")]
     {
         #[cfg(any(feature = "android", feature = "ios"))]
         {
@@ -56,35 +56,22 @@ fn sign_in_user(writer: AsyncEventWriter<SignInEvent>) {
                 Ok(())
             }
 
-            info!("Signing in user to game services");
-            bevy::tasks::IoTaskPool::get()
-                .spawn(async move {
-                    match sign_in_async(writer).await {
-                        Ok(()) => {}
-                        Err(err) => error!("{err}"),
-                    }
-                })
-                .detach();
+            spawn_and_run(async move {
+                match sign_in_async(writer).await {
+                    Ok(()) => {}
+                    Err(err) => error!("{err}"),
+                }
+            });
         }
     }
 }
 
 pub fn show_achievements() {
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(feature = "android", feature = "ios"))]
     {
-        #[cfg(any(feature = "android", feature = "ios"))]
-        {
-            info!("Showing achievements");
-            use capacitor_bindings::game_connect::*;
-            bevy::tasks::IoTaskPool::get()
-                .spawn(async move {
-                    crate::logging::do_or_report_error_async(move || {
-                        GameConnect::show_achievements()
-                    })
-                    .await;
-                })
-                .detach();
-        }
+        info!("Showing achievements");
+        use capacitor_bindings::game_connect::*;
+        do_or_report_error(GameConnect::show_achievements());
     }
 }
 
@@ -110,34 +97,24 @@ impl Achievements {
     fn unlock_achievement(achievement: Achievement) {
         info!("Achievement Unlocked: {achievement}");
 
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(any(feature = "android", feature = "ios"))]
         {
-            #[cfg(any(feature = "android", feature = "ios"))]
-            {
-                use capacitor_bindings::game_connect::*;
-                bevy::tasks::IoTaskPool::get()
-                    .spawn(async move {
-                        crate::logging::do_or_report_error_async(move || {
-                            GameConnect::unlock_achievement(UnlockAchievementOptions {
-                                achievement_id: achievement.android_id().to_string(),
-                            })
-                        })
-                        .await;
-                    })
-                    .detach();
-            }
+            use capacitor_bindings::game_connect::*;
+            crate::logging::do_or_report_error(GameConnect::unlock_achievement(
+                UnlockAchievementOptions {
+                    achievement_id: achievement.android_id().to_string(),
+                },
+            ));
+        }
 
-            #[cfg(feature = "web")]
-            {
-                bevy::tasks::IoTaskPool::get()
-                    .spawn(async move {
-                        let _ = capacitor_bindings::toast::Toast::show(format!(
-                            "Achievement Unlocked: {achievement}"
-                        ))
-                        .await;
-                    })
-                    .detach();
-            }
+        #[cfg(feature = "web")]
+        {
+            spawn_and_run(async move {
+                let _ = capacitor_bindings::toast::Toast::show(format!(
+                    "Achievement Unlocked: {achievement}"
+                ))
+                .await;
+            });
         }
     }
 }

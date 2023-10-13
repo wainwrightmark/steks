@@ -8,6 +8,8 @@ use bevy::{
     window::{PrimaryWindow, WindowResized},
 };
 use capacitor_bindings::{device::Device, share::ShareOptions};
+
+#[allow(unused_imports)]
 use wasm_bindgen::prelude::*;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 #[wasm_bindgen()]
@@ -58,15 +60,6 @@ pub async fn application_start() -> LoggableEvent {
     }
 }
 
-const PLATFORM: &str = {
-    if cfg!(feature = "android") {
-        "Android"
-    } else if cfg!(feature = "ios") {
-        "IOS"
-    } else {
-        "Web"
-    }
-};
 
 pub async fn new_user_async() -> LoggableEvent {
     let search_params = get_url_search_params().await;
@@ -87,7 +80,7 @@ pub async fn new_user_async() -> LoggableEvent {
         language,
         device,
         app,
-        platform: PLATFORM,
+        platform: Platform::CURRENT,
     }
 }
 
@@ -150,7 +143,7 @@ async fn share_game_async(game: String) {
         });
 
     LoggableEvent::ClickShare
-        .try_log_async1(device_id.clone())
+        .try_log_async1(device_id.clone().into())
         .await;
 
     let url = "https://steks.net/game/".to_string() + game.as_str();
@@ -167,7 +160,7 @@ async fn share_game_async(game: String) {
         Ok(share_result) => {
             if let Some(platform) = share_result.activity_type {
                 LoggableEvent::ShareOn { platform }
-                    .try_log_async1(device_id)
+                    .try_log_async1(device_id.into())
                     .await;
             }
 

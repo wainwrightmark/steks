@@ -1,11 +1,14 @@
-use bevy::{log, prelude::*, tasks::IoTaskPool};
-use capacitor_bindings::{app::AppInfo, device::*};
+use bevy::{log, prelude::*};
+//use capacitor_bindings::{app::AppInfo, device::*};
+use crate::prelude::*;
+use crate::{
+    game_level::LevelLogData,
+    global_ui::{spawn_and_run, GlobalUiState},
+};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use steks_base::shape_component::{handle_change_level_events, ChangeLevelEvent, CurrentLevel};
 use strum::EnumDiscriminants;
-
-use crate::{game_level::LevelLogData, global_ui::GlobalUiState};
 
 pub struct LogWatchPlugin;
 
@@ -26,8 +29,12 @@ fn watch_level_changes(
     for ev in events.into_iter() {
         let event = match ev {
             ChangeLevelEvent::Next => "Next Level".to_string(),
-            ChangeLevelEvent::ChooseCampaignLevel { index, .. } => format!("Go to campaign level {index}") ,
-            ChangeLevelEvent::ChooseTutorialLevel { index, .. } => format!("Go to tutorial level {index}"),
+            ChangeLevelEvent::ChooseCampaignLevel { index, .. } => {
+                format!("Go to campaign level {index}")
+            }
+            ChangeLevelEvent::ChooseTutorialLevel { index, .. } => {
+                format!("Go to tutorial level {index}")
+            }
             ChangeLevelEvent::ResetLevel => "Reset Level".to_string(),
             ChangeLevelEvent::StartInfinite => "Start Infinite".to_string(),
             ChangeLevelEvent::StartChallenge => "Start Challenge".to_string(),
@@ -41,12 +48,7 @@ fn watch_level_changes(
             event,
         };
 
-        //info!("{loggable_event:?}");
-        //todo log change levels events
-        #[cfg(target_arch = "wasm32")]
-        {
-            loggable_event.try_log1();
-        }
+        loggable_event.try_log1();
     }
 }
 
@@ -60,9 +62,9 @@ pub enum LoggableEvent {
         referrer: Option<String>,
         gclid: Option<String>,
         language: Option<String>,
-        device: Option<LogDeviceInfo>,
+        device: Option<DeviceInformation>,
         app: Option<LogAppInfo>,
-        platform: &'static str
+        platform: Platform,
     },
     ApplicationStart {
         ref_param: Option<String>,
@@ -99,21 +101,12 @@ pub enum LoggableEvent {
     NotificationClick,
 }
 
+#[cfg(any(feature = "android", feature = "ios", feature = "web"))]
 impl From<capacitor_bindings::error::Error> for LoggableEvent {
     fn from(value: capacitor_bindings::error::Error) -> Self {
         Self::Error {
             message: value.to_string(),
         }
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, serde:: Serialize, serde::Deserialize, Debug)]
-#[serde(transparent)]
-pub struct DeviceIdentifier(pub String);
-
-impl From<DeviceId> for DeviceIdentifier {
-    fn from(value: DeviceId) -> Self {
-        Self(value.identifier)
     }
 }
 
@@ -159,22 +152,6 @@ pub enum Severity {
 //     }
 // }
 
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct LogAppInfo {
-    build: String,
-    version: String,
-}
-
-impl From<AppInfo> for LogAppInfo {
-    fn from(value: AppInfo) -> Self {
-        Self {
-            build: value.build,
-            version: value.version,
-        }
-    }
-}
-
 impl LogAppInfo {
     pub async fn try_get_async() -> Option<LogAppInfo> {
         #[cfg(any(feature = "android", feature = "ios"))]
@@ -194,43 +171,20 @@ impl LogAppInfo {
     }
 }
 
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct LogDeviceInfo {
-    pub name: Option<String>,
-    pub model: String,
-    pub platform: Platform,
-    pub os: OperatingSystem,
-    pub os_version: String,
-    pub manufacturer: String,
-    pub is_virtual: bool,
-    pub web_view_version: Option<String>,
-}
-
-impl From<DeviceInfo> for LogDeviceInfo {
-    fn from(d: DeviceInfo) -> Self {
-        Self {
-            name: d.name,
-            model: d.model,
-            platform: d.platform,
-            os: d.operating_system,
-            os_version: d.os_version,
-            manufacturer: d.manufacturer,
-            is_virtual: d.is_virtual,
-            web_view_version: d.web_view_version,
-        }
-    }
-}
-
-pub async fn do_or_report_error_async<
-    Fut: std::future::Future<Output = Result<(), capacitor_bindings::error::Error>>,
-    F: Fn() -> Fut + 'static,
->(
-    f: F,
+#[cfg(any(feature = "android", feature = "ios", feature = "web"))]
+pub fn do_or_report_error(
+    future: impl std::future::Future<Output = Result<(), capacitor_bindings::error::Error>> + 'static,
 ) {
-    let r = f().await;
+    spawn_and_run(do_or_report_error_async(future))
+}
 
-    match r {
+#[cfg(any(feature = "android", feature = "ios", feature = "web"))]
+pub async fn do_or_report_error_async(
+    future: impl std::future::Future<Output = Result<(), capacitor_bindings::error::Error>>,
+) {
+    let result = future.await;
+
+    match result {
         Ok(_) => {}
         Err(err) => {
             log::error!("{err:?}");
@@ -240,9 +194,7 @@ pub async fn do_or_report_error_async<
 }
 
 pub fn try_log_error_message(message: String) {
-    IoTaskPool::get()
-        .spawn(async move { LoggableEvent::try_log_error_message_async2(message).await })
-        .detach();
+    spawn_and_run(LoggableEvent::try_log_error_message_async2(message));
 }
 
 impl LoggableEvent {
@@ -260,12 +212,12 @@ impl LoggableEvent {
         Self::try_get_device_id_and_log_async(Self::Error { message }).await
     }
 
-    pub async fn try_log_async1(self, device_id: DeviceId) {
+    pub async fn try_log_async1(self, device_id: DeviceIdentifier) {
         Self::try_log_async(self, device_id).await
     }
 
     /// Either logs the message or sends it to be retried later
-    pub async fn try_log_async(data: impl Into<Self>, device_id: DeviceId) {
+    pub async fn try_log_async(data: impl Into<Self>, device_id: DeviceIdentifier) {
         //let user = Dispatch::<UserState>::new().get();
         let event = data.into();
         let severity = event.get_severity();
@@ -282,21 +234,21 @@ impl LoggableEvent {
     }
 
     pub async fn try_get_device_id_and_log_async(data: impl Into<Self>) {
-        let device_id: DeviceId;
+        let device_id: DeviceIdentifier;
 
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(any(feature = "android", feature = "ios", feature = "web"))]
         {
-            match Device::get_id().await {
-                Ok(id) => device_id = id,
+            match capacitor_bindings::device::Device::get_id().await {
+                Ok(id) => device_id = id.into(),
                 Err(err) => {
                     log::error!("{err:?}");
                     return;
                 }
             }
         }
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(any(feature = "android", feature = "ios", feature = "web")))]
         {
-            device_id = DeviceId {
+            device_id = DeviceIdentifier {
                 identifier: "unknown".to_string(),
             };
         }
@@ -304,16 +256,12 @@ impl LoggableEvent {
         Self::try_log_async(data, device_id).await
     }
 
-    #[cfg(target_arch = "wasm32")]
     pub fn try_log1(self) {
         Self::try_log(self)
     }
 
-    #[cfg(target_arch = "wasm32")]
     fn try_log(data: impl Into<Self> + 'static) {
-        IoTaskPool::get()
-            .spawn(async move { Self::try_get_device_id_and_log_async(data).await })
-            .detach();
+        spawn_and_run(Self::try_get_device_id_and_log_async(data));
     }
 
     pub fn get_severity(&self) -> Severity {

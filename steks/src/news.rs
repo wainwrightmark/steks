@@ -10,7 +10,7 @@ pub struct NewsPlugin;
 impl Plugin for NewsPlugin {
     fn build(&self, app: &mut App) {
         app.init_tracked_resource::<NewsResource>()
-        .register_async_event::<NewsItem>()
+            .register_async_event::<NewsItem>()
             .add_systems(PostStartup, check_loaded_news)
             .add_systems(PostStartup, get_latest_news.after(check_loaded_news))
             .add_systems(Update, update_news_items);
@@ -55,16 +55,13 @@ fn check_loaded_news(
 
 fn get_latest_news(writer: AsyncEventWriter<NewsItem>) {
     info!("Getting latest news");
-    bevy::tasks::IoTaskPool::get()
-        .spawn(async move { get_latest_news_async(writer).await })
-        .detach();
+    spawn_and_run(get_latest_news_async(writer));
 }
 
 async fn get_latest_news_async(writer: AsyncEventWriter<NewsItem>) {
-    let client = reqwest::Client::new();
     let url = "https://steks.net/news.yaml".to_string();
 
-    let res = client.get(url).send().await;
+    let res = reqwest::get(url).await;
     let text = match res {
         Ok(response) => response.text().await,
         Err(err) => {
@@ -130,8 +127,7 @@ fn update_news_items(
                 info!("Latest news is no newer than stored news");
                 continue 'events;
             }
-        }
-        else if item.expired() {
+        } else if item.expired() {
             info!("Latest news is expired");
             continue 'events;
         }
@@ -291,8 +287,6 @@ impl IntoBundle for NewsButtonStyle {
 mod tests {
     use crate::global_ui::NewsItem;
 
-
-
     #[test]
     pub fn go() {
         const NEWS_EXAMPLE: &str = include_str!(r#"./../news.yaml"#);
@@ -300,6 +294,7 @@ mod tests {
 
         let item: NewsItem = item.expect("Should be able to deserialize latest news");
 
-        let _: Vec<u8> = crate::global_ui::try_draw_image(&item.svg).expect("Should be able to draw image");
+        let _: Vec<u8> =
+            crate::global_ui::try_draw_image(&item.svg).expect("Should be able to draw image");
     }
 }

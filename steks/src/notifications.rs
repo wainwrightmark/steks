@@ -16,11 +16,7 @@ impl Plugin for NotificationPlugin {
 }
 
 fn setup(writer: AsyncEventWriter<ChangeLevelEvent>) {
-    bevy::tasks::IoTaskPool::get()
-        .spawn(async move {
-            setup_notifications_async(writer).await;
-        })
-        .detach();
+    spawn_and_run(setup_notifications_async(writer));
 }
 
 async fn setup_notifications_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
@@ -50,7 +46,7 @@ async fn setup_notifications_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
     #[cfg(any(feature = "ios", feature = "android"))]
     {
         bevy::log::debug!("Registering Action Types");
-        crate::logging::do_or_report_error_async(|| {
+        crate::logging::do_or_report_error_async({
             let action_type_options = RegisterActionTypesOptions {
                 types: vec![ActionType {
                     id: DAILY_CHALLENGE_ACTION_TYPE_ID.to_string(),

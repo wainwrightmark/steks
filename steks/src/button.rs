@@ -60,9 +60,9 @@ fn icon_button_system(
                 PlayPB => {
                     match global_ui_state.as_ref() {
                         GlobalUiState::MenuOpen(MenuPage::PBs { level }) => {
-                            if let Some(pb) = personal_bests.get_from_level_index(*level as usize){
-                            change_level_events.send(ChangeLevelEvent::Load(Arc::new(pb.image_blob.clone())));
-
+                            if let Some(pb) = personal_bests.get_from_level_index(*level as usize) {
+                                change_level_events
+                                    .send(ChangeLevelEvent::Load(Arc::new(pb.image_blob.clone())));
                             }
                         }
                         _ => {
@@ -86,9 +86,9 @@ fn icon_button_system(
                         #[cfg(target_arch = "wasm32")]
                         {
                             let link = match Platform::CURRENT {
-                                Platform::IOS => _news_item.ios_link.as_str(),
+                                Platform::IOs => _news_item.ios_link.as_str(),
                                 Platform::Android => _news_item.android_link.as_str(),
-                                Platform::Other => _news_item.default_link.as_str(),
+                                Platform::Other | Platform::Web => _news_item.default_link.as_str(),
                             };
                             crate::logging::LoggableEvent::FollowNewsLink.try_log1();
                             crate::wasm::open_link(link);
@@ -220,9 +220,7 @@ fn text_button_system(
                     .as_mut()
                     .toggle_view_pbs(current_level.as_ref(), &completion),
                 TextButton::MinimizeApp => {
-                    bevy::tasks::IoTaskPool::get()
-                        .spawn(async move { minimize_app_async().await })
-                        .detach();
+                    spawn_and_run(minimize_app_async());
                 }
                 TextButton::Credits => change_level_events.send(ChangeLevelEvent::Credits),
                 TextButton::OpenSettings => global_ui_state.as_mut().open_settings(),
@@ -258,9 +256,8 @@ fn text_button_system(
 }
 
 async fn minimize_app_async() {
-    #[cfg(all(feature = "android", target_arch = "wasm32"))]
+    #[cfg(feature = "android")]
     {
-        crate::logging::do_or_report_error_async(|| capacitor_bindings::app::App::minimize_app())
-            .await;
+        do_or_report_error(capacitor_bindings::app::App::minimize_app());
     }
 }

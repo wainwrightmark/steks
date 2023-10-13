@@ -76,10 +76,10 @@ impl MavericNode for MenuPage {
                         News,
                         // #[cfg(feature = "web")]
                         // ClipboardImport,
-                        #[cfg(all(feature = "web", target_arch = "wasm32"))]
+                        #[cfg(feature = "web")]
                         GoFullscreen,
                         Credits,
-                        #[cfg(all(feature = "android", target_arch = "wasm32"))]
+                        #[cfg(feature = "android")]
                         MinimizeApp,
                     ]
                 } else {
@@ -96,10 +96,10 @@ impl MavericNode for MenuPage {
                         News,
                         // #[cfg(feature = "web")]
                         // ClipboardImport,
-                        #[cfg(all(feature = "web", target_arch = "wasm32"))]
+                        #[cfg(feature = "web")]
                         GoFullscreen,
                         Credits,
-                        #[cfg(all(feature = "android", target_arch = "wasm32"))]
+                        #[cfg(feature = "android")]
                         MinimizeApp,
                     ]
                 };
@@ -344,7 +344,7 @@ impl MavericNode for PBPreview {
                 }
             }
 
-            commands.add_child("buttons", PBArrows{level: node.level}, context);
+            commands.add_child("buttons", PBArrows { level: node.level }, context);
         });
     }
 }
@@ -419,7 +419,11 @@ impl MavericNode for PBArrows {
                 &context.3,
             );
 
-            let can_go_right = context.1.stars.get(args.level.saturating_add(1) as usize).is_some_and(|x| !x.is_incomplete()) ;
+            let can_go_right = context
+                .1
+                .stars
+                .get(args.level.saturating_add(1) as usize)
+                .is_some_and(|x| !x.is_incomplete());
 
             if can_go_right {
                 commands.add_child(

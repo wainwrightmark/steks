@@ -24,7 +24,7 @@ capacitor_bindings = { features = [
   "web",
   "rate_plugin",
   "game_plugin",
-], git = "https://github.com/wainwrightmark/capacitor_bindings" }
+], git = "https://github.com/wainwrightmark/capacitor_bindings", optional = true}
 bevy_embedded_assets = "0.8"
 lazy_static = "1.4"
 serde_yaml = "0.9"
@@ -40,6 +40,7 @@ maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
 serde_repr = "0.1"
 enumset = { version = "1", features = ["serde"] }
 resvg = { version = "0.35", default-features = false, features = ["text"] }
+
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3" }
@@ -58,6 +59,9 @@ console_error_panic_hook = "0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 winit = { version = "0.28", features = ["x11"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+async-compat = "0.2.1"
 
 [dev-dependencies]
 insta = "1"
@@ -85,3 +89,4 @@ features = [
 web = ["capacitor_bindings/web"]
 android = ["capacitor_bindings/android"]
 ios = ["capacitor_bindings/ios"]
+steam = ["reqwest/native-tls"]

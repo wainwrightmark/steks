@@ -16,7 +16,7 @@ serde = "1"
 num_enum = "0.7"
 strum = { version = "0.25", features = ["derive"] }
 rand = "0.8.5"
-resvg = { version = "0.35", default-features = false }
+resvg = { version = "0.36", default-features = false }
 anyhow = "1"
 lazy_static = "1.4.0"
 serde_yaml = "0.9"

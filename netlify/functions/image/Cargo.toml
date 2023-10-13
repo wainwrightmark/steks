@@ -14,7 +14,7 @@ steks_common = {path="../../../steks_common"}
 steks_image = {path="../../../steks_image"}
 base64 = "0.21"
 tokio = {version= "*", default-features=false}
-resvg = { version = "0.35", default-features = false, features=["text"] }
+resvg = { version = "0.36", default-features = false, features=["text"] }
 
 [dev-dependencies]
 insta = "1.31"

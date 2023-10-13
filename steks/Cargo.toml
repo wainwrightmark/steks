@@ -39,7 +39,7 @@ maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
 ] }
 serde_repr = "0.1"
 enumset = { version = "1", features = ["serde"] }
-resvg = { version = "0.35", default-features = false, features = ["text"] }
+resvg = { version = "0.36", default-features = false, features = ["text"] }
 steamworks ={version =  "0.10", optional = true}
 
 

@@ -73,13 +73,13 @@ pub fn setup_app(app: &mut App) {
         )
         .add_plugins(DragPlugin::<GlobalUiState>::default())
         .add_plugins(WinPlugin::<GlobalUiState>::default())
-        .add_plugins(LevelPlugin::new(CurrentLevel {
-            level: GameLevel::Designed {
+        .add_plugins(LevelPlugin::new(CurrentLevel::new(
+            GameLevel::Designed {
                 meta: DesignedLevelMeta::Ad { index: 0 },
             },
-            completion: LevelCompletion::Incomplete { stage: 0 },
-            saved_data: None,
-        }))
+            LevelCompletion::Incomplete { stage: 0 },
+            None,
+        )))
         .add_plugins(ChangeLevelPlugin::<GlobalUiState>::default())
         .add_plugins(CollisionPlugin::default())
         .add_plugins(PadlockPlugin::default())

@@ -37,8 +37,8 @@ pub fn spawn_and_update_shapes(
         }
     }
 
-    if previous_level.0.is_none() {
-        if let Some(saved_data) = &current_level.saved_data {
+    if let Some(saved_data) = &current_level.saved_data() {
+        if previous_level.compare(&current_level) == PreviousLevelType::DifferentLevel {
             result.mogrify(saved_data);
         }
     }

@@ -84,7 +84,7 @@ pub fn check_for_win<U: UITrait>(
         }
     }
     //info!("Saved data height {}", shapes.calculate_tower_height());
-    current_level.saved_data = Some(shapes);
+    current_level.set_saved_data(Some(shapes));
     events.send(LevelWonEvent {
         has_not_acted: has_acted.is_has_not_acted(),
     })

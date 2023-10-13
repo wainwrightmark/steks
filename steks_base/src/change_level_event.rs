@@ -1,8 +1,7 @@
-use std::marker::PhantomData;
-
 use crate::prelude::*;
 use chrono::Days;
 use itertools::Itertools;
+use std::marker::PhantomData;
 
 #[derive(Debug, Default)]
 pub struct ChangeLevelPlugin<U: UITrait>(PhantomData<U>);
@@ -29,11 +28,9 @@ pub fn handle_change_level_events<U: UITrait>(
 
         let completion = LevelCompletion::Incomplete { stage };
 
-        current_level.set_if_neq(CurrentLevel {
-            level,
-            completion,
-            saved_data: None,
-        });
+        let saved_data = event.get_saved_data();
+
+        current_level.set_if_neq(CurrentLevel::new(level, completion, saved_data));
 
         global_ui_state.minimize();
     }
@@ -45,6 +42,7 @@ pub enum ChangeLevelEvent {
     ChooseCampaignLevel {
         index: u8,
         stage: usize,
+        saved_data: Option<std::sync::Arc<Vec<u8>>>,
     },
     ChooseTutorialLevel {
         index: u8,
@@ -107,6 +105,15 @@ fn skip_tutorial_completion(level: Res<CurrentLevel>, mut events: EventWriter<Ch
 }
 
 impl ChangeLevelEvent {
+    pub fn get_saved_data(&self) -> Option<ShapesVec> {
+        match self {
+            ChangeLevelEvent::ChooseCampaignLevel { saved_data, .. } => {
+                saved_data.as_ref().map(|data| ShapesVec::from_bytes(&data))
+            }
+            _ => None,
+        }
+    }
+
     #[must_use]
     pub fn get_new_level(
         &self,
@@ -182,7 +189,7 @@ impl ChangeLevelEvent {
                 )
             }
 
-            ChangeLevelEvent::ChooseCampaignLevel { index, stage } => {
+            ChangeLevelEvent::ChooseCampaignLevel { index, stage, .. } => {
                 let index = *index;
                 (
                     GameLevel::Designed {

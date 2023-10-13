@@ -10,7 +10,7 @@ use crate::game_level::GameLevel;
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,
-    pub saved_data: Option<ShapesVec>,
+    saved_data: Option<ShapesVec>,
 }
 
 impl TrackableResource for CurrentLevel {
@@ -18,6 +18,18 @@ impl TrackableResource for CurrentLevel {
 }
 
 impl CurrentLevel {
+    pub fn new(
+        level: GameLevel,
+        completion: LevelCompletion,
+        saved_data: Option<ShapesVec>,
+    ) -> Self {
+        Self {
+            level,
+            completion,
+            saved_data,
+        }
+    }
+
     pub fn get_current_stage(&self) -> usize {
         match self.completion {
             LevelCompletion::Incomplete { stage } => stage,
@@ -31,6 +43,14 @@ impl CurrentLevel {
 
     pub fn show_rotate_arrow(&self) -> bool {
         self.level.show_rotate_arrow()
+    }
+
+    pub fn saved_data(&self) -> Option<&ShapesVec> {
+        self.saved_data.as_ref()
+    }
+
+    pub fn set_saved_data(&mut self, saved_data: Option<ShapesVec>) {
+        self.saved_data = saved_data;
     }
 }
 

@@ -335,7 +335,7 @@ fn check_pbs_on_completion(
         LevelCompletion::Complete { score_info } => (score_info.height, score_info.hash),
     };
 
-    let Some(shapes) = &current_level.saved_data else {
+    let Some(shapes) = &current_level.saved_data() else {
         return;
     };
 
@@ -403,7 +403,7 @@ fn check_wrs_on_completion(
         return;
     }
 
-    let Some(shapes) = &current_level.saved_data else {
+    let Some(shapes) = &current_level.saved_data() else {
         return;
     };
 

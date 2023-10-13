@@ -61,8 +61,18 @@ fn icon_button_system(
                     match global_ui_state.as_ref() {
                         GlobalUiState::MenuOpen(MenuPage::PBs { level }) => {
                             if let Some(pb) = personal_bests.get_from_level_index(*level as usize) {
-                                change_level_events
-                                    .send(ChangeLevelEvent::Load(Arc::new(pb.image_blob.clone())));
+                                if let Some(campaign_level) = CAMPAIGN_LEVELS.get(*level as usize) {
+                                    let stage = campaign_level.stages.len();
+
+                                    let saved_data = Some(Arc::new(pb.image_blob.clone()));
+                                    let event = ChangeLevelEvent::ChooseCampaignLevel {
+                                        index: *level,
+                                        stage,
+                                        saved_data,
+                                    };
+
+                                    change_level_events.send(event);
+                                }
                             }
                         }
                         _ => {
@@ -210,6 +220,7 @@ fn text_button_system(
                     change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
                         index: level,
                         stage: 0,
+                        saved_data: None,
                     })
                 }
                 TextButton::ChooseLevel => global_ui_state

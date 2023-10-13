@@ -75,11 +75,25 @@ impl GlobalUiState {
         }
     }
 
-    pub fn toggle_view_pbs(&mut self, current_level: &CurrentLevel) {
+    pub fn toggle_view_pbs(
+        &mut self,
+        current_level: &CurrentLevel,
+        completion: &CampaignCompletion,
+    ) {
         let level = match current_level.level {
             GameLevel::Designed {
                 meta: DesignedLevelMeta::Campaign { index },
-            } => index,
+            } => {
+                if completion
+                    .stars
+                    .get(index as usize)
+                    .is_some_and(|s| !StarType::is_incomplete(s))
+                {
+                    index
+                } else {
+                    0
+                }
+            }
             _ => 0,
         };
 

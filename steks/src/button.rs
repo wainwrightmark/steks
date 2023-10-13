@@ -163,6 +163,7 @@ fn text_button_system(
 
     current_level: Res<CurrentLevel>,
     achievements: Res<Achievements>,
+    completion: Res<CampaignCompletion>,
 
     dragged: Query<(), With<BeingDragged>>,
 ) {
@@ -217,7 +218,7 @@ fn text_button_system(
 
                 TextButton::ViewPBs => global_ui_state
                     .as_mut()
-                    .toggle_view_pbs(current_level.as_ref()),
+                    .toggle_view_pbs(current_level.as_ref(), &completion),
                 TextButton::MinimizeApp => {
                     bevy::tasks::IoTaskPool::get()
                         .spawn(async move { minimize_app_async().await })

@@ -121,7 +121,7 @@ impl MavericNode for CircleArc {
             (
                 ShapeBundle {
                     transform: Transform {
-                        translation: Vec3::new(00.0, context.1.win_timer_position_y(), 1.0),
+                        translation: Vec3::new(00.0, context.1.win_timer_position_y(), 100.0),
                         ..Default::default()
                     },
                     ..Default::default()

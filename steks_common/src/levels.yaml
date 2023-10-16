@@ -34,11 +34,11 @@
 #3
 - title: "Steks With An X"
   text: "rotating shapes from further away\nis often easier"
+  end_text: "Can't reach three stars?\nClick  for inspiration"
   mouse_text: ""
   stars: {two: 180, three: 190}
   #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQHQ'
-  end_text: "Wow, that was quick"
   shapes:
     - shape: S5
       x: -150.0
@@ -110,7 +110,7 @@
 
 #7
 - title: "Tri Hard"
-  end_text: "Welcome to the party, pal"
+  end_text: "Yippee-Ki-Yay!"
   stars: {two: 270, three: 305}
   #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQIQ'
@@ -159,11 +159,9 @@
     - shape: J4
     - shape: Z4
 
-
-
 #10
 - title: "Tri Hard II: Tri Harder"
-  end_text: "Yippee-Ki-Yay!"
+  end_text: "Want to see how you measure up?\nHit  to the see the leaderboards"
   stars: {two: 280, three: 350}
   #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQJA'

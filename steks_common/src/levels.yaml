@@ -162,6 +162,7 @@
 #10
 - title: "Tri Hard II: Tri Harder"
   end_text: "Want to see how you measure up?\nHit  to the see the leaderboards"
+  flashing_button: ShowLeaderboard
   stars: {two: 280, three: 350}
   #spellchecker:disable-next-line
   leaderboard_id: 'CgkItNbalLwcEAIQJA'

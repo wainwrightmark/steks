@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use capacitor_bindings::local_notifications::*;
 
-use crate::prelude::*;
+use crate::{logging, prelude::*};
 
 #[cfg(any(feature = "ios", feature = "android"))]
 const DAILY_CHALLENGE_CLICK_ACTION_ID: &str = "DailyChallengeClick";
@@ -45,6 +45,45 @@ async fn setup_notifications_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
 
     #[cfg(any(feature = "ios", feature = "android"))]
     {
+        match LocalNotifications::check_permissions().await {
+            Ok(permissions) => match permissions.display {
+                PermissionState::Prompt | PermissionState::PromptWithRationale => {
+                    match LocalNotifications::request_permissions().await {
+                        Ok(new_permission_status) => {
+                            let given = match new_permission_status.display {
+                                PermissionState::Prompt => "Prompt",
+                                PermissionState::PromptWithRationale => "PromptWithRationale",
+                                PermissionState::Granted => "Granted",
+                                PermissionState::Denied => "Denied",
+                            }
+                            .to_string();
+                            let event = LoggableEvent::PermissionsRequested { given };
+
+                            logging::LoggableEvent::try_get_device_id_and_log_async(event).await;
+
+                            if new_permission_status.display == PermissionState::Denied {
+                                return;
+                            }
+                        }
+                        Err(err) => {
+                            let event: LoggableEvent = err.into();
+                            logging::LoggableEvent::try_get_device_id_and_log_async(event).await;
+                            return;
+                        }
+                    }
+                }
+                PermissionState::Granted => {}
+                PermissionState::Denied => {
+                    return;
+                }
+            },
+            Err(err) => {
+                let event: LoggableEvent = err.into();
+                logging::LoggableEvent::try_get_device_id_and_log_async(event).await;
+                return;
+            }
+        }
+
         bevy::log::debug!("Registering Action Types");
         crate::logging::do_or_report_error_async({
             let action_type_options = RegisterActionTypesOptions {

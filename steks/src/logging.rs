@@ -96,6 +96,10 @@ pub enum LoggableEvent {
         max_demo_level: u8,
     },
 
+    PermissionsRequested{
+        given: String
+    },
+
     FollowNewsLink,
 
     NotificationClick,
@@ -235,7 +239,6 @@ impl LoggableEvent {
 
     pub async fn try_get_device_id_and_log_async(data: impl Into<Self>) {
         let device_id: DeviceIdentifier;
-
         #[cfg(any(feature = "android", feature = "ios", feature = "web"))]
         {
             match capacitor_bindings::device::Device::get_id().await {

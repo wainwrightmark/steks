@@ -24,11 +24,11 @@ pub fn main() {
             .filter(|x| x.is_ascii_alphabetic())
             .collect();
         let number = number + 1;
-        let path = format!("record_images/{number}_{title}.png",);
+
 
         println!("{title} {} {}", record.hash, record.height);
 
-        let image_data = steks_image::drawing::try_draw_image(
+        let png_image_data = steks_image::drawing::try_draw_image(
             record.image_blob.as_slice(),
             &OverlayChooser::no_overlay(),
             Dimensions {
@@ -38,8 +38,16 @@ pub fn main() {
             ()
         )
         .unwrap();
+        let png_path = format!("record_images/{number}_{title}.png",);
+        std::fs::write(png_path, png_image_data.as_slice()).unwrap();
 
-        std::fs::write(path, image_data.as_slice()).unwrap();
+        let svg_image_data = steks_image::drawing::make_svg_from_bytes(&record.image_blob, Dimensions {
+            width: 512,
+            height: 512,
+        });
+
+        let svg_path = format!("record_images/{number}_{title}.svg",);
+        std::fs::write(svg_path, svg_image_data).unwrap();
     }
 }
 

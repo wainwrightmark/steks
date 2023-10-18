@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="374"
+   height="448"
+   viewBox="0 0 98.954162 118.53334"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="steks_og.svg"
+   inkscape:export-filename="vertical_capsule.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <title
+     id="title4124">Steks Icon</title>
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="false"
+     units="px"
+     inkscape:snap-page="true"
+     inkscape:zoom="0.5499273"
+     inkscape:cx="85.465842"
+     inkscape:cy="706.45702"
+     inkscape:window-width="2400"
+     inkscape:window-height="1261"
+     inkscape:window-x="3191"
+     inkscape:window-y="425"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2"
+     inkscape:showpageshadow="0"
+     inkscape:deskcolor="#d1d1d1" />
+  <defs
+     id="defs2">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3649">
+      <stop
+         style="stop-color:#85abea;stop-opacity:1;"
+         offset="0"
+         id="stop3645" />
+      <stop
+         style="stop-color:#a685ea;stop-opacity:1"
+         offset="1"
+         id="stop3647" />
+    </linearGradient>
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1170"
+       is_visible="true"
+       lpeversion="1"
+       satellites_param="F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="4"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false"
+       nodesatellites_param="F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1 @ F,0,0,1,0,4,0,1" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3649"
+       id="linearGradient3651"
+       x1="0"
+       y1="0"
+       x2="135.46666"
+       y2="135.46666"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-13.14097,-4.0000018)" />
+    <filter
+       style="color-interpolation-filters:sRGB"
+       id="filter3733"
+       inkscape:label="filter1" />
+    <filter
+       inkscape:menu="Shadows and Glows"
+       inkscape:menu-tooltip="Cut out, add inner shadow and colorize some parts of an image"
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Emergence"
+       id="filter3763"
+       x="-0.091317444"
+       y="-0.091316236"
+       width="1.2206838"
+       height="1.2206809">
+      <feColorMatrix
+         values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.21 0.72 0.07 0 0 "
+         result="result1"
+         id="feColorMatrix3735" />
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 2 0 "
+         result="result9"
+         id="feColorMatrix3737" />
+      <feComposite
+         in2="result9"
+         in="SourceGraphic"
+         operator="in"
+         result="result4"
+         id="feComposite3739" />
+      <feFlood
+         result="result2"
+         flood-color="rgb(0,0,0)"
+         id="feFlood3741" />
+      <feComposite
+         in2="result9"
+         operator="in"
+         result="result10"
+         id="feComposite3743" />
+      <feComposite
+         in2="result4"
+         operator="atop"
+         id="feComposite3745" />
+      <feGaussianBlur
+         stdDeviation="3"
+         result="result8"
+         id="feGaussianBlur3747" />
+      <feOffset
+         dx="3"
+         dy="3"
+         result="result3"
+         in="result8"
+         id="feOffset3749" />
+      <feFlood
+         flood-opacity="1"
+         flood-color="rgb(219,173,62)"
+         result="result5"
+         id="feFlood3751" />
+      <feMerge
+         result="result6"
+         id="feMerge3759">
+        <feMergeNode
+           in="result5"
+           id="feMergeNode3753" />
+        <feMergeNode
+           in="result3"
+           id="feMergeNode3755" />
+        <feMergeNode
+           in="result4"
+           id="feMergeNode3757" />
+      </feMerge>
+      <feComposite
+         in2="SourceGraphic"
+         operator="in"
+         result="result7"
+         id="feComposite3761" />
+    </filter>
+    <filter
+       inkscape:menu="Shadows and Glows"
+       inkscape:menu-tooltip="Cut out, add inner shadow and colorize some parts of an image"
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Emergence"
+       id="filter4102"
+       x="-0.053149609"
+       y="-0.053149609"
+       width="1.1284449"
+       height="1.1284449">
+      <feColorMatrix
+         values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.21 0.72 0.07 0 0 "
+         result="result1"
+         id="feColorMatrix4074" />
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 2 0 "
+         result="result9"
+         id="feColorMatrix4076" />
+      <feComposite
+         in2="result9"
+         in="SourceGraphic"
+         operator="in"
+         result="result4"
+         id="feComposite4078" />
+      <feFlood
+         result="result2"
+         flood-color="rgb(0,0,0)"
+         id="feFlood4080" />
+      <feComposite
+         in2="result9"
+         operator="in"
+         result="result10"
+         id="feComposite4082" />
+      <feComposite
+         in2="result4"
+         operator="atop"
+         id="feComposite4084" />
+      <feGaussianBlur
+         stdDeviation="3"
+         result="result8"
+         id="feGaussianBlur4086" />
+      <feOffset
+         dx="3"
+         dy="3"
+         result="result3"
+         in="result8"
+         id="feOffset4088" />
+      <feFlood
+         flood-opacity="1"
+         flood-color="rgb(219,173,62)"
+         result="result5"
+         id="feFlood4090" />
+      <feMerge
+         result="result6"
+         id="feMerge4098">
+        <feMergeNode
+           in="result5"
+           id="feMergeNode4092" />
+        <feMergeNode
+           in="result3"
+           id="feMergeNode4094" />
+        <feMergeNode
+           in="result4"
+           id="feMergeNode4096" />
+      </feMerge>
+      <feComposite
+         in2="SourceGraphic"
+         operator="in"
+         result="result7"
+         id="feComposite4100" />
+    </filter>
+  </defs>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer 2">
+    <rect
+       style="fill:url(#linearGradient3651);fill-opacity:1;stroke:none;stroke-width:5.29167;paint-order:markers stroke fill;filter:url(#filter4102)"
+       id="rect3465"
+       width="135.46666"
+       height="135.46666"
+       x="-13.14097"
+       y="-4.0000019" />
+  </g>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="rect879"
+       style="fill:#07881d;fill-opacity:1;stroke:none;stroke-width:7.57036;paint-order:markers stroke fill;filter:url(#filter3763)"
+       d="m 54.59236,32.309893 v 18.281946 26.282978 a 4,4 135 0 1 -4,4 H 32.310416 a 4,4 135 0 0 -4,4 l 0,18.281953 a 4,4 45 0 0 4,4 H 50.59236 76.8743 a 4,4 135 0 0 4,-4 V 84.874817 58.591839 a 4,4 135 0 1 4,-4 l 18.28195,0 a 4,4 135 0 0 4,-4 V 32.309893 a 4,4 45 0 0 -4,-4 l -18.28195,0 -26.28194,0 a 4,4 135 0 0 -4,4 z"
+       inkscape:path-effect="#path-effect1170"
+       inkscape:original-d="M 54.59236,28.309893 V 54.591839 80.874817 H 28.310416 V 107.15677 H 54.59236 80.8743 V 80.874817 54.591839 h 26.28195 V 28.309893 H 80.8743 Z"
+       transform="translate(-19.756249,-9.9666663)" />
+  </g>
+  <metadata
+     id="metadata4122">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Steks Icon</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

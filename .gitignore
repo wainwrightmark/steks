@@ -32,3 +32,5 @@ App store assets/iOS/*.png
 App store assets/Steam/*.png
 Marketing/*.png
 ad_images/*.png
+obj_exports/*.obj
+obj_exports/*.mtl

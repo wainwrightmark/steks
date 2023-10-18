@@ -41,6 +41,13 @@ impl GameShapeBody for Triangle {
         )
     }
 
+    fn try_get_vertices(&self, shape_size: f32) -> Option<Vec<Vec2>> {
+        let u = shape_size / (1.0 * ROOT_SQUARES);
+        Some(self
+            .0
+            .map(|(x, y)| Vec2::new((x as f32) * u, (y as f32) * u)).into_iter().collect())
+    }
+
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle {
         let u = shape_size / (1.0 * ROOT_SQUARES);
 

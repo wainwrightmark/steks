@@ -42,4 +42,8 @@ impl GameShapeBody for Circle {
 
         format!(r#"<circle r="{size}" {style}  />"#)
     }
+
+    fn try_get_vertices(&self, shape_size: f32) -> Option<Vec<Vec2>> {
+        None
+    }
 }

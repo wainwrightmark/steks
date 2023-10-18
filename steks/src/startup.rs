@@ -133,7 +133,6 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(PadlockPlugin::default())
         .insert_resource(Insets::default())
         .insert_resource(create_demo_resource())
-        .insert_resource(bevy_pkv::PkvStore::new("bleppo", "steks"))
         .insert_resource(bevy::winit::WinitSettings {
             return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,
@@ -141,6 +140,15 @@ pub fn setup_app(app: &mut App) {
                 max_wait: Duration::from_secs(60),
             },
         });
+
+    #[cfg(feature = "steam")]
+    {
+        app.insert_resource(bevy_pkv::PkvStore::new_in_dir("saves"));
+    }
+    #[cfg(not(feature = "steam"))]
+    {
+        app.insert_resource(bevy_pkv::PkvStore::new("bleppo", "steks"));
+    }
 
     #[cfg(target_arch = "wasm32")]
     {

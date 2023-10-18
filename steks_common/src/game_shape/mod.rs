@@ -5,7 +5,7 @@ use crate::{
     shape_index::ShapeIndex,
 };
 
-use bevy::prelude::{Color, Rect};
+use bevy::prelude::{Color, Rect, Vec2};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::Collider;
 use geometrid::polyomino::Polyomino;
@@ -23,6 +23,8 @@ pub trait GameShapeBody: Send + Sync {
     fn get_shape_bundle(&self, shape_size: f32) -> ShapeBundle;
     fn bounding_box(&self, size: f32, location: &Location) -> Rect;
     fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String;
+
+    fn try_get_vertices(&self, shape_size: f32) -> Option<Vec<Vec2>>; //TODO do better
 }
 
 const SHAPE_RADIUS_RATIO: f32 = 0.1;

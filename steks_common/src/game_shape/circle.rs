@@ -1,3 +1,5 @@
+use std::f32::consts::TAU;
+
 use bevy::prelude::{Color, Rect, Vec2};
 use bevy_prototype_lyon::{
     prelude::*,
@@ -43,7 +45,9 @@ impl GameShapeBody for Circle {
         format!(r#"<circle r="{size}" {style}  />"#)
     }
 
-    fn try_get_vertices(&self, shape_size: f32) -> Option<Vec<Vec2>> {
-        None
+    fn get_vertices(&self, shape_size: f32) -> Vec<Vec2> {
+        const POINTS: usize = 32;
+
+        (0..POINTS).map(|index| (index as f32 / POINTS as f32) * TAU).map(|angle| Vec2::from_angle(angle) * shape_size * std::f32::consts::FRAC_2_SQRT_PI * 0.5).collect()
     }
 }

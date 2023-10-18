@@ -99,7 +99,7 @@ impl<const S: usize> GameShapeBody for Polyomino<S> {
         format!(r#"<path {style} d="{path}"  />"#)
     }
 
-    fn try_get_vertices(&self, shape_size: f32) -> Option<Vec<Vec2>> {
-        Some(get_vertices(&self, shape_size).collect())
+    fn get_vertices(&self, shape_size: f32) -> Vec<Vec2> {
+        get_vertices(&self, shape_size).collect()
     }
 }

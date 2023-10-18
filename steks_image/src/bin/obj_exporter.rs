@@ -16,11 +16,14 @@ pub fn main() {
         .collect();
 
     let mat_file = MtlFile { materials };
+    let material_file  = Some("steks_mat.mtl".to_string());
 
     let mat_file_path = format!("obj_exports/steks_mat.mtl");
     std::fs::write(mat_file_path, mat_file.to_string()).unwrap();
 
     let records = get_records();
+
+    let mut all_groups: Vec<Group> = vec![];
 
     for (number, level) in CAMPAIGN_LEVELS.iter().enumerate() {
         let sv = ShapesVec::from(level);
@@ -56,13 +59,34 @@ pub fn main() {
             objects: groups,
             name: title.clone(),
         };
+
+        all_groups.push(group.clone());
         let obj_file: ObjFile = ObjFile {
-            material_file: Some("steks_mat.mtl".to_string()),
+            material_file: material_file.clone() ,
             groups: vec![group],
         };
         let obj_file_path = format!("obj_exports/{number}_{title}.obj",);
         std::fs::write(obj_file_path, obj_file.to_string()).unwrap();
     }
+
+    let mut offset = 0;
+    for (index,  group) in all_groups.iter_mut().enumerate(){
+        group.offset_vertices(offset);
+        offset += group.count_vertices();
+
+        let x = index % 6;
+        let z = index / 6;
+
+        let vector = Vec3::new(x as f32 * 5.0, 0.0, z as f32 * 5.0);
+
+
+        group.offset_position(vector);
+    }
+
+    let path = format!("obj_exports/all.obj",);
+    std::fs::write(path, ObjFile{groups: all_groups, material_file: material_file}.to_string()).unwrap();
+
+
 }
 
 pub struct MtlFile {
@@ -140,13 +164,56 @@ pub struct ObjFile {
     pub groups: Vec<Group>,
 }
 
+#[derive(Debug, Clone)]
 pub struct Face(Vec<usize>);
 
+#[derive(Debug, Clone)]
 pub struct Group {
     pub name: String,
     pub objects: Vec<Object>,
 }
 
+impl Group {
+    pub fn offset_vertices(&mut self, offset: usize){
+        for object in self.objects.iter_mut(){
+            object.offset_vertices(offset);
+        }
+    }
+
+    pub fn count_vertices(&self)-> usize{
+        self.objects.iter().map(|x|x.vertices.len()).sum()
+    }
+
+    pub fn offset_position(&mut self, vector: Vec3){
+        for obj in self.objects.iter_mut(){
+            obj.offset_position(vector);
+        }
+    }
+}
+
+impl Object {
+    pub fn offset_vertices(&mut self, offset: usize){
+        for face in self.faces.iter_mut(){
+            face.offset_vertices(offset);
+        }
+    }
+
+    pub fn offset_position(&mut self, vector: Vec3){
+        for v in self.vertices.iter_mut(){
+            *v = *v + vector;
+        }
+    }
+}
+
+impl Face {
+    pub fn offset_vertices(&mut self, offset: usize){
+        for x in self.0.iter_mut(){
+            *x = *x + offset
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Object {
     pub name: String,
     pub material: String,
@@ -156,24 +223,16 @@ pub struct Object {
 
 impl Object {
     pub fn new(index: usize, shape: &EncodableShape, offset: usize) -> Self {
-        let fatness: f32 = SHAPE_SIZE.sqrt() * SCALE;
+        let fatness: f32 = SHAPE_SIZE * SCALE * 0.25;
         let shape_name = shape.shape.game_shape().name;
         let name = format!("{shape_name}_{index}",);
         let material = format!("{shape_name}_mat");
 
-        let Some(vertices) = shape
+        let vertices = shape
             .shape
             .game_shape()
             .body
-            .try_get_vertices(SHAPE_SIZE * SCALE)
-        else {
-            return Self {
-                material,
-                name,
-                vertices: vec![],
-                faces: vec![],
-            };
-        };
+            .get_vertices(SHAPE_SIZE * SCALE);
         let vertices_count_2d = vertices.len();
         let angle: Vec2 = Vec2::from_angle(shape.location.angle);
 

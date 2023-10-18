@@ -24,7 +24,7 @@ pub trait GameShapeBody: Send + Sync {
     fn bounding_box(&self, size: f32, location: &Location) -> Rect;
     fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String;
 
-    fn try_get_vertices(&self, shape_size: f32) -> Option<Vec<Vec2>>; //TODO do better
+    fn get_vertices(&self, shape_size: f32) -> Vec<Vec2>;
 }
 
 const SHAPE_RADIUS_RATIO: f32 = 0.1;

@@ -300,8 +300,9 @@ pub fn text_button_node(
     button_action: TextButton,
     centred: bool,
     disabled: bool,
+    ad: bool
 ) -> impl MavericNode<Context = AssetServer> {
-    text_button_node_with_text(button_action, button_action.text(), centred, disabled)
+    text_button_node_with_text(button_action, button_action.text(), centred, disabled, ad)
 }
 
 pub fn text_button_node_with_text(
@@ -309,15 +310,21 @@ pub fn text_button_node_with_text(
     text: String,
     centred: bool,
     disabled: bool,
+    ad: bool
 ) -> impl MavericNode<Context = AssetServer> {
     let (background_color, color, border_color) =
         (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
 
-    let style = if button_action.emphasize() {
-        TextButtonStyle::Fat
+    let style =
+    if ad{
+        TextButtonStyle::AD
+    }else if button_action.emphasize() {
+        TextButtonStyle::FAT
     } else {
-        TextButtonStyle::Normal
+        TextButtonStyle::NORMAL
     };
+
+
 
     ButtonNode {
         style,
@@ -345,24 +352,26 @@ pub fn text_button_node_with_text(
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum TextButtonStyle {
-    Normal,
-    Medium,
-    Fat,
+pub struct TextButtonStyle {
+    pub ui_border_width: Val,
+    pub width: Val
+}
+
+impl TextButtonStyle{
+    pub const NORMAL: Self = Self{ ui_border_width:Val::Px(UI_BORDER_WIDTH), width: Val::Px(TEXT_BUTTON_WIDTH) };
+    pub const MEDIUM: Self = Self{ ui_border_width:Val::Px(UI_BORDER_WIDTH_MEDIUM), width: Val::Px(TEXT_BUTTON_WIDTH) };
+    pub const FAT: Self = Self{ ui_border_width:Val::Px(UI_BORDER_WIDTH_FAT), width: Val::Px(TEXT_BUTTON_WIDTH) };
+    pub const AD: Self = Self{ ui_border_width:Val::Px(UI_BORDER_WIDTH), width: Val::Px(180.) };
 }
 
 impl IntoBundle for TextButtonStyle {
     type B = Style;
 
     fn into_bundle(self) -> Self::B {
-        let border = match self {
-            TextButtonStyle::Normal => UiRect::all(Val::Px(UI_BORDER_WIDTH)),
-            TextButtonStyle::Medium => UiRect::all(Val::Px(UI_BORDER_WIDTH_MEDIUM)),
-            TextButtonStyle::Fat => UiRect::all(Val::Px(UI_BORDER_WIDTH_FAT)),
-        };
+        let border =UiRect::all(self.ui_border_width);
 
         Style {
-            width: Val::Px(TEXT_BUTTON_WIDTH),
+            width: self.width,
             height: Val::Px(TEXT_BUTTON_HEIGHT),
             margin: UiRect {
                 left: Val::Auto,

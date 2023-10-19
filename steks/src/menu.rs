@@ -109,7 +109,7 @@ impl MavericNode for MenuPage {
                     .enumerate()
                     .filter(|(_, button)| filter_button(**button, context.4.as_ref()))
                 {
-                    let button = text_button_node(*action, true, false);
+                    let button = text_button_node(*action, true, false, false);
 
                     commands.add_child(key as u32, button, &context.3)
                 }
@@ -122,7 +122,7 @@ impl MavericNode for MenuPage {
                     text_button_node(
                         TextButton::SetHighContrast(!settings.high_contrast),
                         true,
-                        false,
+                        false, false
                     ),
                     &context.3,
                 );
@@ -132,20 +132,20 @@ impl MavericNode for MenuPage {
                     text_button_node(
                         TextButton::SetFireworks(!settings.fireworks_enabled),
                         true,
-                        false,
+                        false, false
                     ),
                     &context.3,
                 );
 
                 commands.add_child(
                     "snow",
-                    text_button_node(TextButton::SetSnow(!settings.snow_enabled), true, false),
+                    text_button_node(TextButton::SetSnow(!settings.snow_enabled), true, false, false),
                     &context.3,
                 );
 
                 commands.add_child(
                     "back",
-                    text_button_node(TextButton::OpenSettings, true, false),
+                    text_button_node(TextButton::OpenSettings, true, false, false),
                     &context.3,
                 );
             }
@@ -154,7 +154,7 @@ impl MavericNode for MenuPage {
                 let settings = context.0.as_ref();
                 commands.add_child(
                     "arrows",
-                    text_button_node(TextButton::SetArrows(!settings.show_arrows), true, false),
+                    text_button_node(TextButton::SetArrows(!settings.show_arrows), true, false, false),
                     &context.3,
                 );
 
@@ -163,7 +163,7 @@ impl MavericNode for MenuPage {
                     text_button_node(
                         TextButton::SetTouchOutlines(!settings.show_touch_outlines),
                         true,
-                        false,
+                        false, false
                     ),
                     &context.3,
                 );
@@ -183,7 +183,7 @@ impl MavericNode for MenuPage {
                         TextButton::SetRotationSensitivity(next_sensitivity),
                         sensitivity_text.to_string(),
                         true,
-                        false,
+                        false, false
                     ),
                     &context.3,
                 );
@@ -191,26 +191,26 @@ impl MavericNode for MenuPage {
                 if context.5.is_signed_in {
                     commands.add_child(
                         "show_achievements",
-                        text_button_node(TextButton::ShowAchievements, true, false),
+                        text_button_node(TextButton::ShowAchievements, true, false, false),
                         &context.3,
                     );
 
                     commands.add_child(
                         "infinite_leaderboard",
-                        text_button_node(TextButton::InfiniteLeaderboard, true, false),
+                        text_button_node(TextButton::InfiniteLeaderboard, true, false, false),
                         &context.3,
                     );
                 }
 
                 commands.add_child(
                     "accessibility",
-                    text_button_node(TextButton::OpenAccessibility, true, false),
+                    text_button_node(TextButton::OpenAccessibility, true, false, false),
                     &context.3,
                 );
 
                 commands.add_child(
                     "back",
-                    text_button_node(TextButton::BackToMenu, true, false),
+                    text_button_node(TextButton::BackToMenu, true, false, false),
                     &context.3,
                 );
             }
@@ -235,9 +235,9 @@ impl MavericNode for MenuPage {
                         .unwrap_or_default();
 
                     let style = if enabled && star.is_incomplete() {
-                        TextButtonStyle::Medium
+                        TextButtonStyle::MEDIUM
                     } else {
-                        TextButtonStyle::Normal
+                        TextButtonStyle::NORMAL
                     };
 
                     commands.add_child(

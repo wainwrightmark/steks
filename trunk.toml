@@ -3,5 +3,5 @@ target = "steks/index.html"
 dist = "steks/dist"
 
 [serve]
-address = "192.168.68.106"
+address = "192.168.68.101"
 port = 8080

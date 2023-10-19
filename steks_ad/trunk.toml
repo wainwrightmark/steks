@@ -1,5 +1,5 @@
 [serve]
-address = "192.168.68.106"
+address = "192.168.68.101"
 port = 8080
 
 [[hooks]]

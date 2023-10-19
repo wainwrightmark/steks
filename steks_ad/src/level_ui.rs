@@ -44,7 +44,7 @@ impl MavericNode for GetTheGamePanel {
             |context: &Res<'_, AssetServer>, commands| {
                 commands.add_child(
                     0,
-                    text_button_node(TextButton::GetTheGame, true, false),
+                    text_button_node(TextButton::GetTheGame, true, false, true),
                     context,
                 );
             },

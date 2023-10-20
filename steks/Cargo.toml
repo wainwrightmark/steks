@@ -90,7 +90,7 @@ features = [
 ]
 
 [features]
-web = ["capacitor_bindings/web"]
-android = ["capacitor_bindings/android"]
-ios = ["capacitor_bindings/ios"]
-steam = ["reqwest/native-tls", "dep:steamworks"]
+web = ["capacitor_bindings/web", "steks_base/ios"]
+android = ["capacitor_bindings/android", "steks_base/android"]
+ios = ["capacitor_bindings/ios", "steks_base/ios"]
+steam = ["reqwest/native-tls", "dep:steamworks", "steks_base/steam"]

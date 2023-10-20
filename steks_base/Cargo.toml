@@ -72,3 +72,10 @@ features = [
   "bevy_ui",            # UI toolkit
   "webgl2",
 ]
+
+
+[features]
+web = []
+android = []
+ios = []
+steam = []

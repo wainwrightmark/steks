@@ -112,6 +112,12 @@ fn icon_button_system(
                 GooglePlay => {
                     #[cfg(target_arch = "wasm32")]
                     {
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            //spellchecker:disable-next-line
+                            crate::wasm::gtag_convert("AW-11332063513/iagJCMOoxu8YEJmixpsq");
+                        }
+
                         let level = current_level.level.get_log_name();
                         crate::logging::LoggableEvent::GoAppStore {
                             store: "Google".to_string(),
@@ -127,6 +133,12 @@ fn icon_button_system(
                 Apple => {
                     #[cfg(target_arch = "wasm32")]
                     {
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            //spellchecker:disable-next-line
+                            crate::wasm::gtag_convert("AW-11332063513/iagJCMOoxu8YEJmixpsq");
+                        }
+
                         let level = current_level.level.get_log_name();
                         crate::logging::LoggableEvent::GoAppStore {
                             store: "Apple".to_string(),

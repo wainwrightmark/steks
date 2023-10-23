@@ -172,7 +172,7 @@ pub fn check_for_tower(
         *prediction_context = None;
         let countdown_frames = prediction_result.get_countdown_frames(&has_acted);
 
-        info!("Prediction {prediction_result:?} frames: {countdown_frames:?}");
+        debug!("Prediction {prediction_result:?} frames: {countdown_frames:?}");
 
         let Some(frames_remaining) = countdown_frames else {
             return;

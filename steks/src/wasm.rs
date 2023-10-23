@@ -15,7 +15,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen()]
 extern "C" {
     #[wasm_bindgen(final, js_name = "gtag_convert")]
-    pub(crate) fn gtag_convert();
+    pub(crate) fn gtag_convert(send_to: &str);
 }
 
 pub fn request_fullscreen() {

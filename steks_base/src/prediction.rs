@@ -182,7 +182,7 @@ impl PredictionContext {
                 .load(std::sync::atomic::Ordering::Relaxed);
 
             if sensor_found {
-                info!(
+                debug!(
                     "Sensor collision found after {i} substeps ({s} seconds)",
                     s = (i as f32) * SECONDS_PER_FRAME
                 );
@@ -202,7 +202,7 @@ impl PredictionContext {
                     .load(std::sync::atomic::Ordering::Relaxed);
 
                 if total_collisions > self.prediction_settings.max_non_sensor_collisions {
-                    info!(
+                    debug!(
                         "Many non-sensor collisions found after {i} substeps ({s} seconds)",
                         s = (i as f32) * SECONDS_PER_FRAME
                     );
@@ -212,7 +212,7 @@ impl PredictionContext {
         }
 
         if self.substep >= self.prediction_settings.max_substeps {
-            info!(
+            debug!(
                 "Minimum collisions found after {} substeps. {} collisions found",
                 self.substep,
                 event_handler

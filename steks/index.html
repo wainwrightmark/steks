@@ -61,9 +61,9 @@
         dataLayer.push(arguments);
       }
 
-      function gtag_convert(){
-        console.log("Google tag converted");
-        gtag('event', 'conversion', {'send_to': 'AW-11332063513/xFVgCJ3L0eUYEJmixpsq'});
+      function gtag_convert(send_to){
+        console.log(`Google tag converted: ${send_to}`);
+        gtag('event', 'conversion', {'send_to': send_to});
       }
       gtag("js", new Date());
       gtag("config", "AW-11332063513");

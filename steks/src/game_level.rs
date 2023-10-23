@@ -103,34 +103,71 @@ impl From<GameLevel> for LevelLogData {
     }
 }
 
-fn track_level_completion(level: Res<CurrentLevel>, mut streak_resource: ResMut<Streak>) {
+fn track_level_completion(
+    level: Res<CurrentLevel>,
+    previous: Local<PreviousLevel>,
+    mut streak_resource: ResMut<Streak>,
+) {
     if !level.is_changed() {
         return;
     }
+    let previous_level_type = previous.compare(&level);
+    update_previous_level(previous, &level);
 
-    match level.completion {
-        LevelCompletion::Incomplete { .. } => {}
-        LevelCompletion::Complete { .. } => match &level.level {
-            GameLevel::Designed { meta } => {
-                if meta == (&DesignedLevelMeta::Tutorial { index: 0 }) {
-                    #[cfg(all(target_arch = "wasm32", feature = "web"))]
+    if !previous_level_type.is_same_level_earlier_stage() {
+        return;
+    }
+
+    let LevelCompletion::Complete { .. } = level.completion else {
+        return;
+    };
+    match &level.level {
+        GameLevel::Designed { meta } => {
+            #[cfg(feature = "web")]
+            {
+                let gtag_convert = match meta {
+                    DesignedLevelMeta::Tutorial { index: 0 } => {
+                        //spellchecker:disable-next-line
+                        Some("AW-11332063513/nHyuCLeoxu8YEJmixpsq")
+                    }
+
+                    DesignedLevelMeta::Tutorial { index: 1 } => {
+                        //spellchecker:disable-next-line
+                        Some("AW-11332063513/wJygCLqoxu8YEJmixpsq")
+                    }
+
+                    DesignedLevelMeta::Campaign { index: 0 } => {
+                        //spellchecker:disable-next-line
+                        Some("AW-11332063513/1iLmCL2oxu8YEJmixpsq")
+                    }
+
+                    DesignedLevelMeta::Campaign { index: 1 } => {
+                        //spellchecker:disable-next-line
+                        Some("AW-11332063513/ITnZCMCoxu8YEJmixpsq")
+                    }
+                    _ => None,
+                };
+
+                #[allow(unused_variables)]
+                if let Some(gtag_convert) = gtag_convert {
+                    #[cfg(target_arch = "wasm32")]
                     {
-                        crate::wasm::gtag_convert();
+                        crate::wasm::gtag_convert(gtag_convert);
                     }
                 }
             }
-            GameLevel::Infinite { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {}
-            GameLevel::Challenge { date, streak } => {
-                streak_resource.count = *streak;
-                streak_resource.most_recent = *date;
+        }
+        GameLevel::Infinite { .. } | GameLevel::Loaded { .. } | GameLevel::Begging => {}
+        GameLevel::Challenge { date, streak } => {
+            streak_resource.count = *streak;
+            streak_resource.most_recent = *date;
 
-                if streak > &2 {
-                    #[cfg(any(feature = "android", feature = "ios"))]
-                    {
-                        do_or_report_error(capacitor_bindings::rate::Rate::request_review())
-                    }
+            if streak >= &2 {
+                #[cfg(any(feature = "android", feature = "ios"))]
+                {
+                    do_or_report_error(capacitor_bindings::rate::Rate::request_review())
                 }
             }
-        },
+        }
     }
 }

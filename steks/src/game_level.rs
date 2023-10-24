@@ -122,6 +122,7 @@ fn track_level_completion(
         return;
     };
     match &level.level {
+        #[allow(unused_variables)]
         GameLevel::Designed { meta } => {
             #[cfg(feature = "web")]
             {

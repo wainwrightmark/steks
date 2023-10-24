@@ -46,7 +46,7 @@ impl GameShapeBody for Circle {
     }
 
     fn get_vertices(&self, shape_size: f32) -> Vec<Vec2> {
-        const POINTS: usize = 32;
+        const POINTS: usize = 128;
 
         (0..POINTS).map(|index| (index as f32 / POINTS as f32) * TAU).map(|angle| Vec2::from_angle(angle) * shape_size * std::f32::consts::FRAC_2_SQRT_PI * 0.5).collect()
     }

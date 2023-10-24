@@ -3,7 +3,6 @@ use std::fmt::Display;
 use base64::Engine;
 use bevy::{prelude::*, utils::HashMap};
 pub use steks_common::prelude::*;
-mod record_checker;
 
 const SCALE: f32 = 1.0 / 50.0;
 
@@ -48,6 +47,7 @@ pub fn main() {
         let shapes = ShapesVec::from_bytes(&record.image_blob);
         let groups: Vec<Object> = shapes
             .iter()
+            .filter(|shape| !shape.state.is_void())
             .enumerate()
             .map(|(index, shape)| {
                 let obj = Object::new(index, shape, offset);
@@ -77,7 +77,7 @@ pub fn main() {
         let x = index % 6;
         let z = index / 6;
 
-        let vector = Vec3::new(x as f32 * 5.0, 0.0, z as f32 * 5.0);
+        let vector = Vec3::new(x as f32 * 50.0, 0.0, z as f32 * 50.0);
 
 
         group.offset_position(vector);
@@ -143,7 +143,7 @@ impl Material {
     pub fn new(shape: &GameShape) -> Self {
         let name = format!("{shape_name}_mat", shape_name = shape.name);
         let ambient_color = shape.default_fill_color(false);
-        let diffuse_color = ambient_color * 0.75;
+        let diffuse_color = ambient_color * 1.0;
         let specular_color = ambient_color * 0.5;
 
 
@@ -153,7 +153,7 @@ impl Material {
             diffuse_color,
             specular_color,
             specular_exponent: 250.0,
-            dissolve : 0.9,
+            dissolve : 1.0,
             optical_density: 1.45,
         }
     }
@@ -225,7 +225,7 @@ impl Object {
     pub fn new(index: usize, shape: &EncodableShape, offset: usize) -> Self {
         let fatness: f32 = SHAPE_SIZE * SCALE * 0.25;
         let shape_name = shape.shape.game_shape().name;
-        let name = format!("{shape_name}_{index}",);
+        let name = if shape.state.is_locked() || shape.state.is_fixed() {format!("{shape_name}_{index}_locked",)} else{format!("{shape_name}_{index}",)};
         let material = format!("{shape_name}_mat");
 
         let vertices = shape
@@ -348,6 +348,7 @@ fn get_records() -> HashMap<u64, Record> {
     map
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct Record {
     hash: u64,
@@ -356,3 +357,57 @@ struct Record {
 }
 
 const RECORDS_DATA: &'static str = include_str!("records.tsv");
+
+//script to add rounded edges
+/*
+import bpy
+
+# Select all objects in the scene
+bpy.ops.object.select_all(action='SELECT')
+
+# Go through each selected object and add a Bevel modifier
+for obj in bpy.context.selected_objects:
+    if obj.type == 'MESH':
+        # Add a Bevel modifier
+        bevel_mod = obj.modifiers.new(name="Bevel", type='BEVEL')
+
+        # Adjust Bevel modifier settings as needed
+        bevel_mod.width = 0.1  # Set the bevel width (adjust as desired)
+        bevel_mod.segments = 8  # Set the number of segments (adjust as desired)
+        bevel_mod.limit_method = 'ANGLE'  # Set the limit method
+
+        bevel_mod.affect = 'VERTICES'
+
+        # Apply the modifier to the object
+        bpy.ops.object.modifier_apply(modifier="Bevel")
+
+# Deselect all objects
+bpy.ops.object.select_all(action='DESELECT')
+ */
+//script to add rigid bodies
+ /*
+ import bpy
+
+# Deselect all objects
+bpy.ops.object.select_all(action='DESELECT')
+
+# Loop through all objects in the scene
+for obj in bpy.context.scene.objects:
+    if obj.type == 'MESH':
+        if "locked" in obj.name.lower():
+            # Create a passive rigid body
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.rigidbody.object_add()
+            bpy.context.object.rigid_body.type = 'PASSIVE'
+        else:
+            # Create an active rigid body
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.rigidbody.object_add()
+            bpy.context.object.rigid_body.type = 'ACTIVE'
+
+# Deselect all objects again
+bpy.ops.object.select_all(action='DESELECT')
+
+  */

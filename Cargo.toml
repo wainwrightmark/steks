@@ -8,7 +8,8 @@ members = [
 "steks_base",
 "netlify/functions/image",
 "netlify/functions/leaderboard",
-"ad_postbuild"
+"ad_postbuild",
+"level_editor"
 ]
 default-members = ["steks"]
 resolver = "2" # Important! wgpu/Bevy needs this!

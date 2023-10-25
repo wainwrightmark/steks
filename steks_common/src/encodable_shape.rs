@@ -12,6 +12,12 @@ pub struct EncodableShape {
 }
 
 impl EncodableShape {
+
+    pub fn contains_point(&self, point: Vec2)-> bool{
+        //TODO improve performance
+        self.shape.game_shape().body.to_collider_shape(SHAPE_SIZE).contains_point(self.location.position, self.location.angle, point)
+    }
+
     pub fn stroke_color(&self) -> Option<Color> {
         match self.modifiers {
             ShapeModifiers::Normal => (),

@@ -2483,6 +2483,30 @@ dependencies = [
 [[package]]
 name = "level_editor"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64",
+ "bevy",
+ "bevy_embedded_assets",
+ "bevy_prototype_lyon",
+ "bevy_rapier2d 0.22.0 (git+https://github.com/dimforge/bevy_rapier?rev=a149ff5)",
+ "console_error_panic_hook",
+ "geometrid",
+ "insta",
+ "itertools",
+ "lazy_static",
+ "maveric",
+ "rand",
+ "serde",
+ "serde_repr",
+ "serde_yaml",
+ "steks_base",
+ "steks_common",
+ "strum",
+ "test-case",
+ "wasm-bindgen",
+ "web-sys",
+]
 
 [[package]]
 name = "libc"

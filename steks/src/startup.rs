@@ -221,7 +221,14 @@ async fn log_start_async<'a>(user_exists: bool) {
 
         #[cfg(not(any(feature = "android", feature = "ios", feature = "web")))]
         {
-            device_id = DeviceIdentifier::unknown();
+            #[cfg(feature="steam")]
+            {
+                device_id = DeviceIdentifier::steam();
+            }
+            #[cfg(not(feature="steam"))]
+            {
+                device_id = DeviceIdentifier::unknown();
+            }
         }
 
         match DEVICE_ID.set(device_id.clone()) {

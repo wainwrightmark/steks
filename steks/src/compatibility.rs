@@ -33,6 +33,10 @@ impl DeviceIdentifier {
     pub fn unknown()-> Self{
         Self { identifier: "unknown".to_string() }
     }
+
+    pub fn steam()-> Self{
+        Self { identifier: "Steam".to_string() }
+    }
 }
 
 impl DeviceIdentifier {

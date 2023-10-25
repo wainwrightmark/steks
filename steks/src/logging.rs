@@ -103,6 +103,8 @@ pub enum LoggableEvent {
     FollowNewsLink,
 
     NotificationClick,
+
+    ActedInTutorial
 }
 
 #[cfg(any(feature = "android", feature = "ios", feature = "web"))]
@@ -251,9 +253,14 @@ impl LoggableEvent {
         }
         #[cfg(not(any(feature = "android", feature = "ios", feature = "web")))]
         {
-            device_id = DeviceIdentifier {
-                identifier: "unknown".to_string(),
-            };
+            #[cfg(feature="steam")]
+            {
+                device_id = DeviceIdentifier::steam();
+            }
+            #[cfg(not(feature="steam"))]
+            {
+                device_id = DeviceIdentifier::unknown();
+            }
         }
 
         Self::try_log_async(data, device_id).await

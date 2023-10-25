@@ -25,6 +25,8 @@ pub trait GameShapeBody: Send + Sync {
     fn as_svg(&self, size: f32, fill: Option<Color>, stroke: Option<Color>) -> String;
 
     fn get_vertices(&self, shape_size: f32) -> Vec<Vec2>;
+
+    //todo contains_point(translation, rotation, point, shape_size: f32) -> bool;
 }
 
 const SHAPE_RADIUS_RATIO: f32 = 0.1;

@@ -3,7 +3,7 @@ use enumset::{EnumSet, EnumSetType};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumCount, EnumIter};
 
-use crate::prelude::*;
+use crate::{prelude::*, logging};
 
 pub struct AchievementsPlugin;
 
@@ -17,6 +17,9 @@ impl Plugin for AchievementsPlugin {
             .add_systems(Update, check_for_its_a_trap)
             .add_systems(Update, check_for_one_in_a_million)
             .init_resource::<UserSignedIn>();
+
+        #[cfg(feature="web")]
+        app.add_systems(Update, track_tutorial_start);
     }
 }
 
@@ -36,6 +39,18 @@ fn check_for_sign_in(
     for _ in ev.iter() {
         signed_in.is_signed_in = true;
         achievements.resync();
+    }
+}
+
+
+#[cfg(feature="web")]
+fn track_tutorial_start(has_acted: Res<HasActed>, current_level: Res<CurrentLevel>){
+    if has_acted.is_changed() && has_acted.is_has_acted(){
+        if let GameLevel::Designed { meta } = &current_level.level {
+            if let DesignedLevelMeta::Tutorial { index: 0 } = meta {
+                logging::LoggableEvent::ActedInTutorial.try_log1();
+            }
+        }
     }
 }
 

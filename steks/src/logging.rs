@@ -103,6 +103,8 @@ pub enum LoggableEvent {
     FollowNewsLink,
 
     NotificationClick,
+
+    ActedInTutorial
 }
 
 #[cfg(any(feature = "android", feature = "ios", feature = "web"))]

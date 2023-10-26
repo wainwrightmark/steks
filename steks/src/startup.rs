@@ -1,5 +1,5 @@
 pub use crate::prelude::*;
-use crate::recording::RecordingPlugin;
+use crate:: tutorial::TutorialPlugin;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
 
@@ -132,6 +132,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(ChangeLevelPlugin::<GlobalUiState>::default())
         .add_plugins(CollisionPlugin::default())
         .add_plugins(PadlockPlugin::default())
+        .add_plugins(TutorialPlugin::default())
         .insert_resource(Insets::default())
         .insert_resource(create_demo_resource())
         .insert_resource(bevy::winit::WinitSettings {
@@ -178,7 +179,7 @@ pub fn setup_app(app: &mut App) {
 
     #[cfg(feature= "recording")]
     {
-        app.add_plugins(RecordingPlugin);
+        app.add_plugins(crate::recording::RecordingPlugin);
     }
 
 }

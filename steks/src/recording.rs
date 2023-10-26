@@ -4,6 +4,7 @@ use bevy::{
     utils::{HashMap, Uuid},
 };
 
+#[derive(Debug, Default)]
 pub struct RecordingPlugin;
 
 

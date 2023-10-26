@@ -30,6 +30,7 @@ pub mod compatibility;
 
 #[cfg(feature= "recording")]
 pub mod recording;
+pub mod tutorial;
 
 pub mod prelude {
 

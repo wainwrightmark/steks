@@ -35,3 +35,4 @@ ad_images/*.png
 obj_exports/*.obj
 obj_exports/*.mtl
 saves/bevy_pkv.redb
+recordings/*.txt

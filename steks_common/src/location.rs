@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use bevy::prelude::{Quat, Transform, Vec2, Vec3};
 use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
@@ -5,6 +7,12 @@ pub struct Location {
     pub position: Vec2,
     /// angle in radians
     pub angle: f32,
+}
+
+impl Display for Location {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"([{},{},{}r])", self.position.x, self.position.y, self.angle )
+    }
 }
 
 impl Location {
@@ -50,3 +58,4 @@ impl From<&Transform> for Location {
         }
     }
 }
+

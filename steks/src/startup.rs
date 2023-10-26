@@ -1,4 +1,5 @@
 pub use crate::prelude::*;
+use crate::recording::RecordingPlugin;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
 
@@ -174,6 +175,12 @@ pub fn setup_app(app: &mut App) {
     app.add_systems(Startup, set_status_bar.after(hide_splash));
 
     app.add_systems(PostStartup, on_start);
+
+    #[cfg(feature= "recording")]
+    {
+        app.add_plugins(RecordingPlugin);
+    }
+
 }
 
 fn create_demo_resource() -> DemoResource {

@@ -28,6 +28,9 @@ pub mod notifications;
 pub mod wasm;
 pub mod compatibility;
 
+#[cfg(feature= "recording")]
+pub mod recording;
+
 pub mod prelude {
 
     pub use bevy::log::{debug, error, info, warn};

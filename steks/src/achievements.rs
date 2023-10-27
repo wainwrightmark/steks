@@ -3,7 +3,7 @@ use enumset::{EnumSet, EnumSetType};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumCount, EnumIter};
 
-use crate::{prelude::*, logging};
+use crate::{logging, prelude::*};
 
 pub struct AchievementsPlugin;
 
@@ -18,7 +18,7 @@ impl Plugin for AchievementsPlugin {
             .add_systems(Update, check_for_one_in_a_million)
             .init_resource::<UserSignedIn>();
 
-        #[cfg(feature="web")]
+        #[cfg(feature = "web")]
         app.add_systems(Update, track_tutorial_start);
     }
 }
@@ -42,13 +42,19 @@ fn check_for_sign_in(
     }
 }
 
-
-#[cfg(feature="web")]
-fn track_tutorial_start(has_acted: Res<HasActed>, current_level: Res<CurrentLevel>){
-    if has_acted.is_changed() && has_acted.is_has_acted(){
+#[cfg(feature = "web")]
+fn track_tutorial_start(has_acted: Res<HasActed>, current_level: Res<CurrentLevel>) {
+    if has_acted.is_changed() && has_acted.is_has_acted() {
         if let GameLevel::Designed { meta } = &current_level.level {
             if let DesignedLevelMeta::Tutorial { index: 0 } = meta {
                 info!("Acted in tutorial");
+
+                #[cfg(target_arch = "wasm32")]
+                {
+                    //spellchecker:disable-next-line
+                    crate::wasm::gtag_convert("AW-11332063513/WQJpCL-vjvEYEJmixpsq");
+                }
+
                 logging::LoggableEvent::ActedInTutorial.try_log1();
             }
         }

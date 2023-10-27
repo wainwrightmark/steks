@@ -9,13 +9,21 @@
       r: 0.125
       state: fixed
     - shape: O4
-      x: 0
-      y: -300
+      x: -125
+      y: -150
+      r: 0.0
+      vel_x: 0.0
+      vel_y: 0.0
 - text: "Towers cannot touch the ground\n\nYour tower will need a foundation\n\n\nGrab the square and lift it up\n\nHold it in place a moment to lock"
   text_forever: true
   show_rotate: true
   shapes:
     - shape: O4
+      x: 0.0
+      y: 0.0
+      r: 0.0
+      vel_x: 0.0
+      vel_y: 0.0
   stages:
     - text: "You can only lock one shape at once\n\n\nBalance the X on top of the square"
       text_forever: true
@@ -33,8 +41,11 @@
       r: 0.625
       state: locked
     - shape: O4
-      x: 0.0
-      y: -300
+      x: -125
+      y: -150
+      r: 0.0
+      vel_x: 0.0
+      vel_y: 0.0
   stages:
     - text: "To complete your tower\n\nUse all shapes on the screen\n\nRotate and place them carefully"
       text_forever: true

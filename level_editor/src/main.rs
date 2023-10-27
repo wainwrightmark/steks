@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_prototype_lyon::prelude::{Stroke, ShapePlugin};
-use maveric::transition::prelude::*;
+use bevy_prototype_lyon::prelude::*;
+
 use maveric::{impl_maveric_root, prelude::*};
 use steks_base::prelude::*;
-use steks_common::prelude::*;
+
 use strum::IntoEnumIterator;
 
 fn main() {

@@ -218,6 +218,7 @@ impl ChangeLevelEvent {
                     shapes,
                     updates: vec![],
                     outlines: vec![],
+                    arrows: vec![],
                     gravity: None,
                     rainfall: None,
                     fireworks: FireworksSettings::default(),

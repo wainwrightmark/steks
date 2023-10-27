@@ -17,14 +17,21 @@
   outlines:
     - shape: O4
       x: 0.0
-      y: -100
+      y: -75
       r: 0.0
+  arrows:
+    - x: -50.0
+      y: -125
+      r: 50.0
+      start: 3.14159
+      sweep: -1.5708
+
 - text: "Towers cannot touch the ground\n\nYour tower will need a foundation\n\n\nGrab the square and lift it up\n\nHold it in place a moment to lock"
   text_forever: true
   show_rotate: true
   shapes:
     - shape: O4
-      x: 0.0
+      x: 100.0
       y: 0.0
       r: 0.0
       vel_x: 0.0
@@ -34,6 +41,13 @@
       x: 0.0
       y: -100
       r: 0.0
+      scale: 1.4
+  arrows:
+    - x: 50.0
+      y: -150
+      r: 50.0
+      start: 0
+      sweep: 1.5708
   stages:
     - text: "You can only lock one shape at once\n\n\nBalance the X on top of the square"
       text_forever: true
@@ -56,6 +70,13 @@
       r: 0.0
       vel_x: 0.0
       vel_y: 0.0
+  arrows:
+    - x: 0.0
+      y: -150
+      r: 100.0
+      start: 2.9
+      sweep: -2.5
+
   stages:
     - text: "To complete your tower\n\nUse all shapes on the screen\n\nRotate and place them carefully"
       text_forever: true

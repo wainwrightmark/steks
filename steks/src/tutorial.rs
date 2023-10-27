@@ -3,10 +3,9 @@ use std::iter;
 use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use lazy_static::lazy_static;
 use maveric::{
     define_lens,
-    transition::speed::{calculate_speed, ScalarSpeed},
+    transition::speed::*,
 };
 
 #[derive(Debug, Default)]
@@ -14,14 +13,21 @@ pub struct TutorialPlugin;
 
 impl Plugin for TutorialPlugin {
     fn build(&self, app: &mut App) {
-        //app.add_systems(Update, handle_tutorial_markers);
+        //TODO high contrast colors
         app.register_maveric::<LevelOutlinesRoot>();
 
-        app.register_transition::<StrokeColorLens>();
+        //app.register_transition::<StrokeColorLens>();
+        app.register_transition::<StrokeWidthLens>();
     }
 }
 
 define_lens!(StrokeColorLens, Stroke, Color, color);
+
+define_lens!(StrokeOptionsLineWidthLens, StrokeOptions, f32, line_width);
+
+define_lens!(StrokeOptionsLens, Stroke, StrokeOptions, options);
+
+type StrokeWidthLens = Prism2<StrokeOptionsLens, StrokeOptionsLineWidthLens>;
 
 struct LevelOutlinesRoot;
 
@@ -39,6 +45,11 @@ impl MavericRootChildren for LevelOutlinesRoot {
 
             for (index, shape_outline) in stage.outlines.iter().enumerate() {
                 commands.add_child(index as u32, ShapeOutlineNode(*shape_outline), &());
+            }
+
+
+            for (index, arrow) in stage.arrows.iter().enumerate() {
+                commands.add_child((index as u32) + 100, ArrowNode(*arrow), &());
             }
         }
     }
@@ -62,29 +73,34 @@ impl MavericNode for ShapeOutlineNode {
             };
             //let mut shape_bundle = shape.body.get_shape_bundle(SHAPE_SIZE);
             let stroke_color = shape.fill(false).color; //use shape fill for stroke color
-            let stroke = Stroke::new(stroke_color, 3.0);
-            //shape_bundle.transform = location.into();
-
-            lazy_static! {
-                static ref SPEED: ScalarSpeed =
-                    calculate_speed(&Color::BLACK, &Color::WHITE, Duration::from_secs_f32(5.0),);
+            let stroke = Stroke{
+                color: stroke_color,
+                options: StrokeOptions::DEFAULT.with_line_width(3.0) .with_start_cap(LineCap::Round).with_end_cap(LineCap::Round)
             };
 
+            //shape_bundle.transform = location.into();
+
             let step = TransitionStep::new_cycle(
-                [(stroke_color, *SPEED), (stroke_color.with_a(0.75), *SPEED)].into_iter(),
+                [
+                    (3.0, ScalarSpeed{amount_per_second: 1.0}),
+                    (5.0, ScalarSpeed{amount_per_second: 1.0}),
+                ]
+                .into_iter(),
             );
 
-            let lens = Transition::<StrokeColorLens>::new(step);
+            let transition: Transition<StrokeWidthLens> = Transition::<StrokeWidthLens>::new(step);
+
+            let scale = node.0.scale.unwrap_or(1.0);
 
             let mut path_builder = bevy_prototype_lyon::path::PathBuilder::new();
 
-            let vertices = shape.body.get_vertices(SHAPE_SIZE);
+            let vertices = shape.body.get_vertices(SHAPE_SIZE * scale);
             let start = vertices[0];
             draw_dashed_path(
                 &mut path_builder,
                 start,
                 vertices.into_iter().skip(1).chain(iter::once(start)),
-                5.0,
+                8.0,
             );
 
             let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
@@ -93,8 +109,57 @@ impl MavericNode for ShapeOutlineNode {
                 ..default()
             };
 
-            (shape_bundle, stroke, lens)
-        });
+            (shape_bundle, stroke, transition)
+        }).finish()
+    }
+
+    fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
+        commands.no_children()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct ArrowNode(Arrow);
+
+impl MavericNode for ArrowNode {
+    type Context = NoContext;
+
+    fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
+        commands.insert_with_node(|node| {
+            let mut path_builder = bevy_prototype_lyon::path::PathBuilder::new();
+            let arrow = node.0;
+            draw_arrow(&mut path_builder , arrow.r, arrow.start, arrow.sweep);
+
+            let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
+                path: path_builder.build(),
+                transform: Transform::from_translation(Vec2 { x: arrow.x, y: arrow.y }.extend(0.0)),
+                ..default()
+            };
+
+            let step = TransitionStep::new_cycle(
+                [
+                    (8.0, ScalarSpeed{amount_per_second: 1.0}),
+                    (10.0, ScalarSpeed{amount_per_second: 1.0}),
+                ]
+                .into_iter(),
+            );
+
+            let transition: Transition<StrokeWidthLens> = Transition::<StrokeWidthLens>::new(step);
+
+            let stroke = bevy_prototype_lyon::prelude::Stroke {
+                color: Color::hsla(219.0, 0.29, 0.85, 1.0),
+                options: StrokeOptions::default()
+                    .with_line_width(10.0)
+
+
+                    //.with_end_cap(LineCap::Round)
+                    .with_line_join(LineJoin::Round)
+                    .with_start_cap(LineCap::Round),
+            };
+
+            (shape_bundle, stroke, transition)
+
+        }).finish()
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
@@ -146,89 +211,3 @@ fn draw_dashed_path(
         }
     }
 }
-
-// fn handle_tutorial_markers(
-//     mut commands: Commands,
-//     current_level: Res<CurrentLevel>,
-//     mut existing_arrows: Query<(Entity, &mut Path, &mut TutorialArrow)>,
-// ) {
-//     if !current_level.is_changed() {
-//         return;
-//     }
-
-//     if let GameLevel::Designed {
-//         meta: DesignedLevelMeta::Tutorial { index },
-//     } = current_level.level
-//     {
-//         let new_arrow = TutorialArrow::from_tutorial_index(index);
-//         let new_path = new_arrow.to_path();
-
-//         match existing_arrows.iter_mut().next() {
-//             Some((_, mut path, mut arrow)) => {
-//                 if new_arrow != *arrow {
-//                     *path = new_path;
-//                     *arrow = new_arrow;
-//                 }
-//             }
-//             None => {
-//                 commands
-//                     .spawn((
-//                         bevy_prototype_lyon::prelude::ShapeBundle {
-//                             path: new_path,
-//                             ..default()
-//                         },
-//                         bevy_prototype_lyon::prelude::Stroke {
-//                             color: ARROW_STROKE,
-//                             options: StrokeOptions::default()
-//                                 .with_line_width(10.0)
-//                                 .with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
-//                         },
-//                     ))
-//                     .insert(Transform::from_translation(Vec3::Z * 50.0))
-//                     .insert(new_arrow);
-//             }
-//         }
-//     } else {
-//         for (entity, _, _) in existing_arrows.iter() {
-//             commands.entity(entity).despawn();
-//         }
-//     }
-// }
-
-// #[derive(Debug, Component, PartialEq)]
-// enum TutorialArrow {
-//     T0Arrow,
-//     T1Arrow,
-//     T2Arrow,
-// }
-
-// impl TutorialArrow {
-//     pub fn from_tutorial_index(index: u8) -> Self {
-//         match index {
-//             0 => Self::T0Arrow,
-//             1 => Self::T1Arrow,
-//             _ => Self::T2Arrow,
-//         }
-//     }
-
-//     pub fn to_path(&self) -> Path {
-//         let mut path = bevy_prototype_lyon::path::PathBuilder::new();
-
-//         match self {
-//             TutorialArrow::T0Arrow => {
-//                 path.move_to(Vec2 { x: 100.0, y: 100.0 });
-//                 path.line_to(Vec2 { x: 200.0, y: 200.0 });
-//             }
-//             TutorialArrow::T1Arrow => {
-//                 path.move_to(Vec2 { x: 100.0, y: 100.0 });
-//                 path.line_to(Vec2 { x: 300.0, y: 300.0 });
-//             }
-//             TutorialArrow::T2Arrow => {
-//                 path.move_to(Vec2 { x: 100.0, y: 100.0 });
-//                 path.line_to(Vec2 { x: 400.0, y: 400.0 });
-//             }
-//         }
-
-//         path.build()
-//     }
-// }

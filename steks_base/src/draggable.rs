@@ -13,9 +13,9 @@ const POSITION_STIFFNESS: f32 = 20.0;
 const MAX_FORCE: f32 = 800.0;
 
 #[derive(Debug, Default)]
-pub struct DragPlugin< U: UITrait>( PhantomData<U>);
+pub struct DragPlugin<U: UITrait>(PhantomData<U>);
 
-impl< U: UITrait> Plugin for DragPlugin<U> {
+impl<U: UITrait> Plugin for DragPlugin<U> {
     fn build(&self, app: &mut App) {
         app.insert_resource(TouchRotateResource::default())
             .add_systems(
@@ -297,18 +297,11 @@ fn angle_to(v: Vec2) -> f32 {
     v.y.atan2(v.x)
 }
 
-fn point_at_angle(dist: f32, radians: f32) -> Vec2 {
-    let x = dist * (radians).cos();
-    let y = dist * (radians).sin();
-    Vec2 { x, y }
-}
-
 fn draw_rotate_arrows(
     mut commands: Commands,
     touch_rotate: Res<TouchRotateResource>,
     mut existing_arrows: Query<(Entity, &mut Path), With<RotateArrow>>,
     draggables: Query<(&ShapeComponent, &Transform), With<BeingDragged>>,
-    //mut previous_angle: Local<f32>,
     current_level: Res<CurrentLevel>,
     settings: Res<GameSettings>,
 ) {
@@ -319,8 +312,6 @@ fn draw_rotate_arrows(
         for (entity, _) in existing_arrows.iter() {
             commands.entity(entity).despawn_recursive();
         }
-
-        //*previous_angle = 0.0;
         return;
     }
 
@@ -328,8 +319,6 @@ fn draw_rotate_arrows(
         for (entity, _) in existing_arrows.iter() {
             commands.entity(entity).despawn_recursive();
         }
-
-        //*previous_angle = 0.0;
         return;
     };
 
@@ -342,42 +331,13 @@ fn draw_rotate_arrows(
 
     let mut path = bevy_prototype_lyon::path::PathBuilder::new();
 
-    let centre = transform.translation.truncate();
+
     let radius = touch.radius;
 
     let start_angle = touch.start_angle;
     let sweep_angle = touch.total_radians;
 
-    let path_start = centre + point_at_angle(radius, start_angle);
-    let path_end = centre + point_at_angle(radius, start_angle + sweep_angle);
-
-    const ARROW_WIDTH: f32 = 6.0;
-    const ARROW_LENGTH: f32 = 100.0;
-    let arrow_angle = ARROW_LENGTH * sweep_angle.signum() / (radius * TAU);
-    if sweep_angle.abs() > arrow_angle.abs() {
-        path.move_to(path_start);
-
-        path.arc(
-            centre,
-            Vec2 {
-                x: radius,
-                y: radius,
-            },
-            sweep_angle - arrow_angle,
-            0.0,
-        );
-
-        let arrow_point = centre + point_at_angle(radius, start_angle + sweep_angle - arrow_angle);
-
-        path.move_to(arrow_point); // just incase
-
-        path.line_to(arrow_point.lerp(centre, ARROW_WIDTH / radius));
-        path.line_to(path_end);
-
-        path.line_to(arrow_point.lerp(centre, -ARROW_WIDTH / radius));
-
-        path.line_to(arrow_point);
-    }
+    draw_arrow(&mut path,  radius, start_angle, sweep_angle);
 
     if let Some(mut p) = existing_arrows.iter_mut().next() {
         *p.1 = path.build();
@@ -386,12 +346,14 @@ fn draw_rotate_arrows(
             .spawn((
                 bevy_prototype_lyon::prelude::ShapeBundle {
                     path: path.build(),
+                    transform: Transform::from_translation(transform.translation),
                     ..default()
                 },
                 bevy_prototype_lyon::prelude::Stroke {
                     color: ARROW_STROKE,
                     options: StrokeOptions::default()
                         .with_line_width(10.0)
+                        .with_line_join(bevy_prototype_lyon::prelude:: LineJoin::Round)
                         .with_start_cap(bevy_prototype_lyon::prelude::LineCap::Round),
                 },
             ))
@@ -443,7 +405,7 @@ pub fn detach_stuck_shapes_on_pickup(
     }
 }
 
-pub fn drag_start<U : UITrait>(
+pub fn drag_start<U: UITrait>(
     mut er_drag_start: EventReader<DragStartEvent>,
     rapier_context: Res<RapierContext>,
     mut draggables: Query<
@@ -462,7 +424,7 @@ pub fn drag_start<U : UITrait>(
     ui_scale: Res<UiScale>,
 ) {
     'events: for event in er_drag_start.iter() {
-        if !global_ui_state.is_minimized(){
+        if !global_ui_state.is_minimized() {
             if let Ok(window) = windows.get_single() {
                 let event_ui_position = Vec2 {
                     x: event.position.x * ui_scale.scale as f32 + (window.width() * 0.5),
@@ -473,8 +435,7 @@ pub fn drag_start<U : UITrait>(
                 'capture: for (node, global_transform, _) in
                     node_query.iter().filter(|x| x.2.is_visible())
                 {
-                    let physical_rect =
-                        node.physical_rect(global_transform, 1.0, ui_scale.scale);
+                    let physical_rect = node.physical_rect(global_transform, 1.0, ui_scale.scale);
 
                     if physical_rect.contains(event_ui_position) {
                         captured = true;

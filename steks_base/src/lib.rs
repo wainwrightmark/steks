@@ -1,5 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
+pub mod arrow;
 pub mod camera;
 pub mod change_level_event;
 pub mod collision;
@@ -19,6 +20,7 @@ pub mod level_transition;
 pub mod padlock;
 pub mod prediction;
 pub mod records;
+pub mod rectangle_set;
 pub mod settings;
 pub mod shape_component;
 pub mod shape_creation_data;
@@ -34,7 +36,6 @@ pub mod ui_trait;
 pub mod walls;
 pub mod win;
 pub mod win_timer_state;
-pub mod rectangle_set;
 pub mod window_size;
 
 pub mod prelude {
@@ -48,6 +49,7 @@ pub mod prelude {
     pub use std::time::Duration;
     pub use steks_common::prelude::*;
 
+    pub use crate::arrow::*;
     pub use crate::camera::*;
     pub use crate::change_level_event::*;
     pub use crate::collision::*;

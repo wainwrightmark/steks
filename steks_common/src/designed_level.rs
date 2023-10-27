@@ -175,7 +175,11 @@ pub struct LevelStage {
 
     #[serde(default)]
     #[serde(alias = "Outlines")]
-    pub outlines: Vec<ShapeOutline>
+    pub outlines: Vec<ShapeOutline>,
+
+    #[serde(default)]
+    #[serde(alias = "Arrows")]
+    pub arrows: Vec<Arrow>
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -253,6 +257,32 @@ pub struct ShapeOutline{
     #[serde(alias = "R")]
     /// Angle in revolutions
     pub r: Option<f32>,
+
+    #[serde(default)]
+    #[serde(alias = "Scale")]
+    pub scale: Option<f32>
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub struct Arrow{
+    #[serde(default)]
+    #[serde(alias = "X")]
+    pub x: f32,
+    #[serde(default)]
+    #[serde(alias = "Y")]
+    pub y: f32,
+    #[serde(default)]
+    #[serde(alias = "R")]
+    pub r: f32,
+
+    #[serde(default)]
+    #[serde(alias = "Start")]
+    pub start: f32,
+    #[serde(default)]
+    #[serde(alias = "Sweep")]
+    pub sweep: f32
+
+
 }
 
 

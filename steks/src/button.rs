@@ -112,7 +112,7 @@ fn icon_button_system(
                 GooglePlay => {
                     #[cfg(target_arch = "wasm32")]
                     {
-                        #[cfg(target_arch = "wasm32")]
+                        #[cfg(feature = "web")]
                         {
                             //spellchecker:disable-next-line
                             crate::wasm::gtag_convert("AW-11332063513/iagJCMOoxu8YEJmixpsq");
@@ -133,7 +133,7 @@ fn icon_button_system(
                 Apple => {
                     #[cfg(target_arch = "wasm32")]
                     {
-                        #[cfg(target_arch = "wasm32")]
+                        #[cfg(feature = "web")]
                         {
                             //spellchecker:disable-next-line
                             crate::wasm::gtag_convert("AW-11332063513/iagJCMOoxu8YEJmixpsq");

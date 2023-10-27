@@ -172,6 +172,10 @@ pub struct LevelStage {
     #[serde(default)]
     #[serde(alias = "Fireworks")]
     pub fireworks: FireworksSettings,
+
+    #[serde(default)]
+    #[serde(alias = "Outlines")]
+    pub outlines: Vec<ShapeOutline>
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -235,6 +239,21 @@ pub struct ShapeCreation {
     pub color: Option<(u8, u8, u8)>,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
+pub struct ShapeOutline{
+    pub shape: LevelShapeForm,
+
+    #[serde(default)]
+    #[serde(alias = "X")]
+    pub x: Option<f32>,
+    #[serde(default)]
+    #[serde(alias = "Y")]
+    pub y: Option<f32>,
+    #[serde(default)]
+    #[serde(alias = "R")]
+    /// Angle in revolutions
+    pub r: Option<f32>,
+}
 
 
 impl From<EncodableShape> for ShapeCreation {

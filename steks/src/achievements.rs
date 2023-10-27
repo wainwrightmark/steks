@@ -48,6 +48,7 @@ fn track_tutorial_start(has_acted: Res<HasActed>, current_level: Res<CurrentLeve
     if has_acted.is_changed() && has_acted.is_has_acted(){
         if let GameLevel::Designed { meta } = &current_level.level {
             if let DesignedLevelMeta::Tutorial { index: 0 } = meta {
+                info!("Acted in tutorial");
                 logging::LoggableEvent::ActedInTutorial.try_log1();
             }
         }

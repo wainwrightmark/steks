@@ -29,6 +29,6 @@ fn handle_level_state_changes(
         *state = HasActed::HasNotActed;
     } else if !pickup_events.is_empty() {
         pickup_events.clear();
-        *state = HasActed::HasActed
+        state.set_if_neq(HasActed::HasActed);
     }
 }

@@ -15,10 +15,43 @@ pub fn main() {
         .collect();
 
     let mat_file = MtlFile { materials };
-    let material_file  = Some("steks_mat.mtl".to_string());
+    let material_file = Some("steks_mat.mtl".to_string());
 
-    let mat_file_path = format!("obj_exports/steks_mat.mtl");
-    std::fs::write(mat_file_path, mat_file.to_string()).unwrap();
+    std::fs::write(
+        format!("obj_exports/levels/steks_mat.mtl"),
+        mat_file.to_string(),
+    )
+    .unwrap();
+    std::fs::write(
+        format!("obj_exports/shapes/steks_mat.mtl"),
+        mat_file.to_string(),
+    )
+    .unwrap();
+
+    for shape in ALL_SHAPES.iter() {
+        let file = ObjFile {
+            material_file: material_file.clone(),
+            groups: vec![Group {
+                name: shape.name.to_string(),
+                objects: vec![Object::new(
+                    0,
+                    &EncodableShape {
+                        shape: shape.index,
+                        location: Location::default(),
+                        state: ShapeState::Normal,
+                        modifiers:  ShapeModifiers::Normal,
+                    },
+                    1,
+                )],
+            }],
+        };
+
+        std::fs::write(
+            format!("obj_exports/shapes/{}.obj", shape.name),
+            file.to_string(),
+        )
+        .unwrap();
+    }
 
     let records = get_records();
 
@@ -62,15 +95,15 @@ pub fn main() {
 
         all_groups.push(group.clone());
         let obj_file: ObjFile = ObjFile {
-            material_file: material_file.clone() ,
+            material_file: material_file.clone(),
             groups: vec![group],
         };
-        let obj_file_path = format!("obj_exports/{number}_{title}.obj",);
+        let obj_file_path = format!("obj_exports/levels/{number}_{title}.obj",);
         std::fs::write(obj_file_path, obj_file.to_string()).unwrap();
     }
 
     let mut offset = 0;
-    for (index,  group) in all_groups.iter_mut().enumerate(){
+    for (index, group) in all_groups.iter_mut().enumerate() {
         group.offset_vertices(offset);
         offset += group.count_vertices();
 
@@ -79,23 +112,28 @@ pub fn main() {
 
         let vector = Vec3::new(x as f32 * 50.0, 0.0, z as f32 * 50.0);
 
-
         group.offset_position(vector);
     }
 
-    let path = format!("obj_exports/all.obj",);
-    std::fs::write(path, ObjFile{groups: all_groups, material_file: material_file}.to_string()).unwrap();
-
-
+    let path = format!("obj_exports/levels/all_towers.obj",);
+    std::fs::write(
+        path,
+        ObjFile {
+            groups: all_groups,
+            material_file: material_file,
+        }
+        .to_string(),
+    )
+    .unwrap();
 }
 
 pub struct MtlFile {
     pub materials: Vec<Material>,
 }
 
-impl Display for MtlFile{
+impl Display for MtlFile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for m in self.materials.iter(){
+        for m in self.materials.iter() {
             m.fmt(f)?;
         }
 
@@ -146,14 +184,13 @@ impl Material {
         let diffuse_color = ambient_color * 1.0;
         let specular_color = ambient_color * 0.5;
 
-
         Self {
             name,
             ambient_color,
             diffuse_color,
             specular_color,
             specular_exponent: 250.0,
-            dissolve : 1.0,
+            dissolve: 1.0,
             optical_density: 1.45,
         }
     }
@@ -174,40 +211,40 @@ pub struct Group {
 }
 
 impl Group {
-    pub fn offset_vertices(&mut self, offset: usize){
-        for object in self.objects.iter_mut(){
+    pub fn offset_vertices(&mut self, offset: usize) {
+        for object in self.objects.iter_mut() {
             object.offset_vertices(offset);
         }
     }
 
-    pub fn count_vertices(&self)-> usize{
-        self.objects.iter().map(|x|x.vertices.len()).sum()
+    pub fn count_vertices(&self) -> usize {
+        self.objects.iter().map(|x| x.vertices.len()).sum()
     }
 
-    pub fn offset_position(&mut self, vector: Vec3){
-        for obj in self.objects.iter_mut(){
+    pub fn offset_position(&mut self, vector: Vec3) {
+        for obj in self.objects.iter_mut() {
             obj.offset_position(vector);
         }
     }
 }
 
 impl Object {
-    pub fn offset_vertices(&mut self, offset: usize){
-        for face in self.faces.iter_mut(){
+    pub fn offset_vertices(&mut self, offset: usize) {
+        for face in self.faces.iter_mut() {
             face.offset_vertices(offset);
         }
     }
 
-    pub fn offset_position(&mut self, vector: Vec3){
-        for v in self.vertices.iter_mut(){
+    pub fn offset_position(&mut self, vector: Vec3) {
+        for v in self.vertices.iter_mut() {
             *v = *v + vector;
         }
     }
 }
 
 impl Face {
-    pub fn offset_vertices(&mut self, offset: usize){
-        for x in self.0.iter_mut(){
+    pub fn offset_vertices(&mut self, offset: usize) {
+        for x in self.0.iter_mut() {
             *x = *x + offset
         }
     }
@@ -225,7 +262,11 @@ impl Object {
     pub fn new(index: usize, shape: &EncodableShape, offset: usize) -> Self {
         let fatness: f32 = SHAPE_SIZE * SCALE * 0.25;
         let shape_name = shape.shape.game_shape().name;
-        let name = if shape.state.is_locked() || shape.state.is_fixed() {format!("{shape_name}_{index}_locked",)} else{format!("{shape_name}_{index}",)};
+        let name = if shape.state.is_locked() || shape.state.is_fixed() {
+            format!("{shape_name}_{index}_locked",)
+        } else {
+            format!("{shape_name}_{index}",)
+        };
         let material = format!("{shape_name}_mat");
 
         let vertices = shape
@@ -385,7 +426,7 @@ for obj in bpy.context.selected_objects:
 bpy.ops.object.select_all(action='DESELECT')
  */
 //script to add rigid bodies
- /*
+/*
  import bpy
 
 # Deselect all objects

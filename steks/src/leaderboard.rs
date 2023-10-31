@@ -293,12 +293,12 @@ fn update_campaign_completion(
             }
         }
 
-        if previous_stars.is_three_star()
+        if stars.is_three_star()
             && campaign_completion.stars.iter().all(|x| x.is_three_star())
         {
             Achievements::unlock_if_locked(&mut achievements, Achievement::SuperMario);
             Achievements::unlock_if_locked(&mut achievements, Achievement::OkMario);
-        } else if (previous_stars.is_two_star() || previous_stars.is_three_star())
+        } else if (stars.is_two_star() || stars.is_three_star())
             && campaign_completion
                 .stars
                 .iter()

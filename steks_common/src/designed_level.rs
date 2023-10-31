@@ -273,16 +273,18 @@ pub struct Arrow{
     pub y: f32,
     #[serde(default)]
     #[serde(alias = "R")]
-    pub r: f32,
+    pub radius: f32,
 
     #[serde(default)]
     #[serde(alias = "Start")]
     pub start: f32,
     #[serde(default)]
     #[serde(alias = "Sweep")]
-    pub sweep: f32
+    pub sweep: f32,
 
-
+    #[serde(default)]
+    #[serde(alias = "Rotate")]
+    pub rotate: bool
 }
 
 

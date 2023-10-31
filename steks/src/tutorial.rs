@@ -3,10 +3,7 @@ use std::iter;
 use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use maveric::{
-    define_lens,
-    transition::speed::*,
-};
+use maveric::{define_lens, transition::speed::*};
 
 #[derive(Debug, Default)]
 pub struct TutorialPlugin;
@@ -18,6 +15,8 @@ impl Plugin for TutorialPlugin {
 
         //app.register_transition::<StrokeColorLens>();
         app.register_transition::<StrokeWidthLens>();
+
+        app.register_transition::<TransformRotationZLens>();
     }
 }
 
@@ -47,7 +46,6 @@ impl MavericRootChildren for LevelOutlinesRoot {
                 commands.add_child(index as u32, ShapeOutlineNode(*shape_outline), &());
             }
 
-
             for (index, arrow) in stage.arrows.iter().enumerate() {
                 commands.add_child((index as u32) + 100, ArrowNode(*arrow), &());
             }
@@ -62,55 +60,71 @@ impl MavericNode for ShapeOutlineNode {
     type Context = NoContext;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.insert_with_node(|node| {
-            let shape: &'static GameShape = node.0.shape.into();
-            let location = Location {
-                position: Vec2 {
-                    x: node.0.x.unwrap_or_default(),
-                    y: node.0.y.unwrap_or_default(),
-                },
-                angle: node.0.r.unwrap_or_default(),
-            };
-            //let mut shape_bundle = shape.body.get_shape_bundle(SHAPE_SIZE);
-            let stroke_color = shape.fill(false).color; //use shape fill for stroke color
-            let stroke = Stroke{
-                color: stroke_color,
-                options: StrokeOptions::DEFAULT.with_line_width(3.0) .with_start_cap(LineCap::Round).with_end_cap(LineCap::Round)
-            };
+        commands
+            .insert_with_node(|node| {
+                let shape: &'static GameShape = node.0.shape.into();
+                let location = Location {
+                    position: Vec2 {
+                        x: node.0.x.unwrap_or_default(),
+                        y: node.0.y.unwrap_or_default(),
+                    },
+                    angle: node.0.r.unwrap_or_default(),
+                };
+                //let mut shape_bundle = shape.body.get_shape_bundle(SHAPE_SIZE);
+                let stroke_color = shape.fill(false).color; //use shape fill for stroke color
+                let stroke = Stroke {
+                    color: stroke_color,
+                    options: StrokeOptions::DEFAULT
+                        .with_line_width(3.0)
+                        .with_start_cap(LineCap::Round)
+                        .with_end_cap(LineCap::Round),
+                };
 
-            //shape_bundle.transform = location.into();
+                //shape_bundle.transform = location.into();
 
-            let step = TransitionStep::new_cycle(
-                [
-                    (3.0, ScalarSpeed{amount_per_second: 1.0}),
-                    (5.0, ScalarSpeed{amount_per_second: 1.0}),
-                ]
-                .into_iter(),
-            );
+                let step = TransitionStep::new_cycle(
+                    [
+                        (
+                            3.0,
+                            ScalarSpeed {
+                                amount_per_second: 1.0,
+                            },
+                        ),
+                        (
+                            5.0,
+                            ScalarSpeed {
+                                amount_per_second: 1.0,
+                            },
+                        ),
+                    ]
+                    .into_iter(),
+                );
 
-            let transition: Transition<StrokeWidthLens> = Transition::<StrokeWidthLens>::new(step);
+                let transition: Transition<StrokeWidthLens> =
+                    Transition::<StrokeWidthLens>::new(step);
 
-            let scale = node.0.scale.unwrap_or(1.0);
+                let scale = node.0.scale.unwrap_or(1.0);
 
-            let mut path_builder = bevy_prototype_lyon::path::PathBuilder::new();
+                let mut path_builder = bevy_prototype_lyon::path::PathBuilder::new();
 
-            let vertices = shape.body.get_vertices(SHAPE_SIZE * scale);
-            let start = vertices[0];
-            draw_dashed_path(
-                &mut path_builder,
-                start,
-                vertices.into_iter().skip(1).chain(iter::once(start)),
-                8.0,
-            );
+                let vertices = shape.body.get_vertices(SHAPE_SIZE * scale);
+                let start = vertices[0];
+                draw_dashed_path(
+                    &mut path_builder,
+                    start,
+                    vertices.into_iter().skip(1).chain(iter::once(start)),
+                    8.0,
+                );
 
-            let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
-                path: path_builder.build(),
-                transform: location.into(),
-                ..default()
-            };
+                let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
+                    path: path_builder.build(),
+                    transform: location.into(),
+                    ..default()
+                };
 
-            (shape_bundle, stroke, transition)
-        }).finish()
+                (shape_bundle, stroke, transition)
+            })
+            .finish()
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
@@ -125,41 +139,61 @@ impl MavericNode for ArrowNode {
     type Context = NoContext;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
-        commands.insert_with_node(|node| {
-            let mut path_builder = bevy_prototype_lyon::path::PathBuilder::new();
-            let arrow = node.0;
-            draw_arrow(&mut path_builder , arrow.r, arrow.start, arrow.sweep);
+        commands
+            .insert_with_node(|node| {
+                let mut path_builder = bevy_prototype_lyon::path::PathBuilder::new();
+                let arrow = node.0;
+                draw_arrow(&mut path_builder, arrow.radius, arrow.start, arrow.sweep);
 
-            let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
-                path: path_builder.build(),
-                transform: Transform::from_translation(Vec2 { x: arrow.x, y: arrow.y }.extend(0.0)),
-                ..default()
-            };
+                let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
+                    path: path_builder.build(),
+                    transform: Transform::from_translation(
+                        Vec2 {
+                            x: arrow.x,
+                            y: arrow.y,
+                        }
+                        .extend(0.0),
+                    ),
+                    ..default()
+                };
 
-            let step = TransitionStep::new_cycle(
-                [
-                    (8.0, ScalarSpeed{amount_per_second: 1.0}),
-                    (10.0, ScalarSpeed{amount_per_second: 1.0}),
-                ]
-                .into_iter(),
-            );
+                let transition: Transition<TransformRotationZLens>;
+                if node.0.rotate {
+                    transition =
+                        Transition::<TransformRotationZLens>::new(TransitionStep::new_cycle(
+                            [
+                                (
+                                    0.0,
+                                    ScalarSpeed {
+                                        amount_per_second: 1.0,
+                                    },
+                                ),
+                                (
+                                    std::f32::consts::PI * -1.0,
+                                    ScalarSpeed {
+                                        amount_per_second: 1.0,
+                                    },
+                                ),
+                            ]
+                            .into_iter(),
+                        ));
+                } else {
+                    transition = Transition::<TransformRotationZLens>::new(
+                        TransitionStep::new_arc(0.0, None, NextStep::None),
+                    );
+                }
 
-            let transition: Transition<StrokeWidthLens> = Transition::<StrokeWidthLens>::new(step);
+                let stroke = bevy_prototype_lyon::prelude::Stroke {
+                    color: Color::hsla(219.0, 0.29, 0.85, 1.0),
+                    options: StrokeOptions::default()
+                        .with_line_width(10.0)
+                        .with_line_join(LineJoin::Round)
+                        .with_start_cap(LineCap::Round),
+                };
 
-            let stroke = bevy_prototype_lyon::prelude::Stroke {
-                color: Color::hsla(219.0, 0.29, 0.85, 1.0),
-                options: StrokeOptions::default()
-                    .with_line_width(10.0)
-
-
-                    //.with_end_cap(LineCap::Round)
-                    .with_line_join(LineJoin::Round)
-                    .with_start_cap(LineCap::Round),
-            };
-
-            (shape_bundle, stroke, transition)
-
-        }).finish()
+                (shape_bundle, stroke, transition)
+            })
+            .finish();
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {

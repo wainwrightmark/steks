@@ -12,6 +12,11 @@ body {
   touch-action: none;
 }
 
+pwa-toast{
+  z-index: 100;
+}
+
+
 .spinner {
   top: 50%;
   left: 50%;

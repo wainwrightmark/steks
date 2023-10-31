@@ -1,5 +1,5 @@
 pub use crate::prelude::*;
-use crate:: tutorial::TutorialPlugin;
+use crate::tutorial::TutorialPlugin;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
 
@@ -177,11 +177,10 @@ pub fn setup_app(app: &mut App) {
 
     app.add_systems(PostStartup, on_start);
 
-    #[cfg(feature= "recording")]
+    #[cfg(feature = "recording")]
     {
         app.add_plugins(crate::recording::RecordingPlugin);
     }
-
 }
 
 fn create_demo_resource() -> DemoResource {
@@ -229,11 +228,11 @@ async fn log_start_async<'a>(user_exists: bool) {
 
         #[cfg(not(any(feature = "android", feature = "ios", feature = "web")))]
         {
-            #[cfg(feature="steam")]
+            #[cfg(feature = "steam")]
             {
                 device_id = DeviceIdentifier::steam();
             }
-            #[cfg(not(feature="steam"))]
+            #[cfg(not(feature = "steam"))]
             {
                 device_id = DeviceIdentifier::unknown();
             }

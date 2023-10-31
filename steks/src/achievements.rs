@@ -132,9 +132,17 @@ impl Achievements {
         #[cfg(feature = "web")]
         {
             spawn_and_run(async move {
-                let _ = capacitor_bindings::toast::Toast::show(format!(
-                    "Achievement Unlocked: {achievement}"
-                ))
+                let _ = capacitor_bindings::toast::Toast::show(
+
+                    capacitor_bindings::toast::ShowOptions{
+                        text: format!(
+                            "Achievement Unlocked: {achievement}"
+                        ),
+                        duration: capacitor_bindings::toast::ToastDuration::Long,
+                        position: capacitor_bindings::toast::ToastPosition::Top
+                    }
+
+                    )
                 .await;
             });
         }

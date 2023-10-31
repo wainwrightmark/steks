@@ -21,14 +21,13 @@ pub mod preview_images;
 pub mod share;
 pub mod startup;
 
-
+pub mod compatibility;
 #[cfg(any(feature = "android", feature = "ios", feature = "web"))]
 pub mod notifications;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
-pub mod compatibility;
 
-#[cfg(feature= "recording")]
+#[cfg(feature = "recording")]
 pub mod recording;
 pub mod tutorial;
 
@@ -52,8 +51,8 @@ pub mod prelude {
     pub use crate::app_redirect::*;
     pub use crate::asynchronous::*;
     pub use crate::button::*;
-    pub use crate::demo::*;
     pub use crate::compatibility::*;
+    pub use crate::demo::*;
     pub use crate::game_level::*;
     pub use crate::global_ui::*;
     pub use crate::import::*;

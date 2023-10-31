@@ -179,7 +179,7 @@ pub struct LevelStage {
 
     #[serde(default)]
     #[serde(alias = "Arrows")]
-    pub arrows: Vec<Arrow>
+    pub arrows: Vec<Arrow>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -244,7 +244,7 @@ pub struct ShapeCreation {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
-pub struct ShapeOutline{
+pub struct ShapeOutline {
     pub shape: LevelShapeForm,
 
     #[serde(default)]
@@ -254,23 +254,35 @@ pub struct ShapeOutline{
     #[serde(alias = "Y")]
     pub y: Option<f32>,
     #[serde(default)]
-    #[serde(alias = "R")]
+    #[serde(alias = "Revs")]
     /// Angle in revolutions
-    pub r: Option<f32>,
+    pub revs: Option<f32>,
 
     #[serde(default)]
     #[serde(alias = "Scale")]
-    pub scale: Option<f32>
+    pub scale: Option<f32>,
+
+    // The id of the shape to pin to
+    #[serde(default)]
+    #[serde(alias = "ShapeId")]
+    pub shape_id: Option<u32>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Default)]
-pub struct Arrow{
+pub struct Arrow {
     #[serde(default)]
     #[serde(alias = "X")]
     pub x: f32,
     #[serde(default)]
     #[serde(alias = "Y")]
     pub y: f32,
+    #[serde(default)]
+    #[serde(alias = "Z")]
+    pub z: f32,
+
+    #[serde(alias = "Stroke")]
+    pub stroke: f32,
+
     #[serde(default)]
     #[serde(alias = "R")]
     pub radius: f32,
@@ -284,9 +296,13 @@ pub struct Arrow{
 
     #[serde(default)]
     #[serde(alias = "Rotate")]
-    pub rotate: bool
-}
+    pub rotate: bool,
 
+    // The id of the shape to pin to
+    #[serde(default)]
+    #[serde(alias = "ShapeId")]
+    pub shape_id: Option<u32>,
+}
 
 impl From<EncodableShape> for ShapeCreation {
     fn from(value: EncodableShape) -> Self {

@@ -1,9 +1,8 @@
-use std::iter;
-
 use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use maveric::{define_lens, transition::speed::*};
+use std::iter;
 
 #[derive(Debug, Default)]
 pub struct TutorialPlugin;
@@ -17,6 +16,8 @@ impl Plugin for TutorialPlugin {
         app.register_transition::<StrokeWidthLens>();
 
         app.register_transition::<TransformRotationZLens>();
+
+        app.add_systems(Update, track_shapes);
     }
 }
 
@@ -63,13 +64,13 @@ impl MavericNode for ShapeOutlineNode {
         commands
             .insert_with_node(|node| {
                 let shape: &'static GameShape = node.0.shape.into();
-                let location = Location {
+                let transform: Transform = Location {
                     position: Vec2 {
                         x: node.0.x.unwrap_or_default(),
                         y: node.0.y.unwrap_or_default(),
                     },
-                    angle: node.0.r.unwrap_or_default(),
-                };
+                    angle: node.0.revs.unwrap_or_default() * std::f32::consts::TAU,
+                }.into();
                 //let mut shape_bundle = shape.body.get_shape_bundle(SHAPE_SIZE);
                 let stroke_color = shape.fill(false).color; //use shape fill for stroke color
                 let stroke = Stroke {
@@ -118,11 +119,19 @@ impl MavericNode for ShapeOutlineNode {
 
                 let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
                     path: path_builder.build(),
-                    transform: location.into(),
+                    transform,
                     ..default()
                 };
 
-                (shape_bundle, stroke, transition)
+                let shape_tracking = match node.0.shape_id {
+                    Some(shape_id) => ShapeTracking::Track {
+                        shape_id,
+                        relative_translation: transform.translation,
+                    },
+                    None => ShapeTracking::None,
+                };
+
+                (shape_bundle, stroke, transition, shape_tracking)
             })
             .finish()
     }
@@ -145,15 +154,15 @@ impl MavericNode for ArrowNode {
                 let arrow = node.0;
                 draw_arrow(&mut path_builder, arrow.radius, arrow.start, arrow.sweep);
 
+                let translation = Vec3 {
+                    x: arrow.x,
+                    y: arrow.y,
+                    z: arrow.z
+                };
+
                 let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
                     path: path_builder.build(),
-                    transform: Transform::from_translation(
-                        Vec2 {
-                            x: arrow.x,
-                            y: arrow.y,
-                        }
-                        .extend(0.0),
-                    ),
+                    transform: Transform::from_translation(translation),
                     ..default()
                 };
 
@@ -183,15 +192,23 @@ impl MavericNode for ArrowNode {
                     );
                 }
 
+                let shape_tracking = match node.0.shape_id {
+                    Some(shape_id) => ShapeTracking::Track {
+                        shape_id,
+                        relative_translation: translation,
+                    },
+                    None => ShapeTracking::None,
+                };
+
                 let stroke = bevy_prototype_lyon::prelude::Stroke {
                     color: Color::hsla(219.0, 0.29, 0.85, 1.0),
                     options: StrokeOptions::default()
-                        .with_line_width(10.0)
+                        .with_line_width(node.0.stroke)
                         .with_line_join(LineJoin::Round)
                         .with_start_cap(LineCap::Round),
                 };
 
-                (shape_bundle, stroke, transition)
+                (shape_bundle, stroke, transition, shape_tracking)
             })
             .finish();
     }
@@ -244,4 +261,35 @@ fn draw_dashed_path(
             }
         }
     }
+}
+
+fn track_shapes(
+    mut trackers: Query<(&ShapeTracking, &mut Transform), Without<ShapeWithId>>,
+    shapes: Query<(&ShapeWithId, &Transform), Without<ShapeTracking>>,
+) {
+    for (tracking, mut transform) in trackers.iter_mut() {
+        let ShapeTracking::Track {
+            shape_id,
+            relative_translation,
+        } = tracking
+        else {
+            continue;
+        };
+
+        if let Some((_, shape_transform)) = shapes.iter().filter(|x| x.0.id == *shape_id).next() {
+            transform.translation = shape_transform.translation + *relative_translation;
+        } else {
+            warn!("Could not find shape with id {shape_id}");
+        }
+    }
+}
+
+#[derive(Debug, Default, Component, PartialEq, Clone)]
+enum ShapeTracking {
+    #[default]
+    None,
+    Track {
+        shape_id: u32,
+        relative_translation: Vec3,
+    },
 }

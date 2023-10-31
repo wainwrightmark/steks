@@ -18,10 +18,12 @@
     - shape: O4
       x: 0.0
       y: -100
-      r: 0.0
+      revs: 0.0
   arrows:
     - x: -50.0
       y: -150
+      z: -1.0
+      stroke: 10.0
       radius: 50.0
       start: 3.14159
       sweep: -1.5708
@@ -37,15 +39,18 @@
       r: 0.0
       vel_x: 0.0
       vel_y: 0.0
+      id: 0
   outlines:
     - shape: O4
       x: 0.0
       y: -100
-      r: 0.0
+      revs: 0.0
       scale: 1.4
   arrows:
     - x: 50.0
       y: -150
+      z: -1.0
+      stroke: 10.0
       radius: 50.0
       start: 0
       sweep: 1.5708
@@ -55,6 +60,20 @@
       text_forever: true
       shapes:
         - shape: X5
+          x: 50.0
+          y: -150
+          r: 0.125
+          vel_x: 0.0
+          vel_y: 0.0
+
+      outlines:
+        - shape: X5
+          x: 0.0
+          y: 75.0
+          revs: 0.125
+          scale: 1.4
+          shape_id: 0
+
 
 - text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with your other thumb\n\nLock it again and finish your tower\n\n\nTowers cannot touch the ground"
   mouse_text: "You'll need to rotate the triangle\n\n\nGrab the triangle to unlock it\n\nRotate it with Q and E keys\n\nLock it again and finish your tower\n\n\nTowers cannot touch the ground"
@@ -63,9 +82,10 @@
   shapes:
     - shape: Triangle
       x: 0.0
-      y: -150.0
+      y: -200.0
       r: 0.625
       state: locked
+      id: 0
     - shape: O4
       x: -125
       y: -150
@@ -74,17 +94,34 @@
       vel_y: 0.0
   arrows:
     - x: 0.0
-      y: -150
-      radius: 75.0
+      y: 0.0
+      z: 1.0
+      stroke: 5.0
+      radius: 25.0
       start: 0
       sweep: -2.5
       rotate: true
+      shape_id: 0
     - x: 0.0
-      y: -150
-      radius: 75.0
+      y: 0.0
+      z: 1.0
+      stroke: 5.0
+      radius: 25.0
       start: 3.14159265359
       sweep: -2.5
       rotate: true
+      shape_id: 0
+  outlines:
+    - shape: O4
+      x: 0.0
+      y: -50.0
+      revs: 0.0
+      scale: 1.0
+    - shape: Triangle
+      x: 0.0
+      y: -100.0
+      revs: 0.125
+      scale: 1.0
 
   stages:
     - text: "To complete your tower\n\nUse all shapes on the screen\n\nRotate and place them carefully"

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use capacitor_bindings::local_notifications::*;
 
+#[allow(unused_imports)]
 use crate::{logging, prelude::*};
 
 #[cfg(any(feature = "ios", feature = "android"))]

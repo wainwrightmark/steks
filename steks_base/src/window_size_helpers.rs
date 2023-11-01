@@ -1,74 +1,47 @@
 use crate::{prelude::*, rectangle_set};
 use bevy::prelude::*;
-use bevy_utils::window_size::{handle_window_resized, WindowSize};
+use bevy_utils::window_size::{handle_window_resized, Breakpoints, WindowSize};
 pub struct WindowSizeTrackingPlugin;
 
 impl Plugin for WindowSizeTrackingPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, track_window_size_changes.after(handle_window_resized));
+        app.add_systems(
+            Update,
+            track_window_size_changes.after(handle_window_resized::<SteksBreakpoints>),
+        );
     }
 }
 
-pub trait ScaledWindowSize {
-    /// The scale to multiply the height and width by
-    fn size_scale(&self) -> f32;
+#[derive(Debug, Default, PartialEq, Clone)]
+pub struct SteksBreakpoints;
 
-    /// The scale to multiply objects and ui elements by
-    fn object_scale(&self) -> f32 {
-        self.size_scale().recip()
-    }
-
-    fn scaled_width(&self) -> f32;
-
-    fn scaled_height(&self) -> f32;
-
-    fn win_timer_position_y(&self) -> f32;
-}
-
-impl ScaledWindowSize for WindowSize {
-    /// The scale to multiply the height and width by
-    fn size_scale(&self) -> f32 {
-        if self.raw_window_width >= 768. && self.raw_window_height >= 1024. {
+impl Breakpoints for SteksBreakpoints {
+    fn size_scale(raw_window_width: f32, raw_window_height: f32) -> f32 {
+        if raw_window_width >= 768. && raw_window_height >= 1024. {
             0.5
-        } else if self.raw_window_width < 360. || self.raw_window_height <= 520. {
+        } else if raw_window_width < 360. || raw_window_height <= 520. {
             1.1
         } else {
             1.0
         }
     }
+}
 
-    /// The scale to multiply objects and ui elements by
-    fn object_scale(&self) -> f32 {
-        self.size_scale().recip()
-    }
-
-    fn scaled_width(&self) -> f32 {
-        self.raw_window_width * self.size_scale()
-    }
-
-    fn scaled_height(&self) -> f32 {
-        self.raw_window_height * self.size_scale()
-    }
-
-    fn win_timer_position_y(&self) -> f32 {
-        if self.scaled_height() <= 500.0 {
-            100.0
-        } else {
-            200.0
-        }
+pub fn win_timer_position_y(window_size: &WindowSize<SteksBreakpoints>) -> f32 {
+    if window_size.scaled_height <= 500.0 {
+        100.0
+    } else {
+        200.0
     }
 }
 
 fn track_window_size_changes(
-    window_size: Res<WindowSize>,
+    window_size: Res<WindowSize<SteksBreakpoints>>,
     mut draggables_query: Query<(&mut Transform, &ShapeComponent, &ShapeIndex)>,
-    mut ui_scale: ResMut<UiScale>,
 ) {
     if !window_size.is_changed() {
         return;
     }
-
-    ui_scale.scale = window_size.object_scale() as f64;
 
     let mut rectangle_set = rectangle_set::RectangleSet::new(&window_size, std::iter::empty());
     let mut shapes_to_add: Vec<(Mut<Transform>, &ShapeComponent, &ShapeIndex)> = vec![];

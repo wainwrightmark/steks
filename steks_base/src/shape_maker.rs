@@ -22,7 +22,7 @@ pub fn spawn_and_update_shapes(
 
     mut check_win: EventWriter<CheckForTowerEvent>,
     settings: Res<GameSettings>,
-    window_size: Res<WindowSize>,
+    window_size: Res<WindowSize<SteksBreakpoints>>,
 ) {
     if !current_level.is_changed() {
         return;

@@ -44,7 +44,7 @@ pub fn setup_app(app: &mut App) {
                 ),
         )
         .add_plugins(WallsPlugin)
-        .add_plugins(WindowSizePlugin)
+        .add_plugins(WindowSizePlugin::<SteksBreakpoints>::default())
         .add_plugins(WindowSizeTrackingPlugin)
         .add_plugins(GlobalUiPlugin)
         .add_plugins(ButtonPlugin)

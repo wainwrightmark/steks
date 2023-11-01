@@ -2,7 +2,6 @@ use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 use maveric::prelude::*;
 use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};
 use bevy_utils::window_size::WindowSize;
-use crate::shape_component::ScaledWindowSize;
 
 use crate::prelude::*;
 
@@ -18,7 +17,7 @@ impl Plugin for WallsPlugin {
 struct WallsRoot;
 
 impl MavericRootChildren for WallsRoot {
-    type Context = NC4<WindowSize, Insets, GameSettings, RapierConfiguration>;
+    type Context = NC4<WindowSize<SteksBreakpoints>, Insets, GameSettings, RapierConfiguration>;
 
     fn set_children(
         context: &<Self::Context as maveric::prelude::NodeContext>::Wrapper<'_>,
@@ -36,7 +35,7 @@ impl_maveric_root!(WallsRoot);
 struct WallNode(WallPosition);
 
 impl MavericNode for WallNode {
-    type Context = NC4<WindowSize, Insets, GameSettings, RapierConfiguration>;
+    type Context = NC4<WindowSize<SteksBreakpoints>, Insets, GameSettings, RapierConfiguration>;
 
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
@@ -87,8 +86,8 @@ impl MavericNode for WallNode {
             let (window_size, insets, settings, rapier) = context;
             let wall = node.0;
             let point = wall.get_position(
-                window_size.scaled_height(),
-                window_size.scaled_width(),
+                window_size.scaled_height,
+                window_size.scaled_width,
                 rapier.gravity,
                 insets,
                 &window_size,
@@ -179,12 +178,12 @@ impl WallPosition {
         width: f32,
         gravity: Vec2,
         insets: &Insets,
-        windows_size: &WindowSize,
+        windows_size: &WindowSize<SteksBreakpoints>,
     ) -> Vec3 {
         use WallPosition::*;
         const OFFSET: f32 = WALL_WIDTH / 2.0;
         const IOS_BOTTOM_OFFSET: f32 = 30.0;
-        let scale = windows_size.object_scale();
+        let scale = windows_size.object_scale;
 
         let top_offset = if gravity.y > 0.0 {
             if cfg!(feature = "ios") {

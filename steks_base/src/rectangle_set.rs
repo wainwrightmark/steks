@@ -3,7 +3,8 @@ use itertools::Itertools;
 use steks_common::prelude::*;
 
 use bevy_utils::window_size::WindowSize;
-use crate::shape_component::ScaledWindowSize;
+
+use crate::prelude::SteksBreakpoints;
 
 pub struct RectangleSet {
     pub outer: Rect,
@@ -11,10 +12,10 @@ pub struct RectangleSet {
 }
 
 impl RectangleSet {
-    pub fn new(window: &WindowSize, shapes: impl Iterator<Item = (ShapeIndex, Transform)>) -> Self {
+    pub fn new(window: &WindowSize<SteksBreakpoints>, shapes: impl Iterator<Item = (ShapeIndex, Transform)>) -> Self {
         let outer = Rect::from_center_size(
             Vec2::ZERO,
-            Vec2::new(window.scaled_width(), window.scaled_height()),
+            Vec2::new(window.scaled_width, window.scaled_height),
         );
 
         let existing = shapes

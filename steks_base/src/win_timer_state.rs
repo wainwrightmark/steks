@@ -7,7 +7,6 @@ use bevy_prototype_lyon::prelude::{
 };
 use maveric::prelude::*;
 use bevy_utils::window_size::WindowSize;
-use crate::shape_component::ScaledWindowSize;
 
 #[derive(Debug, Default)]
 pub struct WinCountdownPlugin;
@@ -37,7 +36,7 @@ fn update_dynamic_elements(
     countdown: Res<WinCountdown>,
     mut marker_circle: Query<&mut Transform, With<CircleMarkerComponent>>,
     mut circle_arc: Query<&mut Path, With<CircleArcComponent>>,
-    window_size: Res<WindowSize>,
+    window_size: Res<WindowSize<SteksBreakpoints>>,
 ) {
     let Some(countdown) = &countdown.0 else {
         return;
@@ -52,7 +51,7 @@ fn update_dynamic_elements(
         let y = theta.sin() * RADIUS;
 
         transform.translation.x = x;
-        transform.translation.y = y + window_size.win_timer_position_y();
+        transform.translation.y = y + win_timer_position_y(window_size.as_ref());
     }
 
     for mut path in circle_arc.iter_mut() {
@@ -81,7 +80,7 @@ struct TimerStateRoot;
 impl_maveric_root!(TimerStateRoot);
 
 impl MavericRootChildren for TimerStateRoot {
-    type Context = NC2<WinCountdown, NC2<GameSettings, WindowSize>>;
+    type Context = NC2<WinCountdown, NC2<GameSettings, WindowSize<SteksBreakpoints>>>;
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
@@ -116,14 +115,14 @@ fn get_color(settings: &GameSettings) -> Color {
 }
 
 impl MavericNode for CircleArc {
-    type Context = NC2<GameSettings, WindowSize>;
+    type Context = NC2<GameSettings, WindowSize<SteksBreakpoints>>;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().insert_with_context(|context| {
             (
                 ShapeBundle {
                     transform: Transform {
-                        translation: Vec3::new(00.0, context.1.win_timer_position_y(), 100.0),
+                        translation: Vec3::new(00.0, win_timer_position_y(context.1.as_ref()), 100.0),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -143,7 +142,7 @@ impl MavericNode for CircleArc {
 }
 
 impl MavericNode for CircleMarker {
-    type Context = NC2<GameSettings, WindowSize>;
+    type Context = NC2<GameSettings, WindowSize<SteksBreakpoints>>;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().insert_with_context(|context| {
@@ -154,7 +153,7 @@ impl MavericNode for CircleMarker {
                         radius: ARC_STROKE,
                     }),
                     transform: Transform {
-                        translation: Vec3::new(0.0, context.1.win_timer_position_y() + RADIUS, 1.0),
+                        translation: Vec3::new(0.0,  win_timer_position_y(context.1.as_ref()) + RADIUS, 1.0),
                         ..Default::default()
                     },
                     ..Default::default()

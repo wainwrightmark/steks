@@ -3,7 +3,6 @@ use bevy_prototype_lyon::prelude::{Fill, FillOptions, ShapeBundle, Stroke, Strok
 use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 use bevy_utils::window_size::WindowSize;
-use crate::shape_component::ScaledWindowSize;
 
 use crate::prelude::*;
 #[derive(Debug, Default)]
@@ -74,7 +73,7 @@ fn spawn_snowdrops(
     mut countdown: ResMut<SnowdropCountdown>,
     time: Res<Time>,
     settings: Res<GameSettings>,
-    window_size: Res<WindowSize>,
+    window_size: Res<WindowSize<SteksBreakpoints>>,
 ) {
     if countdown.timer.paused() {
         return;
@@ -94,7 +93,7 @@ fn spawn_snowdrops(
 
         let linvel_x = rng.gen_range(-ROOT_SNOW_VELOCITY..ROOT_SNOW_VELOCITY);
         let linvel_x = linvel_x * linvel_x * linvel_x.signum();
-        let width = window_size.scaled_width();
+        let width = window_size.scaled_width;
         for _ in 0..count {
             let x = if linvel_x < 10.0 {
                 rng.gen_range(0.0..=(width * 0.5))

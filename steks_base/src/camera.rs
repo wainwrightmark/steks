@@ -24,7 +24,7 @@ struct CameraSystem;
 impl_maveric_root!(CameraSystem);
 
 impl MavericRootChildren for CameraSystem {
-    type Context = WindowSize;
+    type Context = WindowSize<SteksBreakpoints>;
 
     fn set_children(
         context: &<Self::Context as maveric::prelude::NodeContext>::Wrapper<'_>,
@@ -38,14 +38,14 @@ impl MavericRootChildren for CameraSystem {
 struct CameraSystemCamera;
 
 impl MavericNode for CameraSystemCamera {
-    type Context = WindowSize;
+    type Context = WindowSize<SteksBreakpoints>;
 
     fn set_components(
         commands: maveric::set_components_commands::SetComponentCommands<Self, Self::Context>,
     ) {
         commands.ignore_node().insert_with_context(|context| {
             let mut bundle = Camera2dBundle::default();
-            bundle.projection.scale = context.size_scale();
+            bundle.projection.scale = context.size_scale;
 
             bundle
         });

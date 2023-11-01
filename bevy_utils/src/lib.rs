@@ -5,6 +5,8 @@ pub mod async_event_writer;
 #[cfg(feature = "bevy_pkv")]
 pub mod tracked_resource;
 
+pub mod window_size;
+
 pub trait TrackableResource:
     bevy::prelude::Resource + serde::Serialize + serde::de::DeserializeOwned + Clone
 {

@@ -6,6 +6,8 @@ use bevy_prototype_lyon::prelude::{
     Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke, StrokeOptions,
 };
 use maveric::prelude::*;
+use bevy_utils::window_size::WindowSize;
+use crate::shape_component::ScaledWindowSize;
 
 #[derive(Debug, Default)]
 pub struct WinCountdownPlugin;

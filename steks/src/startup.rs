@@ -2,6 +2,7 @@ pub use crate::prelude::*;
 use crate::tutorial::TutorialPlugin;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
+use bevy_utils::window_size::WindowSizePlugin;
 
 pub const WINDOW_WIDTH: f32 = 360f32;
 pub const WINDOW_HEIGHT: f32 = 520f32;
@@ -88,6 +89,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(AchievementsPlugin)
         .add_plugins(WallsPlugin)
         .add_plugins(WindowSizePlugin)
+        .add_plugins(WindowSizeTrackingPlugin)
         .add_plugins(GlobalUiPlugin)
         .add_plugins(ButtonPlugin)
         .add_plugins(SettingsPlugin)

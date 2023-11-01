@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{Fill, FillOptions, ShapeBundle, Stroke, StrokeOptions};
 use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
+use bevy_utils::window_size::WindowSize;
+use crate::shape_component::ScaledWindowSize;
 
 use crate::prelude::*;
 #[derive(Debug, Default)]

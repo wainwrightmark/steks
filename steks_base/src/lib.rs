@@ -36,7 +36,7 @@ pub mod ui_trait;
 pub mod walls;
 pub mod win;
 pub mod win_timer_state;
-pub mod window_size;
+pub mod window_size_helpers;
 
 pub mod prelude {
 
@@ -46,6 +46,7 @@ pub mod prelude {
     pub use bevy_utils::CanInitTrackedResource;
     pub use bevy_utils::CanRegisterAsyncEvent;
     pub use bevy_utils::TrackableResource;
+    pub use bevy_utils::window_size;
     pub use std::time::Duration;
     pub use steks_common::prelude::*;
 
@@ -85,7 +86,8 @@ pub mod prelude {
     pub use crate::walls::*;
     pub use crate::win::*;
     pub use crate::win_timer_state::*;
-    pub use crate::window_size::*;
+
+    pub use crate::window_size_helpers::*;
 
     pub fn get_today_date() -> chrono::NaiveDate {
         let today = chrono::offset::Utc::now();

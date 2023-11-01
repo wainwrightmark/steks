@@ -2,7 +2,8 @@ use bevy::prelude::{warn, Rect, Transform, Vec2};
 use itertools::Itertools;
 use steks_common::prelude::*;
 
-use crate::window_size::WindowSize;
+use bevy_utils::window_size::WindowSize;
+use crate::shape_component::ScaledWindowSize;
 
 pub struct RectangleSet {
     pub outer: Rect,
@@ -101,7 +102,7 @@ mod tests {
     use steks_common::prelude::ALL_SHAPES;
     use test_case::test_case;
 
-    use crate::window_size::WindowSize;
+    use bevy_utils::window_size::WindowSize;
 
     use super::RectangleSet;
 

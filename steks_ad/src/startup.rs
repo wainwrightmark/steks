@@ -1,6 +1,7 @@
 pub use crate::prelude::*;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
+use steks_base::shape_component::window_size::WindowSizePlugin;
 
 pub fn setup_app(app: &mut App) {
     // When building for WASM, print panics to the browser console
@@ -44,6 +45,7 @@ pub fn setup_app(app: &mut App) {
         )
         .add_plugins(WallsPlugin)
         .add_plugins(WindowSizePlugin)
+        .add_plugins(WindowSizeTrackingPlugin)
         .add_plugins(GlobalUiPlugin)
         .add_plugins(ButtonPlugin)
         .add_plugins(SettingsPlugin)

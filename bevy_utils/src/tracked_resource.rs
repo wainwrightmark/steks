@@ -28,12 +28,16 @@ impl<T: Resource + Serialize + DeserializeOwned + TrackableResource>
     }
 }
 
+fn is_res_changed<T : Resource>(res: Res<T>)-> bool{
+    res.is_changed()
+}
+
 impl<T: Resource +  Serialize + DeserializeOwned + TrackableResource + Clone> Plugin
     for TrackedResourcePlugin<T>
 {
     fn build(&self, app: &mut App) {
         app.insert_resource(self.default_value.clone());
-        app.add_systems(PostUpdate, Self::track_changes);
+        app.add_systems(PostUpdate, Self::track_changes.run_if(is_res_changed::<T>));
     }
 
     fn finish(&self, app: &mut App) {

@@ -25,7 +25,7 @@ serde_yaml = "0.9"
 
 steks_common = { path = "../steks_common" }
 steks_image = { path = "../steks_image" }
-bevy_utils = { path = "../bevy_utils", features = []}
+bevy_utils = { git = "https://github.com/wainwrightmark/nice_bevy_utils", features = ["bevy_ui"]}
 bevy_screen_diagnostics = "0.3"
 maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
   "widgets",

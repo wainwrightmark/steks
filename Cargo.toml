@@ -3,7 +3,6 @@ members = [
 "steks",
 "steks_common",
 "steks_ad",
-"bevy_utils",
 "steks_image",
 "steks_base",
 "netlify/functions/image",

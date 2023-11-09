@@ -573,7 +573,8 @@ impl MavericNode for BeggingPanel {
                 display: Display::Flex,
                 align_items: AlignItems::Center,
                 flex_direction: FlexDirection::Column,
-                top: Val::Percent(10.0),
+                top: Val::Percent(50.0),
+                bottom: Val::Percent(50.0),
                 margin: UiRect::new(Val::Auto, Val::Auto, Val::Px(0.0), Val::Px(0.)),
                 justify_content: JustifyContent::Center,
                 width: Val::Auto,
@@ -605,21 +606,7 @@ impl MavericNode for BeggingPanel {
                 commands.add_child(
                     3,
                     TextNode {
-                        text: "Play the full game\n\n\
-                Build ice towers while\n\
-                 the snow swirls\n\
-                \n\
-                Build upside-down in\n\
-                inverted gravity\n\
-                \n\
-                Build crazy towers on\n\
-                slanted foundations\n\
-                \n\
-                And...\n\
-                Defeat Dr. Gravity!\n\
-                \n\
-                Get steks now\n\n\n\
-                "
+                        text: " \n \n \nGet the App \n \n \n"
                         .to_string(),
                         font_size: LEVEL_TEXT_FONT_SIZE,
                         color: LEVEL_TEXT_COLOR,

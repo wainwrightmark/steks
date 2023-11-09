@@ -1,15 +1,15 @@
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+from = "/*"
+to = "/index.html"
+status = 200
 
 [[edge_functions]]
-  function = "og-param-proxy"
-  path = "/game/*"
+function = "og-param-proxy"
+path = "/game/*"
 
 [build]
-  publish = "steks/dist"
-  command = "rustup target add wasm32-unknown-unknown; rustup update stable; cargo install trunk --locked; trunk build steks/index.html --release"
+publish = "steks/dist"
+command = "rustup default stable; rustup target add wasm32-unknown-unknown; rustup update stable; cargo install trunk --locked; trunk build steks/index.html --release"
 
 
 [context.production]
@@ -17,7 +17,7 @@ environment = { NETLIFY_EXPERIMENTAL_BUILD_RUST_SOURCE = "true" }
 
 
 [[headers]]
-  # Define which paths this specific [[headers]] block will cover.
-  for = "/news.yaml"
-    [headers.values]
-    Access-Control-Allow-Origin = "*"
+# Define which paths this specific [[headers]] block will cover.
+for = "/news.yaml"
+[headers.values]
+Access-Control-Allow-Origin = "*"

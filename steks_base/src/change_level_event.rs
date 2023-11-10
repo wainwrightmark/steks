@@ -131,7 +131,7 @@ impl ChangeLevelEvent {
                         return (GameLevel::Designed { meta }, 0);
                     }
 
-                    if demo_resource.is_full_game || meta.is_ad() {
+                    if !demo_resource.is_full_game || meta.is_ad() {
                         (GameLevel::Begging, 0)
                     } else if meta.is_credits() {
                         (GameLevel::new_infinite(), 0)

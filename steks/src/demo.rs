@@ -20,15 +20,15 @@ lazy_static! {
         match hash{
             None=> {
                 warn!("Could not hash device id");
-                6 //EMPIRE STEKS BACK
+                4
             },
             Some(false)=>{
-                debug!("Device id hash is odd - level 6");
-                6 //EMPIRE STEKS BACK
+                debug!("Device id hash is odd - level 2");
+                4
             },
             Some(true)=>{
-                debug!("Device id hash is even - level 8");
-                8 // Cubism
+                debug!("Device id hash is even - level 4");
+                6
             }
         }
     };

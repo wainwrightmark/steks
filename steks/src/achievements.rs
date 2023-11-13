@@ -136,7 +136,7 @@ impl Achievements {
 
                     capacitor_bindings::toast::ShowOptions{
                         text: format!(
-                            "Achievement Unlocked: {achievement}"
+                            "Achievement Unlocked: {a}", a = achievement.display_name()
                         ),
                         duration: capacitor_bindings::toast::ToastDuration::Long,
                         position: capacitor_bindings::toast::ToastPosition::Top
@@ -187,6 +187,39 @@ pub enum Achievement {
 }
 
 impl Achievement {
+
+    pub fn display_name(&self)-> &'static str{
+        use Achievement::*;
+        match self{
+            BusinessSecretsOfThePharaohs => "Business Secrets Of The Pharaohs",
+            LiveFromNewYork => "Live From New York",
+            IOughtToBeJealous => "I Ought To Be Jealous",
+            KingKong => "King Kong",
+            ThatWasOneInAMillion => "That Was One In A Million",
+            QualifyAsAnArchitect => "Qualify As An Architect",
+            InfinityMinus5 => "Infinity Minus 5",
+            AlephOmega => "Aleph Omega",
+            EverythingEverywhereAllAtOnce => "Everything Everywhere All At Once",
+            Imhotep => "Imhotep",
+            Vitruvius => "Vitruvius",
+            QinShiHuang => "Qin Shi Huang",
+            UstadAhmadLahori => "Ustad Ahmad Lahori",
+            ChristopherWren => "Christopher Wren",
+            DenysLasdun => "Denys Lasdun",
+            ZahaHadid => "Zaha Hadid",
+            Enthusiast => "Enthusiast",
+            OnTheBrain => "On The Brain",
+            Obsessed => "Obsessed",
+            Addict => "Addict",
+            IAmInevitable => "I Am Inevitable!",
+            ItsATrap => "It's A Trap",
+            LookTheresBleppo => "Look There's Bleppo",
+            CivilEngineer => "Civil Engineer",
+            OkMario => "Ok! Mario",
+            SuperMario => "Super Mario",
+        }
+    }
+
     pub fn android_id(&self) -> &'static str {
         use Achievement::*;
         //spell-checker: disable

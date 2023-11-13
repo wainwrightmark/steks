@@ -221,10 +221,20 @@ impl MavericNode for MenuPage {
 
                 for (key, level) in (start..end).enumerate() {
                     let enabled = match level.checked_sub(1) {
-                        Some(index) => campaign_completion
+                        Some(index) => {
+                            let enabled = campaign_completion
                             .stars
                             .get(index as usize)
-                            .is_some_and(|m| !m.is_incomplete()), //check if previous level is complete
+                            .is_some_and(|m| !m.is_incomplete());
+
+                        if !*IS_FULL_GAME{
+                            enabled && level < *MAX_DEMO_LEVEL
+                        }
+                        else{
+                            enabled
+                        }
+
+                        }, //check if previous level is complete
                         None => true, //first level always unlocked
                     };
 

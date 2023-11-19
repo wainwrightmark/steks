@@ -9,7 +9,6 @@ rust-version = "1.68.0"
 [dependencies]
 aws_lambda_events = {version= "0.10", default-features=false, features=["apigw"]} #don't update this
 lambda_runtime = {version= "0.8", default-features=false}
-http = {version= "*", default-features=false}
 steks_common = {path="../../../steks_common"}
 steks_image = {path="../../../steks_image"}
 base64 = "0.21"

@@ -15,7 +15,7 @@ pub struct GetTheGamePanel {
 }
 
 impl MavericNode for GetTheGamePanel {
-    type Context = AssetServer;
+    type Context = NoContext;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -40,12 +40,12 @@ impl MavericNode for GetTheGamePanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.ignore_node().unordered_children_with_context(
-            |context: &Res<'_, AssetServer>, commands| {
+        commands.ignore_node().unordered_children(
+            |commands| {
                 commands.add_child(
                     0,
                     text_button_node(TextButton::GetTheGame, true, false, true),
-                    context,
+                    &(),
                 );
             },
         );
@@ -56,7 +56,7 @@ impl MavericNode for GetTheGamePanel {
 pub struct BeggingPanel;
 
 impl MavericNode for BeggingPanel {
-    type Context = AssetServer;
+    type Context = NoContext;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {

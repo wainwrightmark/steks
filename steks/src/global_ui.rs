@@ -154,11 +154,10 @@ impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
         CurrentLevel,
-        NC7<
+        NC6<
             GameSettings,
             CampaignCompletion,
             Insets,
-            AssetServer,
             NewsResource,
             UserSignedIn,
             PersonalBests,
@@ -173,7 +172,7 @@ impl MavericRootChildren for GlobalUiRoot {
         //info!("{:?}", context.0.as_ref());
 
         match context.0.as_ref() {
-            GlobalUiState::News => commands.add_child("news", NewsNode, &context.2 .3),
+            GlobalUiState::News => commands.add_child("news", NewsNode, &()),
 
             GlobalUiState::MenuOpen(menu_state) => {
                 const TRANSITION_DURATION_SECS: f32 = 0.2;
@@ -215,13 +214,12 @@ impl MavericRootChildren for GlobalUiRoot {
             }
             GlobalUiState::MenuClosed(ui_state) => {
                 let current_level = context.1.as_ref();
-                let asset_server = &context.2 .3;
                 let insets = &context.2 .2;
-                let signed_in = &context.2 .5;
+                let signed_in = &context.2 .4;
 
                 match current_level.completion {
                     LevelCompletion::Incomplete { stage } => {
-                        let show_news_icon = context.2 .4.latest.is_some() && !context.2 .4.is_read;
+                        let show_news_icon = context.2 .3.latest.is_some() && !context.2 .3.is_read;
                         let show_snow_icon = !context.2 .0.snow_enabled
                             && current_level.snowdrop_settings().is_some();
 
@@ -238,11 +236,11 @@ impl MavericRootChildren for GlobalUiRoot {
                                 icons,
                                 top: insets.real_top(),
                             },
-                            asset_server,
+                            &(),
                         );
 
                         if current_level.level.is_begging() {
-                            commands.add_child("begging", BeggingPanel, asset_server);
+                            commands.add_child("begging", BeggingPanel, &());
                         } else {
                             let is_touch = context.3.touch_enabled;
                             commands.add_child(
@@ -252,7 +250,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     level: current_level.level.clone(),
                                     stage,
                                 },
-                                asset_server,
+                                &(),
                             );
                         }
                     }
@@ -267,7 +265,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     insets: insets.as_ref().clone(),
                                     signed_in: signed_in.as_ref().clone(),
                                 },
-                                asset_server,
+                                &(),
                             )
                         }
                     }
@@ -286,7 +284,7 @@ struct IconsPanel<const ICONS: usize> {
 }
 
 impl<const ICONS: usize> MavericNode for IconsPanel<ICONS> {
-    type Context = AssetServer;
+    type Context = NoContext;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -309,10 +307,10 @@ impl<const ICONS: usize> MavericNode for IconsPanel<ICONS> {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.unordered_children_with_node_and_context(|node, context, commands| {
+        commands.unordered_children_with_node(|node,  commands| {
             for (key, icon) in node.icons.into_iter().enumerate() {
                 if let Some((icon, style)) = icon {
-                    commands.add_child(key as u32, icon_button_node(icon, style), context);
+                    commands.add_child(key as u32, icon_button_node(icon, style), &());
                 }
             }
         });

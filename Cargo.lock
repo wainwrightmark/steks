@@ -2807,7 +2807,7 @@ dependencies = [
 [[package]]
 name = "maveric"
 version = "0.1.0"
-source = "git+https://github.com/wainwrightmark/maveric#4f5de6a31c267a93ed27f8274643c870264978a4"
+source = "git+https://github.com/wainwrightmark/maveric#91d0eaa3f125443d24455bfc6c9731825dd74fde"
 dependencies = [
  "bevy",
 ]
@@ -4291,9 +4291,9 @@ dependencies = [
 
 [[package]]
 name = "spade"
-version = "2.3.1"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "544b7011aca0c409a39df31cccdbf9962ea2f78597711ef2a58750d3cafd5b44"
+checksum = "c3d3bf265ec2d5dd1ddf87863252123447c550491adba2c70c574173a95cd8ba"
 dependencies = [
  "hashbrown 0.14.2",
  "num-traits",

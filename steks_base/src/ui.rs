@@ -112,7 +112,7 @@ pub fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'stat
 pub fn icon_button_node(
     button_action: IconButton,
     style: IconButtonStyle,
-) -> impl MavericNode<Context = AssetServer> {
+) -> impl MavericNode<Context = NoContext> {
     let font_size = style.icon_font_size();
     ButtonNode {
         background_color: Color::NONE,
@@ -138,7 +138,7 @@ pub fn icon_button_node(
 pub fn flashing_icon_button_node(
     button_action: IconButton,
     style: IconButtonStyle,
-) -> impl MavericNode<Context = AssetServer> {
+) -> impl MavericNode<Context = NoContext> {
     let font_size = style.icon_font_size();
 
     let transition: Arc<TransitionStep<TransformScaleLens>> = TransitionStep::new_cycle(
@@ -276,7 +276,7 @@ pub fn image_button_node(
     image_path: &'static str,
     button_node_style: impl IntoBundle<B = Style>,
     image_style: impl IntoBundle<B = Style>,
-) -> impl MavericNode<Context = AssetServer> {
+) -> impl MavericNode<Context = NoContext> {
     ButtonNode {
         style: button_node_style,
         visibility: Visibility::Visible,
@@ -301,7 +301,7 @@ pub fn text_button_node(
     centred: bool,
     disabled: bool,
     ad: bool
-) -> impl MavericNode<Context = AssetServer> {
+) -> impl MavericNode<Context = NoContext> {
     text_button_node_with_text(button_action, button_action.text(), centred, disabled, ad)
 }
 
@@ -311,7 +311,7 @@ pub fn text_button_node_with_text(
     centred: bool,
     disabled: bool,
     ad: bool
-) -> impl MavericNode<Context = AssetServer> {
+) -> impl MavericNode<Context = NoContext> {
     let (background_color, color, border_color) =
         (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
 
@@ -397,7 +397,7 @@ pub fn text_button_node_with_text_and_image(
     image_path: &'static str,
     image_style: impl IntoBundle<B = Style>,
     style: TextButtonStyle,
-) -> impl MavericNode<Context = AssetServer> {
+) -> impl MavericNode<Context = NoContext> {
     let background_color = if disabled {
         DISABLED_BUTTON_BACKGROUND
     } else {

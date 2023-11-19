@@ -10,7 +10,7 @@ pub struct LevelTextPanel {
 }
 
 impl MavericNode for LevelTextPanel {
-    type Context = AssetServer;
+    type Context = NoContext;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -29,7 +29,7 @@ impl MavericNode for LevelTextPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.ordered_children_with_node_and_context(|args, context, commands| {
+        commands.ordered_children_with_node(|args,  commands| {
             let level = &args.level;
             let stage = args.stage;
             let initial_color = level.text_color();
@@ -56,7 +56,7 @@ impl MavericNode for LevelTextPanel {
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
                     ),
-                    context,
+                    &(),
                 );
             }
 
@@ -76,7 +76,7 @@ impl MavericNode for LevelTextPanel {
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
                     ),
-                    context,
+                    &(),
                 );
             }
 
@@ -89,7 +89,7 @@ impl MavericNode for LevelTextPanel {
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
                     ),
-                    context,
+                    &(),
                 )
             }
         })

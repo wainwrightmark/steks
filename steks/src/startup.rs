@@ -194,9 +194,8 @@ fn create_demo_resource() -> DemoResource {
 
 pub fn limit_fixed_time(mut time: ResMut<Time<Fixed>>) {
 
-    info!("limit fixed time overstep {overstep:?} delta {delta:?} elapsed {elapsed:?}",
-    overstep = time.overstep(), delta = time.delta(), elapsed = time.elapsed()
-);
+    //debug!("limit fixed time overstep {overstep:?} delta {delta:?} elapsed {elapsed:?}",
+    overstep = time.overstep(), delta = time.delta(), elapsed = time.elapsed();
 
     if time.overstep() > Duration::from_secs(1) {
         warn!(
@@ -204,7 +203,7 @@ pub fn limit_fixed_time(mut time: ResMut<Time<Fixed>>) {
             time.overstep()
         );
         let new_time =Time::<Fixed>::from_seconds(SECONDS_PER_FRAME);
-
+        //todo discard_overstep
         let context = time.context_mut();
         *context = new_time.context().clone();
     }

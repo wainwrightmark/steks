@@ -207,7 +207,7 @@ const NEWS_IMAGE_HANDLE: &str = "news-image.png";
 pub struct NewsNode;
 
 impl MavericNode for NewsNode {
-    type Context = AssetServer;
+    type Context = NoContext;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands

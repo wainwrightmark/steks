@@ -61,7 +61,7 @@ impl MavericRootChildren for GlobalUiRoot {
     type Context = NC4<
         GlobalUiState,
         CurrentLevel,
-        NC5<GameSettings, NoContext, Insets, AssetServer, NoContext>,
+        NC2<GameSettings, Insets>,
         InputSettings,
     >;
 
@@ -74,14 +74,13 @@ impl MavericRootChildren for GlobalUiRoot {
         match context.0.as_ref() {
             GlobalUiState::MenuClosed(..) => {
                 let current_level = context.1.as_ref();
-                let asset_server = &context.2 .3;
 
                 match current_level.completion {
                     LevelCompletion::Incomplete { stage } => {
 
 
                         if current_level.level.is_begging() {
-                            commands.add_child("begging", BeggingPanel, asset_server);
+                            commands.add_child("begging", BeggingPanel, &());
                         } else {
                             let is_touch = context.3.touch_enabled;
 
@@ -91,7 +90,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     top: Val::Px(0.0),
                                     position_type: PositionType::Absolute
                                 },
-                                asset_server
+                                &()
                             );
 
                             commands.add_child(
@@ -101,7 +100,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     level: current_level.level.clone(),
                                     stage,
                                 },
-                                asset_server,
+                                &(),
                             );
                         }
                     }

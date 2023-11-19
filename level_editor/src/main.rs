@@ -172,7 +172,7 @@ struct UIRoot;
 impl_maveric_root!(UIRoot);
 
 impl MavericRootChildren for UIRoot {
-    type Context = NC2<LevelState, NC2<UiState, AssetServer>>;
+    type Context = NC2<LevelState, UiState>;
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
@@ -219,7 +219,7 @@ impl MavericNode for UiPreview {
 struct UiMenu;
 
 impl MavericNode for UiMenu {
-    type Context = NC2<UiState, AssetServer>;
+    type Context = UiState;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -244,19 +244,19 @@ impl MavericNode for UiMenu {
             .ordered_children_with_context(|context, commands| {
                 commands.add_child(
                     "spawn",
-                    button_node(ButtonMarker::SpawnShape(context.0.spawn_shape)),
-                    &context.1,
+                    button_node(ButtonMarker::SpawnShape(context.spawn_shape)),
+                    &(),
                 );
 
-                commands.add_child("next", button_node(ButtonMarker::NextShape), &context.1);
-                commands.add_child("prev", button_node(ButtonMarker::NextShape), &context.1);
+                commands.add_child("next", button_node(ButtonMarker::NextShape), &());
+                commands.add_child("prev", button_node(ButtonMarker::NextShape), &());
 
                 for x in ShapeState::iter() {
                     let key: &'static str = x.into();
-                    commands.add_child(key, button_node(ButtonMarker::SetState(x)), &context.1);
+                    commands.add_child(key, button_node(ButtonMarker::SetState(x)), &());
                 }
 
-                commands.add_child("delete", button_node(ButtonMarker::Delete), &context.1);
+                commands.add_child("delete", button_node(ButtonMarker::Delete), &());
             });
     }
 }
@@ -270,7 +270,7 @@ pub enum ButtonMarker {
     Delete,
 }
 
-pub fn button_node(marker: ButtonMarker) -> impl MavericNode<Context = AssetServer> {
+pub fn button_node(marker: ButtonMarker) -> impl MavericNode<Context = NoContext> {
     let (background_color, color, border_color) =
         (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
 

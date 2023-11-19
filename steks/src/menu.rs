@@ -26,11 +26,10 @@ fn filter_button(button: TextButton, context: &NewsResource) -> bool {
 }
 
 impl MavericNode for MenuPage {
-    type Context = NC7<
+    type Context = NC6<
         GameSettings,
         CampaignCompletion,
         Insets,
-        AssetServer,
         NewsResource,
         UserSignedIn,
         PersonalBests,
@@ -107,11 +106,11 @@ impl MavericNode for MenuPage {
                 for (key, action) in buttons
                     .iter()
                     .enumerate()
-                    .filter(|(_, button)| filter_button(**button, context.4.as_ref()))
+                    .filter(|(_, button)| filter_button(**button, context.3.as_ref()))
                 {
                     let button = text_button_node(*action, true, false, false);
 
-                    commands.add_child(key as u32, button, &context.3)
+                    commands.add_child(key as u32, button, &())
                 }
             }
             MenuPage::Accessibility => {
@@ -124,7 +123,7 @@ impl MavericNode for MenuPage {
                         true,
                         false, false
                     ),
-                    &context.3,
+                    &(),
                 );
 
                 commands.add_child(
@@ -134,19 +133,19 @@ impl MavericNode for MenuPage {
                         true,
                         false, false
                     ),
-                    &context.3,
+                    &(),
                 );
 
                 commands.add_child(
                     "snow",
                     text_button_node(TextButton::SetSnow(!settings.snow_enabled), true, false, false),
-                    &context.3,
+                    &(),
                 );
 
                 commands.add_child(
                     "back",
                     text_button_node(TextButton::OpenSettings, true, false, false),
-                    &context.3,
+                    &(),
                 );
             }
 
@@ -155,7 +154,7 @@ impl MavericNode for MenuPage {
                 commands.add_child(
                     "arrows",
                     text_button_node(TextButton::SetArrows(!settings.show_arrows), true, false, false),
-                    &context.3,
+                    &(),
                 );
 
                 commands.add_child(
@@ -165,7 +164,7 @@ impl MavericNode for MenuPage {
                         true,
                         false, false
                     ),
-                    &context.3,
+                    &(),
                 );
 
                 let sensitivity_text = match settings.rotation_sensitivity {
@@ -185,33 +184,33 @@ impl MavericNode for MenuPage {
                         true,
                         false, false
                     ),
-                    &context.3,
+                    &(),
                 );
 
-                if context.5.is_signed_in {
+                if context.4.is_signed_in {
                     commands.add_child(
                         "show_achievements",
                         text_button_node(TextButton::ShowAchievements, true, false, false),
-                        &context.3,
+                        &(),
                     );
 
                     commands.add_child(
                         "infinite_leaderboard",
                         text_button_node(TextButton::InfiniteLeaderboard, true, false, false),
-                        &context.3,
+                        &(),
                     );
                 }
 
                 commands.add_child(
                     "accessibility",
                     text_button_node(TextButton::OpenAccessibility, true, false, false),
-                    &context.3,
+                    &(),
                 );
 
                 commands.add_child(
                     "back",
                     text_button_node(TextButton::BackToMenu, true, false, false),
-                    &context.3,
+                    &(),
                 );
             }
             MenuPage::Level { page } => {
@@ -260,11 +259,11 @@ impl MavericNode for MenuPage {
                             LevelStarsImageStyle,
                             style,
                         ),
-                        &context.3,
+                        &(),
                     )
                 }
 
-                commands.add_child("buttons", LevelMenuArrows(*page), &context.3);
+                commands.add_child("buttons", LevelMenuArrows(*page), &());
             }
 
             MenuPage::PBs { level } => {
@@ -281,11 +280,10 @@ pub struct PBPreview {
 }
 
 impl MavericNode for PBPreview {
-    type Context = NC7<
+    type Context = NC6<
         GameSettings,
         CampaignCompletion,
         Insets,
-        AssetServer,
         NewsResource,
         UserSignedIn,
         PersonalBests,
@@ -319,10 +317,10 @@ impl MavericNode for PBPreview {
                     background_color: Color::WHITE,
                     style: PreviewImageStyle,
                 },
-                &context.3,
+                &(),
             );
 
-            if let Some(level_pb) = context.6.get_from_level_index(node.level as usize) {
+            if let Some(level_pb) = context.5.get_from_level_index(node.level as usize) {
                 let height = level_pb.height;
                 commands.add_child(
                     "height_data",
@@ -334,7 +332,7 @@ impl MavericNode for PBPreview {
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
-                    &context.3,
+                    &(),
                 );
 
                 if let Some(level_stars) = CAMPAIGN_LEVELS
@@ -349,7 +347,7 @@ impl MavericNode for PBPreview {
                             background_color: Color::WHITE,
                             style: ThreeStarsImageStyle,
                         },
-                        &context.3,
+                        &(),
                     );
                 }
             }
@@ -365,11 +363,10 @@ pub struct PBButtons {
 }
 
 impl MavericNode for PBButtons {
-    type Context = NC7<
+    type Context = NC6<
         GameSettings,
         CampaignCompletion,
         Insets,
-        AssetServer,
         NewsResource,
         UserSignedIn,
         PersonalBests,
@@ -410,7 +407,7 @@ impl MavericNode for PBButtons {
                 commands.add_child(
                     "left",
                     icon_button_node(IconButton::OpenMenu, IconButtonStyle::HeightPadded),
-                    &context.3,
+                    &(),
                 )
             } else {
                 commands.add_child(
@@ -419,20 +416,20 @@ impl MavericNode for PBButtons {
                         IconButton::PreviousLevelsPage,
                         IconButtonStyle::HeightPadded,
                     ),
-                    &context.3,
+                    &(),
                 )
             }
 
             commands.add_child(
                 "play",
                 icon_button_node(IconButton::PlayPB, IconButtonStyle::HeightPadded),
-                &context.3,
+                &(),
             );
 
             commands.add_child(
                 "share",
                 icon_button_node(IconButton::SharePB, IconButtonStyle::HeightPadded),
-                &context.3,
+                &(),
             );
 
             let can_go_right = context
@@ -445,13 +442,13 @@ impl MavericNode for PBButtons {
                 commands.add_child(
                     "right",
                     icon_button_node(IconButton::NextLevelsPage, IconButtonStyle::HeightPadded),
-                    &context.3,
+                    &(),
                 )
             } else {
                 commands.add_child(
                     "right",
                     icon_button_node(IconButton::None, IconButtonStyle::HeightPadded),
-                    &context.3,
+                    &(),
                 )
             }
         });
@@ -462,7 +459,7 @@ impl MavericNode for PBButtons {
 pub struct LevelMenuArrows(u8);
 
 impl MavericNode for LevelMenuArrows {
-    type Context = AssetServer;
+    type Context = NoContext;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {

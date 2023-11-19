@@ -26,7 +26,7 @@ fn watch_level_changes(
     mut events: EventReader<ChangeLevelEvent>,
     current_level: Res<CurrentLevel>,
 ) {
-    for ev in events.into_iter() {
+    for ev in events.read() {
         let event = match ev {
             ChangeLevelEvent::Next => "Next Level".to_string(),
             ChangeLevelEvent::ChooseCampaignLevel { index, .. } => {

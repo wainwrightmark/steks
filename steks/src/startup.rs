@@ -2,7 +2,7 @@ pub use crate::prelude::*;
 use crate::tutorial::TutorialPlugin;
 use bevy::log::LogPlugin;
 pub use bevy::prelude::*;
-use bevy_utils::window_size::WindowSizePlugin;
+use nice_bevy_utils::window_size::WindowSizePlugin;
 
 pub const WINDOW_WIDTH: f32 = 360f32;
 pub const WINDOW_HEIGHT: f32 = 520f32;
@@ -83,7 +83,7 @@ pub fn setup_app(app: &mut App) {
                 .set(log_plugin)
                 .build()
                 .add_before::<bevy::asset::AssetPlugin, _>(
-                    bevy_embedded_assets::EmbeddedAssetPlugin,
+                    bevy_embedded_assets::EmbeddedAssetPlugin{mode: bevy_embedded_assets::PluginMode::ReplaceDefault },
                 ),
         )
         .add_plugins(AchievementsPlugin)
@@ -107,12 +107,12 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(ImportPlugin)
         .add_plugins(NewsPlugin)
         .add_plugins(StreakPlugin)
-        .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
+        .insert_resource(Time::<Fixed>::from_seconds(SECONDS_PER_FRAME))
         .add_systems(FixedUpdate, limit_fixed_time)
         .insert_resource(RapierConfiguration {
             gravity: GRAVITY,
             timestep_mode: TimestepMode::Fixed {
-                dt: SECONDS_PER_FRAME,
+                dt: SECONDS_PER_FRAME as f32,
                 substeps: 1,
             },
             ..RapierConfiguration::default()
@@ -141,7 +141,7 @@ pub fn setup_app(app: &mut App) {
             return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,
             unfocused_mode: bevy::winit::UpdateMode::Reactive {
-                max_wait: Duration::from_secs(60),
+                wait: Duration::from_secs(60),
             },
         });
 
@@ -192,13 +192,21 @@ fn create_demo_resource() -> DemoResource {
     }
 }
 
-pub fn limit_fixed_time(mut time: ResMut<FixedTime>) {
-    if time.accumulated() > Duration::from_secs(1) {
+pub fn limit_fixed_time(mut time: ResMut<Time<Fixed>>) {
+
+    info!("limit fixed time overstep {overstep:?} delta {delta:?} elapsed {elapsed:?}",
+    overstep = time.overstep(), delta = time.delta(), elapsed = time.elapsed()
+);
+
+    if time.overstep() > Duration::from_secs(1) {
         warn!(
             "Accumulated fixed time is over 1 second ({:?})",
-            time.accumulated()
+            time.overstep()
         );
-        *time = FixedTime::new_from_secs(SECONDS_PER_FRAME);
+        let new_time =Time::<Fixed>::from_seconds(SECONDS_PER_FRAME);
+
+        let context = time.context_mut();
+        *context = new_time.context().clone();
     }
 }
 

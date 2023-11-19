@@ -35,6 +35,7 @@ fn update_preview_images(
     pbs: Res<PersonalBests>,
     wrs: Res<WorldRecords>,
     current_level: Res<CurrentLevel>,
+    asset_server: Res<AssetServer>
 ) {
     if !ui_state.is_changed() && !current_level.is_changed() {
         return;
@@ -59,7 +60,9 @@ fn update_preview_images(
         _ => return,
     };
 
-    let handle = images.get_handle(PREVIEW_IMAGE_ASSET_PATH);
+
+
+    let Some(handle) = asset_server.get_handle(PREVIEW_IMAGE_ASSET_PATH) else{return;};
 
     let Some(im) = images.get_mut(&handle) else {
         return;
@@ -120,6 +123,7 @@ fn game_to_image(data: &[u8]) -> Result<Image, anyhow::Error> {
         bevy::render::texture::ImageType::Extension("png"),
         CompressedImageFormats::empty(),
         true,
+        bevy::render::texture::ImageSampler::Default
     )?)
 }
 

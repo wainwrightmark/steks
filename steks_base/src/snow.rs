@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::{Fill, FillOptions, ShapeBundle, Stroke, StrokeOptions};
 use bevy_rapier2d::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
-use bevy_utils::window_size::WindowSize;
+use nice_bevy_utils::window_size::WindowSize;
 
 use crate::prelude::*;
 #[derive(Debug, Default)]
@@ -171,10 +171,7 @@ fn spawn_drop<R: Rng>(
             path: bevy_prototype_lyon::prelude::Path(shape_bundle.path.0.clone()),
             mesh: shape_bundle.mesh.clone(),
             material: shape_bundle.material.clone(),
-            transform: shape_bundle.transform,
-            global_transform: shape_bundle.global_transform,
-            visibility: shape_bundle.visibility,
-            computed_visibility: shape_bundle.computed_visibility,
+            spatial: shape_bundle.spatial
         })
         .insert(collider_shape)
         .insert(ColliderMassProperties::Density(SNOW_DENSITY))

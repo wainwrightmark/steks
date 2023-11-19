@@ -63,11 +63,12 @@ impl MavericNode for Padlock {
                     (
                         ShapeBundle {
                             path,
-                            transform: Transform {
+                            spatial: SpatialBundle::from_transform(
+                            Transform {
                                 translation: Default::default(),
                                 rotation: Default::default(),
                                 scale: PADLOCK_SCALE,
-                            },
+                            }),
                             ..Default::default()
                         },
                         fill,

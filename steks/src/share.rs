@@ -24,7 +24,7 @@ fn handle_shares(
     pbs: Res<PersonalBests>,
     ui_state: Res<GlobalUiState>,
 ) {
-    let Some(ev) = events.iter().next() else {
+    let Some(ev) = events.read().next() else {
         return;
     };
 

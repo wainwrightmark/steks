@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use bevy::prelude::*;
-use bevy_utils::window_size::WindowSize;
+use nice_bevy_utils::window_size::WindowSize;
 use maveric::{
     impl_maveric_root,
     prelude::{CanRegisterMaveric, MavericNode},

@@ -25,11 +25,10 @@ fn manage_recording(
     mut frame: Local<usize>,
     level: Res<CurrentLevel>,
     shapes: Query<(Entity, &ShapeIndex, &ShapeComponent, &Transform)>,
-    fixed_time: Res<FixedTime>,
+    fixed_time: Res<Time<Fixed>>,
     mut accumulated_time: Local<Duration>,
 ) {
-    *accumulated_time = *accumulated_time + fixed_time.accumulated();
-
+    *accumulated_time = *accumulated_time + fixed_time.delta();
 
 
     if level.is_changed() {

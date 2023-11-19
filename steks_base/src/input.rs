@@ -90,7 +90,7 @@ pub fn touch_listener(
     mut ew_drag_move: EventWriter<DragMoveEvent>,
     mut ew_drag_end: EventWriter<DragEndingEvent>,
 ) {
-    for ev in touch_evr.iter() {
+    for ev in touch_evr.read() {
         debug!("Touch Event {:?}", ev);
 
         match ev.phase {
@@ -139,7 +139,7 @@ pub fn keyboard_listener(
     //mut recent: Local<DiscreetRotate>,
 ) {
     //Note keyboard doesn't work during mobile emulation in browser dev tools I think
-    'events: for ev in keyboard_events.iter() {
+    'events: for ev in keyboard_events.read() {
         if let Some(code) = ev.key_code {
             if let bevy::input::ButtonState::Pressed = ev.state {
                 let positive = match code {
@@ -168,7 +168,7 @@ pub fn mousewheel_listener(
     //time: Res<Time>,
     //mut recent: Local<DiscreetRotate>,
 ) {
-    for ev in scroll_events.iter() {
+    for ev in scroll_events.read() {
         let positive = (ev.x + ev.y) >= 0.0;
         let signum = if positive {1.0} else{-1.0};
         //recent.update(time.elapsed(), positive);
@@ -182,43 +182,3 @@ pub fn mousewheel_listener(
 }
 
 const ONE_THIRTY_SECOND: f32 = std::f32::consts::TAU / 32.0;
-
-// #[derive(Debug, Default)]
-// pub struct DiscreetRotate {
-//     //streak: usize,
-//     //elapsed: Duration,
-//     positive: bool,
-// }
-
-// impl DiscreetRotate {
-//     pub fn update(&mut self, new_elapsed: Duration, positive: bool) {
-//         const INTERVAL: Duration = Duration::from_millis(500);
-
-//         let diff = new_elapsed - self.elapsed;
-//         self.streak = if diff < INTERVAL && positive == self.positive {
-//             self.streak + 1
-//         } else {
-//             1
-//         };
-
-//         self.positive = positive;
-//         self.elapsed = new_elapsed;
-//     }
-
-//     pub fn angle(&self) -> f32 {
-//         const ONE_SIXTEENTH: f32 = std::f32::consts::TAU / 16.0;
-//         const ONE_EIGHTH: f32 = std::f32::consts::TAU / 8.0;
-//         //const ONE_QUARTER: f32 = std::f32::consts::TAU / 4.0;
-
-//         let signum = if self.positive { 1.0 } else { -1.0 };
-
-//         let amount = match self.streak {
-//             0..=2 => ONE_THIRTY_SECOND,
-//             3 => ONE_SIXTEENTH,
-//             _ => ONE_EIGHTH,
-//             //_ => ONE_QUARTER
-//         };
-
-//         amount * signum
-//     }
-// }

@@ -11,8 +11,8 @@ pub const WALL_WIDTH: f32 = 1920f32;
 
 pub const PHYSICS_SCALE: f32 = 64f32;
 
-pub const SECONDS_PER_FRAME: f32 = 1. / (FRAMES_PER_SECOND as f32);
-pub const FRAMES_PER_SECOND: u32 = 120;
+pub const SECONDS_PER_FRAME: f64 = 1. / (FRAMES_PER_SECOND as f64);
+pub const FRAMES_PER_SECOND: u32 = 128;
 
 pub const LONG_WIN_FRAMES: u32 = FRAMES_PER_SECOND * 5;
 pub const SHORT_WIN_FRAMES: u32 = 3 * (FRAMES_PER_SECOND / 2);

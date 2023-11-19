@@ -40,7 +40,7 @@ pub fn setup_app(app: &mut App) {
                 .set(log_plugin)
                 .build()
                 .add_before::<bevy::asset::AssetPlugin, _>(
-                    bevy_embedded_assets::EmbeddedAssetPlugin,
+                    bevy_embedded_assets::EmbeddedAssetPlugin{mode: bevy_embedded_assets::PluginMode::ReplaceDefault},
                 ),
         )
         .add_plugins(WallsPlugin)
@@ -61,11 +61,11 @@ pub fn setup_app(app: &mut App) {
             is_full_game: false,
             max_demo_level: 8,
         })
-        .insert_resource(FixedTime::new_from_secs(SECONDS_PER_FRAME))
+        .insert_resource(Time::<Fixed>::from_seconds(SECONDS_PER_FRAME))
         .insert_resource(RapierConfiguration {
             gravity: GRAVITY,
             timestep_mode: TimestepMode::Fixed {
-                dt: SECONDS_PER_FRAME,
+                dt: SECONDS_PER_FRAME as f32,
                 substeps: 1,
             },
             ..RapierConfiguration::default()
@@ -90,7 +90,7 @@ pub fn setup_app(app: &mut App) {
             return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,
             unfocused_mode: bevy::winit::UpdateMode::Reactive {
-                max_wait: Duration::from_secs(60),
+                wait: Duration::from_secs(60),
             },
         });
 

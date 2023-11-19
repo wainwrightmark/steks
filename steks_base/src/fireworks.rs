@@ -139,7 +139,7 @@ fn spawn_fireworks(
         let window = window.get_single().unwrap();
 
         let sparks = rng.gen_range(countdown.intensity..=(countdown.intensity * 2));
-        let scale_recip = ui_scale.scale.recip() as f32;
+        let scale_recip = ui_scale.0.recip() as f32;
 
         let x = scale_recip * rng.gen_range((window.width() * -0.5)..=(window.width() * 0.5));
         let y = scale_recip * rng.gen_range(0.0..=(window.height() * 0.5));
@@ -247,15 +247,13 @@ fn spawn_spark<R: Rng>(
         angvel,
     };
 
+
     commands
         .spawn(ShapeBundle {
             path: bevy_prototype_lyon::prelude::Path(shape_bundle.path.0.clone()),
             mesh: shape_bundle.mesh.clone(),
             material: shape_bundle.material.clone(),
-            transform: shape_bundle.transform,
-            global_transform: shape_bundle.global_transform,
-            visibility: shape_bundle.visibility,
-            computed_visibility: shape_bundle.computed_visibility,
+            spatial: shape_bundle.spatial
         })
         .insert(game_shape.fill(false))
         .insert(velocity)

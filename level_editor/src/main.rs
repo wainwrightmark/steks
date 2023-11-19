@@ -76,20 +76,20 @@ pub fn handle_drag_start(
     // mut picked_up_events: EventWriter<ShapePickedUpEvent>,
     mut ui_state: ResMut<UiState>,
     mut level_state: ResMut<LevelState>,
-    node_query: Query<(&Node, &GlobalTransform, &ComputedVisibility), With<Button>>,
+    node_query: Query<(&Node, &GlobalTransform, &ViewVisibility), With<Button>>,
     windows: Query<&Window, With<PrimaryWindow>>,
     ui_scale: Res<UiScale>,
 ) {
-    'events: for event in er_drag_start.iter() {
+    'events: for event in er_drag_start.read() {
         if let Ok(window) = windows.get_single() {
             //check this isn't a ui event
             let event_ui_position = Vec2 {
-                x: event.position.x * ui_scale.scale as f32 + (window.width() * 0.5),
-                y: (window.height() * 0.5) - (event.position.y * ui_scale.scale as f32),
+                x: event.position.x * ui_scale.0 as f32 + (window.width() * 0.5),
+                y: (window.height() * 0.5) - (event.position.y * ui_scale.0 as f32),
             };
 
-            for (node, global_transform, _) in node_query.iter().filter(|x| x.2.is_visible()) {
-                let physical_rect = node.physical_rect(global_transform, 1.0, ui_scale.scale);
+            for (node, global_transform, _) in node_query.iter().filter(|x| x.2.get()) {
+                let physical_rect = node.physical_rect(global_transform, 1.0, ui_scale.0);
 
                 if physical_rect.contains(event_ui_position) {
                     continue 'events;
@@ -193,11 +193,8 @@ impl MavericNode for UiPreview {
         commands
             .ignore_context()
             .ignore_node()
-            .insert(TransformBundle::default())
-            .insert(VisibilityBundle {
-                visibility: Visibility::Visible,
-                computed: ComputedVisibility::default(),
-            });
+            .insert(SpatialBundle::default())
+           ;
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
@@ -330,7 +327,7 @@ impl MavericNode for PlacedShape {
             let mut bundle = scd.shape.body.get_shape_bundle(SHAPE_SIZE);
             let Location { position, angle } = scd.location.unwrap_or_default();
 
-            bundle.transform = Transform {
+            bundle.spatial.transform = Transform {
                 translation: (position.extend(1.0)),
                 rotation: Quat::from_rotation_z(angle),
                 scale: Vec3::ONE,

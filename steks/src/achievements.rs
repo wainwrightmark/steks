@@ -3,7 +3,7 @@ use enumset::{EnumSet, EnumSetType};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumCount, EnumIter};
 
-use crate::{logging, prelude::*};
+use crate::prelude::*;
 
 pub struct AchievementsPlugin;
 
@@ -36,7 +36,7 @@ fn check_for_sign_in(
     mut signed_in: ResMut<UserSignedIn>,
     achievements: Res<Achievements>,
 ) {
-    for _ in ev.iter() {
+    for _ in ev.read() {
         signed_in.is_signed_in = true;
         achievements.resync();
     }
@@ -55,7 +55,7 @@ fn track_tutorial_start(has_acted: Res<HasActed>, current_level: Res<CurrentLeve
                     crate::wasm::gtag_convert("AW-11332063513/WQJpCL-vjvEYEJmixpsq");
                 }
 
-                logging::LoggableEvent::ActedInTutorial.try_log1();
+                crate::logging::LoggableEvent::ActedInTutorial.try_log1();
             }
         }
     }
@@ -364,7 +364,7 @@ fn check_for_one_in_a_million(
     mut events: EventReader<LevelWonEvent>,
     mut achievements: ResMut<Achievements>,
 ) {
-    for event in events.into_iter() {
+    for event in events.read() {
         if event.has_not_acted {
             Achievements::unlock_if_locked(&mut achievements, Achievement::ThatWasOneInAMillion);
         }
@@ -388,7 +388,7 @@ fn check_for_its_a_trap(
         return;
     }
 
-    for ce in collision_events.iter() {
+    for ce in collision_events.read() {
         //check for collision between wall and previous generation shape
         let (&e1, &e2) = match ce {
             CollisionEvent::Started(e1, e2, _) => (e1, e2),

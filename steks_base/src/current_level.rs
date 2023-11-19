@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_utils::TrackableResource;
+use nice_bevy_utils::TrackableResource;
 use serde::{Deserialize, Serialize};
 use steks_common::prelude::*;
 use strum::EnumIs;

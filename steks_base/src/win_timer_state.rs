@@ -6,7 +6,7 @@ use bevy_prototype_lyon::prelude::{
     Fill, GeometryBuilder, Path, PathBuilder, ShapeBundle, Stroke, StrokeOptions,
 };
 use maveric::prelude::*;
-use bevy_utils::window_size::WindowSize;
+use nice_bevy_utils::window_size::WindowSize;
 
 #[derive(Debug, Default)]
 pub struct WinCountdownPlugin;
@@ -121,10 +121,12 @@ impl MavericNode for CircleArc {
         commands.ignore_node().insert_with_context(|context| {
             (
                 ShapeBundle {
-                    transform: Transform {
-                        translation: Vec3::new(00.0, win_timer_position_y(context.1.as_ref()), 100.0),
-                        ..Default::default()
-                    },
+                    spatial: SpatialBundle::from_transform(
+                        Transform {
+                            translation: Vec3::new(00.0, win_timer_position_y(context.1.as_ref()), 100.0),
+                            ..Default::default()
+                        }
+                    ),
                     ..Default::default()
                 },
                 Stroke {
@@ -152,10 +154,13 @@ impl MavericNode for CircleMarker {
                         center: Vec2::ZERO,
                         radius: ARC_STROKE,
                     }),
-                    transform: Transform {
-                        translation: Vec3::new(0.0,  win_timer_position_y(context.1.as_ref()) + RADIUS, 1.0),
-                        ..Default::default()
-                    },
+
+                    spatial: SpatialBundle::from_transform(
+                        Transform {
+                            translation: Vec3::new(0.0,  win_timer_position_y(context.1.as_ref()) + RADIUS, 1.0),
+                            ..Default::default()
+                        }
+                    ),
                     ..Default::default()
                 },
                 Fill::color(get_color(&context.0)),

@@ -7,18 +7,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 rand = "0.8.5"
-itertools = "0.11"
-bevy_prototype_lyon = {version="0.9"}
-bevy_rapier2d = {git = "https://github.com/dimforge/bevy_rapier", package = "bevy_rapier2d", rev= "a149ff5" }
+itertools = "0.12"
+bevy_prototype_lyon = {version="0.10"}
+bevy_rapier2d = "0.23"
 
 strum = { version = "0.25", features = ["derive"] }
 
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
 base64 = "0.21"
-geometrid = {version = "0.4", features= ["glam"]}
+geometrid = {version = "0.6", features= ["glam"]}
 
-bevy_embedded_assets = "0.8"
+bevy_embedded_assets = "0.9"
 lazy_static = "1.4"
 serde_yaml = "0.9"
 steks_common = {path= "../steks_common"}
@@ -48,7 +48,7 @@ test-case = "3"
 # opt-level = 3
 
 [dependencies.bevy]
-version = "0.11"
+version = "0.12"
 
 
 

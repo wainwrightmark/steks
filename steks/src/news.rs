@@ -1,5 +1,6 @@
 pub use crate::prelude::*;
 
+use anyhow::anyhow;
 use bevy::render::texture::CompressedImageFormats;
 use chrono::NaiveDate;
 use resvg::usvg::{fontdb, Tree, TreeParsing, TreeTextToPath};
@@ -120,7 +121,7 @@ fn update_news_items(
     asset_server: Res<AssetServer>,
     mut images: ResMut<Assets<Image>>,
 ) {
-    'events: for item in events.into_iter() {
+    'events: for item in events.read() {
         info!("Checking news item");
         if let Some(previous) = &news.as_ref().latest {
             if previous.date >= item.date {
@@ -156,9 +157,10 @@ fn create_image_bytes(
         bevy::render::texture::ImageType::Extension("png"),
         CompressedImageFormats::empty(),
         true,
+        bevy::render::texture::ImageSampler::Default
     )?;
 
-    let handle: Handle<Image> = asset_server.get_handle(NEWS_IMAGE_HANDLE);
+    let handle: Handle<Image> = asset_server.get_handle(NEWS_IMAGE_HANDLE).ok_or(anyhow!("Could not get news image handle"))?;
 
     let im = images.get_or_insert_with(handle, Image::default);
     *im = image;

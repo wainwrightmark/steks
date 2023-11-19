@@ -36,13 +36,13 @@ pub mod prelude {
     pub use bevy::log::{debug, error, info, warn};
     pub use bevy::prelude::*;
 
-    pub use bevy_utils::CanInitTrackedResource;
-    pub use bevy_utils::CanRegisterAsyncEvent;
-    pub use bevy_utils::TrackableResource;
+    pub use nice_bevy_utils::CanInitTrackedResource;
+    pub use nice_bevy_utils::CanRegisterAsyncEvent;
+    pub use nice_bevy_utils::TrackableResource;
 
     pub use bevy_rapier2d::prelude::*;
-    pub use bevy_utils::async_event_writer::*;
-    pub use bevy_utils::tracked_resource::*;
+    pub use nice_bevy_utils::async_event_writer::*;
+    pub use nice_bevy_utils::tracked_resource::*;
     pub use std::time::Duration;
     pub use steks_base::prelude::*;
     pub use steks_common::prelude::*;

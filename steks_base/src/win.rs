@@ -194,7 +194,7 @@ fn check_for_collisions(
 
     let mut fail: Option<&str> = None;
 
-    for ce in collision_events.iter() {
+    for ce in collision_events.read() {
         //bevy::log::debug!("Checking collisions");
         let (&e1, &e2) = match ce {
             CollisionEvent::Started(e1, e2, _) => (e1, e2),
@@ -218,7 +218,7 @@ fn check_for_collisions(
         let long = LONG_WIN_FRAMES.saturating_sub(fr);
         info!(
             "Countdown stopped ({_error_message}) after {long} frames ({s} seconds)",
-            s = (long as f32) * SECONDS_PER_FRAME
+            s = (long as f64) * SECONDS_PER_FRAME
         );
 
         countdown.0 = None;

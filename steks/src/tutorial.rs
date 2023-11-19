@@ -119,7 +119,7 @@ impl MavericNode for ShapeOutlineNode {
 
                 let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
                     path: path_builder.build(),
-                    transform,
+                    spatial: SpatialBundle::from_transform(transform),
                     ..default()
                 };
 
@@ -162,7 +162,7 @@ impl MavericNode for ArrowNode {
 
                 let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
                     path: path_builder.build(),
-                    transform: Transform::from_translation(translation),
+                    spatial: SpatialBundle::from_transform(Transform::from_translation(translation)),
                     ..default()
                 };
 

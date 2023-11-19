@@ -1,6 +1,6 @@
 use crate::{prelude::*, rectangle_set};
 use bevy::prelude::*;
-use bevy_utils::window_size::{handle_window_resized, Breakpoints, WindowSize};
+use nice_bevy_utils::window_size::{handle_window_resized, Breakpoints, WindowSize};
 pub struct WindowSizeTrackingPlugin;
 
 impl Plugin for WindowSizeTrackingPlugin {

@@ -81,7 +81,7 @@ pub fn drag_end(
     walls: Query<Entity, With<WallSensor>>,
     fixed_shapes: Query<(), With<FixedShape>>,
 ) {
-    for event in er_drag_end.iter() {
+    for event in er_drag_end.read() {
         let any_fixed = !fixed_shapes.is_empty();
 
         for (entity, mut shape_component) in draggables
@@ -217,7 +217,7 @@ pub fn drag_move(
     mut ev_rotate: EventWriter<RotateEvent>,
     settings: Res<GameSettings>,
 ) {
-    for event in er_drag_move.iter() {
+    for event in er_drag_move.read() {
         if let DragSource::Touch { touch_id } = event.drag_source {
             if let Some(rotate) = touch_rotate.0.as_mut() {
                 if rotate.touch_id == touch_id {
@@ -271,7 +271,7 @@ fn handle_rotate_events(
     mut ev_rotate: EventReader<RotateEvent>,
     mut dragged: Query<&mut Transform, With<BeingDragged>>,
 ) {
-    for ev in ev_rotate.iter() {
+    for ev in ev_rotate.read() {
         for mut transform in dragged.iter_mut() {
             transform.rotation *= Quat::from_rotation_z(ev.delta);
             if let Some(multiple) = ev.snap_resolution {
@@ -346,7 +346,7 @@ fn draw_rotate_arrows(
             .spawn((
                 bevy_prototype_lyon::prelude::ShapeBundle {
                     path: path.build(),
-                    transform: Transform::from_translation(transform.translation),
+                    spatial: SpatialBundle::from_transform(Transform::from_translation(transform.translation)),
                     ..default()
                 },
                 bevy_prototype_lyon::prelude::Stroke {
@@ -373,7 +373,7 @@ pub fn detach_stuck_shapes_on_pickup(
     draggables: Query<(&Collider, &Transform), (Without<FixedShape>, Without<VoidShape>)>,
     mut commands: Commands,
 ) {
-    for event in picked_up_events.iter() {
+    for event in picked_up_events.read() {
         if let Ok((collider, transform)) = draggables.get(event.entity) {
             if let Some(intersecting) = rapier_context.intersection_with_shape(
                 transform.translation.truncate(),
@@ -417,25 +417,25 @@ pub fn drag_start<U: UITrait>(
 
     mut global_ui_state: ResMut<U>,
     node_query: Query<
-        (&Node, &GlobalTransform, &ComputedVisibility),
+        (&Node, &GlobalTransform, &ViewVisibility),
         Or<(With<Button>, With<MainPanelMarker>)>,
     >,
     windows: Query<&Window, With<PrimaryWindow>>,
     ui_scale: Res<UiScale>,
 ) {
-    'events: for event in er_drag_start.iter() {
+    'events: for event in er_drag_start.read() {
         if !global_ui_state.is_minimized() {
             if let Ok(window) = windows.get_single() {
                 let event_ui_position = Vec2 {
-                    x: event.position.x * ui_scale.scale as f32 + (window.width() * 0.5),
-                    y: (window.height() * 0.5) - (event.position.y * ui_scale.scale as f32),
+                    x: event.position.x * ui_scale.0 as f32 + (window.width() * 0.5),
+                    y: (window.height() * 0.5) - (event.position.y * ui_scale.0 as f32),
                 };
 
                 let mut captured = false;
                 'capture: for (node, global_transform, _) in
-                    node_query.iter().filter(|x| x.2.is_visible())
+                    node_query.iter().filter(|x| x.2.get())
                 {
-                    let physical_rect = node.physical_rect(global_transform, 1.0, ui_scale.scale);
+                    let physical_rect = node.physical_rect(global_transform, 1.0, ui_scale.0);
 
                     if physical_rect.contains(event_ui_position) {
                         captured = true;

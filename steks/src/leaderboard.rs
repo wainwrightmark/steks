@@ -38,7 +38,7 @@ fn check_for_cheat_on_game_load(mut events: EventWriter<CheatEvent>) {
 }
 
 fn detect_cheat(mut events: EventReader<CheatEvent>, mut completion: ResMut<CampaignCompletion>) {
-    for _ in events.into_iter() {
+    for _ in events.read() {
         info!("Detected cheat event");
         CampaignCompletion::fill_with_incomplete(&mut completion);
 
@@ -78,7 +78,7 @@ fn hydrate_leaderboard(
     mut events: EventReader<LeaderboardDataEvent>,
     mut current_level: ResMut<CurrentLevel>,
 ) {
-    let Some(ev) = events.into_iter().next() else {
+    let Some(ev) = events.read().next() else {
         return;
     };
 

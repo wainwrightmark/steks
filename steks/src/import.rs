@@ -16,7 +16,7 @@ fn handle_import_events(
     mut _events: EventReader<ImportEvent>,
     writer: AsyncEventWriter<ChangeLevelEvent>,
 ) {
-    for _ in _events.iter() {
+    for _ in _events.read() {
         spawn_and_run(read_clipboard(writer.clone()));
     }
 }

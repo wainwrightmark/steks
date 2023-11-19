@@ -16,7 +16,8 @@ const SPIRIT_HALF_WIDTH: f32 = 100.0;
 #[derive(Debug, Component)]
 pub struct SpiritMarkerLine;
 
-impl Plugin for SpiritPlugin { //TODO adjust for scaling
+impl Plugin for SpiritPlugin {
+    //TODO adjust for scaling
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(PostUpdate, show_spirit_lines)
             .add_systems(PostUpdate, hide_spirit_lines)
@@ -58,12 +59,16 @@ fn setup_spirit_lines(mut commands: Commands) {
         .spawn((
             ShapeBundle {
                 path: GeometryBuilder::build_as(&main_line_shape),
-                transform: Transform::from_translation(Vec3 {
-                    x: 0.0,
-                    y: SPIRIT_LEVEL_HEIGHT,
-                    z: 15.0,
-                }),
-                visibility: Visibility::Hidden,
+                spatial: SpatialBundle {
+                    transform: Transform::from_translation(Vec3 {
+                        x: 0.0,
+                        y: SPIRIT_LEVEL_HEIGHT,
+                        z: 15.0,
+                    }),
+                    visibility: Visibility::Hidden,
+                    ..Default::default()
+                },
+
                 ..default()
             },
             Stroke::new(
@@ -83,12 +88,15 @@ fn setup_spirit_lines(mut commands: Commands) {
         .spawn((
             ShapeBundle {
                 path: GeometryBuilder::build_as(&central_line_shape),
-                transform: Transform::from_translation(Vec3 {
-                    x: 0.0,
-                    y: SPIRIT_LEVEL_HEIGHT,
-                    z: 10.0,
-                }),
-                visibility: Visibility::Hidden,
+                spatial: SpatialBundle {
+                    transform: Transform::from_translation(Vec3 {
+                        x: 0.0,
+                        y: SPIRIT_LEVEL_HEIGHT,
+                        z: 10.0,
+                    }),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
                 ..default()
             },
             Stroke::new(Color::BLACK, LINE_WIDTH),
@@ -101,12 +109,15 @@ fn setup_spirit_lines(mut commands: Commands) {
             .spawn((
                 ShapeBundle {
                     path: GeometryBuilder::build_as(&other_line_shape),
-                    transform: Transform::from_translation(Vec3 {
-                        x,
-                        y: SPIRIT_LEVEL_HEIGHT,
-                        z: 10.0,
-                    }),
-                    visibility: Visibility::Hidden,
+                    spatial: SpatialBundle {
+                        transform: Transform::from_translation(Vec3 {
+                            x,
+                            y: SPIRIT_LEVEL_HEIGHT,
+                            z: 10.0,
+                        }),
+                        visibility: Visibility::Hidden,
+                        ..default()
+                    },
                     ..default()
                 },
                 Stroke::new(Color::BLACK, LINE_WIDTH),

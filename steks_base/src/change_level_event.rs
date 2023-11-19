@@ -22,7 +22,7 @@ pub fn handle_change_level_events<U: UITrait>(
     completion: Res<CampaignCompletion>,
     demo_resource: Res<DemoResource>,
 ) {
-    if let Some(event) = change_level_events.iter().next() {
+    if let Some(event) = change_level_events.read().next() {
         let (level, stage) =
             event.get_new_level(&current_level.level, &streak, &completion, &demo_resource);
 

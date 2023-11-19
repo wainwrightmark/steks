@@ -1,7 +1,7 @@
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 use maveric::prelude::*;
 use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};
-use bevy_utils::window_size::WindowSize;
+use nice_bevy_utils::window_size::WindowSize;
 
 use crate::prelude::*;
 

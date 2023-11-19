@@ -4,7 +4,7 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use bevy_utils::window_size::WindowSize;
+use nice_bevy_utils::window_size::WindowSize;
 
 pub fn spawn_and_update_shapes(
     mut commands: Commands,

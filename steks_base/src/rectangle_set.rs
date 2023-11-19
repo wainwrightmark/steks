@@ -1,8 +1,8 @@
-use bevy::prelude::{warn, Rect, Transform, Vec2};
+use bevy::{prelude::{Rect, Transform, Vec2}, log::warn};
 use itertools::Itertools;
 use steks_common::prelude::*;
 
-use bevy_utils::window_size::WindowSize;
+use nice_bevy_utils::window_size::WindowSize;
 
 use crate::prelude::SteksBreakpoints;
 
@@ -103,7 +103,7 @@ mod tests {
     use steks_common::prelude::ALL_SHAPES;
     use test_case::test_case;
 
-    use bevy_utils::window_size::WindowSize;
+    use nice_bevy_utils::window_size::WindowSize;
 
     use super::RectangleSet;
 

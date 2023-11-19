@@ -1,11 +1,12 @@
 use std::sync::atomic::{AtomicBool, AtomicI8};
 
 use bevy::prelude::*;
-use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters};
+use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters, na::Vector2};
 use strum::EnumIs;
 
 use crate::prelude::*;
-use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline};
+use bevy_rapier2d::rapier::prelude::{EventHandler, PhysicsPipeline, Real};
+
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct PredictionSettings {
@@ -114,22 +115,23 @@ impl PredictionContext {
         }
 
         let dt = match config.timestep_mode {
-            TimestepMode::Fixed { dt, substeps } => dt / (substeps as Real),
+            TimestepMode::Fixed { dt, substeps } => dt / (substeps as f32),
             TimestepMode::Variable {
                 max_dt,
                 time_scale: _,
                 substeps,
-            } => max_dt / substeps as Real,
+            } => max_dt / substeps as f32,
             TimestepMode::Interpolated {
                 dt,
                 time_scale,
                 substeps,
-            } => dt / (substeps as Real) * time_scale,
+            } => dt / (substeps as f32) * time_scale,
         };
 
         let mut integration_parameters = context.integration_parameters;
         integration_parameters.dt = dt;
-        let gravity = (config.gravity / context.physics_scale()).into();
+
+        let gravity = Vector2::new((config.gravity.x / context.physics_scale()) as Real, (config.gravity.y / context.physics_scale())  as Real);
 
         Self {
             physics_pipeline,
@@ -184,7 +186,7 @@ impl PredictionContext {
             if sensor_found {
                 debug!(
                     "Sensor collision found after {i} substeps ({s} seconds)",
-                    s = (i as f32) * SECONDS_PER_FRAME
+                    s = (i as f64) * SECONDS_PER_FRAME
                 );
             }
 
@@ -204,7 +206,7 @@ impl PredictionContext {
                 if total_collisions > self.prediction_settings.max_non_sensor_collisions {
                     debug!(
                         "Many non-sensor collisions found after {i} substeps ({s} seconds)",
-                        s = (i as f32) * SECONDS_PER_FRAME
+                        s = (i as f64) * SECONDS_PER_FRAME
                     );
                     return Some(PredictionResult::ManyNonWall);
                 }

@@ -37,7 +37,8 @@ pub enum TextButton {
     ShowAchievements,
     InfiniteLeaderboard,
     News,
-    GetTheGame
+    GetTheGame,
+    Video
 }
 
 impl TextButton {
@@ -74,6 +75,7 @@ impl TextButton {
             TextButton::InfiniteLeaderboard => false,
             TextButton::News => false, //automatically closes menu
             TextButton::GetTheGame => true,
+            TextButton::Video => true,
         }
     }
 
@@ -91,6 +93,7 @@ impl TextButton {
             TextButton::ViewPBs => "Personal Bests".to_string(),
             TextButton::ClipboardImport => "Import Level".to_string(),
             TextButton::GetTheGame => "Get The Game".to_string(),
+            TextButton::Video => "Video".to_string(),
             TextButton::GotoLevel { level } => {
                 let level_number = format_campaign_level_number(level, false);
                 if let Some(set_level) = steks_common::designed_level::get_campaign_level(*level) {

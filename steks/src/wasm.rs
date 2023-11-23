@@ -8,6 +8,8 @@ use bevy::{
     window::{PrimaryWindow, WindowResized},
 };
 use capacitor_bindings::{device::Device, share::ShareOptions};
+use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsValue;
 
 #[allow(unused_imports)]
 use wasm_bindgen::prelude::*;
@@ -294,5 +296,36 @@ impl Plugin for WASMPlugin {
 
         app.add_systems(PostStartup, update_insets);
         app.add_systems(PostStartup, check_touch);
+    }
+}
+
+
+#[wasm_bindgen::prelude::wasm_bindgen(module = "/video.js")]
+extern "C" {
+    #[wasm_bindgen(catch, final, js_name = "startVideo")]
+    pub async fn start_video() -> Result<(), JsValue>;
+
+    #[wasm_bindgen(final, js_name = "stopVideo")]
+    pub fn stop_video();
+}
+
+/// An exception thrown by a javascript function
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct JsException {
+    pub message: String,
+}
+
+impl TryFrom<JsValue> for JsException {
+    type Error = ();
+
+    fn try_from(value: JsValue) -> Result<Self, Self::Error> {
+        if let Ok(exception) = serde_wasm_bindgen::from_value::<JsException>(value.clone()) {
+            Ok(JsException {
+                message: exception.message,
+            })
+        } else {
+            Err(())
+        }
     }
 }

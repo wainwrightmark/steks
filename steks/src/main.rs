@@ -20,6 +20,8 @@ pub mod news;
 pub mod preview_images;
 pub mod share;
 pub mod startup;
+pub mod video;
+
 
 pub mod compatibility;
 #[cfg(any(feature = "android", feature = "ios", feature = "web"))]
@@ -64,6 +66,7 @@ pub mod prelude {
     pub use crate::news::*;
     pub use crate::preview_images::*;
     pub use crate::share::*;
+    pub use crate::video::*;
     #[cfg(target_arch = "wasm32")]
     pub use crate::wasm::*;
 

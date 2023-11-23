@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::prelude::*;
+use crate::{prelude::*, video};
 
 pub struct ButtonPlugin;
 
@@ -188,6 +188,8 @@ fn text_button_system(
     completion: Res<CampaignCompletion>,
 
     dragged: Query<(), With<BeingDragged>>,
+    video_state: Res<VideoResource>,
+    video_events: AsyncEventWriter<VideoEvent>,
 ) {
     if !dragged.is_empty() {
         return;
@@ -223,6 +225,12 @@ fn text_button_system(
                     .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
                 TextButton::Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
                 TextButton::Begging => change_level_events.send(ChangeLevelEvent::Begging),
+                TextButton::Video =>{
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        video_state.toggle_video_streaming(video_events.clone());
+                    }
+                },
                 TextButton::DailyChallenge => {
                     change_level_events.send(ChangeLevelEvent::StartChallenge)
                 }

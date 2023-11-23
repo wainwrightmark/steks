@@ -207,6 +207,10 @@ impl MavericNode for MenuPage {
                     &(),
                 );
 
+                commands.add_child("video",
+                text_button_node(TextButton::Video, true, false, false),
+                 &());
+
                 commands.add_child(
                     "back",
                     text_button_node(TextButton::BackToMenu, true, false, false),

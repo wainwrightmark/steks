@@ -1,7 +1,7 @@
 use bevy_prototype_lyon::{prelude::*, shapes::Rectangle};
 use maveric::prelude::*;
-use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};
 use nice_bevy_utils::window_size::WindowSize;
+use strum::{Display, EnumIs, EnumIter, IntoEnumIterator};
 
 use crate::prelude::*;
 
@@ -13,11 +13,21 @@ impl Plugin for WallsPlugin {
     }
 }
 
-#[derive(Debug, Default, PartialEq)]
+struct RapierConfigurationContext;
+
+impl NodeContext for RapierConfigurationContext{
+    type Wrapper<'c> = Res<'c, RapierConfiguration>;
+
+    fn has_changed(wrapper: &Self::Wrapper<'_>) -> bool {
+        wrapper.is_changed()
+    }
+}
+
+#[derive(Debug, Default, PartialEq, MavericRoot)]
 struct WallsRoot;
 
 impl MavericRootChildren for WallsRoot {
-    type Context = NC4<WindowSize<SteksBreakpoints>, Insets, GameSettings, RapierConfiguration>;
+    type Context = (WindowSizeContext, Insets, GameSettings, RapierConfigurationContext);
 
     fn set_children(
         context: &<Self::Context as maveric::prelude::NodeContext>::Wrapper<'_>,
@@ -29,13 +39,11 @@ impl MavericRootChildren for WallsRoot {
     }
 }
 
-impl_maveric_root!(WallsRoot);
-
 #[derive(Debug, PartialEq)]
 struct WallNode(WallPosition);
 
 impl MavericNode for WallNode {
-    type Context = NC4<WindowSize<SteksBreakpoints>, Insets, GameSettings, RapierConfiguration>;
+    type Context = (WindowSizeContext, Insets, GameSettings, RapierConfigurationContext);
 
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
@@ -111,7 +119,7 @@ impl MavericNode for WallNode {
 struct WallSensorNode(WallPosition);
 
 impl MavericNode for WallSensorNode {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {

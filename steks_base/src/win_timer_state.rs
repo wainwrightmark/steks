@@ -19,7 +19,7 @@ impl Plugin for WinCountdownPlugin {
     }
 }
 
-#[derive(Debug, Resource, Default)]
+#[derive(Debug, Resource, Default, MavericContext)]
 pub struct WinCountdown(pub Option<Countdown>);
 
 #[derive(Debug)]
@@ -74,13 +74,11 @@ fn update_dynamic_elements(
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, MavericRoot)]
 struct TimerStateRoot;
 
-impl_maveric_root!(TimerStateRoot);
-
 impl MavericRootChildren for TimerStateRoot {
-    type Context = NC2<WinCountdown, NC2<GameSettings, WindowSize<SteksBreakpoints>>>;
+    type Context = (WinCountdown, (GameSettings, WindowSizeContext));
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
@@ -115,7 +113,7 @@ fn get_color(settings: &GameSettings) -> Color {
 }
 
 impl MavericNode for CircleArc {
-    type Context = NC2<GameSettings, WindowSize<SteksBreakpoints>>;
+    type Context = (GameSettings, WindowSizeContext);
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().insert_with_context(|context| {
@@ -144,7 +142,7 @@ impl MavericNode for CircleArc {
 }
 
 impl MavericNode for CircleMarker {
-    type Context = NC2<GameSettings, WindowSize<SteksBreakpoints>>;
+    type Context = (GameSettings, WindowSizeContext);
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().insert_with_context(|context| {

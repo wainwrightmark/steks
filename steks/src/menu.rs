@@ -26,14 +26,14 @@ fn filter_button(button: TextButton, context: &NewsResource) -> bool {
 }
 
 impl MavericNode for MenuPage {
-    type Context = NC6<
+    type Context = (
         GameSettings,
         CampaignCompletion,
         Insets,
         NewsResource,
         UserSignedIn,
         PersonalBests,
-    >;
+    );
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -280,14 +280,14 @@ pub struct PBPreview {
 }
 
 impl MavericNode for PBPreview {
-    type Context = NC6<
+    type Context = (
         GameSettings,
         CampaignCompletion,
         Insets,
         NewsResource,
         UserSignedIn,
         PersonalBests,
-    >;
+    );
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -363,14 +363,14 @@ pub struct PBButtons {
 }
 
 impl MavericNode for PBButtons {
-    type Context = NC6<
+    type Context = (
         GameSettings,
         CampaignCompletion,
         Insets,
         NewsResource,
         UserSignedIn,
         PersonalBests,
-    >;
+    );
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -459,7 +459,7 @@ impl MavericNode for PBButtons {
 pub struct LevelMenuArrows(u8);
 
 impl MavericNode for LevelMenuArrows {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {

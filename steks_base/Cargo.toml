@@ -28,7 +28,7 @@ steks_image = { path = "../steks_image" }
 nice_bevy_utils = { git = "https://github.com/wainwrightmark/nice_bevy_utils", features = ["bevy_ui"]}
 bevy_screen_diagnostics = "0.4"
 maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
-  "widgets",
+  "widgets", "derive"
 ] }
 serde_repr = "0.1"
 enumset = { version = "1", features = ["serde"] }

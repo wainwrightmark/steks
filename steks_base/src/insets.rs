@@ -1,6 +1,7 @@
 use bevy::{prelude::Resource, ui::Val};
+use maveric::helpers::MavericContext;
 
-#[derive(Debug, Clone, Default, Resource, PartialEq)]
+#[derive(Debug, Clone, Default, Resource, PartialEq, MavericContext)]
 pub struct Insets {
     top: f32,
     left: f32,

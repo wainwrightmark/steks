@@ -23,7 +23,7 @@ impl Plugin for AchievementsPlugin {
     }
 }
 
-#[derive(Debug, Resource, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Resource, Default, Clone, PartialEq, Eq, MavericContext)]
 pub struct UserSignedIn {
     pub is_signed_in: bool,
 }

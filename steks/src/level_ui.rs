@@ -22,7 +22,7 @@ pub struct MainPanelWrapper {
 
 
 impl MavericNode for MainPanelWrapper {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
@@ -88,7 +88,7 @@ pub struct MainPanel {
 }
 
 impl MavericNode for MainPanel {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.advanced(|args, commands| {
@@ -411,7 +411,7 @@ pub struct StarHeights {
 }
 
 impl MavericNode for StarHeights {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -475,7 +475,7 @@ pub struct ButtonPanel<const ICONS: usize> {
 }
 
 impl<const ICONS: usize> MavericNode for ButtonPanel<ICONS> {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -518,7 +518,7 @@ impl<const ICONS: usize> MavericNode for ButtonPanel<ICONS> {
 pub struct StoreButtonPanel;
 
 impl MavericNode for StoreButtonPanel {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -564,7 +564,7 @@ impl MavericNode for StoreButtonPanel {
 pub struct BeggingPanel;
 
 impl MavericNode for BeggingPanel {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -630,7 +630,7 @@ pub struct TextPlusIcons<const ICONS: usize> {
 }
 
 impl<const ICONS: usize> MavericNode for TextPlusIcons<ICONS> {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {

@@ -29,9 +29,8 @@ define_lens!(StrokeOptionsLens, Stroke, StrokeOptions, options);
 
 type StrokeWidthLens = Prism2<StrokeOptionsLens, StrokeOptionsLineWidthLens>;
 
+#[derive(MavericRoot)]
 struct LevelOutlinesRoot;
-
-impl_maveric_root!(LevelOutlinesRoot);
 
 impl MavericRootChildren for LevelOutlinesRoot {
     type Context = CurrentLevel;
@@ -58,7 +57,7 @@ impl MavericRootChildren for LevelOutlinesRoot {
 struct ShapeOutlineNode(ShapeOutline);
 
 impl MavericNode for ShapeOutlineNode {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -145,7 +144,7 @@ impl MavericNode for ShapeOutlineNode {
 struct ArrowNode(Arrow);
 
 impl MavericNode for ArrowNode {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands

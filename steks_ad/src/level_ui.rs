@@ -15,7 +15,7 @@ pub struct GetTheGamePanel {
 }
 
 impl MavericNode for GetTheGamePanel {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands
@@ -56,7 +56,7 @@ impl MavericNode for GetTheGamePanel {
 pub struct BeggingPanel;
 
 impl MavericNode for BeggingPanel {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_prototype_lyon::prelude::*;
 
-use maveric::{impl_maveric_root, prelude::*};
+use maveric::prelude::*;
 use steks_base::prelude::*;
 
 use strum::IntoEnumIterator;
@@ -38,14 +38,14 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
 
-#[derive(Debug, Resource)]
+#[derive(Debug, Resource, MavericContext)]
 pub struct UiState {
     pub spawn_shape: ShapeIndex,
     pub spawn_state: ShapeState,
     pub wand_type: Option<WandType>,
 }
 
-#[derive(Debug, Resource, Default)]
+#[derive(Debug, Resource, Default, MavericContext)]
 pub struct LevelState {
     pub placed_shapes: Vec<EncodableShape>,
     //pub dragged_shape: Option<ShapeIndex>,
@@ -167,12 +167,11 @@ fn button_system(
     }
 }
 
+#[derive(MavericRoot)]
 struct UIRoot;
 
-impl_maveric_root!(UIRoot);
-
 impl MavericRootChildren for UIRoot {
-    type Context = NC2<LevelState, UiState>;
+    type Context = (LevelState, UiState);
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
@@ -270,7 +269,7 @@ pub enum ButtonMarker {
     Delete,
 }
 
-pub fn button_node(marker: ButtonMarker) -> impl MavericNode<Context = NoContext> {
+pub fn button_node(marker: ButtonMarker) -> impl MavericNode<Context = ()> {
     let (background_color, color, border_color) =
         (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
 
@@ -316,7 +315,7 @@ struct PlacedShape {
 struct ShapeMarker(pub usize);
 
 impl MavericNode for PlacedShape {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.insert_with_node(|node| {

@@ -26,11 +26,11 @@ impl Plugin for PadlockPlugin {
     }
 }
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, MavericRoot)]
 pub struct PadlockRoot;
 
 impl MavericRootChildren for PadlockRoot {
-    type Context = NC2<PadlockResource, GameSettings>;
+    type Context = (PadlockResource, GameSettings);
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
@@ -39,8 +39,6 @@ impl MavericRootChildren for PadlockRoot {
         commands.add_child(0, Padlock(context.0.status.clone()), &context.1);
     }
 }
-
-impl_maveric_root!(PadlockRoot);
 
 #[derive(Debug, PartialEq)]
 pub struct Padlock(PadlockStatus);
@@ -135,7 +133,7 @@ impl MavericNode for Padlock {
     }
 }
 
-#[derive(Resource, Debug, PartialEq, Default, Deref)]
+#[derive(Resource, Debug, PartialEq, Default, Deref, MavericContext)]
 pub struct PadlockResource {
     pub status: PadlockStatus,
 }

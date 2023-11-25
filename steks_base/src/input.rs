@@ -3,6 +3,7 @@ use bevy::input::mouse::*;
 use bevy::input::touch::*;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use maveric::helpers::MavericContext;
 
 use crate::prelude::*;
 
@@ -17,7 +18,7 @@ impl Plugin for InputPlugin {
     }
 }
 
-#[derive(Debug, Default, Resource, PartialEq)]
+#[derive(Debug, Default, Resource, PartialEq, MavericContext)]
 pub struct InputSettings {
     pub touch_enabled: bool,
 }

@@ -1,4 +1,5 @@
 use bevy_prototype_lyon::prelude::{Fill, Stroke};
+use maveric::prelude::*;
 use steks_common::color;
 use strum::{Display, EnumIs};
 
@@ -13,7 +14,7 @@ impl Plugin for SettingsPlugin {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Resource, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Resource, serde::Serialize, serde::Deserialize, MavericContext)]
 pub struct GameSettings {
     pub show_arrows: bool,
     pub show_touch_outlines: bool,

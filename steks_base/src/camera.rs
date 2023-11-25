@@ -1,9 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
-use nice_bevy_utils::window_size::WindowSize;
 use maveric::{
-    impl_maveric_root,
-    prelude::{CanRegisterMaveric, MavericNode},
+    prelude::*,
     root::{MavericRoot, MavericRootChildren},
 };
 
@@ -19,12 +17,11 @@ impl Plugin for CameraPlugin {
     }
 }
 
+#[derive(MavericRoot)]
 struct CameraSystem;
 
-impl_maveric_root!(CameraSystem);
-
 impl MavericRootChildren for CameraSystem {
-    type Context = WindowSize<SteksBreakpoints>;
+    type Context = WindowSizeContext;
 
     fn set_children(
         context: &<Self::Context as maveric::prelude::NodeContext>::Wrapper<'_>,
@@ -38,7 +35,7 @@ impl MavericRootChildren for CameraSystem {
 struct CameraSystemCamera;
 
 impl MavericNode for CameraSystemCamera {
-    type Context = WindowSize<SteksBreakpoints>;
+    type Context = WindowSizeContext;
 
     fn set_components(
         commands: maveric::set_components_commands::SetComponentCommands<Self, Self::Context>,

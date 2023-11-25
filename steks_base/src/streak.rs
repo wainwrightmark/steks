@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use maveric::helpers::MavericContext;
 use serde::{Deserialize, Serialize};
 use chrono::NaiveDate;
 
@@ -24,7 +25,7 @@ impl TrackableResource for Streak {
 
 
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize, Clone)]
+#[derive(Debug, Resource, Default, Serialize, Deserialize, Clone, MavericContext)]
 pub struct CampaignCompletion {
     pub stars: Vec<StarType>,
 }

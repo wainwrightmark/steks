@@ -20,23 +20,19 @@ impl Plugin for GlobalUiPlugin {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Resource, EnumIs)]
+#[derive(Debug, Clone, PartialEq, Resource, EnumIs, MavericContext)]
 pub enum GlobalUiState {
     MenuClosed(GameUIState),
 }
 
-impl UITrait for GlobalUiState{
-    fn is_minimized(&self)-> bool {
+impl UITrait for GlobalUiState {
+    fn is_minimized(&self) -> bool {
         true
     }
 
-    fn minimize(&mut self) {
+    fn minimize(&mut self) {}
 
-    }
-
-    fn on_level_complete(_m: &mut ResMut<Self>) {
-
-    }
+    fn on_level_complete(_m: &mut ResMut<Self>) {}
 }
 
 impl Default for GlobalUiState {
@@ -55,15 +51,16 @@ impl GlobalUiState {
     }
 }
 
+#[derive(MavericRoot)]
 pub struct GlobalUiRoot;
 
 impl MavericRootChildren for GlobalUiRoot {
-    type Context = NC4<
+    type Context = (
         GlobalUiState,
         CurrentLevel,
-        NC2<GameSettings, Insets>,
+        (GameSettings, Insets),
         InputSettings,
-    >;
+    );
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
@@ -77,8 +74,6 @@ impl MavericRootChildren for GlobalUiRoot {
 
                 match current_level.completion {
                     LevelCompletion::Incomplete { stage } => {
-
-
                         if current_level.level.is_begging() {
                             commands.add_child("begging", BeggingPanel, &());
                         } else {
@@ -86,11 +81,11 @@ impl MavericRootChildren for GlobalUiRoot {
 
                             commands.add_child(
                                 "get_the_game",
-                                GetTheGamePanel{
+                                GetTheGamePanel {
                                     top: Val::Px(0.0),
-                                    position_type: PositionType::Absolute
+                                    position_type: PositionType::Absolute,
                                 },
-                                &()
+                                &(),
                             );
 
                             commands.add_child(
@@ -104,13 +99,9 @@ impl MavericRootChildren for GlobalUiRoot {
                             );
                         }
                     }
-                    LevelCompletion::Complete { .. } => {
-
-                    }
+                    LevelCompletion::Complete { .. } => {}
                 };
             }
         }
     }
 }
-
-impl_maveric_root!(GlobalUiRoot);

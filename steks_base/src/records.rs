@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 use chrono::{DateTime, Utc};
+use maveric::helpers::MavericContext;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -54,7 +55,7 @@ impl TrackableResource for WorldRecords {
     const KEY: &'static str = "WRs";
 }
 
-#[derive(Debug, Resource, Default, Serialize, Deserialize, Clone)]
+#[derive(Debug, Resource, Default, Serialize, Deserialize, Clone, MavericContext)]
 pub struct PersonalBests {
     pub map: PbMap,
 }

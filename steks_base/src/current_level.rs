@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use maveric::helpers::MavericContext;
 use nice_bevy_utils::TrackableResource;
 use serde::{Deserialize, Serialize};
 use steks_common::prelude::*;
@@ -6,7 +7,7 @@ use strum::EnumIs;
 
 use crate::game_level::GameLevel;
 
-#[derive(Resource, Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Resource, Debug, PartialEq, Serialize, Deserialize, Clone, MavericContext)]
 pub struct CurrentLevel {
     pub level: GameLevel,
     pub completion: LevelCompletion,

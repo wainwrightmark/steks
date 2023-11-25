@@ -18,7 +18,7 @@ impl Plugin for NewsPlugin {
     }
 }
 
-#[derive(Debug, PartialEq, Resource, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, PartialEq, Resource, Serialize, Deserialize, Default, Clone, MavericContext)]
 pub struct NewsResource {
     pub latest: Option<NewsItem>,
     pub is_read: bool,
@@ -207,7 +207,7 @@ const NEWS_IMAGE_HANDLE: &str = "news-image.png";
 pub struct NewsNode;
 
 impl MavericNode for NewsNode {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands

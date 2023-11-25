@@ -20,7 +20,7 @@ impl Plugin for GlobalUiPlugin {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Resource, EnumIs)]
+#[derive(Debug, Clone, PartialEq, Resource, EnumIs, MavericContext)]
 pub enum GlobalUiState {
     MenuClosed(GameUIState),
     MenuOpen(MenuPage),
@@ -147,23 +147,23 @@ impl GlobalUiState {
         }
     }
 }
-
+#[derive(MavericRoot)]
 pub struct GlobalUiRoot;
 
 impl MavericRootChildren for GlobalUiRoot {
-    type Context = NC4<
+    type Context = (
         GlobalUiState,
         CurrentLevel,
-        NC6<
+        (
             GameSettings,
             CampaignCompletion,
             Insets,
             NewsResource,
             UserSignedIn,
             PersonalBests,
-        >,
+        ),
         InputSettings,
-    >;
+    );
 
     fn set_children(
         context: &<Self::Context as NodeContext>::Wrapper<'_>,
@@ -275,8 +275,6 @@ impl MavericRootChildren for GlobalUiRoot {
     }
 }
 
-impl_maveric_root!(GlobalUiRoot);
-
 #[derive(Debug, Clone, PartialEq)]
 struct IconsPanel<const ICONS: usize> {
     icons: [Option<(IconButton, IconButtonStyle)>; ICONS],
@@ -284,7 +282,7 @@ struct IconsPanel<const ICONS: usize> {
 }
 
 impl<const ICONS: usize> MavericNode for IconsPanel<ICONS> {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands

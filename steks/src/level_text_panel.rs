@@ -10,7 +10,7 @@ pub struct LevelTextPanel {
 }
 
 impl MavericNode for LevelTextPanel {
-    type Context = NoContext;
+    type Context = ();
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {

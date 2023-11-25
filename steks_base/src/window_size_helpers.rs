@@ -1,5 +1,6 @@
 use crate::{prelude::*, rectangle_set};
 use bevy::prelude::*;
+use maveric::node_context::NodeContext;
 use nice_bevy_utils::window_size::{handle_window_resized, Breakpoints, WindowSize};
 pub struct WindowSizeTrackingPlugin;
 
@@ -14,6 +15,16 @@ impl Plugin for WindowSizeTrackingPlugin {
 
 #[derive(Debug, Default, PartialEq, Clone)]
 pub struct SteksBreakpoints;
+
+pub struct WindowSizeContext;
+
+impl NodeContext for WindowSizeContext{
+    type Wrapper<'c> = Res<'c, WindowSize<SteksBreakpoints>>;
+
+    fn has_changed(wrapper: &Self::Wrapper<'_>) -> bool {
+        wrapper.is_changed()
+    }
+}
 
 impl Breakpoints for SteksBreakpoints {
     fn size_scale(raw_window_width: f32, raw_window_height: f32) -> f32 {

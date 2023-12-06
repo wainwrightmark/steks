@@ -15,7 +15,7 @@ bevy_rapier2d = "0.23"
 
 strum = { version = "0.25", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
-bevy_pkv = { version = "0.9"}
+bevy_pkv = { version = "0.9" }
 
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
@@ -27,7 +27,7 @@ capacitor_bindings = { features = [
   "web",
   "rate_plugin",
   "game_plugin",
-], git = "https://github.com/wainwrightmark/capacitor_bindings", optional = true}
+], version = "0.10", optional = true }
 bevy_embedded_assets = "0.9"
 lazy_static = "1.4"
 serde_yaml = "0.9"
@@ -35,7 +35,11 @@ serde_yaml = "0.9"
 steks_common = { path = "../steks_common" }
 steks_base = { path = "../steks_base" }
 steks_image = { path = "../steks_image" }
-nice_bevy_utils = { git = "https://github.com/wainwrightmark/nice_bevy_utils", features = ["async-channel", "bevy_pkv", "bevy_ui"]}
+nice_bevy_utils = { git = "https://github.com/wainwrightmark/nice_bevy_utils", features = [
+  "async-channel",
+  "bevy_pkv",
+  "bevy_ui",
+] }
 bevy_screen_diagnostics = "0.4"
 maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
   "widgets",
@@ -43,7 +47,7 @@ maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
 serde_repr = "0.1"
 enumset = { version = "1", features = ["serde"] }
 resvg = { version = "0.36", default-features = false, features = ["text"] }
-steamworks ={version =  "0.10", optional = true}
+steamworks = { version = "0.10", optional = true }
 
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

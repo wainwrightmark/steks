@@ -58,7 +58,7 @@ impl MavericNode for MainPanelWrapper {
                     GameUIState::Minimized => Val::Px(args.node.insets.real_top()),
                 };
 
-                commands.transition_value::<StyleTopLens>(top, top, Some(ScalarSpeed::new(100.0)));
+                commands.transition_value::<StyleTopLens>(top, Some(ScalarSpeed::new(100.0)));
             }
         });
     }
@@ -107,11 +107,10 @@ impl MavericNode for MainPanel {
 
             let background = commands.transition_value::<BackgroundColorLens>(
                 background,
-                background,
                 color_speed,
             );
 
-            let border = commands.transition_value::<BorderColorLens>(border, border, color_speed);
+            let border = commands.transition_value::<BorderColorLens>(border, color_speed);
 
             let z_index = ZIndex::Global(15);
 

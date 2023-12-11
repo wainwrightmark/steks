@@ -76,7 +76,7 @@ pub fn setup_app(app: &mut App) {
     };
 
     app.insert_resource(Msaa::Sample4)
-        .insert_resource(ClearColor(BACKGROUND_COLOR))
+        .insert_resource(ClearColor(Color::NONE))
         .add_plugins(
             DefaultPlugins
                 .set(window_plugin)
@@ -135,6 +135,7 @@ pub fn setup_app(app: &mut App) {
         .add_plugins(CollisionPlugin::default())
         .add_plugins(PadlockPlugin::default())
         .add_plugins(TutorialPlugin::default())
+        .add_plugins(VideoPlugin)
         .insert_resource(Insets::default())
         .insert_resource(create_demo_resource())
         .insert_resource(bevy::winit::WinitSettings {

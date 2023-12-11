@@ -1252,7 +1252,7 @@ checksum = "a4dc62c9e27108f0130e0857ac71ace4d1087b3e39a612bc032b2f5492a71e6a"
 dependencies = [
  "js-sys",
  "serde",
- "serde-wasm-bindgen",
+ "serde-wasm-bindgen 0.5.0",
  "serde_with",
  "typed-builder",
  "wasm-bindgen",
@@ -4049,6 +4049,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-wasm-bindgen"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17ba92964781421b6cef36bf0d7da26d201e96d84e1b10e7ae6ed416e516906d"
+dependencies = [
+ "js-sys",
+ "serde",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "serde_derive"
 version = "1.0.193"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4370,6 +4381,7 @@ dependencies = [
  "reqwest",
  "resvg",
  "serde",
+ "serde-wasm-bindgen 0.6.1",
  "serde_repr",
  "serde_with",
  "serde_yaml",
@@ -4380,6 +4392,7 @@ dependencies = [
  "strum",
  "test-case",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
 ]
 

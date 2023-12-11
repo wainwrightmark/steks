@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use itertools::Itertools;
-use maveric::{prelude::*, transition::speed::ScalarSpeed};
+use maveric::prelude::*;
 use strum::EnumIs;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, EnumIs)]
@@ -19,7 +19,6 @@ pub struct MainPanelWrapper {
     pub insets: Insets,
     pub signed_in: UserSignedIn,
 }
-
 
 impl MavericNode for MainPanelWrapper {
     type Context = ();
@@ -58,7 +57,7 @@ impl MavericNode for MainPanelWrapper {
                     GameUIState::Minimized => Val::Px(args.node.insets.real_top()),
                 };
 
-                commands.transition_value::<StyleTopLens>(top, Some(ScalarSpeed::new(100.0)));
+                commands.transition_value::<StyleTopLens>(top, 100.0.into());
             }
         });
     }
@@ -101,16 +100,10 @@ impl MavericNode for MainPanel {
                 GameUIState::Minimized => (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0)),
             };
 
-            let color_speed = Some(ScalarSpeed {
-                amount_per_second: 1.0,
-            });
+            let background =
+                commands.transition_value::<BackgroundColorLens>(background, 1.0.into());
 
-            let background = commands.transition_value::<BackgroundColorLens>(
-                background,
-                color_speed,
-            );
-
-            let border = commands.transition_value::<BorderColorLens>(border, color_speed);
+            let border = commands.transition_value::<BorderColorLens>(border, 1.0.into());
 
             let z_index = ZIndex::Global(15);
 
@@ -342,11 +335,19 @@ impl MavericNode for MainPanel {
                         );
                     };
 
-                    let (wr_text, wr_icon) = match args.score_info.wr{
-                        WRData::External(record) => (format!("Record    {:6.2}m", record), IconButton::ViewRecord),
-                        WRData::InternalConfirmed =>    ("New World Record ".to_string(), IconButton::ViewRecord),
-                        WRData::InternalProvisional =>  ("Loading  Record ".to_string(), IconButton::None),
-                        WRData::ConnectionError =>      ("Record:   unknown".to_string(), IconButton::RefreshWR),
+                    let (wr_text, wr_icon) = match args.score_info.wr {
+                        WRData::External(record) => {
+                            (format!("Record    {:6.2}m", record), IconButton::ViewRecord)
+                        }
+                        WRData::InternalConfirmed => {
+                            ("New World Record ".to_string(), IconButton::ViewRecord)
+                        }
+                        WRData::InternalProvisional => {
+                            ("Loading  Record ".to_string(), IconButton::None)
+                        }
+                        WRData::ConnectionError => {
+                            ("Record:   unknown".to_string(), IconButton::RefreshWR)
+                        }
                     };
 
                     commands.add_child(
@@ -538,8 +539,10 @@ impl MavericNode for StoreButtonPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.ignore_node().ignore_context().unordered_children(
-            | commands| {
+        commands
+            .ignore_node()
+            .ignore_context()
+            .unordered_children(|commands| {
                 let google = image_button_node(
                     IconButton::GooglePlay,
                     "images/google-play-badge.png",
@@ -554,8 +557,7 @@ impl MavericNode for StoreButtonPanel {
                 );
                 commands.add_child(0, google, &());
                 commands.add_child(1, apple, &());
-            },
-        );
+            });
     }
 }
 
@@ -605,8 +607,7 @@ impl MavericNode for BeggingPanel {
                 commands.add_child(
                     3,
                     TextNode {
-                        text: " \n \n \nGet the App \n \n \n"
-                        .to_string(),
+                        text: " \n \n \nGet the App \n \n \n".to_string(),
                         font_size: LEVEL_TEXT_FONT_SIZE,
                         color: LEVEL_TEXT_COLOR,
                         font: LEVEL_TEXT_FONT_PATH,

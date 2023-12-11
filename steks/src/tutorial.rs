@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use maveric::{define_lens, transition::speed::*};
+use maveric::define_lens;
 use std::iter;
 
 #[derive(Debug, Default)]
@@ -69,7 +69,8 @@ impl MavericNode for ShapeOutlineNode {
                         y: node.0.y.unwrap_or_default(),
                     },
                     angle: node.0.revs.unwrap_or_default() * std::f32::consts::TAU,
-                }.into();
+                }
+                .into();
                 //let mut shape_bundle = shape.body.get_shape_bundle(SHAPE_SIZE);
                 let stroke_color = shape.fill(false).color; //use shape fill for stroke color
                 let stroke = Stroke {
@@ -80,28 +81,10 @@ impl MavericNode for ShapeOutlineNode {
                         .with_end_cap(LineCap::Round),
                 };
 
-                //shape_bundle.transform = location.into();
-
-                let step = TransitionStep::new_cycle(
-                    [
-                        (
-                            3.0,
-                            ScalarSpeed {
-                                amount_per_second: 1.0,
-                            },
-                        ),
-                        (
-                            5.0,
-                            ScalarSpeed {
-                                amount_per_second: 1.0,
-                            },
-                        ),
-                    ]
-                    .into_iter(),
-                );
-
-                let transition: Transition<StrokeWidthLens> =
-                    Transition::<StrokeWidthLens>::new(step);
+                let transition = TransitionBuilder::<StrokeWidthLens>::default()
+                    .then_tween(3.0, 1.0.into())
+                    .then_tween(5.0, 1.0.into())
+                    .build_loop();
 
                 let scale = node.0.scale.unwrap_or(1.0);
 
@@ -156,39 +139,25 @@ impl MavericNode for ArrowNode {
                 let translation = Vec3 {
                     x: arrow.x,
                     y: arrow.y,
-                    z: arrow.z
+                    z: arrow.z,
                 };
 
                 let shape_bundle = bevy_prototype_lyon::prelude::ShapeBundle {
                     path: path_builder.build(),
-                    spatial: SpatialBundle::from_transform(Transform::from_translation(translation)),
+                    spatial: SpatialBundle::from_transform(Transform::from_translation(
+                        translation,
+                    )),
                     ..default()
                 };
 
                 let transition: Transition<TransformRotationZLens>;
                 if node.0.rotate {
-                    transition =
-                        Transition::<TransformRotationZLens>::new(TransitionStep::new_cycle(
-                            [
-                                (
-                                    0.0,
-                                    ScalarSpeed {
-                                        amount_per_second: 1.0,
-                                    },
-                                ),
-                                (
-                                    std::f32::consts::PI * -1.0,
-                                    ScalarSpeed {
-                                        amount_per_second: 1.0,
-                                    },
-                                ),
-                            ]
-                            .into_iter(),
-                        ));
+                    transition = TransitionBuilder::default()
+                        .then_tween(0.0, 1.0.into())
+                        .then_tween(std::f32::consts::PI * -1.0, 1.0.into())
+                        .build_loop();
                 } else {
-                    transition = Transition::<TransformRotationZLens>::new(
-                        TransitionStep::new_arc(0.0, None, NextStep::None),
-                    );
+                    transition = TransitionBuilder::default().then_set_value(0.0).build();
                 }
 
                 let shape_tracking = match node.0.shape_id {

@@ -61,8 +61,7 @@ impl MavericNode for Padlock {
                     (
                         ShapeBundle {
                             path,
-                            spatial: SpatialBundle::from_transform(
-                            Transform {
+                            spatial: SpatialBundle::from_transform(Transform {
                                 translation: Default::default(),
                                 rotation: Default::default(),
                                 scale: PADLOCK_SCALE,
@@ -98,33 +97,31 @@ impl MavericNode for Padlock {
                     calculate_speed(&Color::BLACK, &Color::WHITE, Duration::from_secs_f32(1.0),);
             };
 
-            let transform_speed = if padlock_resource.is_invisible()
+            let speed_transition = if padlock_resource.is_invisible()
                 || args.previous.is_some_and(|p| p.0.is_invisible())
             {
-                None
+                TransitionBuilder::<TransformTranslationLens>::default()
+                    .then_set_value(transform.translation)
+                    .build()
             } else {
-                Some(*TRANSFORM_SPEED)
+                TransitionBuilder::<TransformTranslationLens>::default()
+                    .then_tween(transform.translation, *TRANSFORM_SPEED)
+                    .build()
             };
 
-            let fill_speed = if padlock_resource.is_invisible()
+            let fill_transition = if padlock_resource.is_invisible()
                 || args.previous.is_some_and(|p| p.0.is_invisible())
             {
-                None
+                TransitionBuilder::<FillColorLens>::default()
+                    .then_set_value(fill.color)
+                    .build()
             } else {
-                Some(*FILL_SPEED)
+                TransitionBuilder::<FillColorLens>::default()
+                    .then_tween(fill.color, *FILL_SPEED)
+                    .build()
             };
 
-            commands.insert(Transition::<TransformTranslationLens>::new(
-                TransitionStep::new_arc(transform.translation, transform_speed, NextStep::None),
-            ));
-
-            commands.insert(Transition::<FillColorLens>::new(TransitionStep::new_arc(
-                fill.color,
-                fill_speed,
-                NextStep::None,
-            )));
-
-            commands.insert((path, visibility));
+            commands.insert((path, visibility, speed_transition, fill_transition));
         });
     }
 

@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
 use crate::prelude::*;
-use maveric::{prelude::*, transition::speed::LinearSpeed};
+use maveric::prelude::*;
 use strum::Display;
 
 pub const ICON_BUTTON_WIDTH: f32 = 65.;
@@ -22,7 +20,6 @@ pub const MENU_TOP_BOTTOM_MARGIN: f32 = 4.0;
 pub const UI_BORDER_WIDTH: f32 = 3.0;
 pub const UI_BORDER_WIDTH_MEDIUM: f32 = 6.0;
 pub const UI_BORDER_WIDTH_FAT: f32 = 9.0;
-
 
 #[derive(Debug, Clone, Copy, Component, PartialEq)]
 pub struct IconButtonComponent {
@@ -141,13 +138,10 @@ pub fn flashing_icon_button_node(
 ) -> impl MavericNode<Context = ()> {
     let font_size = style.icon_font_size();
 
-    let transition: Arc<TransitionStep<TransformScaleLens>> = TransitionStep::new_cycle(
-        [
-            (Vec3::ONE * 1.4, LinearSpeed::new(0.4)),
-            (Vec3::ONE * 1.0, LinearSpeed::new(0.4)),
-        ]
-        .into_iter(),
-    );
+    let transition = TransitionBuilder::<TransformScaleLens>::default()
+        .then_tween(Vec3::ONE * 1.4, 0.4.into())
+        .then_tween(Vec3::ONE * 1.0, 0.4.into())
+        .build_loop();
 
     let node = TextNode {
         text: button_action.icon(),
@@ -300,7 +294,7 @@ pub fn text_button_node(
     button_action: TextButton,
     centred: bool,
     disabled: bool,
-    ad: bool
+    ad: bool,
 ) -> impl MavericNode<Context = ()> {
     text_button_node_with_text(button_action, button_action.text(), centred, disabled, ad)
 }
@@ -310,21 +304,18 @@ pub fn text_button_node_with_text(
     text: String,
     centred: bool,
     disabled: bool,
-    ad: bool
+    ad: bool,
 ) -> impl MavericNode<Context = ()> {
     let (background_color, color, border_color) =
         (TEXT_BUTTON_BACKGROUND, BUTTON_TEXT_COLOR, BUTTON_BORDER);
 
-    let style =
-    if ad{
+    let style = if ad {
         TextButtonStyle::AD
-    }else if button_action.emphasize() {
+    } else if button_action.emphasize() {
         TextButtonStyle::FAT
     } else {
         TextButtonStyle::NORMAL
     };
-
-
 
     ButtonNode {
         style,
@@ -354,21 +345,33 @@ pub fn text_button_node_with_text(
 #[derive(Debug, PartialEq, Clone)]
 pub struct TextButtonStyle {
     pub ui_border_width: Val,
-    pub width: Val
+    pub width: Val,
 }
 
-impl TextButtonStyle{
-    pub const NORMAL: Self = Self{ ui_border_width:Val::Px(UI_BORDER_WIDTH), width: Val::Px(TEXT_BUTTON_WIDTH) };
-    pub const MEDIUM: Self = Self{ ui_border_width:Val::Px(UI_BORDER_WIDTH_MEDIUM), width: Val::Px(TEXT_BUTTON_WIDTH) };
-    pub const FAT: Self = Self{ ui_border_width:Val::Px(UI_BORDER_WIDTH_FAT), width: Val::Px(TEXT_BUTTON_WIDTH) };
-    pub const AD: Self = Self{ ui_border_width:Val::Px(UI_BORDER_WIDTH), width: Val::Px(180.) };
+impl TextButtonStyle {
+    pub const NORMAL: Self = Self {
+        ui_border_width: Val::Px(UI_BORDER_WIDTH),
+        width: Val::Px(TEXT_BUTTON_WIDTH),
+    };
+    pub const MEDIUM: Self = Self {
+        ui_border_width: Val::Px(UI_BORDER_WIDTH_MEDIUM),
+        width: Val::Px(TEXT_BUTTON_WIDTH),
+    };
+    pub const FAT: Self = Self {
+        ui_border_width: Val::Px(UI_BORDER_WIDTH_FAT),
+        width: Val::Px(TEXT_BUTTON_WIDTH),
+    };
+    pub const AD: Self = Self {
+        ui_border_width: Val::Px(UI_BORDER_WIDTH),
+        width: Val::Px(180.),
+    };
 }
 
 impl IntoBundle for TextButtonStyle {
     type B = Style;
 
     fn into_bundle(self) -> Self::B {
-        let border =UiRect::all(self.ui_border_width);
+        let border = UiRect::all(self.ui_border_width);
 
         Style {
             width: self.width,

@@ -1,4 +1,3 @@
-
 let media_stream = null;
 
 export async function startVideo() {
@@ -6,7 +5,7 @@ export async function startVideo() {
     const constraints = {
         audio: false,
         video: {
-            width: { max: window.innerWidth },
+            // width: { ideal: window.innerWidth },
             height: { max: window.innerHeight },
             aspect_ratio: { exact: aspect_ratio },
             resizeMode: "crop-and-scale",
@@ -20,6 +19,8 @@ export async function startVideo() {
     media_stream = await media_promise;
 
     const video = document.querySelector("#videoElement");
+
+    video.style.visibility = "visible";
     video.srcObject = media_stream;
     video.onloadedmetadata = () => {
         video.play();
@@ -33,9 +34,6 @@ export async function startVideo() {
 export function stopVideo() {
 
     if (!Object.is(media_stream, null)) {
-
-
-
         let tracks = media_stream.getTracks();
 
         console.log("Got tracks");
@@ -52,13 +50,11 @@ export function stopVideo() {
         media_stream = null;
 
         const video = document.querySelector("#videoElement");
+        video.style.visibility = "hidden";
         video.srcObject = null;
 
     }
     else {
         console.warn("Video is null so could not be stopped");
     }
-
-
-
 }

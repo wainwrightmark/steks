@@ -23,6 +23,9 @@ pub struct GameSettings {
 
     pub fireworks_enabled: bool,
     pub snow_enabled: bool,
+
+    #[serde(skip)]
+    pub selfie_mode: bool
 }
 
 impl TrackableResource for GameSettings {
@@ -38,13 +41,17 @@ impl Default for GameSettings {
             high_contrast: false,
             fireworks_enabled: true,
             snow_enabled: true,
+            selfie_mode: false
         }
     }
 }
 
 impl GameSettings {
     pub fn background_color(&self) -> Color {
-        if self.high_contrast {
+
+        if self.selfie_mode{
+            Color::NONE
+        }else if self.high_contrast {
             Color::WHITE
         } else {
             color::BACKGROUND_COLOR
@@ -103,7 +110,7 @@ fn track_settings_changes(
         return;
     }
 
-    if previous.high_contrast != settings.high_contrast {
+    if previous.background_color() != settings.background_color() { //TODO different shape colors
         for (shape_index, shape_component, mut fill, mut stroke) in shapes.iter_mut() {
             let state: ShapeState = shape_component.into();
             let game_shape: &'static GameShape = (*shape_index).into();

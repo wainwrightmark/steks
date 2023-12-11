@@ -76,7 +76,7 @@ pub fn setup_app(app: &mut App) {
     };
 
     app.insert_resource(Msaa::Sample4)
-        .insert_resource(ClearColor(Color::NONE))
+        .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_plugins(
             DefaultPlugins
                 .set(window_plugin)

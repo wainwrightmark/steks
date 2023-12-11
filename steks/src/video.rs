@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use nice_bevy_utils::{async_event_writer::AsyncEventWriter, CanRegisterAsyncEvent};
+use steks_base::shape_component::GameSettings;
 
 //use crate::{asynchronous, wasm::JsException};
 
@@ -7,7 +8,7 @@ pub struct VideoPlugin;
 
 impl Plugin for VideoPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(VideoResource::default());
+
         app.register_async_event::<VideoEvent>();
         #[cfg(target_arch = "wasm32")]
         {
@@ -22,28 +23,30 @@ pub enum VideoEvent {
     VideoStopped,
 }
 
-#[derive(Default, Resource)]
-pub struct VideoResource {
-    pub is_streaming: bool,
-}
 
 #[allow(unused_variables)]
 #[allow(dead_code)]
-fn handle_video_event(mut res: ResMut<VideoResource>, mut events: EventReader<VideoEvent>) {
+fn handle_video_event(
+    mut res: ResMut<GameSettings>,
+    mut events: EventReader<VideoEvent>,
+) {
     for ev in events.read() {
         match ev {
-            VideoEvent::VideoStarted => res.is_streaming = true,
-            VideoEvent::VideoStopped => res.is_streaming = false,
+            VideoEvent::VideoStarted => {
+                res.selfie_mode = true;
+            }
+            VideoEvent::VideoStopped => {
+                res.selfie_mode = false;
+            }
         }
     }
 }
 
-impl VideoResource {
-    #[allow(unused_variables)]
-    pub fn toggle_video_streaming(&self, writer: AsyncEventWriter<VideoEvent>) {
+#[allow(unused_variables)]
+    pub fn toggle_selfie_mode(settings: &GameSettings, writer: AsyncEventWriter<VideoEvent>) {
         #[cfg(target_arch = "wasm32")]
         {
-            if self.is_streaming {
+            if settings.selfie_mode {
                 crate::wasm::stop_video();
                 writer.send_blocking(VideoEvent::VideoStopped).unwrap();
             } else {
@@ -51,7 +54,6 @@ impl VideoResource {
             }
         }
     }
-}
 
 #[allow(unused_variables)]
 #[allow(dead_code)]

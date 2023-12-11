@@ -265,7 +265,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     insets: insets.as_ref().clone(),
                                     signed_in: signed_in.as_ref().clone(),
                                 },
-                                &(),
+                                &context.2.0,
                             )
                         }
                     }

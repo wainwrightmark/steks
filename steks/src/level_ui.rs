@@ -21,7 +21,7 @@ pub struct MainPanelWrapper {
 }
 
 impl MavericNode for MainPanelWrapper {
-    type Context = ();
+    type Context = GameSettings;
 
     fn set_components(mut commands: SetComponentCommands<Self, Self::Context>) {
         commands.scope(|commands| {
@@ -87,7 +87,7 @@ pub struct MainPanel {
 }
 
 impl MavericNode for MainPanel {
-    type Context = ();
+    type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.advanced(|args, commands| {
@@ -95,8 +95,10 @@ impl MavericNode for MainPanel {
                 return;
             }
 
+            let alpha = if args.context.selfie_mode{ 0.25} else {0.75};
+
             let (background, border) = match &args.node.ui_state {
-                GameUIState::Splash | GameUIState::Preview(_) => (Color::WHITE, Color::BLACK),
+                GameUIState::Splash | GameUIState::Preview(_) => (Color::WHITE.with_a(alpha), Color::BLACK.with_a(alpha)),
                 GameUIState::Minimized => (Color::WHITE.with_a(0.0), Color::BLACK.with_a(0.0)),
             };
 
@@ -143,25 +145,25 @@ impl MavericNode for MainPanel {
                     commands.add_child(
                         "menu",
                         icon_button_node(IconButton::OpenMenu, IconButtonStyle::HeightPadded),
-                        context,
+                        &(),
                     );
 
                     commands.add_child(
                         "splash",
                         icon_button_node(IconButton::RestoreSplash, IconButtonStyle::HeightPadded),
-                        context,
+                        &(),
                     );
 
                     commands.add_child(
                         "height",
                         panel_text_node(format!("{height:7.2}m",)),
-                        context,
+                        &(),
                     );
 
                     commands.add_child(
                         "next",
                         icon_button_node(IconButton::NextLevel, IconButtonStyle::HeightPadded),
-                        context,
+                        &(),
                     );
                 }
 
@@ -173,7 +175,7 @@ impl MavericNode for MainPanel {
                             background_color: Color::WHITE,
                             style: PreviewImageStyle,
                         },
-                        context,
+                        &(),
                     );
 
                     if preview.is_pb() {
@@ -188,7 +190,7 @@ impl MavericNode for MainPanel {
                                 alignment: TextAlignment::Center,
                                 linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                             },
-                            context,
+                            &(),
                         );
 
                         if let Some(level_stars) = args.level.get_level_stars() {
@@ -200,7 +202,7 @@ impl MavericNode for MainPanel {
                                     background_color: Color::WHITE,
                                     style: ThreeStarsImageStyle,
                                 },
-                                context,
+                                &(),
                             );
 
                             // commands.add_child(
@@ -218,7 +220,7 @@ impl MavericNode for MainPanel {
                         PreviewImage::PB => "Challenge a friend to\nbeat your score!",
                         PreviewImage::WR => "Can you do better?",
                     };
-                    commands.add_child("preview_message", panel_text_node(text), context);
+                    commands.add_child("preview_message", panel_text_node(text), &());
 
                     match preview {
                         PreviewImage::PB => commands.add_child(
@@ -229,7 +231,7 @@ impl MavericNode for MainPanel {
                                 style: IconButtonStyle::Big,
                                 flashing_button: args.level.flashing_button(),
                             },
-                            context,
+                            &(),
                         ),
                         PreviewImage::WR => commands.add_child(
                             "wr_buttons",
@@ -239,7 +241,7 @@ impl MavericNode for MainPanel {
                                 style: IconButtonStyle::Big,
                                 flashing_button: args.level.flashing_button(),
                             },
-                            context,
+                            &(),
                         ),
                     };
                 }
@@ -253,7 +255,7 @@ impl MavericNode for MainPanel {
                             style: IconButtonStyle::HeightPadded,
                             flashing_button: args.level.flashing_button(),
                         },
-                        context,
+                        &(),
                     );
 
                     let message = match &args.level {
@@ -273,7 +275,7 @@ impl MavericNode for MainPanel {
                         .map(|l| format!("{l:^padding$}", padding = LEVEL_END_TEXT_MAX_CHARS))
                         .join("\n");
 
-                    commands.add_child("message", panel_text_node(message), context);
+                    commands.add_child("message", panel_text_node(message), &(),);
 
                     commands.add_child(
                         "height_data",
@@ -285,7 +287,7 @@ impl MavericNode for MainPanel {
                             alignment: TextAlignment::Center,
                             linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                         },
-                        context,
+                        &(),
                     );
 
                     if let Some(star_type) = args.score_info.star {
@@ -297,7 +299,7 @@ impl MavericNode for MainPanel {
                                     background_color: Color::WHITE,
                                     style: ThreeStarsImageStyle,
                                 },
-                                context,
+                                &(),
                             );
 
                             commands.add_child(
@@ -306,7 +308,7 @@ impl MavericNode for MainPanel {
                                     level_stars,
                                     star_type,
                                 },
-                                context,
+                                &(),
                             );
                         }
                     }
@@ -319,7 +321,7 @@ impl MavericNode for MainPanel {
                                 icons: [IconButton::ViewPB],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
-                            context,
+                            &(),
                         );
                     } else {
                         let pb = args.score_info.pb;
@@ -331,7 +333,7 @@ impl MavericNode for MainPanel {
                                 icons: [IconButton::ViewPB],
                                 font_size: LEVEL_TEXT_FONT_SIZE,
                             },
-                            context,
+                            &(),
                         );
                     };
 
@@ -357,17 +359,17 @@ impl MavericNode for MainPanel {
                             icons: [wr_icon],
                             font_size: LEVEL_TEXT_FONT_SIZE,
                         },
-                        context,
+                        &(),
                     );
 
                     if let GameLevel::Challenge { streak, .. } = args.level {
                         commands.add_child(
                             "streak",
                             panel_text_node(format!("Streak    {streak:.2}",)),
-                            context,
+                            &(),
                         );
                     } else {
-                        commands.add_child("no_streak", panel_text_node(format!(" ",)), context);
+                        commands.add_child("no_streak", panel_text_node(format!(" ",)), &());
                     }
 
                     let bottom_icons = if cfg!(any(feature = "android", feature = "ios"))
@@ -391,12 +393,12 @@ impl MavericNode for MainPanel {
                             style: IconButtonStyle::Big,
                             flashing_button: args.level.flashing_button(),
                         },
-                        context,
+                        &(),
                     );
 
                     #[cfg(feature = "web")]
                     {
-                        commands.add_child("store", StoreButtonPanel, context);
+                        commands.add_child("store", StoreButtonPanel, &());
                     }
                 }
             }

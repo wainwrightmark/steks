@@ -32,7 +32,7 @@ impl MavericNode for LevelTextPanel {
         commands.ordered_children_with_node(|args,  commands| {
             let level = &args.level;
             let stage = args.stage;
-            let initial_color = level.text_color();
+            let initial_color = LEVEL_TEXT_COLOR_NORMAL_MODE;
             let destination_color = if level.text_fade(stage) {
                 initial_color.with_a(0.0)
             } else {
@@ -46,7 +46,7 @@ impl MavericNode for LevelTextPanel {
                     TextNode {
                         text: level_number_text,
                         font_size: LEVEL_NUMBER_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                         font: LEVEL_NUMBER_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
@@ -66,7 +66,7 @@ impl MavericNode for LevelTextPanel {
                     TextNode {
                         text: title_text,
                         font_size: LEVEL_TITLE_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                         font: LEVEL_TITLE_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,

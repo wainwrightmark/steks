@@ -99,7 +99,7 @@ pub fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'stat
     TextNode {
         text,
         font_size: LEVEL_TEXT_FONT_SIZE,
-        color: LEVEL_TEXT_COLOR,
+        color: LEVEL_TEXT_COLOR_NORMAL_MODE,
         font: LEVEL_TEXT_FONT_PATH,
         alignment: TextAlignment::Center,
         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,

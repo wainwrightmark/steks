@@ -95,7 +95,7 @@ impl MavericNode for MainPanel {
                 return;
             }
 
-            let alpha = if args.context.selfie_mode{ 0.25} else {0.75};
+            let alpha = if args.context.selfie_mode{ 0.1} else {0.75};
 
             let (background, border) = match &args.node.ui_state {
                 GameUIState::Splash | GameUIState::Preview(_) => (Color::WHITE.with_a(alpha), Color::BLACK.with_a(alpha)),
@@ -185,7 +185,7 @@ impl MavericNode for MainPanel {
                             TextNode {
                                 text: format!("{pb_height:6.2}m",),
                                 font_size: LEVEL_HEIGHT_FONT_SIZE,
-                                color: LEVEL_TEXT_COLOR,
+                                color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                                 font: LEVEL_TEXT_FONT_PATH,
                                 alignment: TextAlignment::Center,
                                 linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
@@ -282,7 +282,7 @@ impl MavericNode for MainPanel {
                         TextNode {
                             text: format!("{height:6.2}m",),
                             font_size: LEVEL_HEIGHT_FONT_SIZE,
-                            color: LEVEL_TEXT_COLOR,
+                            color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                             font: LEVEL_TEXT_FONT_PATH,
                             alignment: TextAlignment::Center,
                             linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
@@ -567,7 +567,7 @@ impl MavericNode for StoreButtonPanel {
 pub struct BeggingPanel;
 
 impl MavericNode for BeggingPanel {
-    type Context = ();
+    type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -598,12 +598,12 @@ impl MavericNode for BeggingPanel {
                     TextNode {
                         text: "Want More Steks?".to_string(),
                         font_size: LEVEL_TITLE_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: context.as_ref().level_text_color(),
                         font: LEVEL_TITLE_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
-                    context,
+                    &(),
                 );
 
                 commands.add_child(
@@ -611,15 +611,15 @@ impl MavericNode for BeggingPanel {
                     TextNode {
                         text: " \n \n \nGet the App \n \n \n".to_string(),
                         font_size: LEVEL_TEXT_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: context.level_text_color(),
                         font: LEVEL_TEXT_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
-                    context,
+                    &(),
                 );
 
-                commands.add_child(2, StoreButtonPanel, context);
+                commands.add_child(2, StoreButtonPanel, &());
             });
     }
 }
@@ -653,7 +653,7 @@ impl<const ICONS: usize> MavericNode for TextPlusIcons<ICONS> {
                 TextNode {
                     text: args.text.clone(),
                     font_size: args.font_size,
-                    color: LEVEL_TEXT_COLOR,
+                    color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                     font: LEVEL_TEXT_FONT_PATH,
                     alignment: TextAlignment::Center,
                     linebreak_behavior: bevy::text::BreakLineOn::NoWrap,

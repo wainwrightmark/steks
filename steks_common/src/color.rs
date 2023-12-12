@@ -15,7 +15,8 @@ pub const ICE_SHAPE_STROKE_HIGH_CONTRAST: Color = Color::GRAY;
 pub const SHADOW_STROKE: Color = Color::hsla(0.0, 0.0, 0.0, 0.8);
 pub const ARROW_STROKE: Color = Color::hsla(219.0, 0.29, 0.34, 1.0);
 
-pub const LEVEL_TEXT_COLOR: Color = Color::DARK_GRAY;
+pub const LEVEL_TEXT_COLOR_NORMAL_MODE: Color = Color::DARK_GRAY;
+pub const LEVEL_TEXT_COLOR_SELFIE_MODE: Color = Color::WHITE;
 pub const LEVEL_TEXT_ALT_COLOR: Color = Color::WHITE;
 
 pub const BUTTON_BORDER: Color = Color::BLACK;

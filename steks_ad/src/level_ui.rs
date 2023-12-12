@@ -86,7 +86,7 @@ impl MavericNode for BeggingPanel {
                     TextNode {
                         text: "Want More Steks?".to_string(),
                         font_size: LEVEL_TITLE_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                         font: LEVEL_TITLE_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
@@ -113,7 +113,7 @@ impl MavericNode for BeggingPanel {
                 "
                         .to_string(),
                         font_size: LEVEL_TEXT_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                         font: LEVEL_TEXT_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,

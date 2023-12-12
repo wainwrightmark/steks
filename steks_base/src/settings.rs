@@ -57,6 +57,15 @@ impl GameSettings {
             color::BACKGROUND_COLOR
         }
     }
+
+    pub fn level_text_color(&self)-> Color{
+        if self.selfie_mode{
+            LEVEL_TEXT_COLOR_SELFIE_MODE
+        }
+        else{
+            LEVEL_TEXT_COLOR_NORMAL_MODE
+        }
+    }
 }
 
 #[derive(

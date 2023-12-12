@@ -304,7 +304,7 @@ impl GameLevel {
         }
     }
 
-    pub fn text_color(&self) -> Color {
+    pub fn text_color(&self, settings: &GameSettings) -> Color {
         let alt = match &self {
             GameLevel::Designed { meta } => meta.get_level().alt_text_color,
             _ => false,
@@ -312,8 +312,10 @@ impl GameLevel {
 
         if alt {
             color::LEVEL_TEXT_ALT_COLOR
-        } else {
-            color::LEVEL_TEXT_COLOR
+        } else if settings.selfie_mode {
+            color::LEVEL_TEXT_COLOR_SELFIE_MODE
+        }else{
+            color::LEVEL_TEXT_COLOR_NORMAL_MODE
         }
     }
 

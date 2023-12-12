@@ -331,7 +331,7 @@ impl MavericNode for PBPreview {
                     TextNode {
                         text: format!("{height:6.2}m",),
                         font_size: LEVEL_HEIGHT_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                         font: LEVEL_TEXT_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,

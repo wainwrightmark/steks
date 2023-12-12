@@ -10,7 +10,7 @@ pub struct LevelTextPanel {
 }
 
 impl MavericNode for LevelTextPanel {
-    type Context = ();
+    type Context = GameSettings;
 
     fn set_components(commands: SetComponentCommands<Self, Self::Context>) {
         commands.ignore_node().ignore_context().insert(NodeBundle {
@@ -32,7 +32,7 @@ impl MavericNode for LevelTextPanel {
         commands.ordered_children_with_node_and_context(|args, context, commands| {
             let level = &args.level;
             let stage = args.stage;
-            let initial_color = level.text_color();
+            let initial_color = level.text_color(&context);
             let destination_color = if level.text_fade(stage) {
                 initial_color.with_a(0.0)
             } else {
@@ -46,7 +46,7 @@ impl MavericNode for LevelTextPanel {
                     TextNode {
                         text: level_number_text,
                         font_size: LEVEL_NUMBER_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: initial_color,
                         font: LEVEL_NUMBER_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
@@ -56,7 +56,7 @@ impl MavericNode for LevelTextPanel {
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
                     ),
-                    context,
+                    &(),
                 );
             }
 
@@ -66,7 +66,7 @@ impl MavericNode for LevelTextPanel {
                     TextNode {
                         text: title_text,
                         font_size: LEVEL_TITLE_FONT_SIZE,
-                        color: LEVEL_TEXT_COLOR,
+                        color: initial_color,
                         font: LEVEL_TITLE_FONT_PATH,
                         alignment: TextAlignment::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
@@ -76,7 +76,7 @@ impl MavericNode for LevelTextPanel {
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
                     ),
-                    context,
+                    &(),
                 );
             }
 
@@ -89,7 +89,7 @@ impl MavericNode for LevelTextPanel {
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
                     ),
-                    context,
+                    &(),
                 )
             }
         })

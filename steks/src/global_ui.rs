@@ -240,7 +240,7 @@ impl MavericRootChildren for GlobalUiRoot {
                         );
 
                         if current_level.level.is_begging() {
-                            commands.add_child("begging", BeggingPanel, &());
+                            commands.add_child("begging", BeggingPanel, &context.2.0);
                         } else {
                             let is_touch = context.3.touch_enabled;
                             commands.add_child(
@@ -250,7 +250,7 @@ impl MavericRootChildren for GlobalUiRoot {
                                     level: current_level.level.clone(),
                                     stage,
                                 },
-                                &(),
+                                &context.2.0
                             );
                         }
                     }

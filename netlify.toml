@@ -9,7 +9,7 @@ path = "/game/*"
 
 [build]
 publish = "steks/dist"
-command = "rustup default stable; rustup target add wasm32-unknown-unknown; rustup update stable; cargo install trunk --locked; trunk build steks/index.html --release"
+command = "rustup default stable; rustup target add wasm32-unknown-unknown; rustup update stable; cargo install trunk --locked; trunk build steks/index.html --release --no-minification"
 
 
 [context.production]

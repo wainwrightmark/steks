@@ -21,6 +21,6 @@ opt-level = 1
 debug = false
 opt-level = 'z'
 codegen-units = 1
-lto = 'thin'
+lto = 'fat'
 strip = "debuginfo"
 #panic = 'abort'

@@ -43,9 +43,9 @@ fn icon_button_system(
         if interaction == &Interaction::Pressed {
             match button.button_action {
                 OpenMenu => global_ui_state.open_menu(),
-                Share => share_events.send(ShareEvent::CurrentShapes),
-                SharePB => share_events.send(ShareEvent::PersonalBest),
-                NextLevel => change_level_events.send(ChangeLevelEvent::Next),
+                Share => {share_events.send(ShareEvent::CurrentShapes);},
+                SharePB => {share_events.send(ShareEvent::PersonalBest);},
+                NextLevel => {change_level_events.send(ChangeLevelEvent::Next);},
                 OpenNews => {
                     news.is_read = true;
                     *global_ui_state = GlobalUiState::News;
@@ -219,25 +219,25 @@ fn text_button_system(
                         crate::wasm::request_fullscreen();
                     }
                 }
-                TextButton::ClipboardImport => import_events.send(ImportEvent),
-                TextButton::Tutorial => change_level_events
-                    .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 }),
-                TextButton::Infinite => change_level_events.send(ChangeLevelEvent::StartInfinite),
-                TextButton::Begging => change_level_events.send(ChangeLevelEvent::Begging),
+                TextButton::ClipboardImport => {import_events.send(ImportEvent);},
+                TextButton::Tutorial =>{ change_level_events
+                    .send(ChangeLevelEvent::ChooseTutorialLevel { index: 0, stage: 0 });},
+                TextButton::Infinite => {change_level_events.send(ChangeLevelEvent::StartInfinite);},
+                TextButton::Begging => {change_level_events.send(ChangeLevelEvent::Begging);},
                 TextButton::Video =>{
                     toggle_selfie_mode(&settings, video_events.clone());
                 },
                 TextButton::DailyChallenge => {
-                    change_level_events.send(ChangeLevelEvent::StartChallenge)
+                    change_level_events.send(ChangeLevelEvent::StartChallenge);
                 }
 
-                TextButton::Share => share_events.send(ShareEvent::CurrentShapes),
+                TextButton::Share => {share_events.send(ShareEvent::CurrentShapes);},
                 TextButton::GotoLevel { level } => {
                     change_level_events.send(ChangeLevelEvent::ChooseCampaignLevel {
                         index: level,
                         stage: 0,
                         saved_data: None,
-                    })
+                    });
                 }
                 TextButton::ChooseLevel => global_ui_state
                     .as_mut()
@@ -249,7 +249,7 @@ fn text_button_system(
                 TextButton::MinimizeApp => {
                     spawn_and_run(minimize_app_async());
                 }
-                TextButton::Credits => change_level_events.send(ChangeLevelEvent::Credits),
+                TextButton::Credits => {change_level_events.send(ChangeLevelEvent::Credits);},
                 TextButton::OpenSettings => global_ui_state.as_mut().open_settings(),
                 TextButton::OpenAccessibility => global_ui_state.as_mut().open_accessibility(),
                 TextButton::BackToMenu => global_ui_state.as_mut().open_menu(),

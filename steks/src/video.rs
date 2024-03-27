@@ -48,7 +48,7 @@ fn handle_video_event(
         {
             if settings.selfie_mode {
                 crate::wasm::stop_video();
-                writer.send_blocking(VideoEvent::VideoStopped).unwrap();
+                writer.send(VideoEvent::VideoStopped).unwrap();
             } else {
                 crate::asynchronous::spawn_and_run(start_video_async(writer));
             }
@@ -63,7 +63,7 @@ async fn start_video_async(writer: AsyncEventWriter<VideoEvent>) {
         let result = crate::wasm::start_video().await;
 
         match result {
-            Ok(()) => writer.send_async(VideoEvent::VideoStarted).await.unwrap(),
+            Ok(()) => writer.send(VideoEvent::VideoStarted).unwrap(),
             Err(err) => match crate::wasm::JsException::try_from(err) {
                 Ok(e) => error!("{}", e.message),
                 Err(()) => error!("Error Starting Video"),

@@ -38,13 +38,13 @@ async fn subscribe_to_app_url_events_async(
         let path = url[index..].to_string();
 
         if path.to_ascii_lowercase().starts_with("/cheat") {
-            cheat_event_writer.send_blocking(CheatEvent).unwrap();
+            cheat_event_writer.send(CheatEvent).unwrap();
         }
 
         let Some(cle) = ChangeLevelEvent::try_from_path(path) else {
             return;
         };
-        writer.send_blocking(cle).unwrap();
+        writer.send(cle).unwrap();
     })
     .await
     {

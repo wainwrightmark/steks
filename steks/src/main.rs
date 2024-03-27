@@ -44,10 +44,8 @@ pub mod prelude {
 
     pub use bevy_rapier2d::prelude::*;
     pub use nice_bevy_utils::async_event_writer::*;
-    pub use nice_bevy_utils::tracked_resource::*;
     pub use std::time::Duration;
     pub use steks_base::prelude::*;
-    pub use steks_common::prelude::*;
 
     pub use crate::achievements::*;
     pub use crate::app_redirect::*;

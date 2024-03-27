@@ -57,7 +57,7 @@ impl MavericNode for MainPanelWrapper {
                     GameUIState::Minimized => Val::Px(args.node.insets.real_top()),
                 };
 
-                commands.transition_value::<StyleTopLens>(top, 100.0.into());
+                commands.transition_value::<StyleTopLens>(top, 100.0.into(), None);
             }
         });
     }
@@ -103,9 +103,9 @@ impl MavericNode for MainPanel {
             };
 
             let background =
-                commands.transition_value::<BackgroundColorLens>(background, 1.0.into());
+                commands.transition_value::<BackgroundColorLens>(background, 1.0.into(), None);
 
-            let border = commands.transition_value::<BorderColorLens>(border, 1.0.into());
+            let border = commands.transition_value::<BorderColorLens>(border, 1.0.into(), None);
 
             let z_index = ZIndex::Global(15);
 
@@ -137,7 +137,7 @@ impl MavericNode for MainPanel {
     }
 
     fn set_children<R: MavericRoot>(commands: SetChildrenCommands<Self, Self::Context, R>) {
-        commands.ordered_children_with_node_and_context(|args, context, commands| {
+        commands.ignore_context() .ordered_children_with_node(|args, commands| {
             let height = args.score_info.height;
 
             match &args.ui_state {
@@ -187,7 +187,7 @@ impl MavericNode for MainPanel {
                                 font_size: LEVEL_HEIGHT_FONT_SIZE,
                                 color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                                 font: LEVEL_TEXT_FONT_PATH,
-                                alignment: TextAlignment::Center,
+                                justify_text: JustifyText::Center,
                                 linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                             },
                             &(),
@@ -284,7 +284,7 @@ impl MavericNode for MainPanel {
                             font_size: LEVEL_HEIGHT_FONT_SIZE,
                             color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                             font: LEVEL_TEXT_FONT_PATH,
-                            alignment: TextAlignment::Center,
+                            justify_text: JustifyText::Center,
                             linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                         },
                         &(),
@@ -457,7 +457,7 @@ impl MavericNode for StarHeights {
                 font_size: LEVEL_TEXT_FONT_SIZE,
                 color: Color::BLACK,
                 font: STAR_HEIGHT_FONT_PATH,
-                alignment: TextAlignment::Center,
+                justify_text: JustifyText::Center,
                 linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
             };
 
@@ -600,7 +600,7 @@ impl MavericNode for BeggingPanel {
                         font_size: LEVEL_TITLE_FONT_SIZE,
                         color: context.as_ref().level_text_color(),
                         font: LEVEL_TITLE_FONT_PATH,
-                        alignment: TextAlignment::Center,
+                        justify_text: JustifyText::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
                     &(),
@@ -613,7 +613,7 @@ impl MavericNode for BeggingPanel {
                         font_size: LEVEL_TEXT_FONT_SIZE,
                         color: context.level_text_color(),
                         font: LEVEL_TEXT_FONT_PATH,
-                        alignment: TextAlignment::Center,
+                        justify_text: JustifyText::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
                     &(),
@@ -655,7 +655,7 @@ impl<const ICONS: usize> MavericNode for TextPlusIcons<ICONS> {
                     font_size: args.font_size,
                     color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                     font: LEVEL_TEXT_FONT_PATH,
-                    alignment: TextAlignment::Center,
+                    justify_text: JustifyText::Center,
                     linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                 },
                 context,

@@ -101,7 +101,7 @@ pub fn panel_text_node<T: Into<String> + PartialEq + Clone + Send + Sync + 'stat
         font_size: LEVEL_TEXT_FONT_SIZE,
         color: LEVEL_TEXT_COLOR_NORMAL_MODE,
         font: LEVEL_TEXT_FONT_PATH,
-        alignment: TextAlignment::Center,
+        justify_text: JustifyText::Center,
         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
     }
 }
@@ -126,7 +126,7 @@ pub fn icon_button_node(
             font_size,
             color: BUTTON_TEXT_COLOR,
             font: ICON_FONT_PATH,
-            alignment: TextAlignment::Left,
+            justify_text: JustifyText::Left,
             linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
         },),
     }
@@ -148,7 +148,7 @@ pub fn flashing_icon_button_node(
         font_size,
         color: BUTTON_TEXT_COLOR,
         font: ICON_FONT_PATH,
-        alignment: TextAlignment::Left,
+        justify_text: JustifyText::Left,
         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
     };
 
@@ -332,10 +332,10 @@ pub fn text_button_node_with_text(
             font_size: BUTTON_FONT_SIZE,
             color,
             font: MENU_TEXT_FONT_PATH,
-            alignment: if centred {
-                TextAlignment::Center
+            justify_text: if centred {
+                JustifyText::Center
             } else {
-                TextAlignment::Left
+                JustifyText::Left
             },
             linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
         },),
@@ -422,10 +422,10 @@ pub fn text_button_node_with_text_and_image(
                 font_size: BUTTON_FONT_SIZE,
                 color: BUTTON_TEXT_COLOR,
                 font: MENU_TEXT_FONT_PATH,
-                alignment: if centred {
-                    TextAlignment::Center
+                justify_text: if centred {
+                    JustifyText::Center
                 } else {
-                    TextAlignment::Left
+                    JustifyText::Left
                 },
                 linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
             },

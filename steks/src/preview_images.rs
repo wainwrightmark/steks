@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use bevy::render::texture::CompressedImageFormats;
+use bevy::render::{render_asset::RenderAssetUsages, texture::CompressedImageFormats};
 
 use maveric::prelude::*;
 use steks_image::prelude::{Dimensions, OverlayChooser};
@@ -123,7 +123,8 @@ fn game_to_image(data: &[u8]) -> Result<Image, anyhow::Error> {
         bevy::render::texture::ImageType::Extension("png"),
         CompressedImageFormats::empty(),
         true,
-        bevy::render::texture::ImageSampler::Default
+        bevy::render::texture::ImageSampler::Default,
+        RenderAssetUsages::all()
     )?)
 }
 

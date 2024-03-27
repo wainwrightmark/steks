@@ -89,7 +89,7 @@ pub fn check_for_win<U: UITrait>(
     current_level.set_saved_data(Some(shapes));
     events.send(LevelWonEvent {
         has_not_acted: has_acted.is_has_not_acted(),
-    })
+    });
 }
 
 pub fn check_for_tower(
@@ -126,7 +126,7 @@ pub fn check_for_tower(
     //Check for contacts
     if walls.iter().any(|entity| {
         rapier_context
-            .contacts_with(entity)
+            .contact_pairs_with(entity)
             .any(|contact| contact.has_any_active_contacts())
     }) {
         debug!("Wall Contact Found");
@@ -136,7 +136,7 @@ pub fn check_for_tower(
 
     if wall_sensors.iter().any(|entity| {
         rapier_context
-            .intersections_with(entity)
+            .intersection_pairs_with(entity)
             .any(|contact| contact.2) //.any(|contact|contact.2)
     }) {
         debug!("Wall Intersection Found");

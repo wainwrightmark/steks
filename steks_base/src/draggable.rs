@@ -92,7 +92,7 @@ pub fn drag_end(
                 *shape_component = if padlock_resource.has_entity(entity) {
                     let collides_with_wall =
                         rapier_context
-                            .intersections_with(entity)
+                            .intersection_pairs_with(entity)
                             .any(|(c1, c2, intersect)| {
                                 intersect && (walls.contains(c1) || walls.contains(c2))
                             });

@@ -333,7 +333,7 @@ impl MavericNode for PBPreview {
                         font_size: LEVEL_HEIGHT_FONT_SIZE,
                         color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                         font: LEVEL_TEXT_FONT_PATH,
-                        alignment: TextAlignment::Center,
+                        justify_text: JustifyText::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     },
                     &(),

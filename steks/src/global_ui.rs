@@ -194,19 +194,19 @@ impl MavericRootChildren for GlobalUiRoot {
                 }
 
                 let carousel = match menu_state {
-                    MenuPage::Main => Carousel::new(0, get_carousel_child, transition_duration),
-                    MenuPage::Settings => Carousel::new(1, get_carousel_child, transition_duration),
+                    MenuPage::Main => Carousel::new(0, get_carousel_child, transition_duration, Ease::CubicInOut),
+                    MenuPage::Settings => Carousel::new(1, get_carousel_child, transition_duration, Ease::CubicInOut),
                     MenuPage::Accessibility => {
-                        Carousel::new(2, get_carousel_child, transition_duration)
+                        Carousel::new(2, get_carousel_child, transition_duration, Ease::CubicInOut)
                     }
 
                     MenuPage::Level { page } => {
-                        Carousel::new((page + 3) as u32, get_carousel_child, transition_duration)
+                        Carousel::new((page + 3) as u32, get_carousel_child, transition_duration, Ease::CubicInOut)
                     }
                     MenuPage::PBs { level } => Carousel::new(
                         (level + 100) as u32,
                         get_carousel_child,
-                        transition_duration,
+                        transition_duration, Ease::CubicInOut
                     ),
                 };
 

@@ -53,7 +53,7 @@ async fn read_clipboard(writer: AsyncEventWriter<ChangeLevelEvent>) {
                 ChangeLevelEvent::Custom { level }
             }
         };
-        writer.send_async(cle).await.unwrap()
+        writer.send(cle).unwrap();
     }
 
 }

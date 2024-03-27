@@ -10,25 +10,25 @@ embed-resource = "2.4"
 [dependencies]
 rand = "0.8.5"
 itertools = "0.12"
-bevy_prototype_lyon = { version = "0.10" }
-bevy_rapier2d = "0.23"
+bevy_prototype_lyon = { version = "0.11" }
+bevy_rapier2d = "0.25"
 
-strum = { version = "0.25", features = ["derive"] }
+strum = { version = "0.26", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
-bevy_pkv = { version = "0.9" }
+bevy_pkv = { version = "0.10" }
 
 serde = { version = "1", features = ["derive", "rc"] }
 anyhow = "1"
-base64 = "0.21"
-geometrid = { version = "0.6", features = ["glam"] }
+base64 = "0.22"
+geometrid = { version = "0.7", features = ["glam"] }
 serde_with = "3"
-reqwest = { version = "0.11", default-features = false, features = ["json"] }
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
 capacitor_bindings = { features = [
   "web",
   "rate_plugin",
   "game_plugin",
-], version = "0.10", optional = true }
-bevy_embedded_assets = "0.9"
+], version = "0.11", optional = true }
+bevy_embedded_assets = "0.10"
 lazy_static = "1.4"
 serde_yaml = "0.9"
 
@@ -36,18 +36,17 @@ steks_common = { path = "../steks_common" }
 steks_base = { path = "../steks_base" }
 steks_image = { path = "../steks_image" }
 nice_bevy_utils = { git = "https://github.com/wainwrightmark/nice_bevy_utils", features = [
-  "async-channel",
   "bevy_pkv",
   "bevy_ui",
 ] }
-bevy_screen_diagnostics = "0.4"
+bevy_screen_diagnostics = "0.5"
 maveric = { git = 'https://github.com/wainwrightmark/maveric', features = [
-  "widgets",
+  "widgets", "derive", "bevy_ui", "bevy_text"
 ] }
 serde_repr = "0.1"
 enumset = { version = "1", features = ["serde"] }
 resvg = { version = "0.36", default-features = false, features = ["text"] }
-steamworks = { version = "0.10", optional = true }
+steamworks = { version = "0.11", optional = true }
 
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -79,7 +78,7 @@ test-case = "3"
 
 
 [dependencies.bevy]
-version = "0.12"
+version = "0.13"
 
 
 # Disable the default features if there are any that you do not want

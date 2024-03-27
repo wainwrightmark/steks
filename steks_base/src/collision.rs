@@ -34,7 +34,7 @@ fn highlight_voids(
 
     for (entity, mut stroke, mut shape, children) in voids.iter_mut() {
         let has_contact = rapier_context
-            .intersections_with(entity)
+            .intersection_pairs_with(entity)
             .any(|contact| contact.2);
 
         if has_contact {
@@ -75,7 +75,7 @@ fn display_collision_markers(
         .filter(|x| x.2.show_marker(current_level.as_ref()))
     {
         for contact in rapier_context
-            .contacts_with(sensor_entity)
+            .contact_pairs_with(sensor_entity)
             .filter(|contact| contact.has_any_active_contacts())
         {
             let mut index = 0;

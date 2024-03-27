@@ -24,7 +24,7 @@ pub struct InputSettings {
 }
 
 pub fn mousebutton_listener(
-    mouse_button_input: Res<Input<MouseButton>>,
+    mouse_button_input: Res<ButtonInput<MouseButton>>,
     primary_window_query: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform)>,
     mut ew_drag_start: EventWriter<DragStartEvent>,
@@ -33,9 +33,9 @@ pub fn mousebutton_listener(
 ) {
     if mouse_button_input.just_released(MouseButton::Left) {
         debug!("Sent mouse drag end event");
-        ew_drag_end.send(DragEndingEvent {
+        let _ = ew_drag_end.send(DragEndingEvent {
             drag_source: DragSource::Mouse,
-        })
+        });
     } else if mouse_button_input.just_pressed(MouseButton::Left) {
         if let Some(position) = get_cursor_position(primary_window_query, q_camera) {
             debug!("Sent mouse left just pressed event {position}");
@@ -50,7 +50,7 @@ pub fn mousebutton_listener(
             ew_drag_move.send(DragMoveEvent {
                 drag_source: DragSource::Mouse,
                 new_position: position,
-            })
+            });
         }
     }
 }
@@ -141,23 +141,21 @@ pub fn keyboard_listener(
 ) {
     //Note keyboard doesn't work during mobile emulation in browser dev tools I think
     'events: for ev in keyboard_events.read() {
-        if let Some(code) = ev.key_code {
-            if let bevy::input::ButtonState::Pressed = ev.state {
-                let positive = match code {
-                    KeyCode::E => false,
-                    KeyCode::Q => true,
-                    _ => continue 'events,
-                };
-                let signum = if positive {1.0} else{-1.0};
+        if let bevy::input::ButtonState::Pressed = ev.state {
+            let positive = match ev.key_code {
+                KeyCode::KeyE => false,
+                KeyCode::KeyQ => true,
+                _ => continue 'events,
+            };
+            let signum = if positive {1.0} else{-1.0};
 
-                //recent.update(time.elapsed(), positive);
-                let delta = ONE_THIRTY_SECOND * signum;// recent.angle();
+            //recent.update(time.elapsed(), positive);
+            let delta = ONE_THIRTY_SECOND * signum;// recent.angle();
 
-                rotate_events.send(RotateEvent {
-                    delta,
-                    snap_resolution: Some(ONE_THIRTY_SECOND),
-                });
-            }
+            rotate_events.send(RotateEvent {
+                delta,
+                snap_resolution: Some(ONE_THIRTY_SECOND),
+            });
         }
     }
 }

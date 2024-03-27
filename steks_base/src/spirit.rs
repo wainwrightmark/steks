@@ -142,7 +142,7 @@ fn show_spirit_lines(
 
 fn hide_spirit_lines(
     removals: RemovedComponents<TouchDragged>,
-    touch_dragged_query: Query<With<TouchDragged>>,
+    touch_dragged_query: Query<(), With<TouchDragged>>,
     mut spirit_lines_query: Query<&mut Visibility, (With<SpiritLine>, Without<TouchDragged>)>,
 ) {
     if !removals.is_empty() && touch_dragged_query.is_empty() {

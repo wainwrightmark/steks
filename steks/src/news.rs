@@ -89,7 +89,7 @@ async fn get_latest_news_async(writer: AsyncEventWriter<NewsItem>) {
         }
     };
 
-    match writer.send_async(item).await {
+    match writer.send(item) {
         Ok(()) => {
             info!("Latest news sent");
         }
@@ -157,7 +157,8 @@ fn create_image_bytes(
         bevy::render::texture::ImageType::Extension("png"),
         CompressedImageFormats::empty(),
         true,
-        bevy::render::texture::ImageSampler::Default
+        bevy::render::texture::ImageSampler::Default,
+        bevy::render::render_asset::RenderAssetUsages::all()
     )?;
 
     let handle: Handle<Image> = asset_server.get_handle(NEWS_IMAGE_HANDLE).ok_or(anyhow!("Could not get news image handle"))?;

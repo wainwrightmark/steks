@@ -1,12 +1,11 @@
 use bevy::{
-    ecs::query::ReadOnlyWorldQuery,
-    prelude::{Query, Transform},
+    ecs::query::QueryFilter, prelude::{Query, Transform}
 };
 use itertools::Itertools;
 
 use crate::prelude::*;
 
-pub fn shapes_vec_from_query<F: ReadOnlyWorldQuery>(
+pub fn shapes_vec_from_query<F: QueryFilter>(
     shapes_query: Query<(&ShapeIndex, &Transform, &ShapeComponent, &Friction), F>,
 ) -> ShapesVec {
     let shapes: Vec<EncodableShape> = shapes_query

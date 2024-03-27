@@ -67,8 +67,7 @@ pub fn refresh_wr_data(hash: u64, writer: AsyncEventWriter<LeaderboardDataEvent>
     spawn_and_run(async move {
         let data_event = get_leaderboard_data(hash).await;
         writer
-            .send_async(data_event)
-            .await
+            .send(data_event)
             .expect("Leaderboard event channel closed prematurely");
     });
 }

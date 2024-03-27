@@ -139,7 +139,6 @@ pub fn setup_app(app: &mut App) {
         .insert_resource(Insets::default())
         .insert_resource(create_demo_resource())
         .insert_resource(bevy::winit::WinitSettings {
-            return_from_run: false,
             focused_mode: bevy::winit::UpdateMode::Continuous,
             unfocused_mode: bevy::winit::UpdateMode::Reactive {
                 wait: Duration::from_secs(60),

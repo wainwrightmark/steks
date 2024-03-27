@@ -22,7 +22,6 @@ pub mod prelude {
 
     pub use bevy_rapier2d::prelude::*;
     pub use std::time::Duration;
-    pub use steks_common::prelude::*;
     pub use steks_base::prelude::*;
 
     pub use crate::button::*;
@@ -30,7 +29,6 @@ pub mod prelude {
     pub use crate::global_ui::*;
     pub use crate::level_text_panel::*;
     pub use crate::level_ui::*;
-     pub use crate::ui::*;
 
     #[cfg(target_arch = "wasm32")]
     pub use crate::wasm::*;

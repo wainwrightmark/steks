@@ -61,24 +61,24 @@ pub struct TouchDragged;
 
 fn show_shadows(
     added: Query<(), Added<TouchDragged>>,
-    mut shadows: Query<(&mut Visibility, With<Shadow>)>,
+    mut shadows: Query<&mut Visibility, With<Shadow>>,
     settings: Res<GameSettings>,
 ) {
     if !added.is_empty() && settings.show_touch_outlines {
         for mut shadow in shadows.iter_mut() {
-            *shadow.0 = Visibility::Inherited;
+            *shadow = Visibility::Inherited;
         }
     }
 }
 
 fn hide_shadows(
     removals: RemovedComponents<TouchDragged>,
-    query: Query<With<TouchDragged>>,
-    mut shadows: Query<(&mut Visibility, With<Shadow>)>,
+    query: Query<(), With<TouchDragged>>,
+    mut shadows: Query<&mut Visibility, With<Shadow>>,
 ) {
     if !removals.is_empty() && query.is_empty() {
         for mut shadow in shadows.iter_mut() {
-            *shadow.0 = Visibility::Hidden;
+            *shadow = Visibility::Hidden;
         }
     }
 }

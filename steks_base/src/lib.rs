@@ -69,7 +69,6 @@ pub mod prelude {
     pub use crate::level_transition::*;
     pub use crate::padlock::*;
     pub use crate::prediction::*;
-    pub use crate::prediction::*;
     pub use crate::records::*;
     pub use crate::settings::*;
     pub use crate::shape_component::*;

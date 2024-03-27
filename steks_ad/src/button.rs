@@ -37,7 +37,7 @@ fn icon_button_system(
 
         if interaction == &Interaction::Pressed {
             match button.button_action {
-                NextLevel => change_level_events.send(ChangeLevelEvent::Next),
+                NextLevel => {change_level_events.send(ChangeLevelEvent::Next);},
 
                 MinimizeSplash => {
                     *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized);
@@ -86,7 +86,7 @@ fn text_button_system(
                     *global_ui_state = GlobalUiState::MenuClosed(GameUIState::Minimized)
                 }
 
-                TextButton::Begging => change_level_events.send(ChangeLevelEvent::Begging),
+                TextButton::Begging => {change_level_events.send(ChangeLevelEvent::Begging);},
 
                 TextButton::SetArrows(arrows) => settings.show_arrows = arrows,
                 TextButton::SetTouchOutlines(outlines) => settings.show_touch_outlines = outlines,

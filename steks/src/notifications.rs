@@ -39,7 +39,7 @@ async fn setup_notifications_async(writer: AsyncEventWriter<ChangeLevelEvent>) {
             bevy::log::info!("Clicked Action");
 
             writer
-                .send_blocking(ChangeLevelEvent::StartChallenge)
+                .send(ChangeLevelEvent::StartChallenge)
                 .expect("Channel closed prematurely");
         }
     };

@@ -299,7 +299,7 @@ pub fn button_node(marker: ButtonMarker) -> impl MavericNode<Context = ()> {
             font_size: BUTTON_FONT_SIZE,
             color,
             font: MENU_TEXT_FONT_PATH,
-            alignment: TextAlignment::Center,
+            justify_text: JustifyText::Center,
             linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
         },),
     }

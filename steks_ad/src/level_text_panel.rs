@@ -48,13 +48,14 @@ impl MavericNode for LevelTextPanel {
                         font_size: LEVEL_NUMBER_FONT_SIZE,
                         color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                         font: LEVEL_NUMBER_FONT_PATH,
-                        alignment: TextAlignment::Center,
+                        justify_text: JustifyText::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     }
                     .with_transition_in::<TextColorLens<0>>(
                         initial_color,
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
+                        None
                     ),
                     &(),
                 );
@@ -68,13 +69,14 @@ impl MavericNode for LevelTextPanel {
                         font_size: LEVEL_TITLE_FONT_SIZE,
                         color: LEVEL_TEXT_COLOR_NORMAL_MODE,
                         font: LEVEL_TITLE_FONT_PATH,
-                        alignment: TextAlignment::Center,
+                        justify_text: JustifyText::Center,
                         linebreak_behavior: bevy::text::BreakLineOn::NoWrap,
                     }
                     .with_transition_in::<TextColorLens<0>>(
                         initial_color,
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
+                        None
                     ),
                     &(),
                 );
@@ -88,6 +90,7 @@ impl MavericNode for LevelTextPanel {
                         initial_color,
                         destination_color,
                         Duration::from_secs_f32(FADE_SECS),
+                        None
                     ),
                     &(),
                 )

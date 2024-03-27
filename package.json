@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "@capacitor/android": "^5.2.3",
+    "@capacitor/app": "^5.0.3",
+    "@capacitor/clipboard": "^5.0.5",
+    "@capacitor/core": "^5.2.3",
+    "@capacitor/device": "^5.0.4",
+    "@capacitor/ios": "^5.2.3",
+    "@capacitor/local-notifications": "^5.0.4",
+    "@capacitor/share": "^5.0.4",
+    "@capacitor/splash-screen": "^5.0.4",
+    "@capacitor/status-bar": "^5.0.4",
+    "@capacitor/toast": "^5.0.6",
+    "@netlify/functions": "^2.6.0",
+    "@openforge/capacitor-game-connect": "^5.0.2",
+    "capacitor-rate-app": "^4.0.3",
+    "cordova-plugin-android-notch": "^1.0.3",
+    "netlify-cli": "^15.9.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^5.2.3"
+  }
+}

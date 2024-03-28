@@ -2,17 +2,27 @@ import type { Context } from "@netlify/functions"
 import { getStore } from "@netlify/blobs";
 
 
+function set_headers(response : Response){
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', "GET, POST");
+    response.headers.set('Access-Control-Allow-Headers', '*');
+}
+
 export default async (req: Request, context: Context) => {
 
     const url = new URL(req.url);
     const command = url.searchParams.get("command");
     const store = getStore({ name: "leaderboard", consistency: "strong" });
 
+
     switch (command?.toLowerCase()){
         case "get": {
             //we apparently don't ever use this
 
-            return new Response("");
+            const response = new Response("");
+
+            set_headers(response);
+            return response;
 
         }
 
@@ -26,7 +36,11 @@ export default async (req: Request, context: Context) => {
                     return new Response(`${hash} 0.0 0`);
                 }
 
-                return new Response(`${hash} ${data}`);
+                const response = new Response(`${hash} ${data}`);
+
+                set_headers(response);
+
+                return response;
             }
             else{
                 throw new Error("Could not get hash");
@@ -59,11 +73,13 @@ export default async (req: Request, context: Context) => {
                 if (height_f > prev_height_f){
 
                     await store.set(hash, `${height} ${blob}`);
-                    return new Response();
                 }
-                else{
-                    return new Response();
-                }
+
+                const response = new Response();
+
+                set_headers(response);
+
+                return response;
             }
             else{
                 throw new Error("Could not get hash");

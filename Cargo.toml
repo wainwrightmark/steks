@@ -1,14 +1,15 @@
 [workspace]
 members = [
-"steks",
-"steks_common",
-"steks_ad",
-"steks_image",
-"steks_base",
-"netlify/functions/image",
-"netlify/functions/leaderboard",
-"ad_postbuild",
-"level_editor"
+    "steks",
+    "steks_common",
+    "steks_ad",
+    "steks_image",
+    "steks_base",
+    "netlify/functions/image",
+    "netlify/functions/leaderboard",
+    "ad_postbuild",
+    "level_editor",
+    "leaderboard_migrate",
 ]
 default-members = ["steks"]
 resolver = "2" # Important! wgpu/Bevy needs this!

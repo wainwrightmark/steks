@@ -6,7 +6,6 @@ members = [
     "steks_image",
     "steks_base",
     "netlify/functions/image",
-    "netlify/functions/leaderboard",
     "ad_postbuild",
     "level_editor",
     "leaderboard_migrate",

@@ -14,8 +14,7 @@
     "@netlify/functions": "^2.6.0",
     "@openforge/capacitor-game-connect": "^5.0.2",
     "capacitor-rate-app": "^4.0.3",
-    "cordova-plugin-android-notch": "^1.0.3",
-    "netlify-cli": "^15.9.1"
+    "cordova-plugin-android-notch": "^1.0.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^5.2.3"

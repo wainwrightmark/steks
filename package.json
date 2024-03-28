@@ -11,10 +11,11 @@
     "@capacitor/splash-screen": "^5.0.4",
     "@capacitor/status-bar": "^5.0.4",
     "@capacitor/toast": "^5.0.6",
-    "@netlify/functions": "^2.6.0",
     "@openforge/capacitor-game-connect": "^5.0.2",
     "capacitor-rate-app": "^4.0.3",
-    "cordova-plugin-android-notch": "^1.0.3"
+    "cordova-plugin-android-notch": "^1.0.3",
+    "@netlify/blobs": "^7.0.1",
+    "@netlify/functions": "^2.6.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^5.2.3"
